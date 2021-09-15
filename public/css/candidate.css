@@ -1,0 +1,90 @@
+.debtors-frame{
+    height: 250px;
+    overflow-y:scroll;
+}
+.debtors-table-frame{
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+.dataTables_processing{
+    font-weight: bold;
+    color:red;
+    font-size: 20px;
+}
+#candidateTable,#debtoreventsTable{
+    font-size: 12px;
+}
+.bootstrap-select:not([class*="col-"]):not([class*="form-control"]):not(.input-group-btn){
+	width:448px;
+}
+#btn-modal2 {
+	width: 90px;
+	height: 30px;
+	font-weight: bold;
+	margin: 20px 0;
+}
+.select_candidat {
+	width: 90px;
+	height: 23px;
+}
+.myform-control {
+	display: block;
+	width: 100%;
+	height: 34px;
+	padding: 6px 12px;
+	font-size: 14px;
+	line-height: 1.42857143;
+	color: #555555;
+	background-color: #ffffff;
+	background-image: none;
+	border: 1px solid #cccccc;
+	border-radius: 4px;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+}
+#candidateEventsFilter{
+	width:700px;
+}
+#btn-create {
+	margin: 20px 10px 0 0;
+	height: 30px;
+	width: 100px;
+	font-weight: bold;
+	line-height: 2;
+}
+span.tbl-btn {
+	padding: 5px 5px 9px 5px;
+}
+a.tbl-btn {
+	margin: 2px;
+}
+#btn-excel {
+	margin: 20px 0 0 10px;
+	height: 30px;
+	width: 80px;
+	font-weight: bold;
+	line-height: 2.4;
+}
+#btn-modal {
+	margin: 20px 0 0 10px;
+	height: 30px;
+	width: 90px;
+	font-weight: bold;
+	line-height: 2.4;
+}
+.redLine {
+    background-color: red;
+}
+.yellowLine {
+    background-color: #fcff76;
+	
+}
+.greenLine {
+    background-color: #2ca12ccc;
+}
+.candidatewindow{
+	height:380px;
+}
+.panel-body{
+overflow-x: scroll;
+}

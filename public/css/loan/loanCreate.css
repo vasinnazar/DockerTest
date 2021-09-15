@@ -1,0 +1,29 @@
+.loan-step{
+    padding: 2em;
+}
+h4{
+    /*display: inline-block;*/
+}
+/*.loan-step .row{
+    padding: 1em 0.5em;
+}
+.loan-step .row:nth-child(even){
+    background-color: #f6f6f6;
+}*/
+.not-active {
+   pointer-events: none;
+   cursor: default;
+}
+input::-webkit-calendar-picker-indicator{
+    display: none;
+}
+input[type="date"]::-webkit-input-placeholder{ 
+    visibility: hidden !important;
+}
+.error-num-badge{
+    background-color: red !important;
+    color: white !important;
+}
+.nav-wizard a:hover{
+    background-color: rgba(0,0,0,0) !important;
+}
