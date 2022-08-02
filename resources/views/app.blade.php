@@ -53,7 +53,8 @@
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
         <link rel="stylesheet" href="{{ asset('css/form.css') }}">
         <link rel="stylesheet" href="{{ asset('/css/style.css') }}">
-        <link rel="stylesheet" href="{{ asset('/css/ajax-loader.css') }}">        
+        <link rel="stylesheet" href="{{ asset('/css/ajax-loader.css') }}">
+        <link rel="stylesheet" href="{{ asset('/css/infinity.css') }}">
         <!--КОНЕЦ: ОБЩИЕ СТИЛИ-->
 
         <!--индивидуальные стили для страниц-->
@@ -68,6 +69,7 @@
         <!--<script src="{{ asset('js/libs/bootstrap-modal/js/bootstrap-modalmanager.js') }}"></script>-->
         <script type="text/javascript" src="{{asset('js/libs/cdn/jquery-ui.js')}}"></script>
         <script type="text/javascript" src="{{  URL::asset('js/libs/jquery.mask.min.js') }}"></script>
+        <script type="text/javascript" src="{{  URL::asset('js/libs/jquery.maskedinput.min.js') }}"></script>
         <script type="text/javascript" src="{{  URL::asset('js/libs/bs-datepicker/js/bootstrap-datepicker.min.js') }}"></script>      
         <script type="text/javascript" src="{{  URL::asset('js/libs/bs-datepicker/locales/bootstrap-datepicker.ru.min.js') }}"></script>
         <!--кладр-->
@@ -97,6 +99,7 @@
         <script type="text/javascript" src="{{ asset('js/jquery.mymoney.js') }}"></script>
         <script type="text/javascript" src="{{ asset('js/libs/js.cookie.js') }}"></script>
         <!--КОНЕЦ: БИБЛИОТЕКИ-->
+        <script type="module" src="{{asset('js/infinityController.js')}}"></script>
 
         <!--ОБЩИЕ СКРИПТЫ-->
         <script>
@@ -522,6 +525,20 @@ $(document).ready(function () {
                 </div>
             </div>
         </div>
+        @if (Auth::check())
+        <script src="{{asset('js/libs/socket.io.js')}}"></script>
+        <script type="module">
+            import Echo from '{{asset('js/libs/echo.js')}}';
+            window.Echo = new Echo({
+                broadcaster: 'socket.io',
+                host: window.location.hostname + ':6001',
+                namespace: '',
+            });
+            $.infinityController.init(<?php echo Auth::user()->infinity_extension; ?>);
+            $.infinityController.closingModalsInit(<?php echo Auth::user()->infinity_extension; ?>);
+        </script>
+        @endif
+        
         @include('elements.chatElements')
         @include('elements.chatDebtorOnSubdivision')
         @include('elements.chatDebtorLossCalls')
@@ -529,6 +546,7 @@ $(document).ready(function () {
         @include('elements.manualAddPromocodeModal')
         @include('elements.worktimeModal')
         @include('elements.errorModal')
+        @include('infinity.incoming_call')
         <div class="modal fade" id="uiBlockerModal" tabindex="-1" role="dialog"  aria-hidden="true">
             <div class="modal-dialog" style="width: 200px">
                 <div class="modal-content">

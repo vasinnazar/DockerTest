@@ -13,6 +13,7 @@ use App\User;
 use Carbon\Carbon;
 use App\Message;
 use App\Passport;
+use App\DebtorsSiteLoginLog;
 use Log;
 
 class FromSellingARMController extends Controller {
@@ -32,10 +33,16 @@ class FromSellingARMController extends Controller {
 
             $subdivision_name = (!is_null($subdivision)) ? $subdivision->name : 'не определена';
             $subdivision_name_id = (!is_null($subdivision)) ? $subdivision->name_id : '-';
+            $subdivision_phone = (!is_null($subdivision)) ? $subdivision->telephone : '-';
+            
+            if (is_null($subdivision_phone)) {
+                $subdivision_phone = '-';
+            }
         } else {
             $spec_name = 'не определен';
             $subdivision_name = 'не определена';
             $subdivision_name_id = '-';
+            $subdivision_phone = '-';
         }
 
         $debtor = Debtor::where('customer_id_1c', $input['customer_id_1c'])->where('loan_id_1c', $input['loan_id_1c'])->first();
@@ -52,7 +59,7 @@ class FromSellingARMController extends Controller {
                 $fio = (!is_null($passport)) ? $passport->fio : 'Имя Не Найдено';
 
                 $msg = new Message();
-                $msg->text = 'Должник <a href="/debtors/debtorcard/' . $debtor->id . '" target="_blank">' . $fio . '</a> пришел на точку: ' . $subdivision_name . '<br>Код подразделения: ' . $subdivision_name_id . '<br>Специалист: ' . $spec_name;
+                $msg->text = 'Должник <a href="/debtors/debtorcard/' . $debtor->id . '" target="_blank">' . $fio . '</a> пришел на точку: ' . $subdivision_name . '<br>Код подразделения: ' . $subdivision_name_id . '<br>Телефон: ' . $subdivision_phone . '<br>Специалист: ' . $spec_name;
                 $msg->recepient_id = $userTo->id;
                 $msg->type = $pfx_loan . $input['loan_id_1c'];
                 $msg->message_type = $pfx_loan;
@@ -72,6 +79,21 @@ class FromSellingARMController extends Controller {
         $debtor = Debtor::where('customer_id_1c', $customer_id_1c)->where('is_debtor', 1)->first();
 
         if (!is_null($debtor)) {
+
+            if ($debtor->str_podr == '000000000006' || $debtor->str_podr == '000000000007') {
+                $debtorItems = Debtor::where('customer_id_1c', $customer_id_1c)->where('is_debtor', 1);
+                
+                $siteLog = new DebtorsSiteLoginLog();
+                
+                $siteLog->customer_id_1c = $customer_id_1c;
+                $siteLog->str_podr = $debtor->str_podr;
+                $siteLog->sum_loans_debt = $debtorItems->sum('sum_indebt');
+                $siteLog->debt_loans_count = $debtorItems->count();
+                $siteLog->debt_group_id = $debtor->debt_group_id;
+                
+                $siteLog->save();
+            }
+
             if ($debtor->str_podr == '000000000006') {
                 $pfx_loan = 'sn';
             } else if ($debtor->str_podr == '000000000007') {
@@ -93,7 +115,7 @@ class FromSellingARMController extends Controller {
                 $msg->recepient_id = $userTo->id;
                 $msg->type = $pfx_loan . $debtor->loan_id_1c;
                 $msg->message_type = $pfx_loan;
-                
+
 
                 $msg->save();
 
@@ -125,6 +147,7 @@ class FromSellingARMController extends Controller {
                         $debtors = Debtor::where('customer_id_1c', $customer_id_1c)->where('is_debtor', 1)->get();
                         foreach ($debtors as $d) {
                             $d->debt_group_id = 2;
+                            $d->refresh_date = $current_time;
                             $d->save();
                         }
                         $debtor->debt_group_id = 2;
@@ -158,9 +181,9 @@ class FromSellingARMController extends Controller {
         $amount = $req->get('amount', false);
         $card_number = $req->get('card_number', false);
         $payment_date = $req->get('payment_date', false);
-        
+
         Log::info('FromSellingARMController withoutAcceptEvent: input ', [$req->input()]);
-        
+
         if (!$payment_date) {
             $payment_date = date('Y-m-d H:i:s', time());
         }
@@ -189,11 +212,11 @@ class FromSellingARMController extends Controller {
                 $event->debtor_id_1c = $debtor->debtor_id_1c;
                 $event->user_id_1c = 'Офис                                              ';
                 $event->refresh_date = $current_time;
-                
+
                 $event->save();
             }
         }
-        
+
         return 1;
     }
 

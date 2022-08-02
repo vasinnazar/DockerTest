@@ -21,7 +21,15 @@
                                         @if ($debtor->is_bigmoney == 1)
                                         <option value="{{ $contractforms['requirement_personal_big_money'] }}">Требование</option>
                                         @else
+                                        @if (is_array($arDataCcCard))
+                                        @if (time() > strtotime($arDataCcCard['data']['loan_end_at']))
+                                        <option value="{{ $contractforms['trebovanie_personal_cc'] }}">Требование ККЗ срок договора истек</option>
+                                        @else
+                                        <option value="{{ $contractforms['trebovanie_personal_cc_60'] }}">Требование ККЗ срок договора не истек</option>
+                                        @endif
+                                        @else
                                         <option value="{{ $contractforms['requirement_personal'] }}">Требование</option>
+                                        @endif
                                         @endif
                                     </select>
                                 </td>

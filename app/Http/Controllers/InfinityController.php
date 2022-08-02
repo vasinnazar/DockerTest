@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Redis;
 use Log;
 use DB;
+use App\Events\Infinity\IncomingCallEvent;
+use App\Events\Infinity\ClosingModalsEvent;
 
 class InfinityController extends BasicController {
 
@@ -21,6 +23,25 @@ class InfinityController extends BasicController {
         //    file_get_contents(str_replace('192.168.1.215','192.168.1.60/armff.ru',$req->fullUrl()));
         //} catch (Exception $ex) {
         //}
+    }
+
+    public function incomingCall(Request $request) {
+        //TODO FormRequest
+        //Log::info("InfinityController.incomingCall data", ['req' => $request]);
+        //die();
+        if ($request->get('State') === 'Ringing' && is_numeric($request->get('Extension'))) {
+            $user = \App\User::where('infinity_extension', $request->get('Extension'))->first();
+            if (!is_null($user) && $user->hasRole('debtors_remote')) {
+                //Log::info("InfinityController.incomingCall ", ['request' => $request]);
+                event(new IncomingCallEvent(
+                        $request->get('Number'), $request->get('IDCall'), $request->get('Extension')
+                ));
+            }
+        }
+    }
+    
+    public function closingModals(Request $request) {
+        event(new ClosingModalsEvent($request->get('user_extension')));
     }
 
     public function main(Request $req) {
@@ -104,20 +125,20 @@ class InfinityController extends BasicController {
             Log::info("InfinityController.getDebtorByPhone customer is null", ['tel' => $telephone, 'res' => 0]);
             return null;
         }
-        /*$loan = \App\Loan::leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-                ->where('claims.customer_id', $customer->id)
-                ->orderBy('loans.created_at', 'desc')
-                ->select(['loans.id_1c'])
-                ->first();
-        if (is_null($loan)) {
-            //logger('InfinityController.getDebtorByPhone loan is null', ['tel' => $telephone, 'res' => 0]);
-            Log::info("InfinityController.getDebtorByPhone loan is null", ['tel' => $telephone, 'res' => 0]);
-            return null;
-        }*/
+        /* $loan = \App\Loan::leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
+          ->where('claims.customer_id', $customer->id)
+          ->orderBy('loans.created_at', 'desc')
+          ->select(['loans.id_1c'])
+          ->first();
+          if (is_null($loan)) {
+          //logger('InfinityController.getDebtorByPhone loan is null', ['tel' => $telephone, 'res' => 0]);
+          Log::info("InfinityController.getDebtorByPhone loan is null", ['tel' => $telephone, 'res' => 0]);
+          return null;
+          } */
         return \App\Debtor::where('customer_id_1c', $customer->id_1c)
-                ->where('is_debtor', 1)
-                ->orderBy('created_at', 'desc')
-                ->first();
+                        ->where('is_debtor', 1)
+                        ->orderBy('created_at', 'desc')
+                        ->first();
     }
 
     public function getDebtorTimeByPhone($telephone) {
@@ -189,6 +210,22 @@ class InfinityController extends BasicController {
         }
 
         return 0;
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function openPhoneCall(Request $request) {
+        //TODO FormRequest
+        /** @var InfinityService $infinityService */
+        $infinityService = app(InfinityService::class);
+        $call_id = $infinityService->createPhoneCall(
+                $request->get('fio'), $request->get('number'), $request->get('money')
+        );
+//        $infinityService->acceptCall($request->get('user_extension'), $request->get('call_id'));
+        return response()->json([
+                    'phone_call_id' => $call_id
+        ]);
     }
 
 }

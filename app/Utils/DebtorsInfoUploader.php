@@ -448,6 +448,7 @@ class DebtorsInfoUploader {
         if (($handle = fopen($this->getStoragePath() . $filename, 'r')) !== false) {
             while (($data = fgetcsv($handle, 0, "|")) !== FALSE) {
                 $claim = Claim::where('id_1c', $data[5])->first();
+                Log::info('DebtorInfoUploader.uploadLoans get claim', ['data' => $data, 'claim_id_1c' => $data[5]]);
                 if (is_null($claim) && !empty($data[5])) {
                     Log::info('DebtorInfoUploader.uploadLoans claim is null', ['data' => $data, 'claim_id_1c' => $data[5]]);
                     continue;

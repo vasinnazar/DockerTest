@@ -34,8 +34,14 @@
             <a href="{{url('addressdoubles/index')}}" class="btn btn-default">Дубли адресов</a>
             <input type="button" class="btn btn-default" value="Зачет оплат" data-target='#userPaymentsModal' data-toggle='modal' />
             <a class="btn btn-default" href="{{url('reports/paysheet')}}" target="_blank">Расчетный лист</a>
-            @if ($user_id == 69 || $user_id == 916 || $user_id == 885)
+            @if ($user_id == 69 || $user_id == 916 || $user_id == 885 || $user_id == 3448 || $user_id == 970 || $user_id == 3465)
             <a href="{{url('debtor/recurrent/massquerytask')}}"  class="btn btn-default">Массовое списание</a>
+            @endif
+            @if ($user_id == 69 || $user_id == 916)
+            <a href="{{url('debtor/recurrent/massquerytask?type=olv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
+            @endif
+            @if ($user_id == 69 || $user_id == 3448)
+            <a href="{{url('debtor/recurrent/massquerytask?type=ouv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
             @endif
             @if (!$personalGroup['isGroup'])
             <a href="{{url('usertests/index')}}" class="btn btn-default" target="_blank">Тесты</a>
@@ -57,6 +63,7 @@
                 @else
                 <li><a href="{{url('debtors/export/postregistry?mode=uv')}}">Реестр писем</a></li>
                 @endif
+                <li><a href="#" data-toggle="modal" data-target="#debtorsSiteLoginReportModal">Логин на сайт</a></li>
                 @endif
                 @if ($user_id == 817 || $user_id == 69)
                 <li><a href="{{url('/usertests/editor/index')}}">Тесты</a></li>
@@ -316,6 +323,7 @@
     </div>
 </div>
 @include('elements.debtors.userPaymentsModal')
+@include('elements.debtors.debtorsSiteLoginReportModal')
 @stop
 @section('scripts')
 <script src="{{asset('js/debtors/debtorsController.js?7')}}"></script>

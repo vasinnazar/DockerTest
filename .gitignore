@@ -4,6 +4,7 @@
 /node_modules
 /public/hot
 /public/storage
+/storage/app/tplsForPdf/tmp/
 /storage/*.key
 /vendor
 .idea

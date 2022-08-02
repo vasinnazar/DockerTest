@@ -179,16 +179,20 @@ class ConfigController extends BasicController {
 
         set_time_limit(0);
         
-        /*$dh = \App\DebtorTransferHistory::where('operation_user_id', 916)
-                ->where('created_at', '>=', '2020-12-21 09:00:00')
-                ->where('responsible_user_id_1c_after', '')
+        /*$dh = \App\DebtorTransferHistory::where('row', 59310)
+                ->where('responsible_user_id_1c_after', 'Еричев Сергей                                ')
+                ->where('responsible_user_id_1c_before', '<>', 'Еричев Сергей                                ')
                 ->get();
         
         foreach ($dh as $dhi) {
             $debtor = \App\Debtor::where('debtor_id_1c', $dhi->debtor_id_1c)->first();
             
             if ($debtor) {
-                $debtor->responsible_user_id_1c = 'Кузнецов Д.С.';
+                $debtor->responsible_user_id_1c = $dhi->responsible_user_id_1c_before;
+                $debtor->str_podr = $dhi->str_podr_before;
+                $debtor->base = $dhi->base_before;
+                $debtor->fixation_date = $dhi->fixation_date_before;
+                //$debtor->refresh_date = '2022-07-07 10:10:10';
                 $debtor->save();
             }
         }*/
@@ -214,6 +218,25 @@ class ConfigController extends BasicController {
             $new_report = str_replace('10.07', '28.07', $ev->report);
             $ev->report = $new_report;
             $ev->save();
+        }*/
+        
+        /*$debtors = \App\DebtorTransferHistory::where('transfer_time', '>=', '2022-01-14 04:00:00')->where('transfer_time', '<=', '2022-01-14 16:00:00')
+                ->where('base_before', 'Б-1')
+                ->where('base_after', 'Б-3')
+                ->get();
+        
+        foreach ($debtors as $d) {
+            $debtor = \App\Debtor::where('debtor_id_1c', $d->debtor_id_1c)->where('is_debtor', 1)->first();
+            
+            if (is_null($debtor)) {
+                continue;
+            }
+            
+            $debtor->base = 'Б-3';
+            $debtor->responsible_user_id_1c = $d->responsible_user_id_1c_after;
+            $debtor->str_podr = $d->str_podr_after;
+            $debtor->refresh_date = date('Y-m-d H:i:s', time());
+            $debtor->save();
         }*/
         
         /*$objUser = \App\User::find(2344);
@@ -281,9 +304,10 @@ class ConfigController extends BasicController {
             }
         }*/
         
-        /*$dbh = \App\DebtorTransferHistory::where('created_at', '>=', '2021-07-02 00:00:00')->where('created_at', '<=', '2021-07-02 12:00:00')
-                ->where('base_before', 'КБ-График')
+        /*$dbh = \App\DebtorTransferHistory:://where('created_at', '>=', '2021-07-02 00:00:00')->where('created_at', '<=', '2021-07-02 12:00:00')
+                where('row', 45795)
                 ->where('operation_user_id', 2716)
+                ->where('str_podr_before', '000000000006')
                 ->get();
         
         foreach ($dbh as $dbhi) {
@@ -293,7 +317,9 @@ class ConfigController extends BasicController {
                 continue;
             }
             
-            $debtor->base = 'КБ-График';
+            $debtor->base = $dbhi->base_before;
+            $debtor->str_podr = $dbhi->str_podr_before;
+            $debtor->responsible_user_id_1c = $dbhi->responsible_user_id_1c_before;
             $debtor->save();
         }*/
         
@@ -308,16 +334,17 @@ class ConfigController extends BasicController {
             }
         }*/
         
-        /*$dth = \App\DebtorTransferHistory::where('transfer_time', '>=', '2020-04-29 09:00:00')
-                ->where('responsible_user_id_1c_before', 'Еричев Сергей                                ')
+        /*$dth = \App\DebtorTransferHistory::where('row', 41298)
+        //where('transfer_time', '>=', '2020-04-29 09:00:00')
+                //->where('responsible_user_id_1c_before', 'Еричев Сергей                                ')
                 ->get();
         
         foreach ($dth as $th) {
             $debtor = \App\Debtor::where('debtor_id_1c', $th->debtor_id_1c)->first();
             if ($debtor) {
-                $debtor->responsible_user_id_1c = $th->responsible_user_id_1c_after;
-                $debtor->str_podr = $th->str_podr_after;
-                $debtor->base = $th->base_after;
+                $debtor->responsible_user_id_1c = $th->responsible_user_id_1c_before;
+                $debtor->str_podr = $th->str_podr_before;
+                $debtor->base = $th->base_before;
                 
                 $debtor->save();
             }

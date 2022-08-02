@@ -308,7 +308,7 @@ class DebtorsController extends BasicController {
 
             $debtorpayments = DB::Table('armf.orders')
                     ->select(DB::raw('*'))
-                    ->where('passport_id', $passport_armf->id)
+                    //->where('passport_id', $passport_armf->id)
                     ->whereIn('loan_id', $loan_id_replica)
                     ->whereNotNull('passport_id')
                     ->orderBy('created_at', 'asc');
@@ -397,7 +397,11 @@ class DebtorsController extends BasicController {
             'notice_personal' => \App\ContractForm::getContractIdByTextId('debtors_notice_personal'),
             'requirement_personal' => \App\ContractForm::getContractIdByTextId('debtors_requirement_personal'),
             'requirement_personal_big_money' => \App\ContractForm::getContractIdByTextId('debtors_requirement_personal_big_money'),
-            'notice_remote' => \App\ContractForm::getContractIdByTextId('debtors_notice_remote')
+            'notice_remote' => \App\ContractForm::getContractIdByTextId('debtors_notice_remote'),
+            'notice_remote_big_money' => \App\ContractForm::getContractIdByTextId('debtors_notice_remote_big_money'),
+            'notice_remote_cc' => \App\ContractForm::getContractIdByTextId('debtors_notice_remote_cc'),
+            'trebovanie_personal_cc' => \App\ContractForm::getContractIdByTextId('trebovanie_personal_cc'),
+            'trebovanie_personal_cc_60' => \App\ContractForm::getContractIdByTextId('trebovanie_personal_cc_60'),
         ];
 
         $recommend_user_name = '';
@@ -767,10 +771,31 @@ class DebtorsController extends BasicController {
                 ->first();
 
         $enableRecurrentButton = ($hasCardForRecurrentQuery && !$hasSentRecurrentQueryToday && !$recurrent_task && $debtor->str_podr == $userStrPodr) ? true : false;
+        
+        if ($hasCardForRecurrentQuery && !$hasSentRecurrentQueryToday && in_array($debtor->debt_group_id, [1, 2, 3])) {
+            $enableRecurrentButton = true;
+        }
 
         $blockProlongation = \App\DebtorBlockProlongation::where('debtor_id', $debtor->id)->orderBy('id', 'desc')
                 ->where('block_till_date', '>=', date('Y-m-d', time()) . ' 00:00:00')
                 ->first();
+        
+        $armf_customer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
+        if (!is_null($armf_customer)) {
+            $armf_about = DB::Table('armf.about_clients')->where('customer_id', $armf_customer->id)->first();
+            if (!is_null($armf_about)) {
+                if (!is_null($armf_about->email)) {
+                    $data[0]['email'] = $armf_about->email;
+                }
+            }
+        }
+        
+        $arDataCcCard = false;
+        
+        if (str_contains($debtor->loan_id_1c, 'ККЗ')) {
+            $json_string_cc = file_get_contents('http://192.168.35.54:8020/api/v1/loans/' . $debtor->loan_id_1c . '/schedule/' . date('d.m.Y', time()));
+            $arDataCcCard = json_decode($json_string_cc, true);
+        }
 
         return view('debtors.debtorcard', [
             'debtor_id' => $debtor_id,
@@ -803,7 +828,8 @@ class DebtorsController extends BasicController {
             'third_people_agreement' => $third_people_agreement,
             'dataHasPeaceClaim' => $dataHasPeaceClaim,
             'enableRecurrentButton' => $enableRecurrentButton,
-            'blockProlongation' => $blockProlongation
+            'blockProlongation' => $blockProlongation,
+            'arDataCcCard' => $arDataCcCard
                 //'lastRepayment' => $this->getLastRepayment($data[0]['loan_id_1c'], $data[0]['customer_id_1c'])
         ]);
     }
@@ -1733,7 +1759,69 @@ class DebtorsController extends BasicController {
             $phone[0] = '7';
         }
         if (mb_strlen($phone) == 11) {
-            if (Utils\SMSer::send($phone, $req->get('sms_text'))) {
+            $debtor = Debtor::where('debtor_id_1c', $req->get('debtor_id_1c'))->first();
+            if (is_null($debtor)) {
+                return 0;
+            }
+            $sms_link = '';
+            $sms_type = $req->get('sms_type', false);
+            $sms_text = $req->get('sms_text', false);
+            
+            if ($sms_type && $sms_type == 'link') {
+                $amount = $req->get('amount', 0);
+                if (is_null($debtor)) {
+                    return 0;
+                }
+                $token = crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai');
+                $amount = $amount * 100;
+                $sms_text = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
+                $sms_link = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount . '&loan_1c_id=' . $debtor->loan_id_1c . '&order_id=&customer_id=' . $debtor->customer_id_1c . '&phone=' . $phone . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
+                
+                $json_tinkoff_link = file_get_contents($sms_link);
+                $arJson = json_decode($json_tinkoff_link, true);
+                
+                if (isset($arJson['success']) && $arJson['success']) {
+                    $sms_link = $arJson['url'];
+                } else {
+                    return 0;
+                }
+            }
+            
+            if ($sms_type && $sms_type == 'msg') {
+                $amount = $req->get('amount', 0);
+                if (is_null($debtor)) {
+                    return 0;
+                }
+                $token = crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai');
+                $amount = $amount * 100;
+                $sms_text = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
+                $sms_link = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount . '&loan_1c_id=' . $debtor->loan_id_1c . '&order_id=&customer_id=' . $debtor->customer_id_1c . '&phone=' . $phone . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
+                
+                $json_tinkoff_link = file_get_contents($sms_link);
+                $arJson = json_decode($json_tinkoff_link, true);
+                
+                if (isset($arJson['success']) && $arJson['success']) {
+                    $sms_link = $arJson['url'];
+                } else {
+                    return 0;
+                }
+                
+                return $sms_text . ' ' . $sms_link;
+            }
+            
+            if ($sms_type && $sms_type == 'props') {
+                if (is_null($debtor)) {
+                    return 0;
+                }
+                $sms_text = 'Направляем реквизиты для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344 путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
+                $sms_link = '';
+            }
+            
+            if (mb_strlen($sms_link) > 0) {
+                $sms_link = ' ' . $sms_link;
+            }
+            
+            if (Utils\SMSer::send($phone, $sms_text . $sms_link)) {
                 // увеличиваем счетчик отправленных пользователем смс
                 $objUser->increaseSentSms();
 
@@ -1745,11 +1833,11 @@ class DebtorsController extends BasicController {
                 $data['overdue_reason_id'] = 0;
                 $data['event_result_id'] = 22;
                 $data['debt_group_id'] = $req->get('debt_group_id');
-                $data['report'] = $req->get('phone') . ' SMS: ' . $req->get('sms_text');
+                $data['report'] = $phone . ' SMS: ' . $sms_text;
                 $data['completed'] = 1;
                 $debtorEvent->fill($data);
                 $debtorEvent->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
-                $debtor = Debtor::where('debtor_id_1c', $req->get('debtor_id_1c'))->first();
+                
                 if (!is_null($debtor)) {
                     $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
                     $debtorEvent->debtor_id = $debtor->id;
@@ -2118,6 +2206,7 @@ class DebtorsController extends BasicController {
             $exp_pc = number_format($debt['exp_pc'] / 100, 2, ',', ' ');
             $fine = number_format($debt['fine'] / 100, 2, ',', ' ');
             $sum_indebt = number_format($debt['money'] / 100, 2, ',', ' ');
+            $sum_pc = number_format(($debt['exp_pc'] + $debt['pc']) / 100, 2, ',', ' ');
 
             $arOd = explode(',', $od);
             $arPc = explode(',', $pc);
@@ -2139,7 +2228,7 @@ class DebtorsController extends BasicController {
             $objDebtorData->this_loan_created_at = $objDebtorData->d_loan_created_at;
 
             // проверяем на наличие доп. соглашения и если есть - меняем даты
-            $repl_loan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c', $debtorTmp->loan_id_1c)->first();
+            /*$repl_loan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c', $debtorTmp->loan_id_1c)->first();
             if (!is_null($repl_loan)) {
                 $repl_repayment = DB::Table('armf.repayments')->select(DB::raw('*'))->where('loan_id', $repl_loan->id)->whereIn('repayment_type_id', [1, 7, 8, 9, 10, 17, 20])->orderBy('created_at', 'desc')->first();
                 if (!is_null($repl_repayment)) {
@@ -2153,7 +2242,7 @@ class DebtorsController extends BasicController {
 
                     $return_date = date('d.m.Y', strtotime("+" . $repl_repayment->time - 1 . " days", strtotime($repayment_return)));
                 }
-            }
+            }*/
 
             if (mb_strlen($date_personal)) {
                 $ar_req_date = explode(' ', StrUtils::dateToStr($date_personal));
@@ -2186,7 +2275,8 @@ class DebtorsController extends BasicController {
                 'ur_address' => $ur_address,
                 'fact_address' => $fact_address,
                 'loan_id_1c' => $objDebtorData->d_loan_id_1c,
-                'loan_created_at' => StrUtils::dateToStr($objDebtorData->d_loan_created_at),
+                //'loan_created_at' => StrUtils::dateToStr($objDebtorData->d_loan_created_at),
+                'loan_created_at' => StrUtils::dateToStr($objDebtorData->this_loan_created_at),
                 'money' => $od,
                 'time' => $objDebtorData->d_loan_time,
                 'loan_percent' => $loan_percent,
@@ -2220,6 +2310,7 @@ class DebtorsController extends BasicController {
                 'pc' => $pc,
                 'exp_pc' => $exp_pc,
                 'fine' => $fine,
+                'sum_pc' => $sum_pc,
                 'qty_delays' => $objDebtorData->qty_delays,
                 'comment' => $objDebtorData->comment,
                 'overdue_start' => date('d.m.Y', strtotime("+1 day", strtotime($return_date))),
@@ -2267,7 +2358,8 @@ class DebtorsController extends BasicController {
 
             //$lids = $this->getLoanIdFromArm($objDebtorData->loan_id_1c, $objDebtorData->customer_id_1c);
             //if(is_array($lids) && count($lids)>0){
-            $repl_tranche_data = DB::Table('armf.loans')->select(DB::raw('*'))
+            
+            /*$repl_tranche_data = DB::Table('armf.loans')->select(DB::raw('*'))
                     ->where('loans.id_1c', $objDebtorData->loan_id_1c)
                     ->where('loans.in_cash', 0)
                     ->select(['loans.tranche_number', 'loans.first_loan_date', 'loans.first_loan_id_1c'])
@@ -2282,8 +2374,67 @@ class DebtorsController extends BasicController {
                 if (!is_null($repl_tranche_data->tranche_number) && mb_strlen($repl_tranche_data->tranche_number) > 0) {
                     $arParams['tranche_data'] = ' (транш № ' . str_pad($repl_tranche_data->tranche_number, 3, '0', STR_PAD_LEFT) . ' от ' . StrUtils::dateToStr($objDebtorData->this_loan_created_at) . ')';
                 }
-            }
+            }*/
             //}
+            
+            $arParams['dop_string'] = '';
+            $arParams['tranche_data'] = '';
+            
+            if ($debtorTmp->is_bigmoney == 1) {
+                //$repl_loan = DB::Table('armf.loans')->where('id_1c', $debtorTmp->loan_id_1c)->first();
+                
+                $postData = [
+                    'loan_id_1c' => $debtorTmp->loan_id_1c,
+                    'customer_id_1c' => $debtorTmp->customer_id_1c,
+                    'date' => date('Y-m-d', time())
+                ];
+                
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, 'http://192.168.35.59/ajax/loan/get/debt');
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $result = curl_exec($ch);
+                curl_close($ch);
+                
+                $arResult = json_decode($result, true);
+                
+                if (isset($arResult['pays'])) {
+                    $days_overdue = 0;
+                    foreach ($arResult['pays'] as $payment) {
+                        if ($payment['expired'] == 1 && $payment['closed'] == 0) {
+                            $arBigMoneyExpDates[] = date('d.m.Y', strtotime($payment['date'])) . ' г.';
+                            $days_overdue += $payment['days_overdue'];
+                        }
+                    }
+                    
+                    $arParams['expBigMoneyDates'] = implode(',', $arBigMoneyExpDates);
+                    $arParams['days_overdue'] = $days_overdue;
+                }
+            }
+            
+            if (str_contains($objDebtorData->loan_id_1c, 'ККЗ')) {
+                if ($date == '0') {
+                    $date_cc = date('d.m.Y', time());
+                } else {
+                    $date_cc = date('d.m.Y', strtotime($date));
+                }
+                
+                $json_string_cc = file_get_contents('http://192.168.35.54:8020/api/v1/loans/' . $objDebtorData->loan_id_1c . '/schedule/' . $date_cc);
+                $arDataCc = json_decode($json_string_cc, true);
+                
+                $arParams['loan_end_at_cc'] = date('d.m.Y', strtotime($arDataCc['data']['loan_end_at']));
+                $arParams['overdue_mop_cc'] = ($arDataCc['data']['overdue_debt'] + $arDataCc['data']['overdue_percent'] + $arDataCc['data']['fine']) / 100;
+                $arParams['overdue_debt_cc'] = $arDataCc['data']['overdue_debt'] / 100;
+                $arParams['overdue_percent_cc'] = $arDataCc['data']['overdue_percent'] / 100;
+                $arParams['overdue_fine_cc'] = $arDataCc['data']['fine'] / 100;
+                
+                $arParams['total_debt_cc'] = $arDataCc['data']['total_debt'] / 100;
+                $arParams['debt_cc'] = ($arDataCc['data']['debt'] + $arDataCc['data']['mop_debt'] + $arDataCc['data']['overdue_debt']) / 100;
+                $arParams['percent_cc'] = ($arDataCc['data']['percent'] + $arDataCc['data']['mop_percent'] +  $arDataCc['data']['overdue_percent']) / 100;
+            }
 
             if (mb_strlen($html) > 200) {
 //                if(Auth::user()->id==5){
@@ -2328,7 +2479,7 @@ class DebtorsController extends BasicController {
 
             $cUser = auth()->user();
 
-            if ($doc_id == 140 || $doc_id == 141 || $doc_id == 144 || $doc_id == 145) {
+            if ($doc_id == 140 || $doc_id == 141 || $doc_id == 144 || $doc_id == 145 || $doc_id == 146 || $doc_id == 147 || $doc_id == 148 || $doc_id == 149) {
                 $userHeadChief = User::find(951);
                 $arParams['headchief_doc'] = $userHeadChief->doc;
 
@@ -2352,7 +2503,7 @@ class DebtorsController extends BasicController {
                     $notice_number->id = '123456';
                 }
 
-                if ($doc_id == 144 || $doc_id == 145) {
+                if ($doc_id == 144 || $doc_id == 145 || $doc_id == 148 || $doc_id == 149) {
                     if ($cUser->id == 916) {
                         $arParams['req_spec_position'] = 'Ведущий специалист';
                         $arParams['spec_fio'] = 'Свиридов Павел Владимирович';
@@ -2366,7 +2517,7 @@ class DebtorsController extends BasicController {
                 $address_type_txt = ($factAddress) ? 'проживания' : 'регистрации';
 
                 if ($notice_number->new_notice && $currentUser->id != 69) {
-                    $doctype = ($doc_id == 144 || $doc_id == 145) ? 'требование' : 'уведомление';
+                    $doctype = ($doc_id == 144 || $doc_id == 145 || $doc_id == 148 || $doc_id == 149) ? 'требование' : 'уведомление';
 
                     $pdfEvent = new DebtorEvent();
                     $pdfEvent->customer_id_1c = $debtorTmp->customer_id_1c;
@@ -2402,19 +2553,20 @@ class DebtorsController extends BasicController {
                   $arParams['spec_phone'] = '‭+79034101149‬';
                   } */
 
-                /*if ($debtorTmp->id == 110712823) {
-                  $arParams['req_spec_position'] = 'Cпециалист';
-                  $arParams['spec_fio'] = 'Волынский Игорь Семенович';
-                  $arParams['spec_phone'] = '89628150347';
+                /*if ($debtorTmp->id == 144308937) {
+                  $arParams['req_spec_position'] = 'Специалист';
+                  $arParams['spec_fio'] = 'Маюрникова Любовь Викторовна';
+                  $arParams['spec_phone'] = '89069262558';
 
-                  $arParams['spec_doc'] = '130/21р от 10 июня 2021 г';
+                  $arParams['spec_doc'] = '150/21 от 21 июля 2021 г';
+                  //$arParams['req_spec_position'] = 'Руководитель';
                   //$arParams['loan_id_1c'] = '00001198819-007';
                   //$arParams['loan_created_at'] = '14 февраля 2019 г.';
 
-                  $arParams['date_sent'] = '09.09.2021';
-                  $arParams['print_date'] = '09.09.2021';
+                  $arParams['date_sent'] = '28.04.2022';
+                  $arParams['print_date'] = '28.04.2022';
 
-                  $arParams['notice_number'] = '670984';
+                  $arParams['notice_number'] = '761335';
                   }*/
             }
 
@@ -3949,6 +4101,12 @@ class DebtorsController extends BasicController {
             }
 
             $input['amount'] = $input['amount'] * 100;
+            
+            if (isset($input['prepaid']) && $input['prepaid'] == 1) {
+                
+            } else {
+                $input['prepaid'] = 0;
+            }
 
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, config('admin.sales_arm_url') . '/api/repayments/offers');
@@ -4173,7 +4331,7 @@ class DebtorsController extends BasicController {
 
             if ($str_podr == '000000000007') {
                 $debtors->where('str_podr', '000000000007')
-                        ->where('qty_delays', '>=', 71)
+                        ->where('qty_delays', '>=', 60)
                         ->where('qty_delays', '<=', 150)
                         ->whereIn('debt_group_id', [5, 6]);
             }
@@ -4265,7 +4423,7 @@ class DebtorsController extends BasicController {
         } else if ($user->hasRole('debtors_personal')) {
             $debtors = Debtor::where('is_debtor', 1)
                     ->where('str_podr', '000000000007')
-                    ->where('qty_delays', '>=', 71)
+                    ->where('qty_delays', '>=', 60)
                     ->where('qty_delays', '<=', 150)
                     ->whereIn('debt_group_id', [5, 6])
                     ->get();
@@ -4372,6 +4530,31 @@ class DebtorsController extends BasicController {
         ]);
     }
     
+    public function setSelfResponsible($debtor_id) {
+        $debtor = Debtor::find($debtor_id);
+        
+        if (!is_null($debtor)) {
+            $debtor->responsible_user_id_1c = auth()->user()->id_1c;
+            $debtor->refresh_date = date('Y-m-d H:i:s', time());
+            $debtor->fixation_date = date('Y-m-d 00:00:00', time());
+            
+            if (auth()->user()->hasRole('debtors_remote')) {
+                $debtor->str_podr = '000000000006';
+            }
+            if (auth()->user()->hasRole('debtors_personal')) {
+                $debtor->str_podr = '000000000007';
+            }
+            
+            $debtor->save();
+        }
+        
+        return redirect()->back();
+    }
+    
+    public function sendEmailToDebtor(Request $request) {
+        
+    }
+
     public function massSmsSend(Request $request) {
         
     }

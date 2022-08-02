@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\OmicronTask;
+use App\UploadSqlFile;
+use App\Utils\DebtorsInfoUploader;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class CronController extends Controller {
 
@@ -20,7 +24,8 @@ class CronController extends Controller {
                 ->where('result_recieved', 0)
                 ->first();
         
-        //$omicron_task_today = OmicronTask::orderBy('id', 'desc')->where('created_at', '>=', '2021-05-08 00:00:00')->where('created_at', '<=', '2021-05-08 23:59:59')->first();
+
+        //$omicron_task_today = OmicronTask::orderBy('id', 'desc')->where('created_at', '>=', '2022-07-10 00:00:00')->where('created_at', '<=', '2022-07-10 23:59:59')->first();
 
         if (is_null($omicron_task_today)) {
             exit();
@@ -34,11 +39,11 @@ class CronController extends Controller {
             'username' => 'admin@pdengi.ru',
             'password' => md5('73218696'),
             'taskid' => $omicron_task_today->omicron_task_id
-            //'taskid' => 23775828
+                //'taskid' => 23775828
         ];
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'http://www.votbox.ru/api/autocall.check.api.php');
+        curl_setopt($ch, CURLOPT_URL, 'https://www.votbox.ru/api/autocall.check.api.php');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
@@ -56,8 +61,8 @@ class CronController extends Controller {
 
             $events = \App\DebtorEvent::where('date', '>=', $today . ' 00:00:00')
                     ->where('date', '<=', $today . ' 23:59:59')
-                    //where('date', '>=', '2021-05-08 00:00:00')
-                    //->where('date', '<=', '2021-05-08 23:59:59')
+                    //where('date', '>=', '2022-07-10 00:00:00')
+                    //->where('date', '<=', '2022-07-10 23:59:59')
                     ->where('event_type_id', 22)
                     ->where('completed', 0)
                     ->get();
@@ -127,21 +132,21 @@ class CronController extends Controller {
         //echo $object['data']['task']['taskstatusstr'];
         //var_dump($object->item[0]);
     }
-    
+
     public function setEventsForOmicron() {
         $str_podr = '000000000007';
-        
+
         $debtors = \App\Debtor::where('is_debtor', 1)->where('debt_group_id', 6)
                 ->where('str_podr', $str_podr)
                 ->where('qty_delays', '>=', 100)
                 ->where('qty_delays', '<=', 136)
                 ->get();
-        
+
         $tomorrow = date('Y-m-d H:i:s', strtotime('+1 day', date('Y-m-d H:i:s', time())));
-        
+
         foreach ($debtors as $debtor) {
             $resp_user = \App\User::where('id_1c', $debtor->responsible_user_id_1c)->first();
-            
+
             $newEvent = new \App\DebtorEvent();
             $newEvent->date = $tomorrow;
             $newEvent->event_type_id = 22;
@@ -152,9 +157,57 @@ class CronController extends Controller {
             $newEvent->debtor_id_1c = $debtor->debtor_id_1c;
             $newEvent->user_id_1c = (!is_null($resp_user)) ? $resp_user->id_1c : 'Автоинформатор(Омикрон)';
             $newEvent->refresh_date = date('Y-m-d H:i:s', time());
-            
+
             $newEvent->save();
         }
+    }
+
+    public function checkSqlFileForUpdate() {
+        set_time_limit(0);
+        
+        $processExists = UploadSqlFile::where('in_process', 1)->first();
+
+        if (!is_null($processExists)) {
+            return 0;
+        }
+
+        $newProcesses = UploadSqlFile::where('completed', 0)->orderBy('id', 'asc')->get();
+
+        if (is_null($newProcesses) || count($newProcesses) < 1) {
+            return 0;
+        }
+
+        foreach ($newProcesses as $newProcess) {
+            $path = 'debtors/' . $newProcess->filename;
+            if (!Storage::disk('ftp')->has($path)) {
+                continue;
+            }
+
+            if ($newProcess->filetype == 1) {
+                $newProcess->in_process = 1;
+                $newProcess->save();
+
+                DB::unprepared(Storage::disk('ftp')->get($path));
+
+                $newProcess->in_process = 0;
+                $newProcess->completed = 1;
+                $newProcess->save();
+            }
+
+            if ($newProcess->filetype == 2) {
+                $newProcess->in_process = 1;
+                $newProcess->save();
+
+                $uploader = new DebtorsInfoUploader();
+                $res = $uploader->updateClientInfo($newProcess->filename);
+
+                $newProcess->in_process = 0;
+                $newProcess->completed = 1;
+                $newProcess->save();
+            }
+        }
+
+        return 1;
     }
 
 }

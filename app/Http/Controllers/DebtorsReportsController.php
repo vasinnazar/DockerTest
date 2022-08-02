@@ -222,6 +222,10 @@ class DebtorsReportsController extends BasicController {
                             $loan_id_1c = $arLoanId1c[0];
                         }
                         $debtor = \App\Debtor::where('customer_id_1c', $payment->customer_id_1c)->where('loan_id_1c', $loan_id_1c)->first();
+                        /*if (!$debtor) {
+                            \PC::debug($payment);
+                            continue;
+                        }*/
                         $payment->debtor_id = $debtor->id;
                     }
                     $res['payments'][] = $payment;
@@ -305,6 +309,78 @@ class DebtorsReportsController extends BasicController {
         return view('debtorsreports.customers_count', [
             'arData' => $arData
         ]);
+    }
+    
+    public function exportToExcelDebtorsLoginLog(Request $request) {
+        $dateStart = $request->get('dateStart', '');
+        $dateEnd = $request->get('dateEnd', '');
+        $mode = $request->get('mode', 'uv');
+        
+        if (!mb_strlen($dateStart) || !mb_strlen($dateEnd)) {
+            $dateStart = date('Y-m-d 00:00:00', time());
+            $dateEnd = date('Y-m-d 23:59:59', time());
+        } else {
+            $dateStart = date('Y-m-d 00:00:00', strtotime($dateStart));
+            $dateEnd = date('Y-m-d 23:59:59', strtotime($dateEnd));
+        }
+        
+        $debtGroups = \App\DebtGroup::get()->toArray();
+        
+        $html = '<table>';
+        $html .= '<thead>';
+        $html .= '<tr>';
+        $html .= '<th>ФИО</th><th>Код контрагента</th><th>Ответственный</th><th>Общая сумма задолженности</th><th>Кол-во договоров</th><th>Группа долга</th>';
+        $html .= '</tr>';
+        $html .= '</thead>';
+        $html .= '<tbody>';
+        
+        $debtorsLog = \App\DebtorsSiteLoginLog::whereBetween('created_at', [$dateStart, $dateEnd]);
+        
+        if ($mode == 'lv') {
+            $debtorsLog->where('str_podr', '000000000007');
+        } else {
+            $debtorsLog->where('str_podr', '000000000006');
+        }
+        
+        $debtorsLog = $debtorsLog->get();
+        
+        foreach ($debtorsLog as $logRow) {
+            $customer = \App\Customer::where('id_1c', $logRow->customer_id_1c)->first();
+            if (is_null($customer)) {
+                continue;
+            }
+            
+            $passport = \App\Passport::where('customer_id', $customer->id)->first();
+            if (is_null($passport)) {
+                continue;
+            }
+            
+            $debtor = \App\Debtor::where('customer_id_1c', $customer->id_1c)->where('is_debtor', 1)->first();
+            if (is_null($debtor)) {
+                continue;
+            }
+            
+            $responsible = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
+            
+            $html .= '<tr>';
+            $html .= '<td>' . $passport->fio . '</td>';
+            $html .= '<td>' . $customer->id_1c . '</td>';
+            $html .= '<td>' . (!is_null($responsible) ? $responsible->name : '') . '</td>';
+            $html .= '<td>' . number_format($logRow->sum_loans_debt / 100, 2, '.', '') . '</td>';
+            $html .= '<td>' . $logRow->debt_loans_count . '</td>';
+            $html .= '<td>' . (isset($debtGroups[$logRow->debt_group_id]) ? $debtGroups[$logRow->debt_group_id]['name'] : '-') . '</td>';
+            $html .= '</tr>';
+        }
+        
+        $html .= '</tbody>';
+        $html .= '</table>';
+
+        $file = "report_site_login_" . date('dmY', strtotime($dateStart)) . "_" . date('dmY', strtotime($dateEnd)) . ".xls";
+        header("Content-type: application/vnd.ms-excel");
+        header("Content-Disposition: attachment; filename=$file");
+        return response($html)
+                        ->header("Content-type", "application/vnd.ms-excel")
+                        ->header("Content-Disposition", "attachment; filename=$file");
     }
 
 }

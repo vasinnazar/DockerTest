@@ -13,6 +13,8 @@ class VerifyCsrfToken extends LaravelsVerifyCsrfToken {
         '1c/claims/update/status',
         '1c/debtors/upload',
         '1c/debtors/info/upload',
+        '1c/debtors/addRecordToUploadSqlFilesType1',
+        '1c/debtors/addRecordToUploadSqlFilesType2',
         '1c/seb',
         '1c/docs/get',
         '1c/sms/noloan',
@@ -65,7 +67,10 @@ class VerifyCsrfToken extends LaravelsVerifyCsrfToken {
         'infinity/is_debtor_time',
         'infinity/is_debtor_operator',
         'debtors/event/withoutAccept',
-        'debtors/omicron/task'
+        'debtors/omicron/task',
+        'ajax/loan/get/debt',
+        'debtors/infinity/incomingCall',
+        'debtors/infinity/closingModals'
     ];
 
     public function handle($request, Closure $next) {

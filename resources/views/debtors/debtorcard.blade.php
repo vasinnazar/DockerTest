@@ -80,9 +80,9 @@
                         <div class='col-xs-12 col-sm-6 col-lg-4'>
                             <div class="photo-gallery text-center">
                                 <!--input type="button" id="photoLoad" class="btn btn-default" data-claim="{{$data[0]['claim_id']}}" value="Загрузить фото" disabled /-->
-                                <a href="http://192.168.35.77:9060/photos/view/all?passports={{$data[0]['series']}}_{{$data[0]['number']}}" class="btn btn-default" target="_blank">Открыть фото</a>
+                                <a href="http://photo.fterra.ru/photos?customer_external_id={{$debtor->customer_id_1c}}" class="btn btn-default" target="_blank">Открыть фото</a>
                                 <br>
-                                <a href="http://photo.fterra.ru:90/photos?customer_external_id={{$debtor->customer_id_1c}}&types[]=7" style="margin-top: 5px;" class="btn btn-default" target="_blank">Мессенджер-фото</a>
+                                <a href="http://photo.fterra.ru/photos?customer_external_id={{$debtor->customer_id_1c}}&types[]=7" style="margin-top: 5px;" class="btn btn-default" target="_blank">Мессенджер-фото</a>
                             </div>
                             @if (isset($regions_timezone[$data[0]['fact_address_region']]))
                             <?php
@@ -104,6 +104,10 @@
                                 
                                 {{ $region_time }}</p>
                                 </span>
+                                @if ($pBgColor == '#DE5454')
+                                <br>
+                                <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
+                                @endif
                             </div>
                             @else
                             <?php
@@ -123,9 +127,15 @@
                                 
                                 {{ date('H:i', time()) }}</p>
                                 </span>
+                                @if ($pBgColor == '#DE5454')
+                                <br>
+                                <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
+                                @endif
                             </div>
                             @endif
                         </div>
+                        <input type="hidden" id="canCall" name="canCall" value="{{ ($pBgColor == '#28A93B') ? 1 : 0 }}">
+                        
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center'>
                             <div class="btn-group btn-group-sm btn-group-vertical">
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['anketa'] . '/'.$debtor->id.'/0')}}" target="_blank" class="btn btn-default">Анкета</a>
@@ -249,10 +259,18 @@
                             <td>А. регистрации:</td>
                             <td style='width: 60px;'>
                                 @if (isset($debtroles['remote_notice']))
+                                @if ($debtor->qty_delays < 61 && str_contains($debtor->loan_id_1c, 'ККЗ'))
+                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote_cc'] . '/'.$debtor->id.'/0/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
+                                @else
                                 @if ($debtor->qty_delays < 71)
+                                @if ($debtor->is_bigmoney == 1)
+                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote_big_money'] . '/'.$debtor->id.'/0/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
+                                @else
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote'] . '/'.$debtor->id.'/0/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
+                                @endif
                                 @else
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['requirement_personal'] . '/'.$debtor->id.'/' . date('Y-m-d', time()) . '/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
+                                @endif
                                 @endif
                                 @elseif (isset($debtroles['personal_notice']) && !$hasSentNoticePersonal)
                                 <a href="#" data-toggle="modal" data-target="#debtorNoticePersonal" class="btn btn-default btn-xs printaddr notice_personal" data-typeaddr="0"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
@@ -271,10 +289,18 @@
                             <td>А. проживания:</td>
                             <td>
                                 @if (isset($debtroles['remote_notice']))
+                                @if ($debtor->qty_delays < 61 && str_contains($debtor->loan_id_1c, 'ККЗ'))
+                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote_cc'] . '/'.$debtor->id.'/0/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
+                                @else
                                 @if ($debtor->qty_delays < 71)
+                                @if ($debtor->is_bigmoney == 1)
+                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote_big_money'] . '/'.$debtor->id.'/0/1')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
+                                @else
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote'] . '/'.$debtor->id.'/0/1')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
+                                @endif
                                 @else
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['requirement_personal'] . '/'.$debtor->id.'/' . date('Y-m-d', time()) . '/1')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
+                                @endif
                                 @endif
                                 @elseif (isset($debtroles['personal_notice']) && !$hasSentNoticePersonal)
                                 <a href="#" data-toggle="modal" data-target="#debtorNoticePersonal" class="btn btn-default btn-xs printaddr notice_personal" data-typeaddr="1"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
@@ -301,10 +327,13 @@
                                     <span class="glyphicon glyphicon-earphone"></span>
                                 </button>
                                 @endif
-                                <a href="https://api.whatsapp.com/send?phone={{$data[0]['telephone']}}" class="btn btn-default btn-xs" target="_blank">
+                                <a href="whatsapp://send?phone={{$data[0]['telephone']}}" class="btn btn-default btn-xs" target="_blank">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
                                         <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
                                     </svg>
+                                </a>
+                                <a href="https://t.me/+{{$data[0]['telephone']}}" class="btn btn-default btn-xs" target="_blank">
+                                    Т
                                 </a>
                                 @endif
                             </td>
@@ -427,12 +456,16 @@
                             <td></td>
                             <td></td>
                         </tr>
+                        @if (str_contains($data[0]['email'], '@'))
                         <tr>
                             <td>E-mail:</td>
                             <td></td>
-                            <td>{{$data[0]['email']}}</td>
+                            <td>
+                                <a data-toggle="modal" data-target="#debtorEmailText">{{$data[0]['email']}}</a>
+                            </td>
                             <td></td>
                         </tr>
+                        @endif
                         <tr>
                             <td>Ответственный:</td>
                             <td></td>
@@ -443,7 +476,12 @@
                                 $color_td_style = '';
                             }
                             ?>
-                            <td<?= $color_td_style; ?>>{{$data[0]['responsible_user_fio']}} ({{(isset($debtroles['resp_user_remote']) && $debtroles['resp_user_remote']) ? 'Отдел удаленного взыскания' : ''}}{{(isset($debtroles['resp_user_personal']) && $debtroles['resp_user_personal'] && strpos($data[0]['responsible_user_fio'], 'Котельникова') === false) ? 'Отдел личного взыскания' : ''}})</td>
+                            <td<?= $color_td_style; ?>>
+                                {{$data[0]['responsible_user_fio']}} ({{(isset($debtroles['resp_user_remote']) && $debtroles['resp_user_remote']) ? 'Отдел удаленного взыскания' : ''}}{{(isset($debtroles['resp_user_personal']) && $debtroles['resp_user_personal'] && strpos($data[0]['responsible_user_fio'], 'Котельникова') === false) ? 'Отдел личного взыскания' : ''}})
+                                @if (auth()->user()->hasRole('debtors_remote') && $data[0]['not_responsible_user_open'])
+                                <br><a class="btn btn-primary" href="/debtors/setSelfResponsible/{{$debtor->id}}">Закрепить за собой</a>
+                                @endif
+                            </td>
                             <td></td>
                         </tr>
                         <tr>
@@ -580,7 +618,7 @@
                                     <small>Договор:</small><br> 
                                     {{$data[0]['loan_id_1c']}} от {{$data[0]['loans_created_at']}} | (сумма займа: {{number_format($data[0]['d_money'], 2, '.', '')}} руб.)
                                     @if(isset($data[0]['repl_in_cash']) && !$data[0]['repl_in_cash'] && $data[0]['has_tranche'])
-                                    (транш №{!!str_pad($data[0]['loan_tranche_number'], 3, '0', STR_PAD_LEFT)!!} к договору № {{$data[0]['loan_first_loan_id_1c']}} от {{with(new \Carbon\Carbon($data[0]['loan_first_loan_date']))->format('d.m.Y')}})
+                                    <!-- (транш №{!!str_pad($data[0]['loan_tranche_number'], 3, '0', STR_PAD_LEFT)!!} к договору № {{$data[0]['loan_first_loan_id_1c']}} от {{with(new \Carbon\Carbon($data[0]['loan_first_loan_date']))->format('d.m.Y')}}) -->
                                     @endif
                                 </li>
                                 <li class='list-group-item'>
@@ -665,7 +703,7 @@
                                     </tr>
                                     <tr>
                                         <td><span>Переплата:</span></td>
-                                        <td style="text-align: center;">{{number_format($data[0]['d_overpayments'], 2, '.', '')}}</td>
+                                        <td style="text-align: center;">{{number_format($data[0]['d_overpayments'] / 100, 2, '.', '')}}</td>
                                         <td style="text-align: center;" class='debt-overpayments-ondate'></td>
                                     </tr>
                                     @if ($current_schedule)
@@ -794,7 +832,6 @@
                 </table>
             </div>
         </div>
-        @if (!$data[0]['not_responsible_user_open'] || $debtroles['is_chief'] || isset($debtroles['remote_notice']))
         @if ($debtor->base != 'Архив ЗД' && ($data[0]['str_podr_name'] == 'Отдел удаленного взыскания' || $data[0]['str_podr_name'] == 'Отдел личного взыскания' || $data[0]['str_podr_name'] == 'СБиВЗ') || auth()->user()->id == 2486 || auth()->user()->id == 2860 || $debtroles['is_chief'])
         <div class="col-xs-12 col-sm-6 col-lg-8">
             <form action="/debtors/addevent" id="event-form" enctype="multipart/form-data" method="POST">
@@ -967,7 +1004,6 @@
 
         </div>
         @endif
-        @endif
     </div>
 </div>
 <button type='button' class='btn btn-success phone-call-btn btn-xs' id='selectionCallBtn' data-phone='' style='position: fixed; display: none;'>
@@ -1001,26 +1037,26 @@
 <script src="{{asset('js/libs/clipboard/clipboard.min.js')}}"></script>
 <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>
 @if ($debtor->base != 'Архив ЗД')
-@if ($pBgColor == '#28A93B')
 <script>
     $(document).ready(function () {
         $(document).on('click', '.phone-call-btn', function () {
-            $('#selectionCallBtn').hide();
-            $.app.blockScreen(true);
-            $.get($.app.url + '/ajax/infinity', {telephone: $(this).attr('data-phone'), type: 'call'}).done(function (data) {
-                console.log(data);
-                if (data.result) {
+            if ($('#canCall').val() == '1') {
+                $('#selectionCallBtn').hide();
+                $.app.blockScreen(true);
+                $.get($.app.url + '/ajax/infinity', {telephone: $(this).attr('data-phone'), type: 'call'}).done(function (data) {
+                    console.log(data);
+                    if (data.result) {
 
-                } else {
-                    $.app.openErrorModal('Ошибка', data.msg);
-                }
-            }).always(function () {
-                $.app.blockScreen(false);
-            });
+                    } else {
+                        $.app.openErrorModal('Ошибка', data.msg);
+                    }
+                }).always(function () {
+                    $.app.blockScreen(false);
+                });
+            }
         });
     });
 </script>
-@endif
 @endif
 <script>
 $(document).ready(function () {
@@ -1044,6 +1080,10 @@ $(document).ready(function () {
             });
         });
     @endif
+    $(document).on('click', '#callAllow', function(){
+        $(this).prop('disabled', true);
+        $('#canCall').val('1');
+    });
     $('html').mouseup(function (event) {
         if ($('[name="user_infinity_extension"]').val() == '') {
             return;
@@ -1091,6 +1131,7 @@ $(document).ready(function () {
             }
         });
     });
+    $('#phoneThirdPeople').mask('+7 (999) 999-9999');
 });
 $(document).on('click', '#recurrentButton', function(){
     $(this).attr('disabled', 'disabled');
@@ -1134,6 +1175,106 @@ $(document).on('click', '#sendSMS', function () {
         }
     });
 });
+$(document).on('click', '#showSmsLink', function() {
+    $('#smsConntent').hide();
+    $('#smsLinkContent').show();
+});
+$(document).on('click', '#showSmsInfo', function() {
+    $('#smsLinkContent').hide();
+    $('#smsConntent').show();
+});
+$(document).on('click', '#showSmsProps', function() {
+    $('#smsConntent').hide();
+    $('#smsPropsContent').show();
+});
+$(document).on('change', '#enableThirdPeople', function() {
+    if ($(this).is(':checked')) {
+        $('#phoneThirdPeople').prop('disabled', false);
+    } else {
+        $('#phoneThirdPeople').prop('disabled', true);
+    }
+});
+$(document).on('change', 'input[name="paymentLinkSumType"]', function() {
+    if ($(this).val() == 2) {
+        $('#paymentLinkSum').prop('disabled', false);
+    } else {
+        $('#paymentLinkSum').prop('disabled', true);
+    }
+});
+$(document).on('click', '#sendSMSLink', function() {
+    $.app.blockScreen(true);
+    if ($('#enableThirdPeople').is(':checked')) {
+        var sms_phone = $('#phoneThirdPeople').val();
+    } else {
+        var sms_phone = $('input[name="sms_phone_number"]').val();
+    }
+    
+    var amount = 0;
+    if ($('#paymentLinkSumType1').is(':checked')) {
+        amount = $('#paymentLinkSumFull').val();
+    }
+    if ($('#paymentLinkSumType2').is(':checked')) {
+        amount = $('#paymentLinkSum').val();
+    }
+    
+    $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {phone: sms_phone, sms_type: 'link', amount: amount, debtor_id_1c: $('input[name="debtor_id_1c"]').val(), debt_group_id: "{{$data[0]['d_debt_group_id']}}"}).done(function (data) {
+        $.app.blockScreen(false);
+        $('#debtorSMS').modal('hide');
+        if (data == '-1') {
+            $.app.openErrorModal('Ошибка', 'Превышен лимит отправки SMS');
+        } else {
+            $.app.ajaxResult(data);
+            setTimeout(function () {
+                window.location.reload();
+            }, 2000);
+        }
+    });
+});
+$(document).on('click', '#sendSMSProps', function() {
+    $.app.blockScreen(true);
+    
+    var sms_phone = $('input[name="sms_phone_number"]').val();
+    
+    $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {phone: sms_phone, sms_type: 'props', debtor_id_1c: $('input[name="debtor_id_1c"]').val(), debt_group_id: "{{$data[0]['d_debt_group_id']}}"}).done(function (data) {
+        $.app.blockScreen(false);
+        $('#debtorSMS').modal('hide');
+        if (data == '-1') {
+            $.app.openErrorModal('Ошибка', 'Превышен лимит отправки SMS');
+        } else {
+            $.app.ajaxResult(data);
+            setTimeout(function () {
+                window.location.reload();
+            }, 2000);
+        }
+    });
+});
+$(document).on('click', '#getMessengerText', function() {
+    $(this).prop('disabled', true);
+    $(this).text('Формирование ссылки...');
+    
+    if ($('#enableThirdPeople').is(':checked')) {
+        var sms_phone = $('#phoneThirdPeople').val();
+    } else {
+        var sms_phone = $('input[name="sms_phone_number"]').val();
+    }
+    
+    var amount = 0;
+    if ($('#paymentLinkSumType1').is(':checked')) {
+        amount = $('#paymentLinkSumFull').val();
+    }
+    if ($('#paymentLinkSumType2').is(':checked')) {
+        amount = $('#paymentLinkSum').val();
+    }
+    
+    $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {phone: sms_phone, sms_type: 'msg', amount: amount, debtor_id_1c: $('input[name="debtor_id_1c"]').val(), debt_group_id: "{{$data[0]['d_debt_group_id']}}"}).done(function (data) {
+        if (data == '-1') {
+            $.app.openErrorModal('Ошибка', 'Превышен лимит отправки SMS');
+        } else {
+            $('#textForMessengerBlock').show();
+            $('#textForMessenger').text(data);
+        }
+    });
+});
 $(document).on('click', '.notice_personal', function(){
     $('.notice_personal').hide();
 });
@@ -1147,6 +1288,12 @@ $(document).on('click', '#sendNoticePersonal', function () {
     }
     if ($('select[name="doc_id"]').val() == '145') {
         window.open('{{url('debtors/debtorcard/createPdf/'.$contractforms['requirement_personal_big_money'].'/'.$debtor->id.'/')}}' + '/' + $('input[name="date_demand"]').val() + '/' + $("input[name='address_type']").val());
+    }
+    if ($('select[name="doc_id"]').val() == '148') {
+        window.open('{{url('debtors/debtorcard/createPdf/'.$contractforms['trebovanie_personal_cc_60'].'/'.$debtor->id.'/')}}' + '/' + $('input[name="date_demand"]').val() + '/' + $("input[name='address_type']").val());
+    }
+    if ($('select[name="doc_id"]').val() == '149') {
+        window.open('{{url('debtors/debtorcard/createPdf/'.$contractforms['trebovanie_personal_cc'].'/'.$debtor->id.'/')}}' + '/' + $('input[name="date_demand"]').val() + '/' + $("input[name='address_type']").val());
     }
 });
 $(document).on('click', '#photoLoad', function () {

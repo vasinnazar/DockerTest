@@ -38,6 +38,7 @@
 
                 </div>
                 <div class="modal-footer">
+                    <span class="pull-left"><input type="checkbox" name="prepaid" value="1"> Мировое соглашение - оплачено</span>
                     <button type="button" class="btn btn-default" data-dismiss="modal" id="closeNewDebtorPeace">Закрыть</button>
                     <button type="submit" class="btn btn-primary" id="editNewDebtorPeace" onclick="$('#editNewDebtorPeace').prop('disabled');">Сохранить</button>
                 </div>

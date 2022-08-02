@@ -121,11 +121,18 @@ class DebtorTransferController extends BasicController {
         if (isset($input['passports@fact_address_district']) && mb_strlen($input['passports@fact_address_district'])) {
             $debtors->where('passports.fact_address_district', 'like', '%' . $input['passports@fact_address_district'] . '%');
         }
-        
+
+        $is_online = (isset($input['search_field_debtors@is_lead']) && $input['search_field_debtors@is_lead'] == 1) ? 1 : 0;
+
         $is_bigmoney = (isset($input['search_field_debtors@is_bigmoney']) && $input['search_field_debtors@is_bigmoney'] == 1) ? 1 : 0;
         $is_pledge = (isset($input['search_field_debtors@is_pledge']) && $input['search_field_debtors@is_pledge'] == 1) ? 1 : 0;
         $is_pos = (isset($input['search_field_debtors@is_pos']) && $input['search_field_debtors@is_pos'] == 1) ? 1 : 0;
-        
+
+        if ($is_online) {
+            $debtors->leftJoin('debtors.subdivisions', 'debtors.subdivisions.id', '=', 'debtors.loans.subdivision_id');
+            $debtors->where('debtors.subdivisions.is_lead', 1);
+        }
+
         if ($is_bigmoney || $is_pledge || $is_pos) {
             $debtors->where(function($query) use ($is_bigmoney, $is_pledge, $is_pos) {
                 if ($is_bigmoney) {
@@ -226,14 +233,14 @@ class DebtorTransferController extends BasicController {
         //$collection->getData();
         return $collection;
     }
-    
+
     public function transferHistory(Request $req) {
         $date = $req->get('date', date('Y-m-d', time()));
-        
+
         $transfers = \App\DebtorTransferHistory::where('transfer_time', '>=', $date . ' 00:00:00')->where('transfer_time', '<=', $date . ' 23:59:59')->orderBy('row', 'asc')->get();
-        
+
         $arTransfers = [];
-        
+
         if (!is_null($transfers)) {
             foreach ($transfers as $transfer) {
                 if (!isset($arTransfers[$transfer->row])) {
@@ -245,13 +252,13 @@ class DebtorTransferController extends BasicController {
                 $arTransfers[$transfer->row]['transfers'][] = $transfer;
             }
             $arSubdivisions = \App\StructSubdivision::get()->pluck('name', 'id_1c')->toArray();
-            
+
             foreach ($arSubdivisions as $k => $v) {
                 $kn = trim($k);
                 $arSubdivisions[$kn] = $v;
             }
         }
-        
+
         return view('debtortransfer.transfers', [
             'arTransfers' => $arTransfers,
             'arSubdivisions' => $arSubdivisions
@@ -265,14 +272,14 @@ class DebtorTransferController extends BasicController {
      */
     public function changeResponsibleUser(Request $req) {
         $input = $req->input();
-        
+
         $user = User::find($input['new_user_id']);
         if (is_null($user)) {
             return $this->backWithErr("Новый пользователь указан некорректно.");
         }
         $base = $req->get('base', null);
-        
-        if ($user->id == 1901 || $user->id == 1135 || $user->id == 2486 || $user->id == 2860 || $user->id == 951) {
+
+        if ($user->id == 1901 || $user->id == 1135 || $user->id == 2486 || $user->id == 2860 || $user->id == 951 || $user->id == 3654) {
             $str_podr = '0000000000001';
         } else if ($user->hasRole('debtors_remote')) {
             $str_podr = '000000000006';
@@ -280,7 +287,7 @@ class DebtorTransferController extends BasicController {
             $str_podr = '000000000007';
         } else if ($user->id == 1894) {
             $str_podr = '00000000000010';
-        }  else if ($user->id == 1029) {
+        } else if ($user->id == 1029) {
             $str_podr = '';
         } else {
             return $this->backWithErr("Некорректное структурное подразделение для нового пользователя.");
@@ -292,21 +299,21 @@ class DebtorTransferController extends BasicController {
 
         $i = 0;
         $num_1c = 0;
-        
+
         foreach ($input['debtor_ids'] as $debtor_id) {
             $debtor = Debtor::find($debtor_id);
 
             $last_user = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
             $last_user_id = (is_null($last_user)) ? null : $last_user->id;
-            
+
             $arr_history[$i]['responsible_user_id_1c_before'] = $debtor->responsible_user_id_1c;
             $arr_history[$i]['base_before'] = $debtor->base;
             $arr_history[$i]['str_podr_before'] = $debtor->str_podr;
             $arr_history[$i]['fixation_date_before'] = $debtor->fixation_date;
-            
+
             $arr_history[$i]['debtor_id_1c'] = $debtor->debtor_id_1c;
             $arr_history[$i]['auto_transfer'] = 0;
-            
+
 
             $debtor_ids[] = $debtor->id_1c;
 
@@ -322,22 +329,45 @@ class DebtorTransferController extends BasicController {
 
             $debtor->responsible_user_id_1c = $user->id_1c;
             $debtor->fixation_date = Carbon::now()->format('Y-m-d H:i:s');
+
+            $old_base = $debtor->base;
+
             if (!empty($base)) {
                 $debtor->base = $base;
             }
             $debtor->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
             $debtor->save();
-            
+
             $items[$num_1c]['number'] = $num_1c;
             $items[$num_1c]['debtor_id'] = $debtor->debtor_id_1c;
             $items[$num_1c]['debtor_base'] = $debtor->base;
-            
+
             $arr_history[$i]['responsible_user_id_1c_after'] = $debtor->responsible_user_id_1c;
             $arr_history[$i]['base_after'] = $debtor->base;
             $arr_history[$i]['str_podr_after'] = $debtor->str_podr;
             $arr_history[$i]['fixation_date_after'] = $debtor->fixation_date;
             $arr_history[$i]['transfer_time'] = $debtor->refresh_date;
-            
+
+            if ($base == 'Б-3' && $old_base == 'Б-1' && $debtor->sum_indebt >= 300000) {
+
+                $armf_loan = DB::Table('armf.loans')->where('id_1c', $debtor->loan_id_1c)->first();
+
+                if (!is_null($armf_loan)) {
+                    $date_order_from = date('Y-m-d H:i:s', strtotime('-30 day'));
+
+                    $armf_orders = DB::Table('armf.orders')
+                            ->where('loan_id', $armf_loan->id)
+                            ->where('created_at', '>=', $date_order_from)
+                            ->sum('money');
+
+                    $armf_orders_sum = $armf_orders / 100;
+
+                    if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
+                        $this->_sendPeaceClaims($debtor);
+                    }
+                }
+            }
+
             $debtor_unclosed = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->where('is_debtor', 1)->get();
             foreach ($debtor_unclosed as $unclosed) {
                 if ($debtor_id == $unclosed->id) {
@@ -347,31 +377,35 @@ class DebtorTransferController extends BasicController {
                 if ($unclosed->base == 'Архив ЗД' || $unclosed->base == 'З-ДС') {
                     continue;
                 }
-                /*if ($base == 'З-ДС' || $base == 'Б-КДС') {
-                    continue;
-                }*/
-                
-                if (($unclosed->base == 'Б-График' || $unclosed->base == 'З-График') && $unclosed->qty_delays <= 90) {
-                    continue;
+                /* if ($base == 'З-ДС' || $base == 'Б-КДС') {
+                  continue;
+                  } */
+
+                /* if (($unclosed->base == 'Б-График' || $unclosed->base == 'З-График') && $unclosed->qty_delays <= 90) {
+                  continue;
+                  }
+
+                  if (($unclosed->base == 'КБ-График' || $unclosed->base == 'КЗ-График') && $unclosed->qty_delays <= 90) {
+                  continue;
+                  } */
+
+                if ($base == 'КБ-График' && ($unclosed->base == 'Б-0' || $unclosed->base == 'Б-1')) {
+                    //$unclosed->base = 'Б-1';
                 }
-                
-                if ($base == 'КБ-График' && $unclosed->base == 'Б-0') {
-                    $unclosed->base = 'Б-1';
-                }
-                
+
                 $i++;
-                
+
                 $u_last_user = User::where('id_1c', $unclosed->responsible_user_id_1c)->first();
                 $unclosed->last_user_id = (is_null($u_last_user)) ? null : $u_last_user->id;
-                
+
                 $arr_history[$i]['responsible_user_id_1c_before'] = $unclosed->responsible_user_id_1c;
                 $arr_history[$i]['base_before'] = $unclosed->base;
                 $arr_history[$i]['str_podr_before'] = $unclosed->str_podr;
                 $arr_history[$i]['fixation_date_before'] = $unclosed->fixation_date;
-                
+
                 $arr_history[$i]['debtor_id_1c'] = $unclosed->debtor_id_1c;
                 $arr_history[$i]['auto_transfer'] = 1;
-                
+
                 if ($user->id == 951) {
                     $unclosed->str_podr = '0000000000001';
                 } else if ($user->id == 1877 || $user->id == 956) {
@@ -380,11 +414,25 @@ class DebtorTransferController extends BasicController {
                     $unclosed->str_podr = $str_podr;
                 }
                 
+                $unclosed_old_base = $unclosed->base;
+
                 $unclosed->responsible_user_id_1c = $user->id_1c;
                 $unclosed->fixation_date = Carbon::now()->format('Y-m-d H:i:s');
                 if (!empty($base)) {
-                    if ($unclosed->base != 'З-ДС' && $unclosed->base != 'Б-График' && $unclosed->base != 'З-ДС' && $unclosed->base != 'Б-КДС' || $unclosed->base != 'КБ-График') {
+                    if ($user->id_1c == 'Котельникова Е. А.' && $base == 'Б-4' && ($unclosed->base == 'Б-МС' || $unclosed->base == 'Б-риски' || $unclosed->base == 'Б-График' || $unclosed->base == 'КБ-График')) {
                         $unclosed->base = $base;
+                    } else if ($unclosed->base == 'З-ДС' || $unclosed->base == 'Б-КДС') {
+                        $unclosed->base = $base;
+                    } else if ($base == 'КБ-График' && ($unclosed->base == 'Б-1' || $unclosed->base == 'Б-3')) {
+                        $unclosed->base = $unclosed->base;
+                    } else if ($base == 'КБ-График' && $unclosed->base == 'Б-0') {
+                        $unclosed->base = 'Б-1';
+                    } else if ($base == 'Б-1' && $unclosed->base == 'КБ-График') {
+                        $unclosed->base = 'КБ-График';
+                    } else if ($base == 'Б-3' && $unclosed->base == 'КБ-График') {
+                        $unclosed->base = 'КБ-График';
+                    } else {
+                        
                     }
                 } else {
                     if ($unclosed->base == 'Б-0') {
@@ -393,13 +441,33 @@ class DebtorTransferController extends BasicController {
                 }
                 $unclosed->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
                 $unclosed->save();
-                
+
+                if ($base == 'Б-3' && $unclosed_old_base == 'Б-1' && $unclosed->sum_indebt >= 300000) {
+
+                    $armf_loan = DB::Table('armf.loans')->where('id_1c', $unclosed->loan_id_1c)->first();
+
+                    if (!is_null($armf_loan)) {
+                        $date_order_from = date('Y-m-d H:i:s', strtotime('-30 day'));
+
+                        $armf_orders = DB::Table('armf.orders')
+                                ->where('loan_id', $armf_loan->id)
+                                ->where('created_at', '>=', $date_order_from)
+                                ->sum('money');
+
+                        $armf_orders_sum = $armf_orders / 100;
+
+                        if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
+                            $this->_sendPeaceClaims($unclosed);
+                        }
+                    }
+                }
+
                 $items[$num_1c]['number'] = $num_1c;
                 $items[$num_1c]['debtor_id'] = $unclosed->debtor_id_1c;
                 $items[$num_1c]['debtor_base'] = $unclosed->base;
-                
+
                 $num_1c++;
-                
+
                 $arr_history[$i]['responsible_user_id_1c_after'] = $unclosed->responsible_user_id_1c;
                 $arr_history[$i]['base_after'] = $unclosed->base;
                 $arr_history[$i]['str_podr_after'] = $unclosed->str_podr;
@@ -410,17 +478,17 @@ class DebtorTransferController extends BasicController {
             $i++;
             $num_1c++;
         }
-        
+
         $this->addTransferHistory($arr_history);
-        
+
         $arSend1c = [
             'type' => 'ChangeRespInDebt',
             'responsible_user_id_1c' => $user->id_1c,
             'data' => $items
         ];
-        
+
         $str_xml = MySoap::createXML($arSend1c);
-        
+
         $responseXml = MySoap::sendExchangeArm($str_xml);
 
         /*
@@ -520,23 +588,23 @@ class DebtorTransferController extends BasicController {
 
         return \App\Utils\PdfUtil::getPdf($template);
     }
-    
+
     public function addTransferHistory($arr_history) {
         $current_user = auth()->user();
         $data['operation_user_id'] = $current_user->id;
-        
+
         $now = date('Y-m-d H:i:s', time());
-        
+
         $max_row = \App\DebtorTransferHistory::max('row');
         $data['row'] = (is_null($max_row) || $max_row == 0) ? 1 : $max_row + 1;
-        
+
         if (is_array($arr_history)) {
             foreach ($arr_history as $elem) {
                 $history_row = new \App\DebtorTransferHistory();
-                
+
                 $history_row->operation_user_id = $data['operation_user_id'];
                 $history_row->row = $data['row'];
-                
+
                 $history_row->debtor_id_1c = $elem['debtor_id_1c'];
                 $history_row->transfer_time = $now;
                 $history_row->responsible_user_id_1c_before = $elem['responsible_user_id_1c_before'];
@@ -548,9 +616,122 @@ class DebtorTransferController extends BasicController {
                 $history_row->fixation_date_before = $elem['fixation_date_before'];
                 $history_row->fixation_date_after = $elem['fixation_date_after'];
                 $history_row->auto_transfer = $elem['auto_transfer'];
-                
+
                 $history_row->save();
-            } 
+            }
+        }
+    }
+
+    public function _sendPeaceClaims($debtor) {
+        if ($debtor->sum_indebt >= 300000 && $debtor->sum_indebt <= 1000000) {
+            $arPeaceClaim[] = [
+                'repayment_type_id' => 14,
+                'times' => 90,
+                'amount' => 100000,
+                'start_at' => date('Y-m-d', time()),
+                'end_at' => date('Y-m-d', strtotime('+60 day')),
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'prepaid' => 0,
+                'multiple' => 1
+            ];
+            $arPeaceClaim[] = [
+                'repayment_type_id' => 14,
+                'times' => 90,
+                'amount' => 200000,
+                'start_at' => date('Y-m-d', time()),
+                'end_at' => date('Y-m-d', strtotime('+60 day')),
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'prepaid' => 0,
+                'multiple' => 1
+            ];
+            $arPeaceClaim[] = [
+                'repayment_type_id' => 14,
+                'times' => 60,
+                'amount' => 300000,
+                'start_at' => date('Y-m-d', time()),
+                'end_at' => date('Y-m-d', strtotime('+60 day')),
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'prepaid' => 0,
+                'multiple' => 1
+            ];
+        }
+
+        if ($debtor->sum_indebt >= 1000100 && $debtor->sum_indebt <= 2000000) {
+            $arPeaceClaim[] = [
+                'repayment_type_id' => 14,
+                'times' => 150,
+                'amount' => 100000,
+                'start_at' => date('Y-m-d', time()),
+                'end_at' => date('Y-m-d', strtotime('+60 day')),
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'prepaid' => 0,
+                'multiple' => 1
+            ];
+            $arPeaceClaim[] = [
+                'repayment_type_id' => 14,
+                'times' => 150,
+                'amount' => 300000,
+                'start_at' => date('Y-m-d', time()),
+                'end_at' => date('Y-m-d', strtotime('+60 day')),
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'prepaid' => 0,
+                'multiple' => 1
+            ];
+            $arPeaceClaim[] = [
+                'repayment_type_id' => 14,
+                'times' => 90,
+                'amount' => 500000,
+                'start_at' => date('Y-m-d', time()),
+                'end_at' => date('Y-m-d', strtotime('+60 day')),
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'prepaid' => 0,
+                'multiple' => 1
+            ];
+        }
+
+        if ($debtor->sum_indebt > 2000000) {
+            $arPeaceClaim[] = [
+                'repayment_type_id' => 14,
+                'times' => 300,
+                'amount' => 300000,
+                'start_at' => date('Y-m-d', time()),
+                'end_at' => date('Y-m-d', strtotime('+60 day')),
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'prepaid' => 0,
+                'multiple' => 1
+            ];
+            $arPeaceClaim[] = [
+                'repayment_type_id' => 14,
+                'times' => 300,
+                'amount' => 500000,
+                'start_at' => date('Y-m-d', time()),
+                'end_at' => date('Y-m-d', strtotime('+60 day')),
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'prepaid' => 0,
+                'multiple' => 1
+            ];
+            $arPeaceClaim[] = [
+                'repayment_type_id' => 14,
+                'times' => 300,
+                'amount' => 700000,
+                'start_at' => date('Y-m-d', time()),
+                'end_at' => date('Y-m-d', strtotime('+60 day')),
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'prepaid' => 0,
+                'multiple' => 1
+            ];
+        }
+
+        if (isset($arPeaceClaim)) {
+            foreach ($arPeaceClaim as $arPeaceClaimPartData) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, config('admin.sales_arm_url') . '/api/repayments/offers');
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $arPeaceClaimPartData);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $result = curl_exec($ch);
+                curl_close($ch);
+            }
         }
     }
 

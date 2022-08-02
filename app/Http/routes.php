@@ -788,11 +788,17 @@ Route::get('debtors/msg/debtoronsubdivision', ['uses' => 'FromSellingARMControll
 Route::get('debtors/onsite', ['uses' => 'FromSellingARMController@isDebtorOnSite']);
 Route::post('debtors/event/withoutAccept', ['uses' => 'FromSellingARMController@withoutAcceptEvent']);
 
+Route::post('debtors/infinity/incomingCall', ['uses' => 'InfinityController@incomingCall']);
+Route::post('debtors/infinity/closingModals', ['uses' => 'InfinityController@closingModals']);
+
+Route::get('debtors/setSelfResponsible/{debtor_id}', ['uses' => 'DebtorsController@setSelfResponsible']);
+
 //ДОЛЖНИКИ ОТЧЕТЫ
 Route::get('debtors/reports/plancalend', ['uses' => 'DebtorsReportsController@planCalend']);
 Route::get('debtors/reports/ovz', ['uses' => 'DebtorsReportsController@ovz']);
 Route::get('debtors/reports/jobsdoneact', ['uses' => 'DebtorsReportsController@jobsDoneAct']);
 Route::get('debtorsreports/dzcollect', ['uses' => 'DebtorsReportsController@dzcollect']);
+Route::get('debtors/reports/loginlog', ['uses' => 'DebtorsReportsController@exportToExcelDebtorsLoginLog']);
 
 //ДОЛЖНИКИ: ПЕРЕДАЧА ОТ ОТВЕТСТВЕННОМУ К ОТВЕТСТВЕННОМУ
 Route::get('debtortransfer/index', ['uses' => 'DebtorTransferController@index']);
