@@ -1033,6 +1033,30 @@ class DebtorsController extends BasicController {
             $dbp->block_till_date = $data['dateProlongationBlock'];
 
             $dbp->save();
+            
+            $jsonPeaceClaims = file_get_contents('http://192.168.35.89/api/repayments/offers?loan_id_1c=' . $debtor->loan_id_1c);
+            $arPeaceClaims = json_decode($jsonPeaceClaims, true);
+            
+            $nowTime = time();
+            
+            foreach ($arPeaceClaims as $peaceClaim) {
+                if ($nowTime < strtotime($peaceClaim['end_at'])) {
+                    $postData = [
+                        'freeze_start_at' => date('Y-m-d', time()),
+                        'freeze_end_at' => date('Y-m-d', strtotime('+1 day', strtotime($data['dateProlongationBlock'])))
+                    ];
+                    
+                    $ch = curl_init('http://192.168.35.89/api/repayments/offers/' . $peaceClaim['id']);
+                    
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_POST, 1);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+                    
+                    $offer = curl_exec($ch);
+                    
+                    curl_close($ch);
+                }
+            }
         }
         return redirect()->back();
     }
