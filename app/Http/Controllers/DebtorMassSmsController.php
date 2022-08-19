@@ -88,7 +88,6 @@ class DebtorMassSmsController extends BasicController {
         }
 
         $input = $req->input();
-
         $debtors = Debtor::select($cols)
                 ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
                 ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
@@ -108,6 +107,12 @@ class DebtorMassSmsController extends BasicController {
             $debtors->where('debtors.debtors.id', 0);
         }
 
+        if (isset($input['fixation_date']) && mb_strlen($input['fixation_date'])) {
+            $debtors->whereBetween('fixation_date',[
+                Carbon::parse($input['fixation_date'])->startOfDay(),
+                Carbon::parse($input['fixation_date'])->endOfDay()
+            ]);
+        }
         if (isset($input['overdue_from']) && mb_strlen($input['overdue_from'])) {
             $debtors->where('qty_delays', '>=', $input['overdue_from']);
         }
@@ -208,6 +213,7 @@ class DebtorMassSmsController extends BasicController {
                 ->make();
         //$collection->getData();
         return $collection;
+
     }
     
     public function sendMassSms(Request $request) {
