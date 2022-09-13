@@ -12,6 +12,8 @@
     {!! Form::hidden('passport_series',$data[0]['series']) !!}
     {!! Form::hidden('passport_number',$data[0]['number']) !!}
     {!! Form::hidden('user_infinity_extension', auth()->user()->infinity_extension) !!}
+    <input type="hidden" name="overall_sum_today" id="overall_sum_today" value="">
+    <input type="hidden" name="overall_sum_onday" id="overall_sum_onday" value="">
 </div>
 @endif
 <div class="row" style="padding-bottom: 15px;">
@@ -703,7 +705,7 @@
                                 <tbody>
                                     <tr>
                                         <td><span>Общая:</span></td>
-                                        <td style="text-align: center;"><b>{{number_format($data[0]['sum_indebt'] / 100, 2, '.', '')}}</b></td>
+                                        <td style="text-align: center;"><b id="current-total-debt">{{number_format($data[0]['sum_indebt'] / 100, 2, '.', '')}}</b></td>
                                         <td style="text-align: center; font-weight: bold" class='debt-money-ondate'></td>
                                     </tr>
                                     <tr>
@@ -730,6 +732,10 @@
                                         <td><span>Переплата:</span></td>
                                         <td style="text-align: center;">{{number_format($data[0]['d_overpayments'] / 100, 2, '.', '')}}</td>
                                         <td style="text-align: center;" class='debt-overpayments-ondate'></td>
+                                    </tr>
+                                    <tr>
+                                        <td><span>Изменение платежа:</span></td>
+                                        <td colspan="2" style="text-align: center; vertical-align: middle;" class="debt-diffpay-ondate"></td>
                                     </tr>
                                     @if ($current_schedule)
                                     <tr>

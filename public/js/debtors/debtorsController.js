@@ -129,6 +129,8 @@
                     $('#multi_loan_block').html('');
                 } else {
                     $('#multi_loan_block').html(data);
+                    
+                    
                 }
             });
             
@@ -155,6 +157,12 @@
                     $('.debt-' + params[d] + '-ondate').text(calc_data[params[d]]);
                 }
             }
+            
+            var currentTotalDebt = parseFloat($('#current-total-debt').text());
+            var totalDebtOnDate = parseFloat(calc_data['money'] / 100);
+            var diffOnDate = totalDebtOnDate - currentTotalDebt;
+            
+            $('.debt-diffpay-ondate').text(diffOnDate.toFixed(2) + ' руб.');
             
             if (typeof(calc_data['pays']) != "undefined" && calc_data['pays'] !== null) {
                 var table_html = '';

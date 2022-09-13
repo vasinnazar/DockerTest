@@ -4,8 +4,9 @@ if (Auth::id() == 69) { ?>
 <?php
 }
 ?>
-<p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Общая сумма долга: {{ number_format($loans['summary'] / 100, '2', '.', '') }} руб.</p>
+<p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Общая сумма долга: <span id="totalSumDebt">{{ number_format($loans['summary'] / 100, '2', '.', '') }}</span> руб.</p>
 <p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Проценты: {{ number_format($loans['total_pc'] / 100, '2', '.', '') }} руб.</p>
+<p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Изменение общей суммы долга: <span id="diffTotalSumChange">0</span> руб.</p>
 <?php
 foreach ($loans as $id_1c => $mLoan) {
 
@@ -25,3 +26,20 @@ if ($id_1c == 'current_loan_id_1c' || $id_1c == 'summary' || $id_1c == 'base_typ
 <?php
 }
 ?>
+<script>
+$(document).ready(function(){
+    if ($('#overall_sum_today').val() == '') {
+        $('#overall_sum_today').val({{ number_format($loans['summary'] / 100, '2', '.', '') }});
+    } else {
+        
+    }
+    $('#overall_sum_onday').val({{ number_format($loans['summary'] / 100, '2', '.', '') }});
+    
+    var sumToday = parseFloat($('#overall_sum_today').val());
+    var sumOnDay = parseFloat($('#overall_sum_onday').val());
+    
+    var diffOverallSum = sumOnDay - sumToday;
+    
+    $('#diffTotalSumChange').text(diffOverallSum.toFixed(2));
+});
+</script>
