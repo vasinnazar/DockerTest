@@ -2458,6 +2458,9 @@ class DebtorsController extends BasicController {
                 $arParams['total_debt_cc'] = $arDataCc['data']['total_debt'] / 100;
                 $arParams['debt_cc'] = ($arDataCc['data']['debt'] + $arDataCc['data']['mop_debt'] + $arDataCc['data']['overdue_debt']) / 100;
                 $arParams['percent_cc'] = ($arDataCc['data']['percent'] + $arDataCc['data']['mop_percent'] +  $arDataCc['data']['overdue_percent']) / 100;
+                
+                $arParams['current_percent_cc'] = ($arDataCc['data']['percent'] + $arDataCc['data']['mop_percent']) / 100;
+                $arParams['current_debt_cc'] = ($arDataCc['data']['debt'] + $arDataCc['data']['mop_debt']) / 100;
             }
 
             if (mb_strlen($html) > 200) {
@@ -2577,20 +2580,20 @@ class DebtorsController extends BasicController {
                   $arParams['spec_phone'] = '‭+79034101149‬';
                   } */
 
-                /*if ($debtorTmp->id == 144308937) {
+                /*if ($debtorTmp->id == 153396763) {
                   $arParams['req_spec_position'] = 'Специалист';
-                  $arParams['spec_fio'] = 'Маюрникова Любовь Викторовна';
-                  $arParams['spec_phone'] = '89069262558';
+                  $arParams['spec_fio'] = 'Павлов Аркадий Юрьевич';
+                  $arParams['spec_phone'] = '89059044277';
 
-                  $arParams['spec_doc'] = '150/21 от 21 июля 2021 г';
+                  $arParams['spec_doc'] = '91/22р от 25 мая 2022 г';
                   //$arParams['req_spec_position'] = 'Руководитель';
                   //$arParams['loan_id_1c'] = '00001198819-007';
                   //$arParams['loan_created_at'] = '14 февраля 2019 г.';
 
-                  $arParams['date_sent'] = '28.04.2022';
-                  $arParams['print_date'] = '28.04.2022';
+                  $arParams['date_sent'] = '23.06.2022';
+                  $arParams['print_date'] = '23Ы.06.2022';
 
-                  $arParams['notice_number'] = '761335';
+                  $arParams['notice_number'] = '786879';
                   }*/
             }
 
