@@ -146,5 +146,8 @@ return [
     'uki_agreement'=>'uki_agreement',
     'terminal_promo_discount'=>100,
     
-    'offline'=>1
+    'offline'=>1,
+
+    //Урл к сервису с электронными архивами
+    'archive'=>'http://10.17.18.10:8087/documents?'
 ];

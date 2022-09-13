@@ -713,6 +713,11 @@
             }
         });
     };
+    $.debtorsCtrl.debtorsTotalPlanned = function(userId){
+      $.get($.app.url + '/ajax/debtors/total-planned',{userId:userId}).done(function(data){
+          $('#totalNumberPlaned').html(data);
+      });
+    };
     $.debtorsCtrl.debtorsToExcel = function () {
         window.open($.app.url + '/debtors/export/excel?' + $('#debtorsFilter form').serialize());
     };

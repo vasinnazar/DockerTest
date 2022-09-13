@@ -26,6 +26,7 @@
     <div class="col-xs-12">
         <div class='pull-right btn-group'>
             <a href="{{url('debtors/recommends')}}" class="btn {{($recommends_count > 0) ? 'btn-danger' : 'btn-default'}}"{{($recommends_count > 0) ? '' : ' disabled'}}>Рекомендации ({{$recommends_count}})</a>
+            <a href="##" class="btn btn-default" onclick="$.debtorsCtrl.debtorsTotalPlanned({{$user_id}})">Общее количество запланированных</a>
             @if ($personalGroup['isGroup'])
             <a href="{{url('debtors/departuremap')}}" class="btn btn-default">Карта выездов ({{$personalGroup['count']}})</a>
             <a href="{{url('debtors/departureprint')}}" class="btn btn-default" {{($personalGroup['count'] == 0) ? 'disabled' : ''}}>Печать выездов ({{$personalGroup['count']}})</a>
@@ -134,86 +135,7 @@
         </div>
     </div>
 </div>
-<div class='row'>
-    <div class='col-xs-12'>
-        <hr>
-        <h4>Общее количество запланированных</h4>
-        <table class="table table-condensed table-bordered" id="totalDebtorEvents">
-            <thead>
-                <tr>
-                    <th>Тип</th>
-                    @foreach($total_debtor_events['cols'] as $col)
-						@if($col==\Carbon\Carbon::today()->format('d.m.y'))
-						<th><a class='btn btn-default btn-xs planned-table-selected-btn' style="font-size:8px;" href="#" onclick="$.debtorsCtrl.changeEventsDate('{{$col}}', this); return false;">{{substr($col,0,-3)}}</th>
-						@else
-						<th><a class='btn btn-default btn-xs' style="font-size:8px;" href="#" onclick="$.debtorsCtrl.changeEventsDate('{{$col}}', this); return false;">{{substr($col,0,-3)}}</th>
-						@endif
-                    @endforeach
-                    <th>Итог</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($total_debtor_events['data'] as $k=>$v)
-                <tr>
-                    <td>
-                        @if (isset($event_types[$k]))
-                        {{$event_types[$k]}}
-                        @else
-                        Не определено
-                        @endif
-                    </td>
-                    @foreach($total_debtor_events['cols'] as $col)
-                    @if(array_key_exists($col,$total_debtor_events['data'][$k]))
-                    <td>{{$total_debtor_events['data'][$k][$col]}}</td>
-                    @else
-                    <td></td>
-                    @endif
-                    @endforeach
-                    <td>{{$total_debtor_events['total_types'][$k]}}</td>
-                </tr>
-                @endforeach
-                <tr>
-                    <td>Общий итог</td>
-                    @foreach($total_debtor_events['total_days'] as $k=>$num)
-                    <td>{{$num}}</td>
-                    @endforeach
-                    <td>{{$total_debtor_events['total']}}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    @if ($user_id == 916 || $user_id == 227)
-    <div class='col-xs-12'>
-        <hr>
-        <h4>Общее в работе</h4>
-        <table class="table table-striped table-condensed" id="overallEvents">
-            <thead>
-                <tr>
-                    <th style="width: 100px;">База</th>
-                    <th style="width: 70px;">Кол-во</th>
-                    <th style="width: 150px;">Зад-сть</th>
-                    <th style="width: 150px;">Сумма по ОД</th>
-                </tr>
-            </thead>
-            <tbody class='debtors-frame'>
-                @foreach($debtorsOverall['items'] as $item)
-                <tr>
-                    <td>{{$item->base}}</td>
-                    <td>{{$item->num}}</td>
-                    <td>{{$item->sum_debt}}</td>
-                    <td>{{$item->sum_od}}</td>
-                </tr>
-                @endforeach
-                <tr class='bg-danger'>
-                    <td>{{$debtorsOverall['total']['base']}}</td>
-                    <td>{{$debtorsOverall['total']['num']}}</td>
-                    <td>{{$debtorsOverall['total']['sum_debt']}}</td>
-                    <td>{{$debtorsOverall['total']['sum_od']}}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    @endif
+<div class='row' id="totalNumberPlaned">
 </div>
 <div class="modal fade" id="debtorsSearchModal" tabindex="-1" role="dialog" aria-labelledby="debtorsSearchModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -326,7 +248,7 @@
 @include('elements.debtors.debtorsSiteLoginReportModal')
 @stop
 @section('scripts')
-<script src="{{asset('js/debtors/debtorsController.js?7')}}"></script>
+<script src="{{asset('js/debtors/debtorsController.js?8')}}"></script>
 <script>
                         $(document).ready(function () {
                         $.debtorsCtrl.init();

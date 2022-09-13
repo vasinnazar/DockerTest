@@ -133,8 +133,6 @@ class DebtorsController extends BasicController {
             'debtorsSearchFields' => Debtor::getSearchFields(),
             'debtorEventsSearchFields' => DebtorEvent::getSearchFields(),
             'debtorEventsGroupPlanFields' => DebtorEvent::getGroupPlanFields(),
-            'debtorsOverall' => $debtorsOverall,
-            'total_debtor_events' => DebtorEvent::getPlannedForUser(Auth::user(), Carbon::today()->subDays(15), 30),
             'debtorUsers' => $debtorUsers,
             'personalGroup' => [
                 'isGroup' => $isPersonalGroup,
@@ -142,6 +140,20 @@ class DebtorsController extends BasicController {
             ],
             'canEditSmsCount' => $canEditSmsCount
         ]);
+    }
+    public function totalNumberPlaned(Request  $request){
+        $user = User::where('id',$request->userId)->first();
+        $debtorsOverall = [];
+        if ($user->id== 916 || $user->id == 227) {
+            $debtorsOverall = Debtor::getOverall();
+        }
+        return view('debtors.totalnumberPlaned',[
+           'user_id'=>$user->id,
+            'event_types' => config('debtors.event_types'),
+            'debtorsOverall' => $debtorsOverall,
+            'total_debtor_events' => DebtorEvent::getPlannedForUser(Auth::user(), Carbon::today()->subDays(15), 30),
+        ]);
+
     }
 
     public function uploadOldDebtorEvents() {

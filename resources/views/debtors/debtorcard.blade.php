@@ -134,6 +134,17 @@
                                 <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
                                 @endif
                             </div>
+
+                                <div class="text-center" style="margin-top: 15px;">
+                                <span>
+                                    <a href="{{ config('options.archive') }}passport_series={{ $debtor->passport_series }}&passport_number={{ $debtor->passport_number }}&loan_external_id={{ $debtor->loan_id_1c }}"
+                                       style="color: #fff; text-decoration: none;">
+                                        <p class="el_archive" style="margin: 5px; background-color: {{ $pBgColor }};">
+                                            Электронный архив
+                                        </p>
+                                    </a>
+                                </span>
+                                </div>
                             @endif
                         </div>
                         <input type="hidden" id="canCall" name="canCall" value="{{ ($pBgColor == '#28A93B') ? 1 : 0 }}">
@@ -320,23 +331,32 @@
                         <tr style="background-color: #5CCDC9;">
                             <td>Т. моб.:</td>
                             <td>
-                                @if (isset($data[0]['telephone']) && mb_strlen($data[0]['telephone']) && $debtor->base != 'Архив ЗД')
-                                <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['telephone']}}">
-                                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-                                </button>
-                                @if(!empty(auth()->user()->infinity_extension))
-                                <button type="button" class="btn btn-default btn-xs phone-call-btn" data-phone="{{$data[0]['telephone']}}">
-                                    <span class="glyphicon glyphicon-earphone"></span>
-                                </button>
-                                @endif
-                                <a href="whatsapp://send?phone={{$data[0]['telephone']}}" class="btn btn-default btn-xs" target="_blank">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
-                                        <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
-                                    </svg>
-                                </a>
-                                <a href="https://t.me/+{{$data[0]['telephone']}}" class="btn btn-default btn-xs" target="_blank">
-                                    Т
-                                </a>
+                                @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent))
+                                    @if (isset($data[0]['telephone']) && mb_strlen($data[0]['telephone']) && $debtor->base != 'Архив ЗД')
+                                        <button type="button" class="btn btn-default btn-xs" data-toggle="modal"
+                                                data-target="#debtorSMS" data-phone="{{$data[0]['telephone']}}">
+                                            <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                                        </button>
+                                        @if(!empty(auth()->user()->infinity_extension))
+                                            <button type="button" class="btn btn-default btn-xs phone-call-btn"
+                                                    data-phone="{{$data[0]['telephone']}}">
+                                                <span class="glyphicon glyphicon-earphone"></span>
+                                            </button>
+                                        @endif
+
+
+                                        <a href="whatsapp://send?phone={{$data[0]['telephone']}}"
+                                           class="btn btn-default btn-xs" target="_blank">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"
+                                                 fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
+                                                <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                                            </svg>
+                                        </a>
+                                        <a href="https://t.me/+{{$data[0]['telephone']}}" class="btn btn-default btn-xs"
+                                           target="_blank">
+                                            Т
+                                        </a>
+                                    @endif
                                 @endif
                             </td>
                             <td id="debtor-phone-clip">{{$data[0]['telephone']}}</td>
@@ -571,6 +591,7 @@
             </div>
         </div>
     </div>
+
     <div class="row">
         <div class="col-xs-12 col-sm-12 col-lg-12">
             <div class="panel panel-default">
@@ -610,6 +631,10 @@
                                     @elseif($data[0]['loantype_special_pc']==1)
                                     {{$data[0]['loan_special_percent']}}
                                     @else
+                                        <?php
+                                        //var_dump($loan_percents);
+                                        //exit();
+                                        ?>
                                     <b>({{$loan_first_percent}})</b> {{$loan_percents->pc}}
                                     @endif
                                     %,
@@ -838,179 +863,198 @@
                 </table>
             </div>
         </div>
-        @if ($debtor->base != 'Архив ЗД' || auth()->user()->id == 2486 || auth()->user()->id == 2860 || $debtroles['is_chief'])
-        <div class="col-xs-12 col-sm-6 col-lg-8">
-            <form action="/debtors/addevent" id="event-form" enctype="multipart/form-data" method="POST">
-                {{ csrf_field() }}
-                <input type="hidden" name="debtor_id" value="{{$debtor_id}}">
-                <input type="hidden" name="user_id" value="{{$current_user_id}}">
-                <div class="row">
-                    <div class="col-xs-12 col-lg-6">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                Редактирование мероприятия
+        @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent))
+            @if ($debtor->base != 'Архив ЗД' && ($data[0]['str_podr_name'] == 'Отдел удаленного взыскания' || $data[0]['str_podr_name'] == 'Отдел личного взыскания' || $data[0]['str_podr_name'] == 'СБиВЗ') || auth()->user()->id == 2486 || auth()->user()->id == 2860 || $debtroles['is_chief'])
+                <div class="col-xs-12 col-sm-6 col-lg-8">
+                    <form action="/debtors/addevent" id="event-form" enctype="multipart/form-data" method="POST">
+                        {{ csrf_field() }}
+                        <input type="hidden" name="debtor_id" value="{{$debtor_id}}">
+                        <input type="hidden" name="user_id" value="{{$current_user_id}}">
+                        <div class="row">
+                            <div class="col-xs-12 col-lg-6">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        Редактирование мероприятия
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class='form-horizontal'>
+                                            <div class='form-group'>
+                                                <label class='col-xs-12 col-sm-4 text-right'>Дата мероприятия:</label>
+                                                <div class='col-xs-12 col-sm-8 form-inline'>
+                                                    <input id="datetimepickerCreate" type="text" name="created_at"
+                                                           value="{{date('d.m.Y H:i', time())}}" class="form-control"
+                                                           readonly>
+                                                </div>
+                                            </div>
+                                            <div class='form-group'>
+                                                <label class='col-xs-12 col-sm-4 text-right'>Тип мероприятия:</label>
+                                                <div class='col-xs-12 col-sm-8'>
+                                                    <select name="event_type_id" class="form-control">
+                                                        <option value=""></option>
+                                                        @foreach ($debtdata['event_types'] as $k => $type)
+                                                            <option value="{{$k}}">{{$type}}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class='form-group'>
+                                                <label class='col-xs-12 col-sm-4 text-right'>Причина просрочки:</label>
+                                                <div class='col-xs-12 col-sm-8'>
+                                                    <select name="overdue_reason_id" class="form-control">
+                                                        <option value=""></option>
+                                                        @foreach ($debtdata['overdue_reasons'] as $k => $type)
+                                                            <option value="{{$k}}">{{$type}}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class='form-group'>
+                                                <label class='col-xs-12 col-sm-4 text-right'>Группа долга:</label>
+                                                <div class='col-xs-12 col-sm-8'>
+                                                        <?php
+                                                        $sel_disabled = '';
+                                                        $bool_sel_disabled = false;
+                                                        if ($data[0]['base'] == 'Архив убытки' || $data[0]['base'] == 'Архив компании') {
+                                                            $sel_disabled = ' disabled';
+                                                            $bool_sel_disabled = true;
+                                                        }
+                                                        ?>
+                                                    <select name="debt_group_id" class="form-control"{{$sel_disabled}}>
+                                                        @if ($data[0]['d_debt_group_id'] == null && $bool_sel_disabled)
+                                                            <option value="" selected disabled></option>
+                                                        @else
+                                                            <option value=""></option>
+                                                                <?php foreach ($debtdata['debt_groups'] as $k => $type) {
+                                                                $selected = '';
+                                                                if ($bool_sel_disabled) {
+                                                                    if ($k == $data[0]['d_debt_group_id']) {
+                                                                        $selected = ' selected';
+                                                                    }
+                                                                }
+                                                                if (isset($debtroles['personal_notice']) && !in_array($k,
+                                                                        [1, 2, 3, 5, 6, 19, 51])) {
+                                                                    continue;
+                                                                }
+                                                                ?>
+                                                            <option value="{{$k}}"{{$selected}}>{{$type}}</option>
+                                                            <?php } ?>
+                                                        @endif
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class='form-group'>
+                                                <label class='col-xs-12 col-sm-4 text-right'>Результат:</label>
+                                                <div class='col-xs-12 col-sm-8'>
+                                                    <select name="event_result_id" class="form-control">
+                                                        <option value=""></option>
+                                                        @foreach ($debtdata['event_results'] as $k => $type)
+                                                            <option value="{{$k}}">{{$type}}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            @if ($debtroles['is_chief'])
+                                                <div class='form-group' id='chief_event_field'>
+                                                    <label class='col-xs-12 col-sm-4 text-right'>От имени:</label>
+                                                    <div class='col-xs-12 col-sm-8 form-inline'>
+                                                        <input name='users@login' type='text'
+                                                               class='form-control autocomplete'
+                                                               data-hidden-value-field='search_field_users@id'
+                                                               style='width: 100%;'/>
+                                                        <input id="chief_from_user_id" name='search_field_users@id'
+                                                               type='hidden'/>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                            <div class='form-group'>
+                                                <label class='col-xs-12 col-sm-4 text-right'>Отчет о
+                                                    мероприятии:</label>
+                                                <div class='col-xs-12 col-sm-8'>
+                                                    <textarea style="min-height: 150px;" name="report"
+                                                              class="form-control"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class='form-group'>
+                                                <div class='col-xs-12'>
+                                                    <label class="btn btn-default btn-file pull-right">
+                                                        Прикрепить фото <input name="messenger_photo" type="file"
+                                                                               onchange="$('#upload-file-info').text(this.files[0].name)"
+                                                                               style="display: none;">
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class='form-group'>
+                                                <div class='col-xs-12'>
+                                                    <span class='label label-info pull-right'
+                                                          id="upload-file-info"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="panel-body">
-                                <div class='form-horizontal'>
-                                    <div class='form-group'>
-                                        <label class='col-xs-12 col-sm-4 text-right'>Дата мероприятия:</label>
-                                        <div class='col-xs-12 col-sm-8 form-inline'>
-                                            <input id="datetimepickerCreate" type="text" name="created_at" value="{{date('d.m.Y H:i', time())}}" class="form-control" readonly>
-                                        </div>
+                            <div class="col-xs-12 col-lg-6">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        Планирование
                                     </div>
-                                    <div class='form-group'>
-                                        <label class='col-xs-12 col-sm-4 text-right'>Тип мероприятия:</label>
-                                        <div class='col-xs-12 col-sm-8'>
-                                            <select name="event_type_id" class="form-control">
-                                                <option value=""></option>
-                                                @foreach ($debtdata['event_types'] as $k => $type)
-                                                <option value="{{$k}}">{{$type}}</option>
-                                                @endforeach
-                                            </select>
+                                    <div class="panel-body form-horizontal">
+                                        <div class="form-group">
+                                            <label class='col-xs-12 col-sm-4 text-right'>Тип мероприятия:</label>
+                                            <div class='col-xs-12 col-sm-8'>
+                                                <select name="event_type_id_plan" class="form-control">
+                                                    <option value=""></option>
+                                                    @foreach ($debtdata['event_types'] as $k => $type)
+                                                        <option value="{{$k}}">{{$type}}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class='form-group'>
-                                        <label class='col-xs-12 col-sm-4 text-right'>Причина просрочки:</label>
-                                        <div class='col-xs-12 col-sm-8'>
-                                            <select name="overdue_reason_id" class="form-control">
-                                                <option value=""></option>
-                                                @foreach ($debtdata['overdue_reasons'] as $k => $type)
-                                                <option value="{{$k}}">{{$type}}</option>
-                                                @endforeach
-                                            </select>
+                                        <div class='form-group'>
+                                            <label class='col-xs-12 col-sm-4 text-right'>Дата мероприятия</label>
+                                            <div class='col-xs-12 col-sm-8 form-inline'>
+                                                <input id="datetimepickerPlan" type="text" name="date"
+                                                       class="form-control">
+                                            </div>
                                         </div>
+                                        <!--div class="well">
+                                            <strong>Запланированное мероприятие: </strong>&nbsp;&nbsp;<input type="checkbox" name="completed" value="1"> Выполнено
+                                        </div-->
+                                        <!--div class="text-center">
+                                            <br>
+                                            <button id="submit_event" type="submit" class="btn btn-primary btn-lg"><span class="glyphicon glyphicon-floppy-disk"></span> Сохранить</button>
+                                        </div-->
                                     </div>
-                                    <div class='form-group'>
-                                        <label class='col-xs-12 col-sm-4 text-right'>Группа долга:</label>
-                                        <div class='col-xs-12 col-sm-8'>
-                                            <?php
-                                            $sel_disabled = '';
-                                            $bool_sel_disabled = false;
-                                            if ($data[0]['base'] == 'Архив убытки' || $data[0]['base'] == 'Архив компании') {
-                                                $sel_disabled = ' disabled';
-                                                $bool_sel_disabled = true;
-                                            }
-                                            ?>
-                                            <select name="debt_group_id" class="form-control"{{$sel_disabled}}>
-                                                @if ($data[0]['d_debt_group_id'] == null && $bool_sel_disabled)
-                                                <option value="" selected disabled></option>
-                                                @else
-                                                <option value=""></option>
-                                                <?php foreach ($debtdata['debt_groups'] as $k => $type) {
-                                                $selected = '';
-                                                if ($bool_sel_disabled) {
-                                                    if ($k == $data[0]['d_debt_group_id']) {
-                                                        $selected = ' selected';
-                                                    }
-                                                }
-                                                if (isset($debtroles['personal_notice']) && !in_array($k, [1, 2, 3, 5, 6, 19, 51])) {
-                                                    continue;
-                                                }
-                                                ?>
-                                                <option value="{{$k}}"{{$selected}}>{{$type}}</option>
-                                                <?php } ?>
-                                                @endif
-                                            </select>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        Договоренность о закрытии кредитного договора
+                                    </div>
+                                    <div class="panel-body form-horizontal">
+                                        <div class='form-group'>
+                                            <label class='col-xs-12 col-sm-4 text-right'>Дата договоренности</label>
+                                            <div class='col-xs-12 col-sm-8 form-inline'>
+                                                <input id="datetimepickerProlongationBlock" type="text"
+                                                       name="dateProlongationBlock" class="form-control">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class='form-group'>
-                                        <label class='col-xs-12 col-sm-4 text-right'>Результат:</label>
-                                        <div class='col-xs-12 col-sm-8'>
-                                            <select name="event_result_id" class="form-control">
-                                                <option value=""></option>
-                                                @foreach ($debtdata['event_results'] as $k => $type)
-                                                <option value="{{$k}}">{{$type}}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    @if ($debtroles['is_chief'])
-                                    <div class='form-group' id='chief_event_field'>
-                                        <label class='col-xs-12 col-sm-4 text-right'>От имени:</label>
-                                        <div class='col-xs-12 col-sm-8 form-inline'>
-                                            <input name='users@login' type='text' class='form-control autocomplete' data-hidden-value-field='search_field_users@id' style='width: 100%;'/>
-                                            <input id="chief_from_user_id" name='search_field_users@id' type='hidden' />
-                                        </div>
-                                    </div>
-                                    @endif
-                                    <div class='form-group'>
-                                        <label class='col-xs-12 col-sm-4 text-right'>Отчет о мероприятии:</label>
-                                        <div class='col-xs-12 col-sm-8'>
-                                            <textarea style="min-height: 150px;" name="report" class="form-control"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class='form-group'>
-                                        <div class='col-xs-12'>
-                                            <label class="btn btn-default btn-file pull-right">
-                                                Прикрепить фото <input name="messenger_photo" type="file" onchange="$('#upload-file-info').text(this.files[0].name)" style="display: none;">
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class='form-group'>
-                                        <div class='col-xs-12'>
-                                            <span class='label label-info pull-right' id="upload-file-info"></span>
+                                        <div class="text-center">
+                                            <br>
+                                            <button id="submit_event" type="submit" class="btn btn-primary btn-lg"><span
+                                                        class="glyphicon glyphicon-floppy-disk"></span> Сохранить
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-xs-12 col-lg-6">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                Планирование
-                            </div>
-                            <div class="panel-body form-horizontal">
-                                <div class="form-group">
-                                    <label class='col-xs-12 col-sm-4 text-right'>Тип мероприятия:</label>
-                                    <div class='col-xs-12 col-sm-8'>
-                                        <select name="event_type_id_plan" class="form-control">
-                                            <option value=""></option>
-                                            @foreach ($debtdata['event_types'] as $k => $type)
-                                            <option value="{{$k}}">{{$type}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class='form-group'>
-                                    <label class='col-xs-12 col-sm-4 text-right'>Дата мероприятия</label>
-                                    <div class='col-xs-12 col-sm-8 form-inline'>
-                                        <input id="datetimepickerPlan" type="text" name="date" class="form-control">
-                                    </div>
-                                </div>
-                                <!--div class="well">
-                                    <strong>Запланированное мероприятие: </strong>&nbsp;&nbsp;<input type="checkbox" name="completed" value="1"> Выполнено
-                                </div-->
-                                <!--div class="text-center">
-                                    <br>
-                                    <button id="submit_event" type="submit" class="btn btn-primary btn-lg"><span class="glyphicon glyphicon-floppy-disk"></span> Сохранить</button>
-                                </div-->
-                            </div>
-                        </div>
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                Договоренность о закрытии кредитного договора
-                            </div>
-                            <div class="panel-body form-horizontal">
-                                <div class='form-group'>
-                                    <label class='col-xs-12 col-sm-4 text-right'>Дата договоренности</label>
-                                    <div class='col-xs-12 col-sm-8 form-inline'>
-                                        <input id="datetimepickerProlongationBlock" type="text" name="dateProlongationBlock" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="text-center">
-                                    <br>
-                                    <button id="submit_event" type="submit" class="btn btn-primary btn-lg"><span class="glyphicon glyphicon-floppy-disk"></span> Сохранить</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </form>
+                    </form>
 
-        </div>
+                </div>
+            @endif
         @endif
     </div>
+
 </div>
 <button type='button' class='btn btn-success phone-call-btn btn-xs' id='selectionCallBtn' data-phone='' style='position: fixed; display: none;'>
     <span class='glyphicon glyphicon-earphone'></span> Позвонить на: <span class='phone-number'></span>
