@@ -330,7 +330,7 @@
                         <tr style="background-color: #5CCDC9;">
                             <td>Т. моб.:</td>
                             <td>
-                                @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent))
+                                @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $debtroles['is_chief'])
                                     @if (isset($data[0]['telephone']) && mb_strlen($data[0]['telephone']) && $debtor->base != 'Архив ЗД')
                                         <button type="button" class="btn btn-default btn-xs" data-toggle="modal"
                                                 data-target="#debtorSMS" data-phone="{{$data[0]['telephone']}}">
@@ -858,7 +858,7 @@
                 </table>
             </div>
         </div>
-        @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent))
+        @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $debtroles['is_chief'])
             @if ($debtor->base != 'Архив ЗД' && ($data[0]['str_podr_name'] == 'Отдел удаленного взыскания' || $data[0]['str_podr_name'] == 'Отдел личного взыскания' || $data[0]['str_podr_name'] == 'СБиВЗ') || auth()->user()->id == 2486 || auth()->user()->id == 2860 || $debtroles['is_chief'])
                 <div class="col-xs-12 col-sm-6 col-lg-8">
                     <form action="/debtors/addevent" id="event-form" enctype="multipart/form-data" method="POST">
