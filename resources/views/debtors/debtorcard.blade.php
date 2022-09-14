@@ -134,8 +134,8 @@
                                 <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
                                 @endif
                             </div>
-
-                                <div class="text-center" style="margin-top: 15px;">
+                            @endif
+                            <div class="text-center" style="margin-top: 15px;">
                                 <span>
                                     <a href="{{ config('options.archive') }}passport_series={{ $debtor->passport_series }}&passport_number={{ $debtor->passport_number }}&loan_external_id={{ $debtor->loan_id_1c }}"
                                        style="color: #fff; text-decoration: none;">
@@ -144,8 +144,7 @@
                                         </p>
                                     </a>
                                 </span>
-                                </div>
-                            @endif
+                            </div>
                         </div>
                         <input type="hidden" id="canCall" name="canCall" value="{{ ($pBgColor == '#28A93B') ? 1 : 0 }}">
                         
@@ -631,10 +630,6 @@
                                     @elseif($data[0]['loantype_special_pc']==1)
                                     {{$data[0]['loan_special_percent']}}
                                     @else
-                                        <?php
-                                        //var_dump($loan_percents);
-                                        //exit();
-                                        ?>
                                     <b>({{$loan_first_percent}})</b> {{$loan_percents->pc}}
                                     @endif
                                     %,
