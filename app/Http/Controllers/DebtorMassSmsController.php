@@ -281,6 +281,12 @@ class DebtorMassSmsController extends BasicController {
         if (isset($input['search_field_debt_groups@id']) && mb_strlen($input['search_field_debt_groups@id'])) {
             $debtors->where('debt_group_id', $input['search_field_debt_groups@id']);
         }
+        if (isset($input['fixation_date']) && mb_strlen($input['fixation_date'])) {
+            $debtors->whereBetween('fixation_date',[
+                Carbon::parse($input['fixation_date'])->startOfDay(),
+                Carbon::parse($input['fixation_date'])->endOfDay()
+            ]);
+        }
         
         $d = $debtors->get();
         
