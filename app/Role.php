@@ -10,6 +10,8 @@ class Role extends Model {
     const SPEC = 'spec';
     const SEB = 'seb';
     const RUC = 'ruk';
+    const DEBTORS_REMOTE = 12;
+    const DEBTORS_PERSONAL = 13;
 
     protected $table = 'roles';
     protected $fillable = ['name','description'];

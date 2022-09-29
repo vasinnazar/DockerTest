@@ -3,6 +3,7 @@
 use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Route;
 
 //use Log;
 
@@ -964,3 +965,7 @@ Route::get('subdivision/stock/settings/logs', ['uses' => 'SubdivisionStockSettin
 Route::get('subdivision/stock/settings/log', ['uses' => 'SubdivisionStockSettingsController@viewLog']);
 Route::get('subdivision/stock/settings/edit', ['uses' => 'SubdivisionStockSettingsController@edit']);
 Route::post('subdivision/stock/settings/update', ['uses' => 'SubdivisionStockSettingsController@update']);
+
+//роуты для отправки еmail
+Route::get('/debtors/emails/list/{user_id}',['uses'=>'EmailController@index']);
+Route::post('/debtors/email/send',['as'=>'email.send','uses' => 'EmailController@sendEmail']);

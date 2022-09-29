@@ -475,17 +475,22 @@
                             <td>Т. моб. старый:</td>
                             <td></td>
                             <td></td>
-                            <td></td>
+                            <td></td>s
                         </tr>
                         @if (str_contains($data[0]['email'], '@'))
-                        <tr>
-                            <td>E-mail:</td>
-                            <td></td>
-                            <td>
-                                <a data-toggle="modal" data-target="#debtorEmailText">{{$data[0]['email']}}</a>
-                            </td>
-                            <td></td>
-                        </tr>
+                            <tr>
+                                <td>E-mail:</td>
+                                <td>
+                                    <input type="hidden" name="debtor_id" id="debtCardId" value="{{$debtor['id']}}">
+                                    <button onclick="($.debtorsCtrl.emailMessagesList({{auth()->user()->id}}))" target="_blank" class="btn btn-default btn-xs">
+                                        <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+                                    </button>
+                                </td>
+                                <td>
+                                    <a data-toggle="modal" data-target="#debtorEmailText">{{$data[0]['email']}}</a>
+                                </td>
+                                <td></td>
+                            </tr>
                         @endif
                         <tr>
                             <td>Ответственный:</td>
@@ -930,8 +935,8 @@
                                                                         [1, 2, 3, 5, 6, 19, 51])) {
                                                                     continue;
                                                                 }
-                                                                ?>
-                                                            <option value="{{$k}}"{{$selected}}>{{$type}}</option>
+//                                                                ?>
+                                                            <option value="{--><!--{$k}}"{{$selected}}>{{$type}}</option>
                                                             <?php } ?>
                                                         @endif
                                                     </select>
@@ -1077,7 +1082,7 @@
 @endif
 @stop
 @section('scripts')
-<script src="{{asset('js/debtors/debtorsController.js?9')}}"></script>
+<script src="{{asset('js/debtors/debtorsController.js?10')}}"></script>
 <script src="{{asset('js/libs/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js')}}"></script>
 <script src="{{asset('js/libs/clipboard/clipboard.min.js')}}"></script>
 <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>

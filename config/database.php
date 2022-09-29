@@ -49,154 +49,159 @@ return [
         ],
         'mysql' => array(
             'read' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('DB_HOST', '127.0.0.1'),
+                'port' => env('DB_PORT', '3306'),
             ),
             'write' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('DB_HOST', '127.0.0.1'),
+                'port' => env('DB_PORT', '3306'),
             ),
             'driver' => 'mysql',
-            'database' => 'debtors',
-            'username' => 'debtors_arm',
-            'password' => 'vrotmnenogi712',
+            'database' => env('DB_DATABASE', 'debtors'),
+            'username' => env('DB_USERNAME','alex'),
+            'password' => env('DB_PASSWORD','12345'),
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
         ),
         'debtors' => array(
             'read' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('DB_HOST', '127.0.0.1'),
+                'port' => env('DB_PORT', '3306'),
             ),
             'write' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('DB_HOST', '127.0.0.1'),
+                'port' => env('DB_PORT', '3306'),
             ),
             'driver' => 'mysql',
-            'database' => 'debtors',
-            'username' => 'debtors_arm',
-            'password' => 'vrotmnenogi712',
+            'database' => env('DB_DATABASE', 'debtors'),
+            'username' => env('DB_USERNAME','alex'),
+            'password' => env('DB_PASSWORD','12345'),
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
         ),
         'armf' => array(
             'read' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('ARM_DB_HOST', '127.0.0.1'),
+                'port' => env('ARM_DB_PORT', '3306'),
             ),
             'write' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('ARM_DB_HOST', '127.0.0.1'),
+                'port' => env('ARM_DB_PORT', '3306'),
             ),
             'driver' => 'mysql',
-            'database' => 'armf',
-            'username' => 'debtors_arm',
-            'password' => 'vrotmnenogi712',
+            'database' => env('ARM_DB_DATABASE', 'armf2'),
+            'username' => env('ARM_DB_USERNAME','alex'),
+            'password' => env('ARM_DB_PASSWORD','12345'),
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
         ),
         'arm' => array(
             'read' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('ARM_DB_HOST', '127.0.0.1'),
+                'port' => env('ARM_DB_PORT', '3306'),
             ),
             'write' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('ARM_DB_HOST', '127.0.0.1'),
+                'port' => env('ARM_DB_PORT', '3306'),
             ),
             'driver' => 'mysql',
-            'database' => 'armf',
-            'username' => 'debtors_arm',
-            'password' => 'vrotmnenogi712',
+            'database' => env('ARM_DB_DATABASE', 'armf2'),
+            'username' => env('ARM_DB_USERNAME','alex'),
+            'password' => env('ARM_DB_PASSWORD','12345'),
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
         ),
-		'arm_replica' => array(
+        'arm_replica' => array(
             'read' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('ARM_DB_HOST', '127.0.0.1'),
+                'port' => env('ARM_DB_PORT', '3306'),
             ),
             'write' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('ARM_DB_HOST', '127.0.0.1'),
+                'port' => env('ARM_DB_PORT', '3306'),
             ),
             'driver' => 'mysql',
-            'database' => 'armf',
-            'username' => 'debtors_arm',
-            'password' => 'vrotmnenogi712',
+            'database' => env('ARM_DB_DATABASE', 'armf2'),
+            'username' => env('ARM_DB_USERNAME','alex'),
+            'password' => env('ARM_DB_PASSWORD','12345'),
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
         ),
         'arm115' => array(
             'read' => array(
-                'host' => '192.168.1.115',
-                'port' => '3306'
+                'host' => env('ARM_115_DB_HOST', '127.0.0.1'),
+                'port' => env('ARM_115_DB_PORT', '3306'),
             ),
             'write' => array(
-                'host' => '192.168.1.115',
-                'port' => '3306'
+                'host' => env('ARM_115_DB_HOST', '127.0.0.1'),
+                'port' => env('ARM_115_DB_PORT', '3306'),
             ),
             'driver' => 'mysql',
-            'database' => 'armf',
-            'username' => 'debtors_arm',
-            'password' => 'vrotmnenogi712',
+            'database' => env('ARM_115_DB_DATABASE', 'armf'),
+            'username' => env('ARM_115_DB_USERNAME','alex'),
+            'password' => env('ARM_115_DB_PASSWORD','12345'),
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
         ),
         'oldevents' => array(
             'read' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('OLDEVENTS_DB_HOST', '127.0.0.1'),
+                'port' => env('OLDEVENTS_DB_PORT', '3306'),
             ),
             'write' => array(
-                'host' => '192.168.35.88',
-                'port' => '3306'
+                'host' => env('OLDEVENTS_DB_HOST', '127.0.0.1'),
+                'port' => env('OLDEVENTS_DB_PORT', '3306'),
             ),
             'driver' => 'mysql',
-            'database' => 'oldevents',
-            'username' => 'debtors_arm',
-            'password' => 'vrotmnenogi712',
+            'database' => env('OLDEVENTS_DB_DATABASE', 'oldevents'),
+            'username' => env('OLDEVENTS_DB_USERNAME','alex'),
+            'password' => env('OLDEVENTS_DB_PASSWORD','12345'),
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
         ),
         'mysql_stat' => array(
             'read' => array(
-                'host' => '192.168.35.88',
+                'host' => env('ARM_DB_HOST', '127.0.0.1'),
+                'port' => env('ARM_DB_PORT', '3306'),
             ),
             'write' => array(
-                'host' => '192.168.35.88'
+                'host' => env('ARM_DB_HOST', '127.0.0.1'),
+                'port' => env('ARM_DB_PORT', '3306'),
             ),
             'driver' => 'mysql',
-            'database' => 'armf',
-            'username' => 'debtors_arm',
-            'password' => 'vrotmnenogi712',
+            'database' => env('ARM_DB_DATABASE', 'armf2'),
+            'username' => env('ARM_DB_USERNAME','alex'),
+            'password' => env('ARM_DB_PASSWORD','12345'),
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
         ),
         'spylogsDB' => array(
             'read' => array(
-                'host' => '192.168.35.88',
+                'host' => env('SPYLOG_DB_HOST', '127.0.0.1'),
+                'port' => env('SPYLOG_DB_PORT', '3306'),
             ),
             'write' => array(
-                'host' => '192.168.35.88'
+                'host' => env('SPYLOG_DB_HOST', '127.0.0.1'),
+                'port' => env('SPYLOG_DB_PORT', '3306'),
             ),
             'driver' => 'mysql',
-            'database' => 'spylogsdb',
-            'username' => 'debtors_arm',
-            'password' => 'vrotmnenogi712',
+            'database' => env('SPYLOG_DB_DATABASE', 'spylogdb'),
+            'username' => env('SPYLOG_DB_USERNAME','alex'),
+            'password' => env('SPYLOG_DB_PASSWORD','12345'),
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
         )
     ],
+
     /*
       |--------------------------------------------------------------------------
       | Migration Repository Table
@@ -222,9 +227,9 @@ return [
 
         'cluster' => false,
         'default' => [
-            'host' => '127.0.0.1',
-            'port' => 6379,
-            'database' => 0,
+            'host' => env('REDIS_HOST','127.0.0.1'),
+            'port' => env('REDIS_PORT',6379),
+            'database' => env('REDIS_DATABASE',0),
         ],
     ],
 ];
