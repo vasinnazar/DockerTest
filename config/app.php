@@ -140,6 +140,7 @@ return [
         'App\Providers\EventServiceProvider',
         'App\Providers\RouteServiceProvider',
         'App\Providers\FtpCustomServiceProvider',
+        Barryvdh\Debugbar\ServiceProvider::class,
         
     ],
     /*
@@ -192,5 +193,7 @@ return [
         'View' => 'Illuminate\Support\Facades\View',
         'Form' => 'Illuminate\Html\FormFacade',
         'HTML' => 'Illuminate\Html\HtmlFacade',
+        'Gate' => Illuminate\Support\Facades\Gate::class,
+        'Debugbar' => Barryvdh\Debugbar\Facades\Debugbar::class,
     ],
 ];

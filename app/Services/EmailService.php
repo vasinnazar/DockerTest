@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Debtor;
+use App\DebtorEvent;
 use App\EmailMessage;
 use App\Message;
 use App\Role;
 use App\User;
+use Carbon\Carbon;
+use Illuminate\Mail\Mailer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
@@ -41,22 +44,52 @@ class EmailService
         $user = Auth::user();
         $debtor = Debtor::where('id', $arrayParam['debtor_id'])->first();
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->pluck('template_message');
-//        $client = $debtor->customer()->getLastAboutClient();
+        $client = $debtor->customer()->getLastAboutClient();
+        $email = $client->email;
 
         $messageText =  $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage, $arrayParam);
-        $companyName = config('vars.company_new_name');
-//        $email = $client->email;
 
-        Mail::send('emails.sendMessage',['messageText' => $messageText],
-        function ($message) use ($companyName){
-            $message->subject($companyName);
-            $message->from(config('mail.username'));
-            $message->to('e.chernenok@fterra.ru');
-        });
 
-        if(count(Mail::failures()) > 0){
+        $mailer = app()->make(Mailer::class);
+        $mailer->getSwiftMailer()->getTransport()->setStreamOptions(
+            [
+                'ssl' =>
+                    [
+                        'allow_self_signed' => true,
+                        'verify_peer' => false,
+                        'verify_peer_name' => false
+                    ]
+            ]);
+        $mailer->send(
+            'emails.sendMessage',
+            ['messageText' => $messageText],
+            function ($message) {
+                /** @var Message $message */
+                $message->subject(config('vars.company_new_name'));
+                $message->from(config('mail.username'));
+                $message->to('alexreih.95@gmail.com');
+            }
+        );
+
+        if(count($mailer->failures()) > 0){
             return false;
         }
+//        DebtorEvent::create([
+//            'debtor_id' => $debtor->id,
+//            'debtor_id_1c' => $debtor->debtor_id_1c,
+//            'customer_id_1c' => $debtor->customer_id_1c,
+//            'loan_id_1c' => $debtor->loan_id_1c,
+//            'debt_group_id' => $debtor->debt_group_id,
+//            'user_id' => $user->id,
+//            'last_user_id' => $user->id,
+//            'user_id_1c' => $user->id_1c,
+//            'event_type_id' => 25,
+//            'report' => 'Отправленно email сообщение :' . $messageText,
+//            'refresh_date' => Carbon::now(),
+//            'overdue_reason_id' => 0,
+//            'event_result_id' => 27,
+//            'completed' => 1,
+//        ]);
         return true;
     }
 

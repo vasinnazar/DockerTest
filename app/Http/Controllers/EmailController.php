@@ -25,6 +25,7 @@ class EmailController extends Controller
 
     public function sendEmail(EmailSendRequest $request)
     {
+        logger($request->all());
         $arrayParam = [
             'debtor_id' => $request->debtor_id,
             'email_id'=>$request->email_id,
