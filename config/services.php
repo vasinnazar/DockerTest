@@ -34,4 +34,9 @@ return [
 		'secret' => '',
 	],
 
+    'arm'=>[
+      'url'=>env('ARM_URL'),
+      'arm_login'=>env('ARM_LOGIN'),
+      'arm_password'=>env('ARM_PASSWORD'),
+    ],
 ];

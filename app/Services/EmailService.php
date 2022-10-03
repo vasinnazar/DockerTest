@@ -47,8 +47,11 @@ class EmailService
         $client = $debtor->customer()->getLastAboutClient();
         $email = $client->email;
 
-        $messageText =  $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage, $arrayParam);
+        $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage, $arrayParam);
 
+
+        config()->set('mail.username', 's.tikhonov@fterra.ru');
+        config()->set('mail.password', 'XQSgpQP6');
 
         $mailer = app()->make(Mailer::class);
         $mailer->getSwiftMailer()->getTransport()->setStreamOptions(
@@ -63,7 +66,7 @@ class EmailService
         $mailer->send(
             'emails.sendMessage',
             ['messageText' => $messageText],
-            function ($message) {
+            function ($message) use ($email){
                 /** @var Message $message */
                 $message->subject(config('vars.company_new_name'));
                 $message->from(config('mail.username'));
@@ -71,7 +74,7 @@ class EmailService
             }
         );
 
-        if(count($mailer->failures()) > 0){
+        if (count($mailer->failures()) > 0) {
             return false;
         }
 //        DebtorEvent::create([

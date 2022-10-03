@@ -74,13 +74,13 @@ return [
     | SMTP Server Username
     |--------------------------------------------------------------------------
     |
-    | If your SMTP server requires a username for authentication, you should
+    | If your SMTP server requires a username for authentication, you shouldClients
     | set it here. This will get used to authenticate with your server on
     | connection. You may also set the "password" value below this one.
     |
     */
 
-    'username' => env('MAIL_USERNAME'),
+    'username' => null,
 
     /*
     |--------------------------------------------------------------------------
@@ -93,7 +93,7 @@ return [
     |
     */
 
-    'password' => env('MAIL_PASSWORD'),
+    'password' => null,
 
     /*
     |--------------------------------------------------------------------------
