@@ -32,14 +32,12 @@ class ArmClient
      * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-
-    public function getUser(string $userId1C)
+    public function getUserById1c(string $userId1C)
     {
         $response = $this->client->request(
             'GET',
-            $this->url . '/api/v1/users?userId1c=' . $userId1C
+            $this->url . '/api/v1/users?id_1c=' . $userId1C
         );
-
         return json_decode($response->getBody()->getContents(), true);
     }
 }

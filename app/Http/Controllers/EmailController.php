@@ -25,7 +25,6 @@ class EmailController extends Controller
 
     public function sendEmail(EmailSendRequest $request)
     {
-        logger($request->all());
         $arrayParam = [
             'debtor_id' => $request->debtor_id,
             'email_id'=>$request->email_id,
@@ -37,6 +36,6 @@ class EmailController extends Controller
         if($this->emailService->sendEmailDebtor($arrayParam)){
             return redirect()->back()->with('msg_suc','Email сообщение отправленно,мероприятие создано');
         }
-        return redirect()->back()->with('msg_err','Email сообщение не отправленно');
+        return redirect()->back()->with('msg_err','Email сообщение не отправленно. Не удалось авторизироваться на почтовом сервере.Возможно,неверные логин и пароль для входа в корпоративную почту,обратитесь в техподдержку.');
     }
 }

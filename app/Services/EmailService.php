@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorEvent;
 use App\EmailMessage;
@@ -11,10 +12,16 @@ use App\User;
 use Carbon\Carbon;
 use Illuminate\Mail\Mailer;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 
 class EmailService
 {
+    private $armClient;
+
+    public function __construct(ArmClient $client)
+    {
+        $this->armClient = $client;
+    }
+
     /**
      * @param $userId
      * @return array
@@ -49,9 +56,11 @@ class EmailService
 
         $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage, $arrayParam);
 
-
-        config()->set('mail.username', 's.tikhonov@fterra.ru');
-        config()->set('mail.password', 'XQSgpQP6');
+        $userArm = $this->armClient->getUserById1c($user->id_1c);
+        if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['email'])) {
+            return false;
+        }
+        $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
 
         $mailer = app()->make(Mailer::class);
         $mailer->getSwiftMailer()->getTransport()->setStreamOptions(
@@ -66,33 +75,33 @@ class EmailService
         $mailer->send(
             'emails.sendMessage',
             ['messageText' => $messageText],
-            function ($message) use ($email){
+            function ($message) use ($email) {
                 /** @var Message $message */
                 $message->subject(config('vars.company_new_name'));
                 $message->from(config('mail.username'));
-                $message->to('alexreih.95@gmail.com');
+                $message->to($email);
             }
         );
 
         if (count($mailer->failures()) > 0) {
             return false;
         }
-//        DebtorEvent::create([
-//            'debtor_id' => $debtor->id,
-//            'debtor_id_1c' => $debtor->debtor_id_1c,
-//            'customer_id_1c' => $debtor->customer_id_1c,
-//            'loan_id_1c' => $debtor->loan_id_1c,
-//            'debt_group_id' => $debtor->debt_group_id,
-//            'user_id' => $user->id,
-//            'last_user_id' => $user->id,
-//            'user_id_1c' => $user->id_1c,
-//            'event_type_id' => 25,
-//            'report' => 'Отправленно email сообщение :' . $messageText,
-//            'refresh_date' => Carbon::now(),
-//            'overdue_reason_id' => 0,
-//            'event_result_id' => 27,
-//            'completed' => 1,
-//        ]);
+        DebtorEvent::create([
+            'debtor_id' => $debtor->id,
+            'debtor_id_1c' => $debtor->debtor_id_1c,
+            'customer_id_1c' => $debtor->customer_id_1c,
+            'loan_id_1c' => $debtor->loan_id_1c,
+            'debt_group_id' => $debtor->debt_group_id,
+            'user_id' => $user->id,
+            'last_user_id' => $user->id,
+            'user_id_1c' => $user->id_1c,
+            'event_type_id' => 25,
+            'report' => 'Отправленно email сообщение :' . $messageText,
+            'refresh_date' => Carbon::now(),
+            'overdue_reason_id' => 0,
+            'event_result_id' => 27,
+            'completed' => 1,
+        ]);
         return true;
     }
 
@@ -121,5 +130,11 @@ class EmailService
         }
 
         return $templateMessage;
+    }
+
+    public function setConfig($email, $password)
+    {
+        config()->set('mail.username', $email);
+        config()->set('mail.password', $password);
     }
 }
