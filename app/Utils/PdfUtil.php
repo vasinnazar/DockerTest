@@ -42,31 +42,44 @@ class PdfUtil {
         }
     }
 
-    static function getPdfFromFile($output_file_name) {
+    static function getPdfFromFile($output_file_name, $arMassTask = false) {
+        if ($arMassTask && is_array($arMassTask)) {
+            $massDir = storage_path() . '/app/public/postPdfTasks/' . $arMassTask['task_id'] . '/';
+
+            if (!is_dir($massDir)) {
+                mkdir(storage_path() . '/app/public/postPdfTasks/' . $arMassTask['task_id'], 0777);
+            }
+        }
+
         $tmpDir = FileToPdfUtil::getPathToTpl() . 'tmp/';
         $filepath = $tmpDir . $output_file_name;
-        
-        exec("export HOME=/tmp && libreoffice --headless --invisible --norestore --convert-to pdf {$filepath} --outdir {$tmpDir}");
-        
-        $arFilenameParts = explode(".", $output_file_name);
-        $tmpPdf_filename = $arFilenameParts[0] . '.pdf';
-        
-        $content = file_get_contents($tmpDir . $tmpPdf_filename);
-        header('Content-Type: application/pdf');
-        header('Content-Length: ' . strlen($content));
-        header('Content-disposition: inline; filename="' . $tmpPdf_filename . '"');
-        header('Cache-Control: public, must-revalidate, max-age=0');
-        header('Pragma: public');
-        echo $content;
-        
-        if (is_file($filepath)) {
-            unlink($filepath);
+
+        if ($arMassTask && is_array($arMassTask)) {
+            exec("export HOME=/tmp && libreoffice --headless --invisible --norestore --convert-to pdf {$filepath} --outdir {$massDir}");
+        } else {
+
+            exec("export HOME=/tmp && libreoffice --headless --invisible --norestore --convert-to pdf {$filepath} --outdir {$tmpDir}");
+
+            $arFilenameParts = explode(".", $output_file_name);
+            $tmpPdf_filename = $arFilenameParts[0] . '.pdf';
+
+            $content = file_get_contents($tmpDir . $tmpPdf_filename);
+            header('Content-Type: application/pdf');
+            header('Content-Length: ' . strlen($content));
+            header('Content-disposition: inline; filename="' . $tmpPdf_filename . '"');
+            header('Cache-Control: public, must-revalidate, max-age=0');
+            header('Pragma: public');
+            echo $content;
+
+            if (is_file($filepath)) {
+                unlink($filepath);
+            }
+            if (is_file($tmpDir . $tmpPdf_filename)) {
+                unlink($tmpDir . $tmpPdf_filename);
+            }
+            
+            die();
         }
-        if (is_file($tmpDir . $tmpPdf_filename)) {
-            unlink($tmpDir . $tmpPdf_filename);
-        }
-        
-        die();
     }
 
 }

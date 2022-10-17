@@ -169,7 +169,7 @@
 									{{ $respUserName }}
                                 </th>
                                 <th>{{$candidate['responsible']}}</th>
-                                <th><a href="{{url('candidate/delete?id='.$candidate['id'])}}" class="btn btn-primary btn-xs tbl-btn" onclick="return confirmDelete();"><span class='glyphicon glyphicon-trash tbl-btn'></span></a><a href="{{url('candidate/update?id='.$candidate['id'])}}" class="btn btn-primary btn-xs tbl-btn"><span class='glyphicon glyphicon-edit tbl-btn'></span></a></th>
+                                <th><a href="{{url('candidate/delete?id='.$candidate['id'])}}" class="btn btn-primary btn-xs tbl-btn" onclick="return confirmDelete();"><span class='glyphicon glyphicon-trash tbl-btn'></span></a><a href="{{url('candidate/update?id='.$candidate['id'])}}" class="btn btn-primary btn-xs tbl-btn" target="_blank"><span class='glyphicon glyphicon-edit tbl-btn'></span></a></th>
                             </tr>
                             @endforeach
                         </tbody>

@@ -408,7 +408,7 @@
         $(document).on('change', 'input[name="debtor_transfer_id[]"], #allDebtorsCheckToggler', function(){
             $('#debtorsCounter').html($('input[name="debtor_transfer_id[]"]:checked').length);
         });
-    }
+    };
     $.debtorsCtrl.changeDebtorMassSmsFilter = function () {
         $(document).on('click', '#debtorMassSmsFilterButton', function () {
             //$(document).on('change', '#debtorTransferFilter [name="old_user_id"], #debtorTransferFilter [name="new_user_id"], #debtorTransferFilter [name="debt_group_id"], #debtorTransferFilter [name="act_number"], #debtorTransferFilter [name="overdue_from"], #debtorTransferFilter [name="overdue_till"], #debtorTransferFilter [name="search_field_cities@id"], #debtorTransferFilter [name="base"]', function(){

@@ -15,8 +15,10 @@ class NoticeNumbers extends Model
      * Осуществляет сохранение данных при печати уведомлений, если уже был распечатан сегодня, то возвращает существующий номер (id)
      * @return int
      */
-    public static function addRecord($doc_id, $debtor_id, $factAddress) {
-        $user = auth()->user();
+    public static function addRecord($doc_id, $debtor_id, $factAddress, $user = false) {
+        if (!$user) {
+            $user = auth()->user();
+        }
         
         $debtor = Debtor::find($debtor_id);
         
