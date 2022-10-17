@@ -2592,20 +2592,19 @@ class DebtorsController extends BasicController {
                   $arParams['spec_phone'] = '‭+79034101149‬';
                   } */
 
-                /*if ($debtorTmp->id == 153396763) {
+                /*if ($debtorTmp->id == 170278772) {
                   $arParams['req_spec_position'] = 'Специалист';
-                  $arParams['spec_fio'] = 'Павлов Аркадий Юрьевич';
-                  $arParams['spec_phone'] = '89059044277';
+                  $arParams['spec_fio'] = 'Литасов Виктор Владимирович';
+                  $arParams['spec_phone'] = '89039846339';
 
-                  $arParams['spec_doc'] = '91/22р от 25 мая 2022 г';
+                  $arParams['spec_doc'] = '72/22р от 31 марта 2022 г';
                   //$arParams['req_spec_position'] = 'Руководитель';
                   //$arParams['loan_id_1c'] = '00001198819-007';
                   //$arParams['loan_created_at'] = '14 февраля 2019 г.';
 
-                  $arParams['date_sent'] = '23.06.2022';
-                  $arParams['print_date'] = '23Ы.06.2022';
-
-                  $arParams['notice_number'] = '786879';
+                  $arParams['date_sent'] = '25.08.2022';
+                  $arParams['print_date'] = '25.08.2022';
+                  $arParams['notice_number'] = '812505';
                   }*/
             }
 
@@ -4457,6 +4456,7 @@ class DebtorsController extends BasicController {
                     ->where('str_podr', '000000000006')
                     ->where('qty_delays', '>=', 22)
                     ->where('qty_delays', '<=', 69)
+                    ->where('base', '<>', 'ХПД')
                     ->whereIn('debt_group_id', [4, 5, 6])
                     ->get();
         } else if ($user->hasRole('debtors_personal')) {
@@ -4464,6 +4464,7 @@ class DebtorsController extends BasicController {
                     ->where('str_podr', '000000000007')
                     ->where('qty_delays', '>=', 60)
                     ->where('qty_delays', '<=', 150)
+                    ->where('base', '<>', 'ХПД')
                     ->whereIn('debt_group_id', [5, 6])
                     ->get();
         } else {
@@ -4478,7 +4479,7 @@ class DebtorsController extends BasicController {
                     'amount' => $debtor->sum_indebt,
                     'purpose_id' => 3,
                     'is_recurrent' => 1,
-                    'details' => '{"is_debtor":true}'
+                    'details' => '{"is_debtor":true,"is_mass_debtor":true}'
                 ];
 
                 $url = 'http://192.168.35.69:8080/api/v1/payments';

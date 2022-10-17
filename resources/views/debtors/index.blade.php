@@ -69,6 +69,9 @@
                 @if ($user_id == 817 || $user_id == 69)
                 <li><a href="{{url('/usertests/editor/index')}}">Тесты</a></li>
                 @endif
+                @if ($is_chief)
+                <li><a href="{{url('/debtors/notices/index')}}">Отправка писем</a></li>
+                @endif
             </ul>
             @if ($canEditSmsCount)
             <a href="{{url('debtors/editSmsCount')}}" class="btn btn-default">Количество SMS</a>

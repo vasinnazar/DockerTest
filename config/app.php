@@ -141,6 +141,7 @@ return [
         'App\Providers\RouteServiceProvider',
         'App\Providers\FtpCustomServiceProvider',
         Barryvdh\Debugbar\ServiceProvider::class,
+        Maatwebsite\Excel\ExcelServiceProvider::class,
         
     ],
     /*
@@ -195,5 +196,6 @@ return [
         'HTML' => 'Illuminate\Html\HtmlFacade',
         'Gate' => Illuminate\Support\Facades\Gate::class,
         'Debugbar' => Barryvdh\Debugbar\Facades\Debugbar::class,
+        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
     ],
 ];

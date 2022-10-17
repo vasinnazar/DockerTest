@@ -23,7 +23,7 @@ class FileToPdfUtil {
     public  function __construct() {
         
     }
-    static function replaceKeys($filename, $data, $type = false) {
+    static function replaceKeys($filename, $data, $type = false, $arMassTask = false) {
         $dirname = self::getPathToTpl(); //путь к папке с шаблонами документов .ods
 
         if (is_null($filename) || $filename == '') {
@@ -114,15 +114,21 @@ class FileToPdfUtil {
 
 
         $TBS->MergeBlock('a', $mergeData);
+        
+        if ($arMassTask && is_array($arMassTask)) {
+            $output_file_name = $arMassTask['filename'] . '.odt';
+        } else {
+            $output_file_name = str_replace('.', '_' . uniqid() . '.', $filename);
+        }
 
-        $output_file_name = str_replace('.', '_' . uniqid() . '.', $filename);
+        
 
         //$TBS->Show(OPENTBS_DOWNLOAD, $output_file_name);
         $TBS->Show(OPENTBS_FILE, $dirname . 'tmp/' . $output_file_name);
 
-        \App\Utils\PdfUtil::getPdfFromFile($output_file_name);
+        \App\Utils\PdfUtil::getPdfFromFile($output_file_name, $arMassTask);
 
-        die();
+        //die();
     }
     /**
      * Заменяет теги в файле с переданным именем и выводит его в виде pdf в окно браузера

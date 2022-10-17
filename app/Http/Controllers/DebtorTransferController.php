@@ -289,6 +289,8 @@ class DebtorTransferController extends BasicController {
             $str_podr = '00000000000010';
         } else if ($user->id == 1029) {
             $str_podr = '';
+        } else if ($base == 'ХПД') {
+            $str_podr = 'СУЗ';
         } else {
             return $this->backWithErr("Некорректное структурное подразделение для нового пользователя.");
         }
