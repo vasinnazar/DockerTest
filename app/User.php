@@ -5,13 +5,16 @@ namespace App;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 
 //group_id: 0-admin, 1-user,-1 - superadmin
-class User extends Model implements AuthenticatableContract, CanResetPasswordContract {
+class User extends Model implements AuthenticatableContract,AuthorizableContract,CanResetPasswordContract {
 
     use Authenticatable,
+        Authorizable,
         CanResetPassword;
 
     /**
@@ -42,6 +45,20 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     public function isSuperAdmin() {
         return ($this->group_id == -1);
+    }
+    /**
+     * @return boolean
+     */
+    public function isDebtorsRemote()
+    {
+        $role = $this->roles()->where('role_id',Role::DEBTORS_REMOTE)->first();
+        return !is_null($role);
+    }
+
+    public function isDebtorsPersonal()
+    {
+        $role = $this->roles()->where('role_id', Role::DEBTORS_PERSONAL)->first();
+        return !is_null($role);
     }
 
     public function isCC() {

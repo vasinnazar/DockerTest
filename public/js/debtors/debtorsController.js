@@ -124,16 +124,22 @@
         var $debtCalcDate = $('.debtor-debt-table [name="debt_calc_date"]');
         $debtCalcDate.change(function () {
             $('#multi_loan_block').html('<p style="text-align: center; color: blue; font-weight: bold;">Получение информации...</p>');
-            $.post($.app.url + '/ajax/debtors/loans/getmultisum', {passport_series: $('input[name="passport_series"]').val(), passport_number: $('input[name="passport_number"]').val(), loan_id_1c: $('input[name="loan_id_1c"]').val(), customer_id_1c: $('input[name="customer_id_1c"]').val(), date: $(this).val()}).done(function (data){
+            $.post($.app.url + '/ajax/debtors/loans/getmultisum', {
+                passport_series: $('input[name="passport_series"]').val(),
+                passport_number: $('input[name="passport_number"]').val(),
+                loan_id_1c: $('input[name="loan_id_1c"]').val(),
+                customer_id_1c: $('input[name="customer_id_1c"]').val(),
+                date: $(this).val()
+            }).done(function (data) {
                 if (data == '0') {
                     $('#multi_loan_block').html('');
                 } else {
                     $('#multi_loan_block').html(data);
-                    
-                    
+
+
                 }
             });
-            
+
             $.app.blockScreen(true);
             $.debtorsCtrl.updateDebtTable($(this).val());
         });
@@ -143,7 +149,11 @@
 
     };
     $.debtorsCtrl.updateDebtTable = function (date) {
-        $.post($.app.url + '/ajax/loan/get/debt', {date: date, loan_id_1c: $('.debtor-data [name="loan_id_1c"]').val(), customer_id_1c: $('.debtor-data [name="customer_id_1c"]').val()}).done(function (data) {
+        $.post($.app.url + '/ajax/loan/get/debt', {
+            date: date,
+            loan_id_1c: $('.debtor-data [name="loan_id_1c"]').val(),
+            customer_id_1c: $('.debtor-data [name="customer_id_1c"]').val()
+        }).done(function (data) {
             var calc_data = $.parseJSON(data);
             var params = ['pc', 'fine', 'exp_pc', 'tax', 'od', 'money', 'exp_days', 'time', 'overpayments'];
             for (var d in params) {
@@ -157,26 +167,26 @@
                     $('.debt-' + params[d] + '-ondate').text(calc_data[params[d]]);
                 }
             }
-            
+
             var currentTotalDebt = parseFloat($('#current-total-debt').text());
             var totalDebtOnDate = parseFloat(calc_data['money'] / 100);
             var diffOnDate = totalDebtOnDate - currentTotalDebt;
-            
+
             $('.debt-diffpay-ondate').text(diffOnDate.toFixed(2) + ' руб.');
-            
-            if (typeof(calc_data['pays']) != "undefined" && calc_data['pays'] !== null) {
+
+            if (typeof (calc_data['pays']) != "undefined" && calc_data['pays'] !== null) {
                 var table_html = '';
-                
+
                 var fullpay_sum = 0;
-                
+
                 var open_debt = false;
-                
+
                 var debt_od_sum = 0;
                 var debt_pc_sum = 0;
                 var debt_exp_pc_sum = 0;
                 var debt_fine_sum = 0;
                 var debt_total = 0;
-                
+
                 for (var payment in calc_data['pays']) {
                     if (typeof calc_data['pays'][payment]['od'] === 'object') {
                         calc_data['pays'][payment]['od'] = 0;
@@ -190,39 +200,39 @@
                     if (typeof calc_data['pays'][payment]['fine'] === 'object') {
                         calc_data['pays'][payment]['fine'] = 0;
                     }
-                    
+
                     if (calc_data['pays'][payment]['expired'] == 1 && calc_data['pays'][payment]['closed'] == 1) {
                         var pay_sum = parseFloat(calc_data['pays'][payment]['total']);
-                        
+
                         table_html += '<tr style="background: #62DA9A;"><td>' + moment(calc_data['pays'][payment]['date']).format("DD.MM.YY") + '</td>';
                         table_html += '<td>-</td>';
                         table_html += '<td>-</td>';
-                        table_html += '<td>' + calc_data['pays'][payment]['exp_pc']  + '</td>';
+                        table_html += '<td>' + calc_data['pays'][payment]['exp_pc'] + '</td>';
                         table_html += '<td>' + calc_data['pays'][payment]['fine'] + '</td>';
                         table_html += '<td>' + calc_data['pays'][payment]['days_overdue'] + '</td>';
                         table_html += '<td>' + pay_sum.toFixed(2) + '</td>';
-                        
+
                         debt_exp_pc_sum += parseFloat(calc_data['pays'][payment]['exp_pc']);
                         debt_fine_sum += parseFloat(calc_data['pays'][payment]['fine']);
-                        
+
                         fullpay_sum = fullpay_sum + parseFloat(calc_data['pays'][payment]['exp_pc']) + parseFloat(calc_data['pays'][payment]['fine']);
                         debt_total += parseFloat(calc_data['pays'][payment]['exp_pc']) + parseFloat(calc_data['pays'][payment]['fine']);
                     }
-                    
+
                     if (calc_data['pays'][payment]['expired'] == 1 && calc_data['pays'][payment]['closed'] == 0) {
                         open_debt = true;
-                        
+
                         fullpay_sum = fullpay_sum + parseFloat(calc_data['pays'][payment]['od']) + parseFloat(calc_data['pays'][payment]['pc']) + parseFloat(calc_data['pays'][payment]['exp_pc']) + parseFloat(calc_data['pays'][payment]['fine']);
-                        
+
                         debt_od_sum += parseFloat(calc_data['pays'][payment]['od']);
                         debt_pc_sum += parseFloat(calc_data['pays'][payment]['pc']);
                         debt_exp_pc_sum += parseFloat(calc_data['pays'][payment]['exp_pc']);
                         debt_fine_sum += parseFloat(calc_data['pays'][payment]['fine']);
-                        
+
                         var pay_sum = parseFloat(calc_data['pays'][payment]['od']) + parseFloat(calc_data['pays'][payment]['pc']) + parseFloat(calc_data['pays'][payment]['exp_pc']) + parseFloat(calc_data['pays'][payment]['fine']);
-                        
+
                         debt_total += parseFloat(pay_sum);
-                        
+
                         table_html += '<tr style="background: #FF7373;"><td>' + moment(calc_data['pays'][payment]['date']).format("DD.MM.YY") + '</td>';
                         table_html += '<td>' + calc_data['pays'][payment]['od'] + '</td>';
                         table_html += '<td>' + calc_data['pays'][payment]['pc'] + '</td>';
@@ -231,9 +241,9 @@
                         table_html += '<td>' + calc_data['pays'][payment]['days_overdue'] + '</td>';
                         table_html += '<td>' + pay_sum.toFixed(2) + '</td>';
                     }
-                    
+
                     if (calc_data['pays'][payment]['expired'] == 0 && calc_data['pays'][payment]['closed'] == 1) {
-                        
+
                         table_html += '<tr style="background: #62DA9A;"><td>' + moment(calc_data['pays'][payment]['date']).format("DD.MM.YY") + '</td>';
                         table_html += '<td>-</td>';
                         table_html += '<td>-</td>';
@@ -242,17 +252,17 @@
                         table_html += '<td>-</td>';
                         table_html += '<td>' + calc_data['pays'][payment]['total'] + '</td>';
                     }
-                    
+
                     if (calc_data['pays'][payment]['expired'] == 0 && calc_data['pays'][payment]['closed'] == 0) {
                         if (open_debt) {
                             open_debt = false;
                             fullpay_sum = fullpay_sum + parseFloat(calc_data['pays'][payment]['pc']);
-                            
+
                             table_html += '<tr style="background: #FF7373;"><td></td><td><b>' + debt_od_sum.toFixed(2) + '</b></td><td><b>' + debt_pc_sum.toFixed(2) + '</b></td><td><b>' + debt_exp_pc_sum.toFixed(2) + '</b></td><td><b>' + debt_fine_sum.toFixed(2) + '</b></td><td><b>' + calc_data['exp_days'] + '</b></td><td><b>' + debt_total.toFixed(2) + '</b></td></tr>';
                         }
-                        
+
                         fullpay_sum = fullpay_sum + parseFloat(calc_data['pays'][payment]['od']);
-                        
+
                         table_html += '<tr><td>' + moment(calc_data['pays'][payment]['date']).format("DD.MM.YY") + '</td>';
                         table_html += '<td>' + calc_data['pays'][payment]['od'] + '</td>';
                         table_html += '<td>' + calc_data['pays'][payment]['pc'] + '</td>';
@@ -261,12 +271,12 @@
                         table_html += '<td>-</td>';
                         table_html += '<td>' + calc_data['pays'][payment]['total'] + '</td>';
                     }
-                    
+
                     table_html += '</tr>';
                 }
-                
+
                 table_html += '<tr><td colspan="7" style="text-align: center;">Сумма для досрочного закрытия договора: <b>' + fullpay_sum.toFixed(2) + '</b></td></tr>';
-                
+
                 $('#schedule_current_rows').html(table_html);
             }
         }).always(function () {
@@ -291,11 +301,11 @@
             data.payments.forEach(function (item) {
                 if (!isNaN(parseFloat(item.money))) {
                     html += '<tr><td>' + moment(item.date).format("DD.MM.YY") + '</td><td>' +
-                            '<a href="/debtors/debtorcard/' + item.debtor_id + '" target="_blank" style="color: blue;">' + item.fio + '</a></td><td>' +
-                            item.doc_number + '</td><td>' +
-                            item.loan_id_1c + '</td><td>' +
-                            (parseFloat(item.money / 100)).toFixed(2) +
-                            ' руб. </td></tr>';
+                        '<a href="/debtors/debtorcard/' + item.debtor_id + '" target="_blank" style="color: blue;">' + item.fio + '</a></td><td>' +
+                        item.doc_number + '</td><td>' +
+                        item.loan_id_1c + '</td><td>' +
+                        (parseFloat(item.money / 100)).toFixed(2) +
+                        ' руб. </td></tr>';
                     totalMoney += parseFloat(item.money);
                 }
             });
@@ -348,30 +358,30 @@
      */
     $.debtorsCtrl.initDebtorTransferTable = function () {
         $.debtorsCtrl.debtorTransferTableCtrl = new TableController('debtortransfer', [
-            {data: '0', name: 'actions', searchable: false, orderable: false},
-            {data: '1', name: 'links', searchable: false, orderable: false},
-            {data: '2', name: 'passports_fio'},
-            {data: '3', name: 'debtors_od'},
-            {data: '4', name: 'debtors_base'},
-            {data: '5', name: 'passports_fact_address_city'},
-            {data: '6', name: 'debtors_fixation_date'},
-            {data: '7', name: 'debtors_qty_delays'},
-            {data: '8', name: 'debtors_last_user_id'},
-            {data: '9', name: 'debtors_responsible_user_id_1c'},
-            {data: '10', name: 'debtors_debt_group_id'},
-            {data: '11', name: 'debtors_str_podr'}
-        ],
-                {
-                    dtData: {
-                        scrollY: 600,
-                        scrollCollapse: false,
-                        lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
-                    },
-                    clearFilterBtn: $('#debtorTransferClearFilterBtn'),
-                    filterBtn: $('#debtorTransferFilterButton'),
-                    filterHolder: $('#debtorTransferFilter')
+                {data: '0', name: 'actions', searchable: false, orderable: false},
+                {data: '1', name: 'links', searchable: false, orderable: false},
+                {data: '2', name: 'passports_fio'},
+                {data: '3', name: 'debtors_od'},
+                {data: '4', name: 'debtors_base'},
+                {data: '5', name: 'passports_fact_address_city'},
+                {data: '6', name: 'debtors_fixation_date'},
+                {data: '7', name: 'debtors_qty_delays'},
+                {data: '8', name: 'debtors_last_user_id'},
+                {data: '9', name: 'debtors_responsible_user_id_1c'},
+                {data: '10', name: 'debtors_debt_group_id'},
+                {data: '11', name: 'debtors_str_podr'}
+            ],
+            {
+                dtData: {
+                    scrollY: 600,
+                    scrollCollapse: false,
+                    lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
+                },
+                clearFilterBtn: $('#debtorTransferClearFilterBtn'),
+                filterBtn: $('#debtorTransferFilterButton'),
+                filterHolder: $('#debtorTransferFilter')
 //            repeatLastSearchBtn: $('#repeatLastSearchBtn'),
-                }
+            }
         );
         $('#allDebtorsCheckToggler').change(function () {
             $('#debtortransferTable input[name="debtor_transfer_id[]"]').prop('checked', $(this).prop('checked')).change();
@@ -404,8 +414,8 @@
             }
         });
     };
-    $.debtorsCtrl.debtorsCounter = function() {
-        $(document).on('change', 'input[name="debtor_transfer_id[]"], #allDebtorsCheckToggler', function(){
+    $.debtorsCtrl.debtorsCounter = function () {
+        $(document).on('change', 'input[name="debtor_transfer_id[]"], #allDebtorsCheckToggler', function () {
             $('#debtorsCounter').html($('input[name="debtor_transfer_id[]"]:checked').length);
         });
     };
@@ -421,27 +431,27 @@
     };
     $.debtorsCtrl.initDebtorMassSmsTable = function () {
         $.debtorsCtrl.debtorTransferTableCtrl = new TableController('debtormasssms', [
-            {data: '0', name: 'links', searchable: false, orderable: false},
-            {data: '1', name: 'passports_fio'},
-            {data: '2', name: 'debtors_od'},
-            {data: '3', name: 'debtors_base'},
-            {data: '4', name: 'passports_fact_address_city'},
-            {data: '5', name: 'debtors_fixation_date'},
-            {data: '6', name: 'debtors_qty_delays'},
-            {data: '7', name: 'debtors_responsible_user_id_1c'},
-            {data: '8', name: 'debtors_debt_group_id'},
-            {data: '9', name: 'debtors_str_podr'}
-        ],
-                {
-                    dtData: {
-                        scrollY: 600,
-                        scrollCollapse: false,
-                        lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
-                    },
-                    clearFilterBtn: $('#debtorMassSmsClearFilterBtn'),
-                    filterBtn: $('#debtorMassSmsFilterButton'),
-                    filterHolder: $('#debtorMassSmsFilter')
-                }
+                {data: '0', name: 'links', searchable: false, orderable: false},
+                {data: '1', name: 'passports_fio'},
+                {data: '2', name: 'debtors_od'},
+                {data: '3', name: 'debtors_base'},
+                {data: '4', name: 'passports_fact_address_city'},
+                {data: '5', name: 'debtors_fixation_date'},
+                {data: '6', name: 'debtors_qty_delays'},
+                {data: '7', name: 'debtors_responsible_user_id_1c'},
+                {data: '8', name: 'debtors_debt_group_id'},
+                {data: '9', name: 'debtors_str_podr'}
+            ],
+            {
+                dtData: {
+                    scrollY: 600,
+                    scrollCollapse: false,
+                    lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
+                },
+                clearFilterBtn: $('#debtorMassSmsClearFilterBtn'),
+                filterBtn: $('#debtorMassSmsFilterButton'),
+                filterHolder: $('#debtorMassSmsFilter')
+            }
         );
     };
     /**
@@ -464,23 +474,23 @@
             {data: '11', name: 'debtors_str_podr'},
         ],*/
         $.debtorsCtrl.debtorforgotten = new TableController('debtorforgotten', [
-            {data: '0', name: 'links', searchable: false, orderable: false},
-            {data: '1', name: 'debtors_fixation_date'},
-            {data: '2', name: 'passports_fio'},
-            {data: '3', name: 'debtors_responsible_user_id_1c'},
-            {data: '4', name: 'debtors_str_podr'},
-        ],
-                {
-                    dtData: {
-                        scrollY: 600,
-                        scrollCollapse: false,
-                        lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
-                    },
-                    //clearFilterBtn: $('#debtorTransferClearFilterBtn'),
-                    filterBtn: $('#forgottenDebtorFilterButton'),
-                    filterHolder: $('#forgottenDebtorFilter')
+                {data: '0', name: 'links', searchable: false, orderable: false},
+                {data: '1', name: 'debtors_fixation_date'},
+                {data: '2', name: 'passports_fio'},
+                {data: '3', name: 'debtors_responsible_user_id_1c'},
+                {data: '4', name: 'debtors_str_podr'},
+            ],
+            {
+                dtData: {
+                    scrollY: 600,
+                    scrollCollapse: false,
+                    lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
+                },
+                //clearFilterBtn: $('#debtorTransferClearFilterBtn'),
+                filterBtn: $('#forgottenDebtorFilterButton'),
+                filterHolder: $('#forgottenDebtorFilter')
 //            repeatLastSearchBtn: $('#repeatLastSearchBtn'),
-                }
+            }
         );
         //$('#allDebtorsCheckToggler').change(function () {
         //    $('#debtortransferTable input[name="debtor_transfer_id[]"]').prop('checked', $(this).prop('checked')).change();
@@ -492,31 +502,31 @@
      */
     $.debtorsCtrl.initDebtorRecommendsTable = function () {
         $.debtorsCtrl.debtorrecommends = new TableController('debtorrecommends', [
-            {data: '0', name: 'links', searchable: false, orderable: false},
-            {data: '1', name: 'debtors_fixation_date'},
-            {data: '2', name: 'passports_fio'},
-            {data: '3', name: 'debtors_loan_id_1c'},
-            {data: '4', name: 'debtors_qty_delays'},
-            {data: '5', name: 'debtors_sum_indebt'},
-            {data: '6', name: 'debtors_od'},
-            {data: '7', name: 'debtors_base'},
-            {data: '8', name: 'customers_telephone'},
-            {data: '9', name: 'debtors_debt_group_id'},
-            {data: '10', name: 'debtors_responsible_user_id_1c'},
-            {data: '11', name: 'debtors_str_podr'},
-            {data: '12', name: 'debtors_rec_completed'},
-        ],
-                {
-                    dtData: {
-                        scrollY: 600,
-                        scrollCollapse: false,
-                        lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
-                    },
-                    //clearFilterBtn: $('#debtorTransferClearFilterBtn'),
-                    filterBtn: $('#recommendsDebtorFilterButton'),
-                    filterHolder: $('#recommendsDebtorFilter')
+                {data: '0', name: 'links', searchable: false, orderable: false},
+                {data: '1', name: 'debtors_fixation_date'},
+                {data: '2', name: 'passports_fio'},
+                {data: '3', name: 'debtors_loan_id_1c'},
+                {data: '4', name: 'debtors_qty_delays'},
+                {data: '5', name: 'debtors_sum_indebt'},
+                {data: '6', name: 'debtors_od'},
+                {data: '7', name: 'debtors_base'},
+                {data: '8', name: 'customers_telephone'},
+                {data: '9', name: 'debtors_debt_group_id'},
+                {data: '10', name: 'debtors_responsible_user_id_1c'},
+                {data: '11', name: 'debtors_str_podr'},
+                {data: '12', name: 'debtors_rec_completed'},
+            ],
+            {
+                dtData: {
+                    scrollY: 600,
+                    scrollCollapse: false,
+                    lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
+                },
+                //clearFilterBtn: $('#debtorTransferClearFilterBtn'),
+                filterBtn: $('#recommendsDebtorFilterButton'),
+                filterHolder: $('#recommendsDebtorFilter')
 //            repeatLastSearchBtn: $('#repeatLastSearchBtn'),
-                }
+            }
         );
         //$('#allDebtorsCheckToggler').change(function () {
         //    $('#debtortransferTable input[name="debtor_transfer_id[]"]').prop('checked', $(this).prop('checked')).change();
@@ -599,7 +609,7 @@
     };
 
     /**
-     * 
+     *
      * @returns boolean
      */
     $.debtorsCtrl.changePersonalData = function () {
@@ -659,11 +669,11 @@
             var tBodyStr = '';
             json.forEach(function (item) {
                 tBodyStr += '<tr><td>' + item.number + '</td>'
-                        + '<td>' + item.created_at + '</td>'
-                        + '<td>' + item.doc + '</td>'
-                        + '<td>' + item.outcome + '</td>'
-                        + '<td>' + item.income + '</td>'
-                        + '<td>' + item.purpose + '</td></tr>';
+                    + '<td>' + item.created_at + '</td>'
+                    + '<td>' + item.doc + '</td>'
+                    + '<td>' + item.outcome + '</td>'
+                    + '<td>' + item.income + '</td>'
+                    + '<td>' + item.purpose + '</td></tr>';
             });
             $tableBody.html(tBodyStr);
         }).always(function () {
@@ -671,16 +681,20 @@
         });
     };
     $.debtorsCtrl.updateLoan = function () {
-        $(document).on('click', '.update-loan', function(){
+        $(document).on('click', '.update-loan', function () {
             var elem = $(this);
-            
+
             elem.prop('disabled', true);
-            
+
             var arm_loan_id = elem.data('loanid');
             var debtor_id = elem.data('debtorid');
             var loan_id_1c = elem.data('loanid1c');
 
-            $.post($.app.url + '/debtors/loans/summary/updateloan', {debtor_id: debtor_id, arm_loan_id: arm_loan_id, loan_id_1c: loan_id_1c}).done(function(data){
+            $.post($.app.url + '/debtors/loans/summary/updateloan', {
+                debtor_id: debtor_id,
+                arm_loan_id: arm_loan_id,
+                loan_id_1c: loan_id_1c
+            }).done(function (data) {
                 if (data == '1') {
                     elem.remove();
                 } else {
@@ -713,10 +727,10 @@
             }
         });
     };
-    $.debtorsCtrl.debtorsTotalPlanned = function(userId){
-      $.get($.app.url + '/ajax/debtors/total-planned',{userId:userId}).done(function(data){
-          $('#totalNumberPlaned').html(data);
-      });
+    $.debtorsCtrl.debtorsTotalPlanned = function (userId) {
+        $.get($.app.url + '/ajax/debtors/total-planned', {userId: userId}).done(function (data) {
+            $('#totalNumberPlaned').html(data);
+        });
     };
     $.debtorsCtrl.debtorsToExcel = function () {
         window.open($.app.url + '/debtors/export/excel?' + $('#debtorsFilter form').serialize());
@@ -726,5 +740,56 @@
     };
     $.debtorsCtrl.forgottenToExcel = function () {
         window.open($.app.url + '/debtors/exportForgotten/excel?' + $('#forgottenDebtorFilter form').serialize());
+    };
+
+    $.debtorsCtrl.emailMessagesList = function (user_id){
+        $.app.blockScreen(true);
+        $.get($.app.url + '/debtors/emails/list/' +user_id)
+            .done((response) => {
+            $.app.openModal('Email',response);
+        }).always(()=>{
+            $.app.blockScreen(false);
+        });
+    }
+
+    $.app.openModal = function (title, msg) {
+        if (typeof (title) === 'undefined') {
+            title = 'Ошибка!';
+        }
+        if (typeof (msg) === 'undefined') {
+            msg = 'Ошибка!';
+        }
+        $('#errorModal .modal-title').html(title);
+        $('#errorModal .modal-body').html(msg);
+        $('#errorModal').modal();
+    };
+
+    $.debtorsCtrl.intiInputModal = function (element) {
+            let idList = $(element).val();
+            if (idList == 10 || idList == 19) {
+                $('#datePayment').show();
+                $('#datePaymentLabel').text('Оплатите задолженность до :');
+                $('#discountPayment').hide();
+                $('#discountPaymentLabel').text('');
+                $('#dateAnswer').hide();
+                $('#dateAnswerLabel').text('');
+            }else if (idList == 17) {
+                $('#datePayment').show();
+                $('#datePaymentLabel').text('Предложение доступно до :');
+                $('#discountPayment').show();
+                $('#discountPaymentLabel').text('внесите руб :');
+                $('#dateAnswer').show();
+                $('#dateAnswerLabel').text('ДАЙТЕ ОТВЕТ до :');
+                let debtMoney = $('.debt_money_on_date').val();
+                $('#debtor_money_on_day').val(debtMoney);
+            }else{
+                $('#datePayment').hide();
+                $('#datePaymentLabel').text('');
+                $('#discountPayment').hide();
+                $('#discountPaymentLabel').text('');
+                $('#dateAnswer').hide();
+                $('#dateAnswerLabel').text('');
+            }
+
     };
 })(jQuery);

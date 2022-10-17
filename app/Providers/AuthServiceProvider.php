@@ -7,6 +7,9 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 
 class AuthServiceProvider extends ServiceProvider
 {
+    protected $policies = [
+        'App\Model' => 'App\Policies\ModelPolicy',
+    ];
     /**
      * Register any application authentication / authorization services.
      *
@@ -17,8 +20,5 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies($gate);
 
-//        $gate->define('get-orders-all', function ($user) {
-//            return ($user->id!=5);
-//        });
     }
 }
