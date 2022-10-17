@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\StrUtils;
@@ -12,7 +12,25 @@ use Log;
 class DebtorEvent extends Model {
 
     protected $table = 'debtors.debtor_events';
-    protected $fillable = ['date', 'created_at', 'customer_id_1c', 'loan_id_1c', 'event_type_id', 'debt_group_id', 'overdue_reason_id', 'report', 'user_id', 'event_result_id', 'debtor_id', 'completed'];
+    protected $fillable = [
+        'date',
+        'created_at',
+        'customer_id_1c',
+        'loan_id_1c',
+        'event_type_id',
+        'debt_group_id',
+        'overdue_reason_id',
+        'report',
+        'user_id',
+        'event_result_id',
+        'debtor_id',
+        'completed',
+        'id_1c',
+        'last_user_id',
+        'debtor_id_1c',
+        'user_id_1c',
+        'refresh_date',
+    ];
 
     /**
      * Генерирует номер мероприятия для 1с
