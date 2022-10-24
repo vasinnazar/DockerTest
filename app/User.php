@@ -54,7 +54,9 @@ class User extends Model implements AuthenticatableContract,AuthorizableContract
         $role = $this->roles()->where('role_id',Role::DEBTORS_REMOTE)->first();
         return !is_null($role);
     }
-
+    /**
+     * @return boolean
+     */
     public function isDebtorsPersonal()
     {
         $role = $this->roles()->where('role_id', Role::DEBTORS_PERSONAL)->first();
@@ -64,9 +66,11 @@ class User extends Model implements AuthenticatableContract,AuthorizableContract
     public function isCC() {
         return ($this->subdivision_id == config('options.office_subdivision_id') && !$this->isAdmin()) ? true : false;
     }
-
+    /**
+     * @return boolean
+     */
     public function isChiefSpecialist() {
-        return ($this->group_id == 2);
+        return !is_null($this->roles()->where('role_id',Role::DEBTORS_CHIEF)->first());
     }
 
     public function subdivision() {

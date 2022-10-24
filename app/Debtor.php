@@ -45,7 +45,10 @@ class Debtor extends Model {
     public function debtorLogs() {
         return $this->hasMany('\App\DebtorLog', 'debtor_id');
     }
-
+    public function courtOrder()
+    {
+        return $this->hasOne('App\CourtOrder');
+    }
     public function debtorEventLogs() {
         $data = DebtorLog::leftJoin('debtor_events', 'debtor_events.id', '=', 'debtor_logs.debtor_event_id')->where('debtor_events.debtor_id', $this->id)->get();
         return (!is_null($data)) ? $data : [];
@@ -456,6 +459,13 @@ class Debtor extends Model {
         } catch (Exception $ex) {
             Log::error('Debtor.updateDebtorOnClose',['customer_id_1c'=>$customer_id_1c,'loan_id_1c'=>$loan_id_1c, 'ex'=>$ex]);
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function printCourtOrder(){
+        return (($this->debt_group_id == 5 || $this->debt_group_id == 6) && $this->qty_delays >= 95 && is_null($this->courtOrder));
     }
 
 }

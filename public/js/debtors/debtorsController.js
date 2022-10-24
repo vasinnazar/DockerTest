@@ -125,8 +125,6 @@
         $debtCalcDate.change(function () {
             $('#multi_loan_block').html('<p style="text-align: center; color: blue; font-weight: bold;">Получение информации...</p>');
             $.post($.app.url + '/ajax/debtors/loans/getmultisum', {
-                passport_series: $('input[name="passport_series"]').val(),
-                passport_number: $('input[name="passport_number"]').val(),
                 loan_id_1c: $('input[name="loan_id_1c"]').val(),
                 customer_id_1c: $('input[name="customer_id_1c"]').val(),
                 date: $(this).val()

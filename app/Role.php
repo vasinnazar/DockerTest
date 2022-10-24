@@ -12,6 +12,7 @@ class Role extends Model {
     const RUC = 'ruk';
     const DEBTORS_REMOTE = 12;
     const DEBTORS_PERSONAL = 13;
+    const DEBTORS_CHIEF = 14;
 
     protected $table = 'roles';
     protected $fillable = ['name','description'];

@@ -2,45 +2,46 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
-use App\Utils\PermLib;
-use App\Permission;
-use App\Utils\StrLib;
-use Auth;
 use App\Debtor;
-use App\Order;
-use yajra\Datatables\Datatables;
-use Illuminate\Support\Facades\DB;
-use App\StrUtils;
 use App\DebtorEvent;
-use App\Utils\HtmlHelper;
-use Carbon\Carbon;
-use App\Photo;
-use Illuminate\Support\Facades\Storage;
-use App\Passport;
-use App\DebtorUsersRef;
+use App\DebtorGeocode;
+use App\DebtorsInfo;
 use App\DebtorSmsTpls;
+use App\DebtorUsersRef;
+use App\Http\Requests\DebtorCard\CourtOrderRequest;
+use App\Http\Requests\DebtorCard\MultiSumRequest;
+use App\Loan;
+use App\Message;
+use App\NoticeNumbers;
+use App\Order;
+use App\Passport;
+use App\Permission;
+use App\PlannedDeparture;
+use App\Repayment;
+use App\Services\DebtorCardService;
+use App\StrUtils;
 use App\User;
 use App\Utils;
+use App\Utils\HtmlHelper;
+use App\Utils\PermLib;
+use App\Utils\StrLib;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Image;
-use App\PlannedDeparture;
-use App\DebtorGeocode;
-use App\Loan;
-use App\Claim;
-use App\Repayment;
-use App\MySoap;
-use App\NoticeNumbers;
-use Config;
-use App\MyResult;
-use Log;
-use App\DebtorsInfo;
-use App\Message;
+use yajra\Datatables\Datatables;
 
-class DebtorsController extends BasicController {
+class DebtorsController extends BasicController
+{
 
-    public function __construct() {
+    public $debtCardService;
+
+    public function __construct(DebtorCardService $debtService)
+    {
         $this->middleware('auth');
         if (is_null(Auth::user())) {
             return redirect('auth/login');
@@ -48,6 +49,8 @@ class DebtorsController extends BasicController {
         if (!Auth::user()->hasPermission(Permission::makeName(PermLib::ACTION_OPEN, PermLib::SUBJ_DEBTORS))) {
             return redirect('/')->with('msg_err', StrLib::ERR_NOT_ADMIN);
         }
+
+        $this->debtCardService = $debtService;
     }
 
     /**
@@ -169,10 +172,11 @@ class DebtorsController extends BasicController {
 
     /**
      * Открывает карточку должника
-     * @param type $debtor_id
+     * @param int $debtor_id
      * @return type
      */
-    public function debtorcard($debtor_id) {
+    public function debtorcard(int $debtor_id)
+    {
         $user_id = Auth::id();
 
         $objUser = User::find($user_id);
@@ -3871,164 +3875,15 @@ class DebtorsController extends BasicController {
         }
     }
 
-    public function getMultiSum(Request $req) {
-        $input = $req->input();
+    public function getMultiSum(MultiSumRequest $request)
+    {
+        $customerId1c = $request['customer_id_1c'];
+        $loanId1c = $request['loan_id_1c'];
+        $date = $request['date'] ?? null;
 
-        $claims = DB::Table('armf.claims')->select(DB::raw('armf.claims.id, armf.claims.multi_loan'))
-                ->leftJoin('armf.loans', 'armf.loans.claim_id', '=', 'armf.claims.id')
-                ->leftJoin('armf.customers', 'armf.customers.id', '=', 'armf.claims.customer_id')
-                ->where('armf.customers.id_1c', $input['customer_id_1c'])
-                ->where('armf.loans.closed', 0)
-                ->groupBy('armf.claims.id')
-                ->get();
-
-        if (is_null($claims)) {
-            return 0;
-        }
-
-        $arLoanIds = [];
-
-        foreach ($claims as $claim) {
-            $tmpLoans = DB::Table('armf.loans')->select(DB::raw('*'))->where('claim_id', $claim->id)->where('loantype_id', '<>', 49)->get();
-            if (!is_null($tmpLoans)) {
-                foreach ($tmpLoans as $tLoan) {
-                    if (strpos($tLoan->data, 'spisan') === false) {
-                        $arLoanIds[] = $tLoan->id_1c;
-                    }
-                }
-            }
-            $tmpLoansPledge = DB::Table('armf.loans')->select(DB::raw('*'))->where('claim_id', $claim->id)->where('loantype_id', 49)->orderBy('created_at', 'asc')->first();
-            if (!is_null($tmpLoansPledge)) {
-                $arLoanIds[] = $tmpLoansPledge->id_1c;
-            }
-        }
-
-        if (!count($arLoanIds)) {
-            return 0;
-        }
-
-        $passport = DB::Table('armf.passports')->select(DB::raw('*'))->where('series', $input['passport_series'])->where('number', $input['passport_number'])->first();
-
-        if (is_null($passport)) {
-            return 0;
-        }
-
-        $orders = DB::Table('armf.orders')->select(DB::raw('*'))
-                ->where('passport_id', $passport->id)
-                ->where('created_at', '>=', date('Y-m-d', time()) . ' 00:00:00')
-                ->get();
-
-        $payture = DB::Table('armf.payture_payments')->select(DB::raw('*'))
-                ->where('customer_id_1c', $input['customer_id_1c'])
-                ->where('created_at', '>=', date('Y-m-d', time()) . ' 00:00:00')
-                ->get();
-
-        $arResult = [];
-
-        $summary = 0;
-        $total_pc = 0;
-
-        if (!isset($input['date']) || empty($input['date'])) {
-            $date = Carbon::now()->format('YmdHis');
-        } else {
-            $date = Carbon::createFromFormat('Y-m-d', $input['date'])->format('YmdHis');
-        }
-
-        /* if ((is_null($orders) || !count($orders)) && (is_null($payture) || !count($orders))) {
-          $connection = config('admin.buh_base_1c');
-
-          foreach ($arLoanIds as $loan_id_1c) {
-          $tmpLoan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c', $loan_id_1c)->first();
-
-          $debtor = Debtor::where('loan_id_1c', $loan_id_1c)->first();
-
-          if (is_null($tmpLoan)) {
-          $arResult[$loan_id_1c] = [
-          'has_result' => 0
-          ];
-          continue;
-          }
-
-          $xml = ['type' => '11', 'loan_id_1c' => $loan_id_1c, 'customer_id_1c' => $input['customer_id_1c'], 'repayment_id_1c' => '0', 'repayment_type' => '0', 'created_at' => $date];
-          $res = MySoap::call1C('IAmMole', ['params' => MySoap::createXML($xml)], false, false, $connection, false, true);
-
-          $loan_debt = simplexml_load_string($res['value']);
-
-          $pc = ((float) $loan_debt->pc) * 100;
-          $exp_pc = ((float) $loan_debt->exp_pc) * 100;
-          $all_pc = $pc + $exp_pc;
-          $fine = ((float) $loan_debt->fine) * 100;
-          $fine_left = number_format((float) $fine, 2, '', '');
-          $od = ((float) $loan_debt->od) * 100;
-          $all_fine = $fine;
-          $money = $pc + $exp_pc + $od + $fine;
-          $exp_days = (int) $loan_debt->exp_time;
-
-          $summary += $money;
-
-          $arResult[$loan_id_1c] = [
-          'has_result' => 1,
-          'debt' => $money,
-          'exp_days' => $exp_days,
-          'created_at' => $tmpLoan->created_at,
-          'debtor_id' => (is_null($debtor)) ? 0 : $debtor->id,
-          'responsible_user_id_1c' => (is_null($debtor)) ? '' : '(' . trim($debtor->responsible_user_id_1c) . ')'
-          ];
-          }
-
-          $arResult['base_type'] = 'Бухгалтерская';
-          } else { */
-        foreach ($arLoanIds as $loan_id_1c) {
-            $tmpLoan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c', $loan_id_1c)->first();
-
-            $debtor = Debtor::where('loan_id_1c', $loan_id_1c)->first();
-
-            if (is_null($tmpLoan)) {
-                $arResult[$loan_id_1c] = [
-                    'has_result' => 0
-                ];
-                continue;
-            }
-
-            //$loan_debt = $tmpLoan->getDebtFrom1cWithoutRepayment(date('Y-m-d', time()));
-            //$summary += $loan_debt->money;
-
-            $xml = ['type' => '11', 'loan_id_1c' => $loan_id_1c, 'customer_id_1c' => $input['customer_id_1c'], 'repayment_id_1c' => '0', 'repayment_type' => '0', 'created_at' => $date];
-            //$loan_debt = MySoap::sendXML(MySoap::createXML($xml));
-            $loan_debt = MySoap::sendXML(MySoap::createXML($xml), false, 'IAmMole', config('1c.mole_url'));
-
-            $pc = ((float) $loan_debt->pc) * 100;
-            $exp_pc = ((float) $loan_debt->exp_pc) * 100;
-            $all_pc = $pc + $exp_pc;
-            $fine = ((float) $loan_debt->fine) * 100;
-            $fine_left = number_format((float) $fine, 2, '', '');
-            $od = ((float) $loan_debt->od) * 100;
-            $all_fine = $fine;
-            $money = $pc + $exp_pc + $od + $fine;
-            $exp_days = (int) $loan_debt->exp_time;
-
-            $summary += $money;
-            $total_pc += $all_pc;
-
-            $arResult[$loan_id_1c] = [
-                'has_result' => 1,
-                'debt' => $money,
-                'exp_days' => $exp_days,
-                'created_at' => $tmpLoan->created_at,
-                'debtor_id' => (is_null($debtor)) ? 0 : $debtor->id,
-                'responsible_user_id_1c' => (is_null($debtor)) ? '' : '(' . trim($debtor->responsible_user_id_1c) . ')'
-            ];
-        }
-
-        $arResult['base_type'] = 'Продажная';
-        /* } */
-
-        $arResult['summary'] = $summary;
-        $arResult['total_pc'] = $total_pc;
-        $arResult['current_loan_id_1c'] = $input['loan_id_1c'];
-
+        $result = $this->debtCardService->getMultiSum1c($customerId1c, $loanId1c, $date);
         return view('elements.debtors.multiloans_buttons', [
-            'loans' => $arResult
+            'loans' => $result
         ]);
     }
 

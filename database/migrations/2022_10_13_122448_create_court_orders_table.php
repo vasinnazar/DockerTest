@@ -10,9 +10,9 @@ class CreateCourtOrdersTable extends Migration
     {
         Schema::create('court_orders', function (Blueprint $table) {
             $table->bigIncrements('id');
-
-            
-
+            $table->integer('debtor_id')->unsigned();
+            $table->foreign('debtor_id')->references('id')->on('debtors');
+            $table->integer('is_printed');
             $table->timestamps();
         });
     }

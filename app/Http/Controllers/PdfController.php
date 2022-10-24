@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Debtor;
+use App\Services\PdfService;
 
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
-
-class PdFController extends Controller
+class PdfController extends Controller
 {
+    private $pdfService;
+
+    public function __construct(
+        PdfService $pdfService
+    ){
+        $this->pdfService = $pdfService;
+    }
 
     /**
      * @param int $debtor_id
@@ -16,7 +21,7 @@ class PdFController extends Controller
      */
     public function getCourtOrderPdf(int $debtor_id)
     {
-        dd($debtor_id);
-
+        $debtor = Debtor::find($debtor_id);
+        return $this->pdfService->getCourtOrder($debtor);
     }
 }
