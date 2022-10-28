@@ -89,7 +89,7 @@ class EmailService
                     $message->bcc(config('mail.username'));
                 }
             );
-        }catch (\Exception $exception){
+        } catch (\Exception $exception) {
             return false;
         }
 
@@ -106,7 +106,7 @@ class EmailService
             'last_user_id' => $user->id,
             'user_id_1c' => $user->id_1c,
             'event_type_id' => 24,
-            'report' => 'Отправленно' . $client->email . 'сообщение :' . $messageText,
+            'report' => 'Отправленно ' . $client->email . ' сообщение :' . $messageText,
             'refresh_date' => Carbon::now(),
             'overdue_reason_id' => 0,
             'event_result_id' => 29,
