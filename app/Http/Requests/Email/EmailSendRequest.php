@@ -29,7 +29,6 @@ class EmailSendRequest extends Request
             'dateAnswer'=>'date',
             'datePayment'=>'date',
             'discountPayment'=>'numeric',
-            'debtor_money_on_day' => 'string',
         ];
     }
 }

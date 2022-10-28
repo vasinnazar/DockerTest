@@ -763,31 +763,30 @@
     };
 
     $.debtorsCtrl.intiInputModal = function (element) {
-            let idList = $(element).val();
-            if (idList == 10 || idList == 19) {
-                $('#datePayment').show();
-                $('#datePaymentLabel').text('Оплатите задолженность до :');
-                $('#discountPayment').hide();
-                $('#discountPaymentLabel').text('');
-                $('#dateAnswer').hide();
-                $('#dateAnswerLabel').text('');
-            }else if (idList == 17) {
-                $('#datePayment').show();
-                $('#datePaymentLabel').text('Предложение доступно до :');
-                $('#discountPayment').show();
-                $('#discountPaymentLabel').text('внесите руб :');
-                $('#dateAnswer').show();
-                $('#dateAnswerLabel').text('ДАЙТЕ ОТВЕТ до :');
-                let debtMoney = $('.debt_money_on_date').val();
-                $('#debtor_money_on_day').val(debtMoney);
-            }else{
-                $('#datePayment').hide();
-                $('#datePaymentLabel').text('');
-                $('#discountPayment').hide();
-                $('#discountPaymentLabel').text('');
-                $('#dateAnswer').hide();
-                $('#dateAnswerLabel').text('');
-            }
+        let idList = $(element).val();
+        console.log(idList);
+        if (idList == 10 || idList == 20 || idList == 15) {
+            $('#datePayment').show();
+            $('#datePaymentLabel').text('Оплатите задолженность до :');
+            $('#discountPayment').hide();
+            $('#discountPaymentLabel').text('');
+            $('#dateAnswer').hide();
+            $('#dateAnswerLabel').text('');
+        } else if (idList == 18) {
+            $('#datePayment').show();
+            $('#datePaymentLabel').text('Предложение доступно до :');
+            $('#discountPayment').show();
+            $('#discountPaymentLabel').text('внесите руб :');
+            $('#dateAnswer').show();
+            $('#dateAnswerLabel').text('ДАЙТЕ ОТВЕТ до :');
+        } else {
+            $('#datePayment').hide();
+            $('#datePaymentLabel').text('');
+            $('#discountPayment').hide();
+            $('#discountPaymentLabel').text('');
+            $('#dateAnswer').hide();
+            $('#dateAnswerLabel').text('');
+        }
 
     };
 })(jQuery);

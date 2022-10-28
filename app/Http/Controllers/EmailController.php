@@ -31,7 +31,6 @@ class EmailController extends Controller
             'dateAnswer' => Carbon::parse($request->dateAnswer)->format('d.m.Y') ?? null,
             'datePayment'=>Carbon::parse($request->datePayment)->format('d.m.Y') ?? null,
             'discountPayment'=>$request->discountPayment ?? null,
-            'debtor_money_on_day' =>$request->debtor_money_on_day ?? null,
         ];
         if($this->emailService->sendEmailDebtor($arrayParam)){
             return redirect()->back()->with('msg_suc','Email сообщение отправленно,мероприятие создано');

@@ -1092,7 +1092,7 @@
 @endif
 @stop
 @section('scripts')
-<script src="{{asset('js/debtors/debtorsController.js?11')}}"></script>
+<script src="{{asset('js/debtors/debtorsController.js?12')}}"></script>
 <script src="{{asset('js/libs/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js')}}"></script>
 <script src="{{asset('js/libs/clipboard/clipboard.min.js')}}"></script>
 <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>

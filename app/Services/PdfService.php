@@ -34,7 +34,7 @@ class PdfService
             'report' => 'Отправлена копия заявления',
             'refresh_date' => Carbon::now(),
             'overdue_reason_id' => 0,
-            'event_result_id' => 27,
+            'event_result_id' => 30,
             'completed' => 1,
         ]);
 
