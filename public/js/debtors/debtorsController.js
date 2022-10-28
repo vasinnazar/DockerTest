@@ -764,7 +764,6 @@
 
     $.debtorsCtrl.intiInputModal = function (element) {
         let idList = $(element).val();
-        console.log(idList);
         if (idList == 10 || idList == 20 || idList == 15) {
             $('#datePayment').show();
             $('#datePaymentLabel').text('Оплатите задолженность до :');
