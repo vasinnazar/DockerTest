@@ -19,7 +19,8 @@ class CreateZaimsTable extends Migration {
               $table->integer('summa')->nullable();
             $table->date('data')->nullable();
             $table->text('comment')->nullable();
-            $table->timestamps();
+            $table->timestamp('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('updated_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
             $table->integer('user_id')->nullable();
         });
     }

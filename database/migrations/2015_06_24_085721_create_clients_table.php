@@ -12,15 +12,16 @@ class CreateClientsTable extends Migration {
 	 */
 	public function up()
 	{
-	  Schema::create('clients', function(Blueprint $table) {
+        Schema::create('clients', function(Blueprint $table) {
             $table->increments('id');
             $table->string('fio')->nullable();
             $table->integer('number_ean')->nullable();
             $table->string('photo')->nullable();
             $table->integer('id_sodatel')->nullable();
-             $table->string('telephone')->nullable();
-            $table->timestamps();
-              });
+            $table->string('telephone')->nullable();
+            $table->timestamp('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('updated_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
+        });
     }
 	
 
