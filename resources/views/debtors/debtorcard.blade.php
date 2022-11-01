@@ -146,7 +146,7 @@
                                 </span>
                                 @if($debtor->printCourtOrder() && auth()->user()->isChiefSpecialist())
                                 <span>
-                                    <a href="{{route('getcourtorder',$debtor->id)}}"
+                                    <a href="{{route('debtor.courtorder',$debtor->id)}}"
                                        style="color: #fff; text-decoration: none;">
                                         <p class="el_archive" style="margin: 5px; background-color: #d9534f;">
                                             Печать заявления о выдаче судебного приказа

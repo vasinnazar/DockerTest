@@ -8,12 +8,14 @@ use Carbon\Carbon;
 use Config;
 use Log;
 
-class Debtor extends Model {
+class Debtor extends Model
+{
 
     protected $table = 'debtors.debtors';
     protected $fillable = ['od', 'pc', 'exp_pc', 'fine', 'tax', 'customer_id_1c', 'loan_id_1c', 'is_debtor'];
 
-    public static function getDebtorsWithEmptyCustomer($offset, $limit = 50) {
+    public static function getDebtorsWithEmptyCustomer($offset, $limit = 50)
+    {
         $debtors = DB::select(DB::raw('SELECT debtors.debtors.debtor_id_1c, debtors.debtors.passport_series, debtors.debtors.passport_number, debtors.debtors.customer_id_1c, debtors.debtors.loan_id_1c FROM debtors.debtors 
                                         left join debtors.loans on debtors.loans.id_1c = debtors.debtors.loan_id_1c
                                         left join debtors.claims on debtors.loans.claim_id = debtors.claims.id
@@ -24,7 +26,8 @@ class Debtor extends Model {
         return $debtors;
     }
 
-    public static function countEmptyDebtors() {
+    public static function countEmptyDebtors()
+    {
         $debtors = DB::select(DB::raw('SELECT count(*) as num FROM debtors.debtors 
                                         left join debtors.loans on debtors.loans.id_1c = debtors.debtors.loan_id_1c
                                         left join debtors.claims on debtors.loans.claim_id = debtors.claims.id
@@ -33,7 +36,8 @@ class Debtor extends Model {
         return $debtors[0]->num;
     }
 
-    public function isEmptyCustomer() {
+    public function isEmptyCustomer()
+    {
         return (count(DB::select(DB::raw("SELECT debtors.debtors.id FROM debtors.debtors 
                                         left join armf.loans on armf.loans.id_1c = debtors.debtors.loan_id_1c
                                         left join armf.claims on armf.loans.claim_id = armf.claims.id
@@ -42,15 +46,20 @@ class Debtor extends Model {
                                         and debtors.debtors.id='" . $this->id . "'"))) > 0) ? true : false;
     }
 
-    public function debtorLogs() {
+    public function debtorLogs()
+    {
         return $this->hasMany('\App\DebtorLog', 'debtor_id');
     }
+
     public function courtOrder()
     {
         return $this->hasOne('App\CourtOrder');
     }
-    public function debtorEventLogs() {
-        $data = DebtorLog::leftJoin('debtor_events', 'debtor_events.id', '=', 'debtor_logs.debtor_event_id')->where('debtor_events.debtor_id', $this->id)->get();
+
+    public function debtorEventLogs()
+    {
+        $data = DebtorLog::leftJoin('debtor_events', 'debtor_events.id', '=',
+            'debtor_logs.debtor_event_id')->where('debtor_events.debtor_id', $this->id)->get();
         return (!is_null($data)) ? $data : [];
     }
 
@@ -58,24 +67,25 @@ class Debtor extends Model {
      * Получает логи по должнику вместе с логами по мероприятиям связанным с этим должником
      * @return type
      */
-    public function getAllDebtorLogs() {
+    public function getAllDebtorLogs()
+    {
         $arDebtGroups = DebtGroup::getDebtGroups();
-        
+
         $data = DB::table('debtor_logs')
-                ->select([
-                    'users.name as username',
-                    'debtor_logs.created_at as debtor_log_created_at',
-                    'debtor_logs.before as before',
-                    'debtor_logs.after as after',
-                    'debtor_logs.debtor_id as debtor_id',
-                    'debtor_logs.debtor_event_id as debtor_event_id'
-                ])
-                ->leftJoin('debtor_events', 'debtor_events.id', '=', 'debtor_logs.debtor_event_id')
-                ->leftJoin('users', 'debtor_logs.user_id', '=', 'users.id')
-                ->where('debtor_logs.debtor_id', $this->id)
-                ->orWhere('debtor_events.debtor_id', $this->id)
-                ->orderBy('debtor_logs.created_at')
-                ->get();
+            ->select([
+                'users.name as username',
+                'debtor_logs.created_at as debtor_log_created_at',
+                'debtor_logs.before as before',
+                'debtor_logs.after as after',
+                'debtor_logs.debtor_id as debtor_id',
+                'debtor_logs.debtor_event_id as debtor_event_id'
+            ])
+            ->leftJoin('debtor_events', 'debtor_events.id', '=', 'debtor_logs.debtor_event_id')
+            ->leftJoin('users', 'debtor_logs.user_id', '=', 'users.id')
+            ->where('debtor_logs.debtor_id', $this->id)
+            ->orWhere('debtor_events.debtor_id', $this->id)
+            ->orderBy('debtor_logs.created_at')
+            ->get();
         foreach ($data as $item) {
             $item->before = json_decode($item->before);
             $item->after = json_decode($item->after);
@@ -85,13 +95,16 @@ class Debtor extends Model {
                 }
                 foreach ($json as $k => $v) {
                     if ($k == 'event_type_id') {
-                        $json->{$k} = (array_key_exists($v, config('debtors.event_types'))) ? config('debtors.event_types')[$v] : $v;
+                        $json->{$k} = (array_key_exists($v,
+                            config('debtors.event_types'))) ? config('debtors.event_types')[$v] : $v;
                     }
                     if ($k == 'overdue_reason_id') {
-                        $json->{$k} = (array_key_exists($v, config('debtors.overdue_reasons'))) ? config('debtors.overdue_reasons')[$v] : $v;
+                        $json->{$k} = (array_key_exists($v,
+                            config('debtors.overdue_reasons'))) ? config('debtors.overdue_reasons')[$v] : $v;
                     }
                     if ($k == 'event_result_id') {
-                        $json->{$k} = (array_key_exists($v, config('debtors.event_results'))) ? config('debtors.event_results')[$v] : $v;
+                        $json->{$k} = (array_key_exists($v,
+                            config('debtors.event_results'))) ? config('debtors.event_results')[$v] : $v;
                     }
                     if ($k == 'debt_group_id') {
                         $json->{$k} = (array_key_exists($v, $arDebtGroups)) ? $arDebtGroups[$v] : $v;
@@ -126,7 +139,8 @@ class Debtor extends Model {
      * Возвращает массив данных с прочими контактами для страницы прочих контактов с контролем уникальности
      * @return type
      */
-    public function getContactsData() {
+    public function getContactsData()
+    {
         $data = [];
         $arFieldNames = [
             'telephonehome' => 'Домашний телефон',
@@ -140,21 +154,21 @@ class Debtor extends Model {
         ];
         Config::set('database.default', 'arm');
         $contacts = \App\Claim::leftJoin('about_clients', 'about_clients.id', '=', 'claims.about_client_id')
-                ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
-                ->where('customers.id_1c', $this->customer_id_1c)
-                ->select([
-                    'claims.created_at as claim_date',
-                    'about_clients.telephonehome',
-                    'about_clients.telephoneorganiz',
-                    'about_clients.telephonerodstv',
-                    'about_clients.anothertelephone',
-                    'about_clients.recomend_phone_1',
-                    'about_clients.recomend_phone_2',
-                    'about_clients.recomend_phone_3'
-                ])
-                ->orderBy('claims.created_at', 'desc')
-                ->get()
-                ->toArray();
+            ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
+            ->where('customers.id_1c', $this->customer_id_1c)
+            ->select([
+                'claims.created_at as claim_date',
+                'about_clients.telephonehome',
+                'about_clients.telephoneorganiz',
+                'about_clients.telephonerodstv',
+                'about_clients.anothertelephone',
+                'about_clients.recomend_phone_1',
+                'about_clients.recomend_phone_2',
+                'about_clients.recomend_phone_3'
+            ])
+            ->orderBy('claims.created_at', 'desc')
+            ->get()
+            ->toArray();
         if (count($contacts) > 0) {
             $firstClaim = $contacts[0];
             foreach ($contacts as $con) {
@@ -183,12 +197,13 @@ class Debtor extends Model {
         return $data;
     }
 
-    public function loan() {
+    public function loan()
+    {
         $loan_id = Loan::leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-                        ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
-                        ->where('customers.id_1c', $this->customer_id_1c)
-                        ->where('loans.id_1c', $this->loan_id_1c)
-                        ->select('loans.id')->first();
+            ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
+            ->where('customers.id_1c', $this->customer_id_1c)
+            ->where('loans.id_1c', $this->loan_id_1c)
+            ->select('loans.id')->first();
         if (!is_null($loan_id)) {
             return Loan::find($loan_id->id);
         } else {
@@ -200,18 +215,19 @@ class Debtor extends Model {
      * Получить все кредитники по должнику
      * @return type
      */
-    public function getAllLoans() {
+    public function getAllLoans()
+    {
         $customer = $this->customer();
         $loansList = DB::connection('arm')->table('loans')
-                ->select(DB::raw('loans.created_at as loan_created_at,loans.id as loan_id,loans.id_1c as arm_loan_id_1c,passports.fio as fio,users.name as user_name,subdivisions.name as subdiv_name,loans.closed as closed, passports.series as pseries, passports.number as pnumber'))
-                ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-                ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
-                ->leftJoin('passports', 'passports.id', '=', 'claims.passport_id')
-                ->leftJoin('subdivisions', 'subdivisions.id', '=', 'loans.subdivision_id')
-                ->leftJoin('users', 'users.id', '=', 'loans.user_id')
-                ->where('customers.id_1c', $this->customer_id_1c)
-                ->orderBy('loans.created_at', 'desc')
-                ->get();
+            ->select(DB::raw('loans.created_at as loan_created_at,loans.id as loan_id,loans.id_1c as arm_loan_id_1c,passports.fio as fio,users.name as user_name,subdivisions.name as subdiv_name,loans.closed as closed, passports.series as pseries, passports.number as pnumber'))
+            ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
+            ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
+            ->leftJoin('passports', 'passports.id', '=', 'claims.passport_id')
+            ->leftJoin('subdivisions', 'subdivisions.id', '=', 'loans.subdivision_id')
+            ->leftJoin('users', 'users.id', '=', 'loans.user_id')
+            ->where('customers.id_1c', $this->customer_id_1c)
+            ->orderBy('loans.created_at', 'desc')
+            ->get();
         \PC::debug($loansList, 'loanslist');
 //        $loans = json_decode(json_encode($loansList),true);
 //        $loans = DB::connection('arm')->table('loans')->whereIn('id', $loansList)->orderBy('created_at', 'desc')->get();
@@ -219,15 +235,17 @@ class Debtor extends Model {
         return $loansList;
     }
 
-    public function customer() {
+    public function customer()
+    {
         return Customer::where('id_1c', $this->customer_id_1c)->first();
     }
 
-    static function getOverall($user = false) {
+    static function getOverall($user = false)
+    {
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
 
         $usersDebtors = User::select('users.id_1c')
-                ->whereIn('id', $arResponsibleUserIds);
+            ->whereIn('id', $arResponsibleUserIds);
 
         $arUsersDebtors = $usersDebtors->get()->toArray();
         $arIn = [];
@@ -259,14 +277,15 @@ class Debtor extends Model {
             $item->sum_debt = number_format($item->sum_debt / 100, 2, '.', '');
             $item->sum_od = number_format($item->sum_od / 100, 2, '.', '');
             $res['total']['num'] += $item->num;
-            $res['total']['sum_debt']+=$item->sum_debt;
-            $res['total']['sum_od']+=$item->sum_od;
+            $res['total']['sum_debt'] += $item->sum_debt;
+            $res['total']['sum_od'] += $item->sum_od;
         }
         $res['items'] = $items;
         return $res;
     }
 
-    static function getFields() {
+    static function getFields()
+    {
         return [
             'id' => 'ИД',
             'customer_id_1c' => 'Номер контрагента',
@@ -296,7 +315,8 @@ class Debtor extends Model {
         ];
     }
 
-    static function getSearchFields() {
+    static function getSearchFields()
+    {
         $currentUser = auth()->user();
         $by_address = ($currentUser->hasRole('debtors_personal')) ? 'address_city' : 'fact_address_city';
         return [
@@ -373,7 +393,7 @@ class Debtor extends Model {
                 'name' => 'passports@' . $by_address,
                 'input_type' => 'text',
                 'label' => 'Город',
-            //'hidden_value_field' => 'passports@fact_address_city'
+                //'hidden_value_field' => 'passports@fact_address_city'
             ],
             [
                 'name' => 'users@name',
@@ -400,7 +420,8 @@ class Debtor extends Model {
         ];
     }
 
-    public static function changeLoadStatus($debtor_id) {
+    public static function changeLoadStatus($debtor_id)
+    {
         $debtor = Debtor::where('id', $debtor_id)->first();
         if (!is_null($debtor)) {
             $debtor->uploaded = ($debtor->uploaded == 1) ? 0 : 1;
@@ -411,61 +432,58 @@ class Debtor extends Model {
         return false;
     }
 
-//    public static function checkForPaymentInArm($after = null) {
-//        $debtors = Debtor::get();
-//        if (is_null($after)) {
-//            $after = Option::getByName('last_debtor_payments_update_date', '2017-06-25 00:00:00');
-//        }
-//        foreach ($debtors as $debtor) {
-//            $passport = $debtor->getPassport();
-//            if (!is_null($passport)) {
-//                $orders = DB::connection('arm')->table('orders')->where('created_at', '>', $after)->where('passport_id', $passport->id)->get();
-//                foreach ($orders as $order) {
-//                    DebtorsMessage::addPaymentMessage($debtor, $order);
-//                }
-//            }
-//        }
-//        Option::updateByName('last_debtor_payments_update_date', Carbon::now()->format('Y-m-d H:i:s'));
-//        return;
-//    }
-
-    public static function checkForPaymentInArm() {
+    public static function checkForPaymentInArm()
+    {
         $after = Option::getByName('last_debtor_payments_update_date', '2017-07-03 00:00:00');
-        $cols = ['passports.series as passport_series', 'passports.number as passport_number', 'orders.money as orderMoney', 'orders.created_at as orderDate', 'orders.number as orderNumber','loans.id_1c as loan_id_1c'];
+        $cols = [
+            'passports.series as passport_series',
+            'passports.number as passport_number',
+            'orders.money as orderMoney',
+            'orders.created_at as orderDate',
+            'orders.number as orderNumber',
+            'loans.id_1c as loan_id_1c'
+        ];
         $arm_orders = DB::connection('arm')
-                ->table('orders')
-                ->select($cols)
-                ->leftJoin('passports', 'passports.id', '=', 'orders.passport_id')
-                ->leftJoin('loans','loans.id','=','orders.loan_id')
-                ->where('orders.created_at', '>=', $after)
-                ->get();
+            ->table('orders')
+            ->select($cols)
+            ->leftJoin('passports', 'passports.id', '=', 'orders.passport_id')
+            ->leftJoin('loans', 'loans.id', '=', 'orders.loan_id')
+            ->where('orders.created_at', '>=', $after)
+            ->get();
         foreach ($arm_orders as $order) {
             \PC::debug($order);
-            $debtor = Debtor::where('passport_series', $order->passport_series)->where('passport_number', $order->passport_number)->where('loan_id_1c',$order->loan_id_1c)->first();
+            $debtor = Debtor::where('passport_series', $order->passport_series)->where('passport_number',
+                $order->passport_number)->where('loan_id_1c', $order->loan_id_1c)->first();
             if (!is_null($debtor)) {
                 $user = $debtor->getUser();
                 if (!is_null($user)) {
-                    Message::addPaymentMessage($debtor, $order->orderNumber, $order->orderMoney, $order->orderDate, $user->id);
+                    Message::addPaymentMessage($debtor, $order->orderNumber, $order->orderMoney, $order->orderDate,
+                        $user->id);
                 }
             }
         }
         Option::updateByName('last_debtor_payments_update_date', Carbon::now()->format('Y-m-d H:i:s'));
     }
-    
-    public static function updateDebtorOnClose($customer_id_1c, $loan_id_1c){
-        try{
-            DB::connection('debtors')->table('debtors')->where('customer_id_1c',$customer_id_1c)->where('loan_id_1c',$loan_id_1c)->update(['is_debtor'=>0,'base'=>'Архив ЗД']);
-            Log::info('Debtor.updateDebtorOnClose',['customer_id_1c'=>$customer_id_1c,'loan_id_1c'=>$loan_id_1c]);
+
+    public static function updateDebtorOnClose($customer_id_1c, $loan_id_1c)
+    {
+        try {
+            DB::connection('debtors')->table('debtors')->where('customer_id_1c', $customer_id_1c)->where('loan_id_1c',
+                $loan_id_1c)->update(['is_debtor' => 0, 'base' => 'Архив ЗД']);
+            Log::info('Debtor.updateDebtorOnClose', ['customer_id_1c' => $customer_id_1c, 'loan_id_1c' => $loan_id_1c]);
         } catch (Exception $ex) {
-            Log::error('Debtor.updateDebtorOnClose',['customer_id_1c'=>$customer_id_1c,'loan_id_1c'=>$loan_id_1c, 'ex'=>$ex]);
+            Log::error('Debtor.updateDebtorOnClose',
+                ['customer_id_1c' => $customer_id_1c, 'loan_id_1c' => $loan_id_1c, 'ex' => $ex]);
         }
     }
 
     /**
      * @return bool
      */
-    public function printCourtOrder(){
-        return (($this->debt_group_id == 5 || $this->debt_group_id == 6) && $this->qty_delays >= 95 && is_null($this->courtOrder));
+    public function printCourtOrder()
+    {
+        return
+            (($this->debt_group_id == DebtGroup::DIFFICULT || $this->debt_group_id == DebtGroup::HOPLESS)
+                && $this->qty_delays >= 95 && is_null($this->courtOrder));
     }
-
 }
