@@ -88,7 +88,7 @@ class PdfService
         $html = str_replace('{{#date_end_contract}}', $loan->created_at->addDay(($loan->time + 1))->format('d.m.Y'),
             $html);
         $html = str_replace('{{#date_end_contract_dop}}',
-            $loan->created_at->addDay(($loan->time + 1 + $debtor->qty_delays))->format('d.m.Y'), $html);
+            $loan->created_at->addDay(($loan->time + $debtor->qty_delays))->format('d.m.Y'), $html);
         $html = str_replace('{{#exp_percent}}', ($arraySumDebtor->exp_pc / 100), $html);
         $html = str_replace('{{#qty_delays}}', $debtor->qty_delays, $html);
         $html = str_replace('{{#duty}}', $duty, $html);
