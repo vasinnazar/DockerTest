@@ -731,6 +731,7 @@ Route::get('ajax/debtors/search/autocomplete', ['uses' => 'DebtorsController@aja
 Route::get('debtors/history/{debtor_id}', ['uses' => 'DebtorsController@debtorHistory']);
 Route::get('debtors/debtorcard/createPdf/{doc_id}/{debtor_id}/{date}/{fact_address}', ['uses' => 'DebtorsController@createPdf']);
 Route::get('debtors/debtorcard/createPdf/{doc_id}/{debtor_id}/{date}', ['uses' => 'DebtorsController@createPdf']);
+Route::get('debtor/courtorder/{debtor_id}','PdfController@getCourtOrderPdf')->name('debtor.courtorder');
 Route::get('debtors/contacts/{debtor_id}', ['uses' => 'DebtorsController@contacts']);
 Route::get('debtors/logs/{debtor_id}', ['uses' => 'DebtorsController@debtorLogs']);
 Route::get('ajax/debtors/userpayments', ['uses' => 'DebtorsReportsController@getPaymentsForUser']);

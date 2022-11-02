@@ -6,12 +6,14 @@ use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorEvent;
 use App\EmailMessage;
+use App\Loan;
 use App\Message;
 use App\Role;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Mail\Mailer;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EmailService
 {
@@ -50,38 +52,46 @@ class EmailService
     {
         $user = Auth::user();
         $debtor = Debtor::where('id', $arrayParam['debtor_id'])->first();
-        $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->pluck('template_message');
-        $client = $debtor->customer()->getLastAboutClient();
-        $email = $client->email;
+        $loan = Loan::where('id_1c', $debtor->loan_id_1c)->first();
+        $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
+        $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
 
+        $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->pluck('template_message');
         $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage, $arrayParam);
 
+        $armf_customer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
+        $client = DB::Table('armf.about_clients')->where('customer_id', $armf_customer->id)->first();
         $userArm = $this->armClient->getUserById1c($user->id_1c);
+
         if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['email'])) {
             return false;
         }
         $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
-
-        $mailer = app()->make(Mailer::class);
-        $mailer->getSwiftMailer()->getTransport()->setStreamOptions(
-            [
-                'ssl' =>
-                    [
-                        'allow_self_signed' => true,
-                        'verify_peer' => false,
-                        'verify_peer_name' => false
-                    ]
-            ]);
-        $mailer->send(
-            'emails.sendMessage',
-            ['messageText' => $messageText],
-            function ($message) use ($email) {
-                /** @var Message $message */
-                $message->subject(config('vars.company_new_name'));
-                $message->from(config('mail.username'));
-                $message->to($email);
-            }
-        );
+        try {
+            $mailer = app()->make(Mailer::class);
+            $mailer->getSwiftMailer()->getTransport()->setStreamOptions(
+                [
+                    'ssl' =>
+                        [
+                            'allow_self_signed' => true,
+                            'verify_peer' => false,
+                            'verify_peer_name' => false
+                        ]
+                ]);
+            $mailer->send(
+                'emails.sendMessage',
+                ['messageText' => $messageText],
+                function ($message) use ($client) {
+                    /** @var Message $message */
+                    $message->subject(config('vars.company_new_name'));
+                    $message->from(config('mail.username'));
+                    $message->to($client->email);
+                    $message->bcc(config('mail.username'));
+                }
+            );
+        } catch (\Exception $exception) {
+            return false;
+        }
 
         if (count($mailer->failures()) > 0) {
             return false;
@@ -95,11 +105,11 @@ class EmailService
             'user_id' => $user->id,
             'last_user_id' => $user->id,
             'user_id_1c' => $user->id_1c,
-            'event_type_id' => 25,
-            'report' => 'Отправленно email сообщение :' . $messageText,
+            'event_type_id' => 24,
+            'report' => 'Отправленно ' . $client->email . ' сообщение :' . $messageText,
             'refresh_date' => Carbon::now(),
             'overdue_reason_id' => 0,
-            'event_result_id' => 27,
+            'event_result_id' => 29,
             'completed' => 1,
         ]);
         return true;
@@ -113,7 +123,9 @@ class EmailService
         $templateMessage = str_replace('{{company_phone}}', config('vars.company_phone'), $templateMessage);
         $templateMessage = str_replace('{{company_site}}', config('vars.company_site'), $templateMessage);
         $templateMessage = str_replace('{{fio_spec}}', $user->login, $templateMessage);
+        $templateMessage = str_replace('{{spec_phone}}', $user->phone, $templateMessage);
         $templateMessage = str_replace('{{fio_debtors}}', $fio, $templateMessage);
+        $templateMessage = str_replace('{{debtor_money_on_day}}', $arrayParam['debtor_sum'], $templateMessage);
 
         if (array_key_exists('dateAnswer', $arrayParam)) {
             $templateMessage = str_replace('{{date_answer}}', $arrayParam['dateAnswer'], $templateMessage);
@@ -124,11 +136,6 @@ class EmailService
         if (array_key_exists('discountPayment', $arrayParam)) {
             $templateMessage = str_replace('{{discount_payment}}', $arrayParam['discountPayment'], $templateMessage);
         }
-        if (array_key_exists('debtor_money_on_day', $arrayParam)) {
-            $templateMessage = str_replace('{{debtor_money_on_day}}', $arrayParam['debtor_money_on_day'],
-                $templateMessage);
-        }
-
         return $templateMessage;
     }
 

@@ -121,7 +121,4 @@ return [
 
     'pretend' => false,
 
-    'verify_peer' => false,
-
-
 ];

@@ -3,8 +3,8 @@
 namespace App\Utils;
 
 use mikehaertl\wkhtmlto\Pdf;
-use Auth;
-use Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 use App\Utils\FileToPdfUtil;
 
 class PdfUtil {
@@ -80,6 +80,19 @@ class PdfUtil {
             
             die();
         }
+    }
+    static function getPdfFromPrintServer($html, $opts = null)
+    {
+        $res = HelperUtil::sendByCurl(
+            \App\Option::getByName('print_server', 'http://5.175.225.158:8081') . '/htmltopdf.loc/index.php',
+            ['html' => $html, 'opts' => (!is_array($opts)) ? [] : json_encode($opts)],
+            true
+        );
+        $filename = 'Документ.pdf';
+        return response($res, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"'
+        ]);
     }
 
 }
