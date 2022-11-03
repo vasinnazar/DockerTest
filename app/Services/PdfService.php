@@ -73,22 +73,24 @@ class PdfService
         $html = str_replace('{{#number}}', $passportDebtor->number, $html);
         $html = str_replace('{{#address_residential}}', $full_address, $html);
         $html = str_replace('{{#amounts_recovery}}', ($arraySumDebtor->money / 100), $html);
-        $html = str_replace('{{#date_start_contractM}}', StrUtils::dateToStr($loan->created_at->toDateTimeString()),
-            $html);
         $html = str_replace('{{#loan_id_1c}}', $debtor->loan_id_1c, $html);
         $html = str_replace('{{#loan_amount}}', ($arraySumDebtor->od / 100), $html);
         $html = str_replace('{{#loan_amount_symbol}}', StrUtils::num2str($arraySumDebtor->od / 100), $html);
         $html = str_replace('{{#loan_term}}', $loan->time, $html);
-        $html = str_replace('{{#date_start_contract}}', $loan->created_at->format('d.m.Y'), $html);
         $html = str_replace('{{#basic_percent}}', ($arraySumDebtor->pc / 100) . ' ', $html);
         $html = str_replace('{{#basic_percent_symbol}}', StrUtils::num2str($arraySumDebtor->pc / 100), $html);
+
+        $html = str_replace('{{#date_start_contract}}', $loan->created_at->format('d.m.Y'), $html);
         $html = str_replace('{{#date_now}}', Carbon::now()->format('d.m.Y'), $html);
+        $html = str_replace('{{#date_start_contractM}}', StrUtils::dateToStr($loan->created_at->toDateTimeString()),
+            $html);
         $html = str_replace('{{#date_end_contractM}}',
             StrUtils::dateToStr($loan->created_at->addDay($loan->time)->toDateTimeString()), $html);
-        $html = str_replace('{{#date_end_contract}}', $loan->created_at->addDay(($loan->time + 1))->format('d.m.Y'),
+        $html = str_replace('{{#date_end_contract}}',
+            Carbon::now()->subDays($debtor->qty_delays)->format('d.m.Y'),
             $html);
         $html = str_replace('{{#date_end_contract_dop}}',
-            $loan->created_at->addDay(($loan->time + $debtor->qty_delays))->format('d.m.Y'), $html);
+            Carbon::now()->format('d.m.Y'), $html);
         $html = str_replace('{{#exp_percent}}', ($arraySumDebtor->exp_pc / 100), $html);
         $html = str_replace('{{#qty_delays}}', $debtor->qty_delays, $html);
         $html = str_replace('{{#duty}}', $duty, $html);
@@ -100,27 +102,30 @@ class PdfService
 
     /**
      * Расчет гос. пошлины:
-     * до 20 000 рублей — 4% цены иска, но не менее 200 рублей
-     * от 20 001 рубля до 100 000 рублей — 400 рублей + 3% суммы, превышающей 20 000 рублей
-     * от 100 001 рубля до 200 000 рублей — 1600 рублей + 2% суммы, превышающей 100 000 рублей
+     * до 20 000 рублей — 4% цены иска, но не менее 400 рублей. Итоговую сумму делим на 2.
+     * от 20 001 рубля до 100 000 рублей — 800 рублей + 3% от суммы превышающий 20 000, итоговую сумму делим на 2.
+     * от 100 001 рубля до 200 000 рублей — 3200 рублей + 2% от суммы превышающей 100 000, итоговую сумму делим на 2.
      * @param int $amount
      * @return float|int|void
      */
     public function getStateDuty(int $amount)
     {
+        $duty = null;
         if ($amount < 20000) {
             $duty = ($amount / 100) * 4;
-            return $duty < 200 ? 200 : $duty;
-        } else {
-            if ($amount >= 20001 && $amount <= 100000) {
-                $duty = ($amount / 100) * 3;
-                return 400 + $duty;
-            } else {
-                if ($amount >= 100001 && $amount <= 200000) {
-                    $duty = ($amount / 100) * 2;
-                    return 1600 + $duty;
-                }
-            }
+            $duty = ($duty < 400) ? 400 / 2 : $duty / 2;
         }
+
+        if ($amount >= 20001 && $amount <= 100000) {
+            $duty = ($amount / 100) * 3;
+            $duty = (800 + $duty) /2 ;
+        }
+
+        if ($amount >= 100001 && $amount <= 200000) {
+            $duty = ($amount / 100) * 2;
+            $duty = (3200 + $duty) / 2 ;
+        }
+
+        return $duty;
     }
 }
