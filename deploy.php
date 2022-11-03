@@ -4,6 +4,7 @@
 namespace Deployer;
 
 require 'recipe/laravel.php';
+require 'recipe/cachetool.php';
 /**
  *
  * Using Deployer V6.1.0
@@ -27,6 +28,10 @@ set('writable_dirs', [
 ]);
 
 after('deploy:failed', 'deploy:unlock');
+
+
+task('prod:opcache', ['cachetool:clear:opcache'])->onStage('prod');
+host('prod')->set('cachetool', '/var/run/arm_debt_php.sock');
 
 task('build', function () {
     set('repository', host('local')->get('repository'));
@@ -64,5 +69,6 @@ task('deploy', [
     'deploy:symlink',
     'files:symlink',
     'cleanup',
+    'prod:opcache',
     'success'
 ]);
