@@ -141,4 +141,44 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         $this->save();
         return;
     }
+
+    /**
+     * Возвращает список пользователей, которые работают с "Должниками"
+     * @return json|false|string
+     */
+    public static function getUsersWithDebtorRole()
+    {
+        $debtorUsers = self::select(array('users.id as user_id'))
+            ->leftJoin('role_user', 'role_user.user_id', '=', 'users.id')
+            ->leftJoin('roles', 'roles.id', '=', 'role_user.role_id')
+            ->where('roles.name', 'debtors')
+            ->get()
+            ->toArray();
+
+        return json_encode($debtorUsers);
+    }
+
+    /**
+     * Возвращает список id пользователей, которые работают с "Должниками"
+     * @return json|false|string
+     */
+    public static function getUsersIdsWithDebtorRole()
+    {
+        $debtorUsers = self::select(array('users.id as user_id'))
+            ->leftJoin('role_user', 'role_user.user_id', '=', 'users.id')
+            ->leftJoin('roles', 'roles.id', '=', 'role_user.role_id')
+            ->where('roles.name', 'debtors')
+            ->get()
+            ->toArray();
+
+        $usersIds = [];
+        foreach ($debtorUsers as $user) {
+            if (is_null($user['user_id']) || !mb_strlen($user['user_id'])) {
+                continue;
+            }
+            $usersIds[] = $user['user_id'];
+        }
+
+        return $usersIds;
+    }
 }
