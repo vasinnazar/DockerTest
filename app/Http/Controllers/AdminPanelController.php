@@ -15,7 +15,7 @@ use Illuminate\Http\Request,
     App\Subdivision,
     App\UsersRegions,
     Illuminate\Support\Facades\DB,
-    yajra\Datatables\Datatables,
+    Yajra\Datatables\Facades\Datatables,
     Carbon\Carbon,
     App\Spylog\Spylog,
     App\Spylog\SpylogModel,
@@ -122,19 +122,20 @@ class AdminPanelController extends Controller {
         $cols = ['name', 'id'];
         $users = DB::table('users')->select('name', 'id')->orderBy('name');
         return Datatables::of($users)
-                        ->editColumn('name', function($user) {
-                            return '<div style="cursor:pointer" '
-                                    . 'onclick="$.adminCtrl.viewUser(' . $user->id . ',this); return false;">'
-                                    . $user->name . '</div>';
-                        })
-                        ->removeColumn('id')
-                        ->filter(function ($query) use ($request) {
-                            if ($request->has('name')) {
-                                $query->where('name', 'like', "%{$request->get('name')
+            ->editColumn('name', function ($user) {
+                return '<div style="cursor:pointer" '
+                    . 'onclick="$.adminCtrl.viewUser(' . $user->id . ',this); return false;">'
+                    . $user->name . '</div>';
+            })
+            ->removeColumn('id')
+            ->filter(function ($query) use ($request) {
+                if ($request->has('name')) {
+                    $query->where('name', 'like', "%{$request->get('name')
                                         }%");
-                            }
-                        })
-                        ->make();
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
     }
 
     public function updateUser(Request $request) {
@@ -257,32 +258,36 @@ class AdminPanelController extends Controller {
     public function getSubdivisionsList(Request $request) {
         $subdivisions = Subdivision::select('id', 'name_id', 'name', 'closed');
         return Datatables::of($subdivisions)
-                        ->editColumn('name', function($subdiv) {
-                            return ($subdiv->closed) ? ('<s>' . $subdiv->name . '</s>') : $subdiv->name;
-                        })
-                        ->addColumn('actions', function($s) {
-                            $html = '';
-                            $html .= HtmlHelper::Buttton(url('adminpanel/subdivisions/edit/' . $s->id), ['size' => 'sm', 'glyph' => 'pencil']);
-                            if (!$s->closed) {
-                                $html .= HtmlHelper::Buttton(url('adminpanel/subdivisions/close/' . $s->id), ['text' => 'Закрыть', 'size' => 'sm']);
-                            } else {
-                                $html .= HtmlHelper::Buttton(null, ['disabled' => true, 'size' => 'sm']);
-                            }
-                            $html .= HtmlHelper::Buttton(url('adminpanel/cashbook/' . $s->id), ['size' => 'sm', 'glyph' => 'book']);
-                            $html .= HtmlHelper::Buttton(url('orders/' . $s->id), ['size' => 'sm', 'glyph' => 'file', 'text' => ' Ордеры']);
-                            return $html;
-                        })
-                        ->removeColumn('closed')
-                        ->removeColumn('id')
-                        ->filter(function ($query) use ($request) {
-                            if ($request->has('name_id')) {
-                                $query->where('name_id', 'like', "%" . $request->get('name_id') . "%");
-                            }
-                            if ($request->has('name')) {
-                                $query->where('name', 'like', "%" . $request->get('name') . "%");
-                            }
-                        })
-                        ->make();
+            ->editColumn('name', function ($subdiv) {
+                return ($subdiv->closed) ? ('<s>' . $subdiv->name . '</s>') : $subdiv->name;
+            })
+            ->addColumn('actions', function ($s) {
+                $html = '';
+                $html .= HtmlHelper::Buttton(url('adminpanel/subdivisions/edit/' . $s->id),
+                    ['size' => 'sm', 'glyph' => 'pencil']);
+                if (!$s->closed) {
+                    $html .= HtmlHelper::Buttton(url('adminpanel/subdivisions/close/' . $s->id),
+                        ['text' => 'Закрыть', 'size' => 'sm']);
+                } else {
+                    $html .= HtmlHelper::Buttton(null, ['disabled' => true, 'size' => 'sm']);
+                }
+                $html .= HtmlHelper::Buttton(url('adminpanel/cashbook/' . $s->id), ['size' => 'sm', 'glyph' => 'book']);
+                $html .= HtmlHelper::Buttton(url('orders/' . $s->id),
+                    ['size' => 'sm', 'glyph' => 'file', 'text' => ' Ордеры']);
+                return $html;
+            })
+            ->removeColumn('closed')
+            ->removeColumn('id')
+            ->filter(function ($query) use ($request) {
+                if ($request->has('name_id')) {
+                    $query->where('name_id', 'like', "%" . $request->get('name_id') . "%");
+                }
+                if ($request->has('name')) {
+                    $query->where('name', 'like', "%" . $request->get('name') . "%");
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
     }
 
     public function subdivisionsList() {

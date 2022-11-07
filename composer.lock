@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8a82b41d5e269c8e1893ddf5b5a013ac",
+    "content-hash": "47c3ec3a437fd808b0b504e3da2f846f",
     "packages": [
         {
             "name": "arcanedev/log-viewer",
@@ -308,21 +308,21 @@
         },
         {
             "name": "deployer/deployer",
-            "version": "v6.9.0",
+            "version": "v6.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/deployphp/deployer.git",
-                "reference": "c4380effdc9f6d9c6ae549bb76f0a22bcb1d31d2"
+                "reference": "6242bb8748c714dab628d67e3a0e1c57cb8d4afe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/deployphp/deployer/zipball/c4380effdc9f6d9c6ae549bb76f0a22bcb1d31d2",
-                "reference": "c4380effdc9f6d9c6ae549bb76f0a22bcb1d31d2",
+                "url": "https://api.github.com/repos/deployphp/deployer/zipball/6242bb8748c714dab628d67e3a0e1c57cb8d4afe",
+                "reference": "6242bb8748c714dab628d67e3a0e1c57cb8d4afe",
                 "shasum": ""
             },
             "require": {
                 "deployer/phar-update": "~2.2",
-                "php": "^7.2 || ^8.0",
+                "php": "~7.0",
                 "pimple/pimple": "~3.0",
                 "symfony/console": "~2.7|~3.0|~4.0|~5.0",
                 "symfony/process": "~2.7|~3.0|~4.0|~5.0",
@@ -361,13 +361,7 @@
                 "issues": "https://github.com/deployphp/deployer/issues",
                 "source": "https://github.com/deployphp/deployer"
             },
-            "funding": [
-                {
-                    "url": "https://github.com/antonmedv",
-                    "type": "github"
-                }
-            ],
-            "time": "2022-08-03T18:09:01+00:00"
+            "time": "2019-12-15T14:13:11+00:00"
         },
         {
             "name": "deployer/phar-update",
@@ -2623,29 +2617,29 @@
         },
         {
             "name": "pimple/pimple",
-            "version": "v3.5.0",
+            "version": "v3.2.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/silexphp/Pimple.git",
-                "reference": "a94b3a4db7fb774b3d78dad2315ddc07629e1bed"
+                "reference": "9e403941ef9d65d20cba7d54e29fe906db42cf32"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silexphp/Pimple/zipball/a94b3a4db7fb774b3d78dad2315ddc07629e1bed",
-                "reference": "a94b3a4db7fb774b3d78dad2315ddc07629e1bed",
+                "url": "https://api.github.com/repos/silexphp/Pimple/zipball/9e403941ef9d65d20cba7d54e29fe906db42cf32",
+                "reference": "9e403941ef9d65d20cba7d54e29fe906db42cf32",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.2.5",
-                "psr/container": "^1.1 || ^2.0"
+                "php": ">=5.3.0",
+                "psr/container": "^1.0"
             },
             "require-dev": {
-                "symfony/phpunit-bridge": "^5.4@dev"
+                "symfony/phpunit-bridge": "^3.2"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.4.x-dev"
+                    "dev-master": "3.2.x-dev"
                 }
             },
             "autoload": {
@@ -2664,15 +2658,16 @@
                 }
             ],
             "description": "Pimple, a simple Dependency Injection Container",
-            "homepage": "https://pimple.symfony.com",
+            "homepage": "http://pimple.sensiolabs.org",
             "keywords": [
                 "container",
                 "dependency injection"
             ],
             "support": {
-                "source": "https://github.com/silexphp/Pimple/tree/v3.5.0"
+                "issues": "https://github.com/silexphp/Pimple/issues",
+                "source": "https://github.com/silexphp/Pimple/tree/master"
             },
-            "time": "2021-10-28T11:13:42+00:00"
+            "time": "2018-01-21T07:42:36+00:00"
         },
         {
             "name": "predis/predis",
@@ -2742,25 +2737,25 @@
         },
         {
             "name": "psr/container",
-            "version": "2.0.1",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/container.git",
-                "reference": "2ae37329ee82f91efadc282cc2d527fd6065a5ef"
+                "reference": "b7ce3b176482dbbc1245ebf52b181af44c2cf55f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/container/zipball/2ae37329ee82f91efadc282cc2d527fd6065a5ef",
-                "reference": "2ae37329ee82f91efadc282cc2d527fd6065a5ef",
+                "url": "https://api.github.com/repos/php-fig/container/zipball/b7ce3b176482dbbc1245ebf52b181af44c2cf55f",
+                "reference": "b7ce3b176482dbbc1245ebf52b181af44c2cf55f",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.2.0"
+                "php": ">=5.3.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.0.x-dev"
+                    "dev-master": "1.0.x-dev"
                 }
             },
             "autoload": {
@@ -2775,7 +2770,7 @@
             "authors": [
                 {
                     "name": "PHP-FIG",
-                    "homepage": "https://www.php-fig.org/"
+                    "homepage": "http://www.php-fig.org/"
                 }
             ],
             "description": "Common Container Interface (PHP FIG PSR-11)",
@@ -2789,9 +2784,9 @@
             ],
             "support": {
                 "issues": "https://github.com/php-fig/container/issues",
-                "source": "https://github.com/php-fig/container/tree/2.0.1"
+                "source": "https://github.com/php-fig/container/tree/master"
             },
-            "time": "2021-03-24T13:40:57+00:00"
+            "time": "2017-02-14T16:28:37+00:00"
         },
         {
             "name": "psr/http-message",
@@ -4633,36 +4628,45 @@
         },
         {
             "name": "yajra/laravel-datatables-oracle",
-            "version": "v5.12.5",
+            "version": "v6.29.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/yajra/laravel-datatables.git",
-                "reference": "4cc8d86de795af03c5f320711a9645b8a295b95f"
+                "reference": "5ccbe38affa0a9930a2add19684e012bed09f62d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/yajra/laravel-datatables/zipball/4cc8d86de795af03c5f320711a9645b8a295b95f",
-                "reference": "4cc8d86de795af03c5f320711a9645b8a295b95f",
+                "url": "https://api.github.com/repos/yajra/laravel-datatables/zipball/5ccbe38affa0a9930a2add19684e012bed09f62d",
+                "reference": "5ccbe38affa0a9930a2add19684e012bed09f62d",
                 "shasum": ""
             },
             "require": {
-                "illuminate/database": "~5.0",
-                "illuminate/filesystem": "~5.0",
-                "illuminate/http": "~5.0",
-                "illuminate/support": "~5.0",
-                "illuminate/view": "~5.0",
-                "laravelcollective/html": "~5.0",
-                "league/fractal": "~0.12",
-                "php": ">=5.4.0"
+                "illuminate/database": "5.0.*|5.1.*|5.2.*|5.3.*",
+                "illuminate/filesystem": "5.0.*|5.1.*|5.2.*|5.3.*",
+                "illuminate/http": "5.0.*|5.1.*|5.2.*|5.3.*",
+                "illuminate/support": "5.0.*|5.1.*|5.2.*|5.3.*",
+                "illuminate/view": "5.0.*|5.1.*|5.2.*|5.3.*",
+                "laravelcollective/html": "5.0.*|5.1.*|5.2.*|5.3.*",
+                "league/fractal": "~0.14",
+                "maatwebsite/excel": "^2.0",
+                "php": ">=5.5.9"
             },
             "require-dev": {
                 "mockery/mockery": "~0.9",
                 "phpunit/phpunit": "~4.0"
             },
+            "suggest": {
+                "barryvdh/laravel-snappy": "Allows exporting of dataTable to PDF using the print view."
+            },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "6.0-dev"
+                }
+            },
             "autoload": {
-                "psr-0": {
-                    "yajra\\Datatables": "src/"
+                "psr-4": {
+                    "Yajra\\Datatables\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -4686,9 +4690,9 @@
             ],
             "support": {
                 "issues": "https://github.com/yajra/laravel-datatables/issues",
-                "source": "https://github.com/yajra/laravel-datatables/tree/v5.12.5"
+                "source": "https://github.com/yajra/laravel-datatables/tree/v6.29.3"
             },
-            "time": "2015-12-18T00:56:03+00:00"
+            "time": "2018-04-05T15:24:31+00:00"
         }
     ],
     "packages-dev": [

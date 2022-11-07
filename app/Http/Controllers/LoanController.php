@@ -29,7 +29,7 @@ use Illuminate\Http\Request,
     App\Spylog\Spylog,
     Artisaninweb\SoapWrapper\Facades\SoapWrapper,
     App\MySoap,
-    yajra\Datatables\Datatables,
+    Yajra\Datatables\Facades\Datatables,
     Carbon\Carbon,
     App\StrUtils,
     App\about_client,
@@ -489,120 +489,101 @@ class LoanController extends Controller {
      * @param boolean $getFrom1cOnFail если не найдено ничего и выставлено в TRUE, то делает запрос в 1с и сохраняет пришедшие оттуда документы, а потом повторно делает запрос списка кредитников
      * @return type
      */
-    public function getLoansList(Request $request, $getFrom1cOnFail = true) {
-//        $cols = ['loans.id as loan_id', 'loans.created_at as loans_created_at', 'passports.fio as passports_fio',
-//            'loans.money as loans_money', 'loans.time as loans_time', 'loans.closed as loans_status'];
+    public function getLoansList(Request $request, $getFrom1cOnFail = true)
+    {
         $loans = Loan::select(DB::raw('loans.id as loan_id, loans.created_at as loans_created_at, passports.fio as passports_fio, loans.money as loans_money, loans.time as loans_time, loans.closed as loans_status, loans.claim_id as claim_id'))
-                ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-                ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
-                ->leftJoin('passports', 'passports.id', '=', 'claims.passport_id')
-                ->limit(50);
+            ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
+            ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
+            ->leftJoin('passports', 'passports.id', '=', 'claims.passport_id')
+            ->limit(50);
         if (!$request->has('fio') && !$request->has('telephone') && !$request->has('series') && !$request->has('number')) {
             $loans->where('loans.subdivision_id', Auth::user()->subdivision_id);
         }
         if (!$request->has('fio') && !$request->has('telephone') && !$request->has('series') && !$request->has('number') && !$request->has('loan_id')) {
             if (!config('app.dev')) {
-                $loans->whereBetween('loans.created_at', [Carbon::now()->setTime(0, 0, 0)->format('Y-m-d H:i:s'), Carbon::now()->setTime(23, 59, 59)->format('Y-m-d H:i:s')]);
+                $loans->whereBetween('loans.created_at', [
+                    Carbon::now()->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
+                    Carbon::now()->setTime(23, 59, 59)->format('Y-m-d H:i:s')
+                ]);
             }
         }
         $collection = Datatables::of($loans)
-                ->editColumn('passports_fio', function($loan) {
-                    $html = '';
-//                    $photos = Photo::where('claim_id',$loan->claim_id)->limit(5)->get();
-//                    foreach($photos as $p){
-//                        $html .= '<img style="height:30px" src="'.url($p->path).'"/> ';
-//                    }
-                    $html .= $loan->passports_fio;
-                    return $html;
-                })
-                ->editColumn('loans_created_at', function($loan) {
-                    return with(new Carbon($loan->loans_created_at))->format('d.m.Y H:i:s');
-                })
-                ->editColumn('loans_money', function($loan) {
-                    return ($loan->loans_money) . ' руб.';
-                })
-                ->editColumn('loans_status', function($loan) {
-                    return ($loan->loans_status) ? '<span class="label label-success">Закрыт</span>' : '<span class="label label-default">Открыт</span>';
-                })
-                ->addColumn('actions', function($loan) {
-                    $html = '';
-                    $html .= '<a href="' . url('loans/summary/' . $loan->loan_id) . '" '
-                            . 'class="btn btn-default btn-sm" onclick="$.app.blockScreen(true);">'
-                            . '<span class="glyphicon glyphicon-eye-open"></span></a>';
-                    if (Auth::user()->isAdmin()) {
-//                        $html .= '<a title="Удалить только с сайта" href="' . url('loans/remove2/' . $loan->loan_id) . '" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-remove"></span></a>';
-                        $html .= ' ID: ' . $loan->loan_id;
-                    }
-                    if (Auth::user()->id == 5) {
-                        $addPhotos = false;
-//                        $search_fields = ['fio','series','number','telephone','loan_id','date_start','loan_id_1c'];
-//                        foreach($search_fields as $sf){
-//                            if(array_key_exists($sf, $request->all())){
-//                                $addPhotos = true;
-//                                $photos = Photo::where('claim_id',$loan->claim_id)->limit(5)->get();
-//                                break;
-//                            }
-//                        }
-                        if ($addPhotos && count($photos) > 0) {
-                            $html.='<br>';
-                            foreach ($photos as $p) {
-                                $html .= '<img style="height:30px" src="' . url($p->path) . '"/> ';
-                            }
-                        }
-                    }
-                    return $html;
-                })
-                ->removeColumn('loan_id')
-                ->removeColumn('rep_created_at')
-                ->removeColumn('claim_id')
-                ->filter(function ($query) use ($request) {
-                    if ($request->has('fio')) {
-                        $query->where('passports.fio', 'like', "%" . $request->get('fio') . "%");
-                    }
-                    if ($request->has('telephone')) {
-                        $query->where('customers.telephone', 'like', "%" . $request->get('telephone') . "%");
-                    }
-                    if ($request->has('series')) {
-                        $query->where('passports.series', '=', $request->get('series'));
-                    }
-                    if ($request->has('number')) {
-                        $query->where('passports.number', '=', $request->get('number'));
-                    }
-                    if ($request->has('loan_id')) {
-                        $query->where('loans.id', '=', $request->get('loan_id'));
-                    }
-                    if ($request->has('date_start')) {
-                        $dateStart = with(new Carbon($request->get('date_start')));
-                        $query->where('loans.created_at', '>', $dateStart->setTime(0, 0, 0)->format('Y-m-d H:i:s'));
-                        $query->where('loans.created_at', '<', $dateStart->setTime(23, 59, 59)->format('Y-m-d H:i:s'));
-                    }
-                    if ($request->has('loan_id_1c')) {
-                        \PC::debug($request->all(), 'loan_id_1c');
-                        $query->where('loans.id_1c', 'LIKE', '%' . $request->get('loan_id_1c') . '%');
-                    }
-//                    if (!Auth::user()->isAdmin() && !$request->has('fio') && !$request->has('telephone') && !$request->has('series') && !$request->has('number')) {
-//                        $query->where('loans.subdivision_id', Auth::user()->subdivision_id);
-//                    }
-                })
-                ->make();
+            ->editColumn('passports_fio', function ($loan) {
+                $html = '';
+                $html .= $loan->passports_fio;
+                return $html;
+            })
+            ->editColumn('loans_created_at', function ($loan) {
+                return with(new Carbon($loan->loans_created_at))->format('d.m.Y H:i:s');
+            })
+            ->editColumn('loans_money', function ($loan) {
+                return ($loan->loans_money) . ' руб.';
+            })
+            ->editColumn('loans_status', function ($loan) {
+                return ($loan->loans_status) ? '<span class="label label-success">Закрыт</span>' : '<span class="label label-default">Открыт</span>';
+            })
+            ->addColumn('actions', function ($loan) {
+                $html = '';
+                $html .= '<a href="' . url('loans/summary/' . $loan->loan_id) . '" '
+                    . 'class="btn btn-default btn-sm" onclick="$.app.blockScreen(true);">'
+                    . '<span class="glyphicon glyphicon-eye-open"></span></a>';
+                if (Auth::user()->isAdmin()) {
+                    $html .= ' ID: ' . $loan->loan_id;
+                }
+                return $html;
+            })
+            ->removeColumn('loan_id')
+            ->removeColumn('rep_created_at')
+            ->removeColumn('claim_id')
+            ->filter(function ($query) use ($request) {
+                if ($request->has('fio')) {
+                    $query->where('passports.fio', 'like', "%" . $request->get('fio') . "%");
+                }
+                if ($request->has('telephone')) {
+                    $query->where('customers.telephone', 'like', "%" . $request->get('telephone') . "%");
+                }
+                if ($request->has('series')) {
+                    $query->where('passports.series', '=', $request->get('series'));
+                }
+                if ($request->has('number')) {
+                    $query->where('passports.number', '=', $request->get('number'));
+                }
+                if ($request->has('loan_id')) {
+                    $query->where('loans.id', '=', $request->get('loan_id'));
+                }
+                if ($request->has('date_start')) {
+                    $dateStart = with(new Carbon($request->get('date_start')));
+                    $query->where('loans.created_at', '>', $dateStart->setTime(0, 0, 0)->format('Y-m-d H:i:s'));
+                    $query->where('loans.created_at', '<', $dateStart->setTime(23, 59, 59)->format('Y-m-d H:i:s'));
+                }
+                if ($request->has('loan_id_1c')) {
+                    \PC::debug($request->all(), 'loan_id_1c');
+                    $query->where('loans.id_1c', 'LIKE', '%' . $request->get('loan_id_1c') . '%');
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
         //если не найдено договоров, то добавить договора из 1С
         $colObj = $collection->getData();
-//        if ($getFrom1cOnFail && $colObj->recordsFiltered == 0 && $request->has('series') && $request->has('number')) {
         if ($getFrom1cOnFail && (!$request->has('without1c') || !$request->without1c)) {
             if ($request->has('series') && $request->has('number') && $request->series != '' && $request->number != '') {
                 if (!is_null($this->updateLoanRepayments($request->get('series'), $request->get('number')))) {
                     return $this->getLoansList($request, false);
                 }
-            } else if ($request->has('fio') && $request->fio != '') {
-                $res1c = MySoap::getPassportsByFio($request->fio);
-                Log::info('GET PASSPORTS BY FIO', ['res1c' => $res1c]);
-                if (array_key_exists('fio', $res1c)) {
-                    foreach ($res1c['fio'] as $item) {
-                        if (is_array($item) && array_key_exists('passport_series', $item) && array_key_exists('passport_number', $item)) {
-                            $this->updateLoanRepayments(StrUtils::removeNonDigits($item['passport_series']), StrUtils::removeNonDigits($item['passport_number']));
+            } else {
+                if ($request->has('fio') && $request->fio != '') {
+                    $res1c = MySoap::getPassportsByFio($request->fio);
+                    Log::info('GET PASSPORTS BY FIO', ['res1c' => $res1c]);
+                    if (array_key_exists('fio', $res1c)) {
+                        foreach ($res1c['fio'] as $item) {
+                            if (is_array($item) && array_key_exists('passport_series',
+                                    $item) && array_key_exists('passport_number', $item)) {
+                                $this->updateLoanRepayments(StrUtils::removeNonDigits($item['passport_series']),
+                                    StrUtils::removeNonDigits($item['passport_number']));
+                            }
                         }
+                        return $this->getLoansList($request, false);
                     }
-                    return $this->getLoansList($request, false);
                 }
             }
         }

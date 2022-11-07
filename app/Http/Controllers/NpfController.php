@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request,
     App\NpfContract,
     App\NpfFond,
-    yajra\Datatables\Datatables,
+    Yajra\Datatables\Facades\Datatables,
     App\Utils\StrLib,
     Auth,
     App\Utils\HtmlHelper,
@@ -53,72 +53,112 @@ class NpfController extends BasicController {
 //        return $res;
     }
 
-    public function getList(Request $req) {
+    public function getList(Request $req)
+    {
         parent::getList($req);
         $cols = [
-            'npf_contracts.id as npfid', 'npf_contracts.created_at as npfdate',
-            'npf_fonds.name as fondname', 'passports.fio as fio',
-            'customers.snils as snils', 'npf_fonds.contract_form_id as contract_form_id',
-            'npf_fonds.claim_from_npf_id as npf_form_id', 'npf_fonds.claim_from_pfr_id as pfr_form_id',
-            'npf_fonds.pd_agreement_id as pd_form_id', 'npf_fonds.anketa_id as anketa_id',
-            'npf_contracts.claimed_for_remove as npfclaimed', 'npf_contracts.subdivision_id as subdivision'
+            'npf_contracts.id as npfid',
+            'npf_contracts.created_at as npfdate',
+            'npf_fonds.name as fondname',
+            'passports.fio as fio',
+            'customers.snils as snils',
+            'npf_fonds.contract_form_id as contract_form_id',
+            'npf_fonds.claim_from_npf_id as npf_form_id',
+            'npf_fonds.claim_from_pfr_id as pfr_form_id',
+            'npf_fonds.pd_agreement_id as pd_form_id',
+            'npf_fonds.anketa_id as anketa_id',
+            'npf_contracts.claimed_for_remove as npfclaimed',
+            'npf_contracts.subdivision_id as subdivision'
         ];
         $items = NpfContract::select($cols)
-                ->leftJoin('passports', 'passports.id', '=', 'npf_contracts.passport_id')
-                ->leftJoin('customers', 'customers.id', '=', 'passports.customer_id')
-                ->leftJoin('npf_fonds', 'npf_contracts.npf_fond_id', '=', 'npf_fonds.id');
+            ->leftJoin('passports', 'passports.id', '=', 'npf_contracts.passport_id')
+            ->leftJoin('customers', 'customers.id', '=', 'passports.customer_id')
+            ->leftJoin('npf_fonds', 'npf_contracts.npf_fond_id', '=', 'npf_fonds.id');
         $collection = Datatables::of($items)
-                ->editColumn('npfdate', function($item) {
-                    return with(new Carbon($item->npfdate))->format('d.m.Y');
-                })
-                ->addColumn('actions', function($item) {
-                    $html = '<div class="btn-group">';
-                    if (Auth::user()->isAdmin()) {
-                        $html .= HtmlHelper::Buttton(url('npf/edit?id=' . $item->npfid), ['size' => 'sm', 'glyph' => 'pencil']);
-                        $html .= HtmlHelper::Buttton(url('npf/remove?id=' . $item->npfid), ['size' => 'sm', 'glyph' => 'remove']);
-                    }
-                    if (is_null($item->npfclaimed)) {
-                        $html .= HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'exclamation-sign', 'onclick' => '$.uReqsCtrl.claimForRemove(' . $item->npfid . ',' . MySoap::ITEM_NPF . '); return false;']);
+            ->editColumn('npfdate', function ($item) {
+                return with(new Carbon($item->npfdate))->format('d.m.Y');
+            })
+            ->addColumn('actions', function ($item) {
+                $html = '<div class="btn-group">';
+                if (Auth::user()->isAdmin()) {
+                    $html .= HtmlHelper::Buttton(url('npf/edit?id=' . $item->npfid),
+                        ['size' => 'sm', 'glyph' => 'pencil']);
+                    $html .= HtmlHelper::Buttton(url('npf/remove?id=' . $item->npfid),
+                        ['size' => 'sm', 'glyph' => 'remove']);
+                }
+                if (is_null($item->npfclaimed)) {
+                    $html .= HtmlHelper::Buttton(null, [
+                        'size' => 'sm',
+                        'glyph' => 'exclamation-sign',
+                        'onclick' => '$.uReqsCtrl.claimForRemove(' . $item->npfid . ',' . MySoap::ITEM_NPF . '); return false;'
+                    ]);
+                } else {
+                    $html .= HtmlHelper::Buttton(null, [
+                        'size' => 'sm',
+                        'glyph' => 'exclamation-sign',
+                        'disabled' => true,
+                        'class' => 'btn-danger btn'
+                    ]);
+                }
+                if (strstr($item->fondname, 'САФМАР') !== false) {
+                    $html .= HtmlHelper::Buttton(asset('files/pdf/safmar.pdf'),
+                        ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Согласие и договор']);
+                } else {
+                    if (strstr($item->fondname, 'ГАЗФОНД') !== false) {
+                        $html .= HtmlHelper::Buttton(asset('files/pdf/gazfond_contract.pdf'), [
+                            'size' => 'sm',
+                            'glyph' => 'print',
+                            'target' => '_blank',
+                            'text' => ' Согласие и договор'
+                        ]);
                     } else {
-                        $html .= HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'exclamation-sign', 'disabled' => true, 'class' => 'btn-danger btn']);
-                    }
-                    if(strstr($item->fondname,'САФМАР')!==FALSE){
-//                        $html .= HtmlHelper::Buttton(asset('files/pdf/gazfond_anketa.pdf'), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Анкета']);
-                        $html .= HtmlHelper::Buttton(asset('files/pdf/safmar.pdf'), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Согласие и договор']);
-                    } else if(strstr($item->fondname,'ГАЗФОНД')!==FALSE){
-//                        $html .= HtmlHelper::Buttton(asset('files/pdf/gazfond_anketa.pdf'), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Анкета']);
-                        $html .= HtmlHelper::Buttton(asset('files/pdf/gazfond_contract.pdf'), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Согласие и договор']);
-                    } else if (strstr($item->fondname, 'Аквилон') === FALSE) {
-                        $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->contract_form_id . '/' . $item->npfid), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Договор']);
-//                        $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->npf_form_id . '/' . $item->npfid), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Заявление (из НПФ)']);
-//                        $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->pfr_form_id . '/' . $item->npfid), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Заявление (из ПФР)']);
-                        $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->pd_form_id . '/' . $item->npfid), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Согласие на обработку ПД']);
-                        if (strstr($item->fondname, 'Доверие') !== FALSE) {
-//                            $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->anketa_id . '/' . $item->npfid), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Анкета']);
+                        if (strstr($item->fondname, 'Аквилон') === false) {
+                            $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->contract_form_id . '/' . $item->npfid),
+                                ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Договор']);
+                            $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->pd_form_id . '/' . $item->npfid), [
+                                'size' => 'sm',
+                                'glyph' => 'print',
+                                'target' => '_blank',
+                                'text' => ' Согласие на обработку ПД'
+                            ]);
+                            if (strstr($item->fondname, 'Доверие') !== false) {
+                            }
+                        } else {
+                            $html .= HtmlHelper::Buttton(asset('files/pdf/akvilon_fond.pdf'), [
+                                'size' => 'sm',
+                                'glyph' => 'print',
+                                'target' => '_blank',
+                                'text' => ' Договор для фонда (2 шт.)'
+                            ]);
+                            $html .= HtmlHelper::Buttton(asset('files/pdf/akvilon_client.pdf'), [
+                                'size' => 'sm',
+                                'glyph' => 'print',
+                                'target' => '_blank',
+                                'text' => ' Договор для клиента'
+                            ]);
                         }
-                    } else {
-                        $html .= HtmlHelper::Buttton(asset('files/pdf/akvilon_fond.pdf'), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Договор для фонда (2 шт.)']);
-                        $html .= HtmlHelper::Buttton(asset('files/pdf/akvilon_client.pdf'), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Договор для клиента']);
                     }
-                    $html .= '</div>';
-                    return $html;
-                })
-                ->removeColumn('npf_form_id')
-                ->removeColumn('pfr_form_id')
-                ->removeColumn('pd_form_id')
-                ->removeColumn('contract_form_id')
-                ->removeColumn('anketa_id')
-                ->removeColumn('npfclaimed')
-                ->removeColumn('subdivision')
-                ->filter(function ($query) use ($req) {
-                    if ($req->has('fio')) {
-                        $query->where('fio', 'like', "%" . $req->get('fio') . "%");
-                    }
-                    if (!Auth::user()->isAdmin() && Auth::user()->id != 229) {
-                        $query->where('npf_contracts.subdivision_id', Auth::user()->subdivision_id);
-                    }
-                })
-                ->make();
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->removeColumn('npf_form_id')
+            ->removeColumn('pfr_form_id')
+            ->removeColumn('pd_form_id')
+            ->removeColumn('contract_form_id')
+            ->removeColumn('anketa_id')
+            ->removeColumn('npfclaimed')
+            ->removeColumn('subdivision')
+            ->filter(function ($query) use ($req) {
+                if ($req->has('fio')) {
+                    $query->where('fio', 'like', "%" . $req->get('fio') . "%");
+                }
+                if (!Auth::user()->isAdmin() && Auth::user()->id != 229) {
+                    $query->where('npf_contracts.subdivision_id', Auth::user()->subdivision_id);
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
         return $collection;
     }
 

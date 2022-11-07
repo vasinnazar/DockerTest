@@ -10,7 +10,6 @@ use Illuminate\Http\Request,
     App\Loan,
     App\Card,
     Illuminate\Support\Facades\DB,
-    yajra\Datatables\Datatables,
     Carbon\Carbon,
     App\Spylog\Spylog,
     App\Spylog\SpylogModel;

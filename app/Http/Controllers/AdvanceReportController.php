@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
-use yajra\Datatables\Datatables;
+use Yajra\Datatables\Facades\Datatables;
 use App\AdvanceReport;
 use Auth;
 use App\Utils\StrLib;
@@ -51,19 +51,23 @@ class AdvanceReportController extends BasicController {
             $items->where('advance_reports.subdivision_id',$req->get('subdivision_id'));
         }
         return Datatables::of($items)
-                        ->editColumn('ar_created_at', function($item) {
-                            return with(new Carbon($item->ar_created_at))->format('d.m.Y H:i:s');
-                        })
-                        ->addColumn('actions', function($item) {
-                            $html = '<div class="btn-group">';
-                            $html .= \App\Utils\HtmlHelper::Buttton(url('/reports/advancereports/pdf/' . $item->ar_id), ['glyph' => 'print','size'=>'sm','target'=>'_blank']);
-                            $html .= \App\Utils\HtmlHelper::Buttton(url('/reports/advancereports/edit/' . $item->ar_id), ['glyph' => 'pencil','size'=>'sm']);
-                            $html .= \App\Utils\HtmlHelper::Buttton(url('/reports/advancereports/destroy/' . $item->ar_id), ['glyph' => 'remove','size'=>'sm']);
-                            $html .= '</div>';
-                            return $html;
-                        })
-                        ->removeColumn('ar_id')
-                        ->make();
+            ->editColumn('ar_created_at', function ($item) {
+                return with(new Carbon($item->ar_created_at))->format('d.m.Y H:i:s');
+            })
+            ->addColumn('actions', function ($item) {
+                $html = '<div class="btn-group">';
+                $html .= \App\Utils\HtmlHelper::Buttton(url('/reports/advancereports/pdf/' . $item->ar_id),
+                    ['glyph' => 'print', 'size' => 'sm', 'target' => '_blank']);
+                $html .= \App\Utils\HtmlHelper::Buttton(url('/reports/advancereports/edit/' . $item->ar_id),
+                    ['glyph' => 'pencil', 'size' => 'sm']);
+                $html .= \App\Utils\HtmlHelper::Buttton(url('/reports/advancereports/destroy/' . $item->ar_id),
+                    ['glyph' => 'remove', 'size' => 'sm']);
+                $html .= '</div>';
+                return $html;
+            })
+            ->removeColumn('ar_id')
+            ->setTotalRecords(1000)
+            ->make();
     }
 
     /**

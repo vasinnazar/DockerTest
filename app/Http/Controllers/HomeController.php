@@ -8,7 +8,7 @@ use App\Claim,
     Illuminate\Http\Request,
     App\ContractForm,
     App\Loan,
-    yajra\Datatables\Datatables,
+    Yajra\Datatables\Facades\Datatables,
     Carbon\Carbon,
     App\Spylog\Spylog,
     App\MySoap,
@@ -192,30 +192,53 @@ class HomeController extends Controller {
      * @param Request $request
      * @return type
      */
-    public function claimsList(Request $request, $getFrom1cOnFail = true) {
-        $cols = ['claims.id as claim_id', 'claims.created_at', 'claims.updated_at as claim_updated_at',
-            'passports.fio', 'customers.telephone', 'claims.summa',
-            'claims.srok', 'loans.id as loan', 'orders.number as rko', 'customers.id as customer',
-            'claims.status as claimstatus', 'passports.series as pass_series', 'passports.number as pass_number',
-            'users.subdivision_id as subdivision', 'loans.enrolled as enrolled', 'loans.in_cash as in_cash',
-            'claims.promocode_id as promocode_id', 'claims.id_1c as claim_id_1c', 'claims.seb_phone',
-            'subdivisions.name as subdiv_name', 'users.name as user_name', 'claims.claimed_for_remove as claim_claimed_for_remove',
-            'loans.claimed_for_remove as loan_claimed_for_remove', 'claims.subdivision_id as claim_subdivision', 'loans.on_balance as on_balance',
-            'subdivisions.is_terminal as is_terminal', 'claims.comment as claim_comment', 'loans.uki as loan_uki', 'claims.uki as claim_uki',
-            'loans.closed as loan_closed'];
+    public function claimsList(Request $request, $getFrom1cOnFail = true)
+    {
+        $cols = [
+            'claims.id as claim_id',
+            'claims.created_at',
+            'claims.updated_at as claim_updated_at',
+            'passports.fio',
+            'customers.telephone',
+            'claims.summa',
+            'claims.srok',
+            'loans.id as loan',
+            'orders.number as rko',
+            'customers.id as customer',
+            'claims.status as claimstatus',
+            'passports.series as pass_series',
+            'passports.number as pass_number',
+            'users.subdivision_id as subdivision',
+            'loans.enrolled as enrolled',
+            'loans.in_cash as in_cash',
+            'claims.promocode_id as promocode_id',
+            'claims.id_1c as claim_id_1c',
+            'claims.seb_phone',
+            'subdivisions.name as subdiv_name',
+            'users.name as user_name',
+            'claims.claimed_for_remove as claim_claimed_for_remove',
+            'loans.claimed_for_remove as loan_claimed_for_remove',
+            'claims.subdivision_id as claim_subdivision',
+            'loans.on_balance as on_balance',
+            'subdivisions.is_terminal as is_terminal',
+            'claims.comment as claim_comment',
+            'loans.uki as loan_uki',
+            'claims.uki as claim_uki',
+            'loans.closed as loan_closed'
+        ];
         $claims = DB::table('claims')
-                ->groupBy('claims.id')
-                ->distinct()
-                ->leftJoin('customers', 'claims.customer_id', '=', 'customers.id')
-                ->leftJoin('loans', 'loans.claim_id', '=', 'claims.id')
-                ->leftJoin('users', 'claims.user_id', '=', 'users.id')
-                ->leftJoin('passports', 'passports.id', '=', 'claims.passport_id')
-                ->leftJoin('orders', 'loans.order_id', '=', 'orders.id')
-                ->leftJoin('subdivisions', 'subdivisions.id', '=', 'claims.subdivision_id')
-                ->select($cols)
-                ->limit(25)
-                ->where('claims.deleted_at', NULL)
-                ->where('loans.deleted_at', NULL);
+            ->groupBy('claims.id')
+            ->distinct()
+            ->leftJoin('customers', 'claims.customer_id', '=', 'customers.id')
+            ->leftJoin('loans', 'loans.claim_id', '=', 'claims.id')
+            ->leftJoin('users', 'claims.user_id', '=', 'users.id')
+            ->leftJoin('passports', 'passports.id', '=', 'claims.passport_id')
+            ->leftJoin('orders', 'loans.order_id', '=', 'orders.id')
+            ->leftJoin('subdivisions', 'subdivisions.id', '=', 'claims.subdivision_id')
+            ->select($cols)
+            ->limit(25)
+            ->where('claims.deleted_at', null)
+            ->where('loans.deleted_at', null);
         if (!$request->has('fio') && !$request->has('telephone') && !$request->has('series') && !$request->has('number') && !$request->has('subdivision_id')) {
             if (Auth::user()->isCC() || (Auth::user()->isAdmin() && $request->has('onlyTerminals') && $request->onlyTerminals == 1)) {
                 $terminal_subdivs = \App\Subdivision::where('is_terminal', "1")->lists('id');
@@ -230,70 +253,98 @@ class HomeController extends Controller {
             }
         }
         if ($request->has('date_start')) {
-            $claims->whereBetween('claims.created_at', [with(new Carbon($request->date_start))->setTime(0, 0, 0)->format('Y-m-d H:i:s'), with(new Carbon($request->date_start))->setTime(23, 59, 59)->format('Y-m-d H:i:s')]);
+            $claims->whereBetween('claims.created_at', [
+                with(new Carbon($request->date_start))->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
+                with(new Carbon($request->date_start))->setTime(23, 59, 59)->format('Y-m-d H:i:s')
+            ]);
         } else {
             if (!$request->has('series') && !$request->has('number') && !$request->has('telephone') && !$request->has('fio') && !$request->has('subdivision_id')) {
                 if (Auth::user()->isCC() || config('app.dev') || (Auth::user()->isAdmin() && $request->has('onlyTerminals') && $request->onlyTerminals == 1)) {
-                    $claims->whereBetween('claims.created_at', [Carbon::now()->setTime(0, 0, 0)->subDays(7)->format('Y-m-d H:i:s'), Carbon::now()->setTime(23, 59, 59)->format('Y-m-d H:i:s')])->limit(50);
+                    $claims->whereBetween('claims.created_at', [
+                        Carbon::now()->setTime(0, 0, 0)->subDays(7)->format('Y-m-d H:i:s'),
+                        Carbon::now()->setTime(23, 59, 59)->format('Y-m-d H:i:s')
+                    ])->limit(50);
                 } else {
-                    $claims->whereBetween('claims.created_at', [Carbon::now()->setTime(0, 0, 0)->format('Y-m-d H:i:s'), Carbon::now()->setTime(23, 59, 59)->format('Y-m-d H:i:s')]);
+                    $claims->whereBetween('claims.created_at', [
+                        Carbon::now()->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
+                        Carbon::now()->setTime(23, 59, 59)->format('Y-m-d H:i:s')
+                    ]);
                 }
             }
         }
         $dt = Datatables::of($claims)
-                ->editColumn('claim_id', function ($claim) {
-                    if (Auth::user()->isAdmin()) {
-                        return $claim->claim_id . '<br><small style="display:block; margin-top:-5px; color:#A9A9A9;">(' . $claim->claim_id_1c . ')</small>';
-                    } else {
-                        return $claim->claim_id;
-                    }
-                })
-                ->editColumn('created_at', function ($claim) {
-                    return $claim->created_at ? with(new Carbon($claim->created_at))->format('d.m.Y H:i') : '';
-                })
-                ->editColumn('telephone', function($claim) {
-                    return HtmlHelper::Buttton(null, ['glyph' => 'earphone', 'href' => '#', 'onclick' => '$.dashboardCtrl.showTelephone(' . $claim->customer . '); return false;']);
-                })
-                ->addColumn('edit', function ($claim) {
-                    $is_teleport = ($claim->subdiv_name == 'Teleport' && $claim->claimstatus != Claim::STATUS_ACCEPTED && $claim->claimstatus != Claim::STATUS_DECLINED);
-                    //блокирует кнопку редактирования заявки если пользователь не админ и статус заявки не позволяет редактирование
-                    return '<div class="btn-group btn-group-sm">' .
-//                                    HtmlHelper::Buttton(url('claims/summary/' . $claim->claim_id), ['glyph' => 'eye-open']) . 
-                            ((in_array($claim->claimstatus, $this->editableStatuses) || Auth::user()->isAdmin() || Auth::user()->isCC()) ?
-                                    HtmlHelper::Buttton(url('claims/edit/' . $claim->claim_id), ['glyph' => 'pencil']) :
-                                    HtmlHelper::Buttton(null, ['glyph' => 'pencil'])) . '</div>';
-                })
-                ->addColumn('photos', function ($claim) {
-                    $is_teleport = ($claim->subdiv_name == 'Teleport' && $claim->claimstatus != Claim::STATUS_ACCEPTED && $claim->claimstatus != Claim::STATUS_DECLINED);
-                    //блокирует кнопку с фотками если пользователь не админ и статус заявки не позволяет редактирование
-                    return (Auth::user()->isAdmin() || Auth::user()->isCC() || in_array($claim->claimstatus, $this->editableStatuses) || $claim->claimstatus == Claim::STATUS_ACCEPTED || $is_teleport) ?
-                            HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'picture', 'onclick' => '$.photosCtrl.openAddPhotoModal(' . $claim->claim_id . ',' . $claim->customer . '); return false;']) :
-                            HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'picture', 'disabled' => true]);
-                })
-                ->addColumn('sendclaim', function ($claim) {
-                    $is_teleport = ($claim->subdiv_name == 'Teleport' && $claim->claimstatus != Claim::STATUS_ACCEPTED && $claim->claimstatus != Claim::STATUS_DECLINED);
-                    //блокирует кнопку отправки заявки если пользователь не админ и статус заявки не позволяет редактирование
-                    if (Auth::user()->isSuperAdmin()) {
-                        $html = HtmlHelper::OpenDropDown(HtmlHelper::Buttton(url('claims/status/' . $claim->claim_id . '/1'), [
-                                            'onclick' => '$.app.blockScreen(true)', 'size' => 'sm', 'text' => 'Отправить',
-                                            'class' => (($claim->claimstatus == Claim::STATUS_ONEDIT) ? 'btn btn-primary' : 'btn btn-default')
+            ->editColumn('claim_id', function ($claim) {
+                if (Auth::user()->isAdmin()) {
+                    return $claim->claim_id . '<br><small style="display:block; margin-top:-5px; color:#A9A9A9;">(' . $claim->claim_id_1c . ')</small>';
+                } else {
+                    return $claim->claim_id;
+                }
+            })
+            ->editColumn('created_at', function ($claim) {
+                return $claim->created_at ? with(new Carbon($claim->created_at))->format('d.m.Y H:i') : '';
+            })
+            ->editColumn('telephone', function ($claim) {
+                return HtmlHelper::Buttton(null, [
+                    'glyph' => 'earphone',
+                    'href' => '#',
+                    'onclick' => '$.dashboardCtrl.showTelephone(' . $claim->customer . '); return false;'
+                ]);
+            })
+            ->addColumn('edit', function ($claim) {
+                $is_teleport = ($claim->subdiv_name == 'Teleport' && $claim->claimstatus != Claim::STATUS_ACCEPTED && $claim->claimstatus != Claim::STATUS_DECLINED);
+                //блокирует кнопку редактирования заявки если пользователь не админ и статус заявки не позволяет редактирование
+                return '<div class="btn-group btn-group-sm">' .
+                    ((in_array($claim->claimstatus,
+                            $this->editableStatuses) || Auth::user()->isAdmin() || Auth::user()->isCC()) ?
+                        HtmlHelper::Buttton(url('claims/edit/' . $claim->claim_id), ['glyph' => 'pencil']) :
+                        HtmlHelper::Buttton(null, ['glyph' => 'pencil'])) . '</div>';
+            })
+            ->addColumn('photos', function ($claim) {
+                $is_teleport = ($claim->subdiv_name == 'Teleport' && $claim->claimstatus != Claim::STATUS_ACCEPTED && $claim->claimstatus != Claim::STATUS_DECLINED);
+                //блокирует кнопку с фотками если пользователь не админ и статус заявки не позволяет редактирование
+                return (Auth::user()->isAdmin() || Auth::user()->isCC() || in_array($claim->claimstatus,
+                        $this->editableStatuses) || $claim->claimstatus == Claim::STATUS_ACCEPTED || $is_teleport) ?
+                    HtmlHelper::Buttton(null, [
+                        'size' => 'sm',
+                        'glyph' => 'picture',
+                        'onclick' => '$.photosCtrl.openAddPhotoModal(' . $claim->claim_id . ',' . $claim->customer . '); return false;'
+                    ]) :
+                    HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'picture', 'disabled' => true]);
+            })
+            ->addColumn('sendclaim', function ($claim) {
+                $is_teleport = ($claim->subdiv_name == 'Teleport' && $claim->claimstatus != Claim::STATUS_ACCEPTED && $claim->claimstatus != Claim::STATUS_DECLINED);
+                //блокирует кнопку отправки заявки если пользователь не админ и статус заявки не позволяет редактирование
+                if (Auth::user()->isSuperAdmin()) {
+                    $html = HtmlHelper::OpenDropDown(HtmlHelper::Buttton(url('claims/status/' . $claim->claim_id . '/1'),
+                        [
+                            'onclick' => '$.app.blockScreen(true)',
+                            'size' => 'sm',
+                            'text' => 'Отправить',
+                            'class' => (($claim->claimstatus == Claim::STATUS_ONEDIT) ? 'btn btn-primary' : 'btn btn-default')
                         ]));
-                        $html .= '<li><a href="#" onclick="$.dashboardCtrl.refreshClaim(\'' . $claim->pass_series . '\',\'' . $claim->pass_number . '\'); return false;">Обновить</a></li>';
-                        for ($i = Claim::STATUS_NEW; $i <= Claim::STATUS_PRECONFIRM; $i++) {
-                            $html .= '<li><a href="' . url('claims/status/' . $claim->claim_id . '/' . $i) . '">' . Claim::getStatusName($i) . '</a></li>';
-                        }
-                        $html .= HtmlHelper::CloseDropDown();
-                        return $html;
-                    } else if (!$claim->enrolled && (in_array($claim->claimstatus, $this->editableStatuses) || Auth::user()->isAdmin())) {
+                    $html .= '<li><a href="#" onclick="$.dashboardCtrl.refreshClaim(\'' . $claim->pass_series . '\',\'' . $claim->pass_number . '\'); return false;">Обновить</a></li>';
+                    for ($i = Claim::STATUS_NEW; $i <= Claim::STATUS_PRECONFIRM; $i++) {
+                        $html .= '<li><a href="' . url('claims/status/' . $claim->claim_id . '/' . $i) . '">' . Claim::getStatusName($i) . '</a></li>';
+                    }
+                    $html .= HtmlHelper::CloseDropDown();
+                    return $html;
+                } else {
+                    if (!$claim->enrolled && (in_array($claim->claimstatus,
+                                $this->editableStatuses) || Auth::user()->isAdmin())) {
                         $html = '<div class="btn-group">';
                         $html .= HtmlHelper::Buttton(url('claims/status/' . $claim->claim_id . '/1'), [
-                                    'onclick' => '$.app.blockScreen(true)', 'size' => 'sm', 'text' => 'Отправить',
-                                    'class' => (($claim->claimstatus == Claim::STATUS_ONEDIT) ? 'btn btn-primary' : 'btn btn-default')
+                            'onclick' => '$.app.blockScreen(true)',
+                            'size' => 'sm',
+                            'text' => 'Отправить',
+                            'class' => (($claim->claimstatus == Claim::STATUS_ONEDIT) ? 'btn btn-primary' : 'btn btn-default')
                         ]);
                         $html .= HtmlHelper::Buttton(null, [
-                                    'glyph' => 'refresh', 'href' => '#', 'size' => 'sm',
-                                    'onclick' => '$.dashboardCtrl.refreshClaim(\'' . $claim->pass_series . '\',\'' . $claim->pass_number . '\'); return false;',
-                                    'class' => 'btn-success btn', 'title' => 'Обновить статус'
+                            'glyph' => 'refresh',
+                            'href' => '#',
+                            'size' => 'sm',
+                            'onclick' => '$.dashboardCtrl.refreshClaim(\'' . $claim->pass_series . '\',\'' . $claim->pass_number . '\'); return false;',
+                            'class' => 'btn-success btn',
+                            'title' => 'Обновить статус'
                         ]);
                         $html .= '</div>';
                         return $html;
@@ -301,183 +352,206 @@ class HomeController extends Controller {
                         $html = HtmlHelper::Label('Отправлено', ['class' => 'label-success']) . ' ';
                         if ($claim->claimstatus != Claim::STATUS_ACCEPTED) {
                             $html .= HtmlHelper::Buttton(null, [
-                                        'glyph' => 'refresh', 'href' => '#', 'size' => 'sm',
-                                        'onclick' => '$.dashboardCtrl.refreshClaim(\'' . $claim->pass_series . '\',\'' . $claim->pass_number . '\'); return false;',
-                                        'class' => 'btn-success btn', 'title' => 'Обновить статус'
+                                'glyph' => 'refresh',
+                                'href' => '#',
+                                'size' => 'sm',
+                                'onclick' => '$.dashboardCtrl.refreshClaim(\'' . $claim->pass_series . '\',\'' . $claim->pass_number . '\'); return false;',
+                                'class' => 'btn-success btn',
+                                'title' => 'Обновить статус'
                             ]);
                         }
                         return $html;
                     }
-                })
-                ->addColumn('promocode', function($claim) {
-                    $html = '';
-                    if (!is_null($claim->claim_id_1c) && $claim->enrolled == 0) {
-                        if (is_null($claim->promocode_id)) {
-                            $html .= HtmlHelper::Buttton(null, ['onclick' => '$.dashboardCtrl.openAddPromocodeModal(\'' . $claim->claim_id_1c . '\',' . $claim->claim_id . ');', 'size' => 'sm', 'glyph' => 'plus']);
-                        } else {
-                            $html .= HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'plus', 'disabled' => true]);
-                        }
+                }
+            })
+            ->addColumn('promocode', function ($claim) {
+                $html = '';
+                if (!is_null($claim->claim_id_1c) && $claim->enrolled == 0) {
+                    if (is_null($claim->promocode_id)) {
+                        $html .= HtmlHelper::Buttton(null, [
+                            'onclick' => '$.dashboardCtrl.openAddPromocodeModal(\'' . $claim->claim_id_1c . '\',' . $claim->claim_id . ');',
+                            'size' => 'sm',
+                            'glyph' => 'plus'
+                        ]);
                     } else {
                         $html .= HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'plus', 'disabled' => true]);
                     }
-                    if (Auth::user()->isAdmin()) {
-                        $html = HtmlHelper::OpenDropDown($html);
-                        $html .= HtmlHelper::DropDownItem("Добавить промокод, вручную только в арм", ['onclick' => '$.dashboardCtrl.openManualAddPromocodeModal(' . $claim->claim_id . '); return false;', "href" => '#']);
+                } else {
+                    $html .= HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'plus', 'disabled' => true]);
+                }
+                if (Auth::user()->isAdmin()) {
+                    $html = HtmlHelper::OpenDropDown($html);
+                    $html .= HtmlHelper::DropDownItem("Добавить промокод, вручную только в арм", [
+                        'onclick' => '$.dashboardCtrl.openManualAddPromocodeModal(' . $claim->claim_id . '); return false;',
+                        "href" => '#'
+                    ]);
+                }
+                $html .= HtmlHelper::CloseDropDown();
+                return $html;
+            })
+            ->addColumn('status', function ($claim) {
+                $res = HtmlHelper::StatusLabel($claim->claimstatus);
+                if (!is_null($claim->seb_phone)) {
+                    $res .= '<br><small title="Телефон специалиста СЭБ"><span class="glyphicon glyphicon-earphone"></span>' . $claim->seb_phone . '</small>';
+                }
+                $res .= '<button title="Показать комментарий" class="btn btn-default btn-xs" onclick="$.dashboardCtrl.getClaimComment(' . $claim->claim_id . '); return false;"><span class="glyphicon glyphicon-info-sign"></span></buton>';
+                $res .= '</span>';
+                return $res;
+            })
+            ->addColumn('createloan', function ($claim) {
+                $html = '';
+                $disabled_dropdown = '';
+                $html = '<div class="btn-group btn-group-sm">';
+                if (in_array($claim->claimstatus,
+                        [Claim::STATUS_ACCEPTED, Claim::STATUS_CREDITSTORY]) && is_null($claim->loan)) {
+                    if (!Auth::user()->isAdmin()) {
+                        $disabled_dropdown = 'disabled';
                     }
-                    $html .= HtmlHelper::CloseDropDown();
-                    return $html;
-                })
-                ->addColumn('status', function ($claim) {
-                    $res = HtmlHelper::StatusLabel($claim->claimstatus);
-                    if (!is_null($claim->seb_phone)) {
-                        $res .= '<br><small title="Телефон специалиста СЭБ"><span class="glyphicon glyphicon-earphone"></span>' . $claim->seb_phone . '</small>';
-                    }
-                    $res .= '<button title="Показать комментарий" class="btn btn-default btn-xs" onclick="$.dashboardCtrl.getClaimComment(' . $claim->claim_id . '); return false;"><span class="glyphicon glyphicon-info-sign"></span></buton>';
-                    $res .= '</span>';
-                    return $res;
-                })
-                ->addColumn('createloan', function ($claim) {
-                    $html = '';
-                    $disabled_dropdown = '';
-                    $html = '<div class="btn-group btn-group-sm">';
-                    if (in_array($claim->claimstatus, [Claim::STATUS_ACCEPTED, Claim::STATUS_CREDITSTORY]) && is_null($claim->loan)) {
-                        if (!Auth::user()->isAdmin()) {
-                            $disabled_dropdown = 'disabled';
-                        }
-                        $html .= HtmlHelper::Buttton(NULL, ['onclick' => '$.dashboardCtrl.beforeLoanCreate(' . $claim->claim_id . ',' . $claim->customer . ');', 'size' => 'sm', 'text' => 'Сформировать']);
-                    } else if (!is_null($claim->loan)) {
-                        $html .= HtmlHelper::Buttton(NULL, ['disabled' => true, 'size' => 'sm', 'text' => 'Сформирован']);
+                    $html .= HtmlHelper::Buttton(null, [
+                        'onclick' => '$.dashboardCtrl.beforeLoanCreate(' . $claim->claim_id . ',' . $claim->customer . ');',
+                        'size' => 'sm',
+                        'text' => 'Сформировать'
+                    ]);
+                } else {
+                    if (!is_null($claim->loan)) {
+                        $html .= HtmlHelper::Buttton(null,
+                            ['disabled' => true, 'size' => 'sm', 'text' => 'Сформирован']);
                     } else {
                         if (!Auth::user()->isAdmin()) {
                             $disabled_dropdown = 'disabled';
                         }
-                        $html .= HtmlHelper::Buttton(NULL, ['disabled' => true, 'size' => 'sm', 'text' => 'Сформировать']);
+                        $html .= HtmlHelper::Buttton(null,
+                            ['disabled' => true, 'size' => 'sm', 'text' => 'Сформировать']);
                     }
-                    $html.= '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ' . $disabled_dropdown . '>
+                }
+                $html .= '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ' . $disabled_dropdown . '>
                                         <span class="caret"></span>
                                         <span class="sr-only">Меню с переключением</span>
                                     </button>
                                     <ul class="dropdown-menu" role="menu">';
-                    if (!is_null($claim->loan)) {
-                        $html.= '<li><a href="' . url('loans/summary/' . $claim->loan) . '">Перейти к кредитному договору</a></li>';
+                if (!is_null($claim->loan)) {
+                    $html .= '<li><a href="' . url('loans/summary/' . $claim->loan) . '">Перейти к кредитному договору</a></li>';
+                    if (Auth::user()->isAdmin()) {
+                        if ($claim->in_cash || !$claim->enrolled) {
+                            $html .= '<li><a href="' . url('loans/edit/' . $claim->loan) . '">Редактировать</a></li>';
+                        }
+                        $html .= '<li><a href="' . url('loans/clearenroll/' . $claim->loan) . '">Снять пометку о зачислении</a></li>';
+                        $html .= '<li><a href="' . url('loans/set/cccall') . '?loan_id=' . $claim->loan . '&val=1' . '">Поставить пометку о звонке в КЦ</a></li>';
+                        $html .= '<li><a href="' . url('loans/set/cccall') . '?loan_id=' . $claim->loan . '&val=0' . '">Убрать пометку о звонке в КЦ</a></li>';
+                    }
+                    if (!$claim->loan_closed) {
                         if (Auth::user()->isAdmin()) {
-                            if ($claim->in_cash || !$claim->enrolled) {
-                                $html.= '<li><a href="' . url('loans/edit/' . $claim->loan) . '">Редактировать</a></li>';
-                            }
-                            $html.= '<li><a href="' . url('loans/clearenroll/' . $claim->loan) . '">Снять пометку о зачислении</a></li>';
-                            $html.= '<li><a href="' . url('loans/set/cccall') . '?loan_id=' . $claim->loan . '&val=1' . '">Поставить пометку о звонке в КЦ</a></li>';
-                            $html.= '<li><a href="' . url('loans/set/cccall') . '?loan_id=' . $claim->loan . '&val=0' . '">Убрать пометку о звонке в КЦ</a></li>';
-                        }
-                        if (!$claim->loan_closed) {
-                            if (Auth::user()->isAdmin()) {
-                                $html.= '<li><a href="' . url('loans/uki/toggle') . '?loan_id=' . $claim->loan . '">' . (($claim->loan_uki) ? 'Убрать УКИ из договора' : 'Поставить УКИ в договоре') . '</a></li>';
-                            }
-                        }
-                        $html.= '<li><a href="#" onclick="$.dashboardCtrl.showPromocode(' . $claim->loan . ');  return false;">Посмотреть промокод</a></li>';
-                    }
-                    if (Auth::user()->isAdmin() && !is_null($claim->claim_id_1c)) {
-                        if(is_null($claim->loan)){
-                            $html.= '<li><a href="' . url('claims/uki/toggle') . '?claim_id=' . $claim->claim_id . '">' . (($claim->claim_uki) ? 'Убрать УКИ из заявки' : 'Поставить УКИ в заявке') . '</a></li>';
-                        }
-                        $html .= '<li><a href="' . url('claims/cbupdate') . '?pensioner=1&claim_id=' . $claim->claim_id . '">Поставить\Убрать галочку "Пенсионер"</a></li>';
-                        $html .= '<li><a href="' . url('claims/cbupdate') . '?postclient=1&claim_id=' . $claim->claim_id . '">Поставить\Убрать галочку "Постоянный клиент"</a></li>';
-                        if ($claim->subdiv_name == 'Teleport') {
-                            $html .= '<li><a href="' . url('teleport/status/send/' . $claim->claim_id) . '">Отправить статус в телепорт</a></li>';
-                            $html .= '<li><a href="' . url('claims/setedit/' . $claim->claim_id) . '">Поставить статус "Поправить"</a></li>';
+                            $html .= '<li><a href="' . url('loans/uki/toggle') . '?loan_id=' . $claim->loan . '">' . (($claim->loan_uki) ? 'Убрать УКИ из договора' : 'Поставить УКИ в договоре') . '</a></li>';
                         }
                     }
-                    if (Auth::user()->id == 5) {
-                        $html .= '<li><a href="" onclick="$.dashboardCtrl.openCardFrameForClaim(' . $claim->claim_id . '); return false;">Открыть окно с короной</a></li>';
+                    $html .= '<li><a href="#" onclick="$.dashboardCtrl.showPromocode(' . $claim->loan . ');  return false;">Посмотреть промокод</a></li>';
+                }
+                if (Auth::user()->isAdmin() && !is_null($claim->claim_id_1c)) {
+                    if (is_null($claim->loan)) {
+                        $html .= '<li><a href="' . url('claims/uki/toggle') . '?claim_id=' . $claim->claim_id . '">' . (($claim->claim_uki) ? 'Убрать УКИ из заявки' : 'Поставить УКИ в заявке') . '</a></li>';
                     }
-                    $html .='</ul></div>';
-                    return $html;
-                })
-                ->addColumn('print', function ($claim) {
-                    return HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'print', 'onclick' => '$.dashboardCtrl.showPrintDocsModal(' . $claim->claim_id . '); return false;']);
-                })
-                ->addColumn('enroll', function ($claim) {
-                    //убирает кнопку зачисления денег по займу если займ зачислен
-                    if (!is_null($claim->loan)) {
-                        if ($claim->enrolled) {
-                            if ($claim->is_terminal) {
-                                if ($claim->on_balance) {
-                                    return HtmlHelper::Label('Зачислено на баланс', ['class' => 'label-success']);
-                                } else {
-                                    if (Claim::hasSignedContract($claim->claim_id)) {
-                                        return '<a onclick="$.app.blockScreen(true);" class="btn btn-default btn-sm" href="' . url('loans/sendtobalance/' . $claim->loan) . '" title="Перевести сумму на баланс клиента">'
-                                                . '<span class="glyphicon glyphicon-export"></span> На баланс'
-                                                . '</a>';
-                                    } else {
-                                        return HtmlHelper::Label('Нет договора', ['class' => 'label-danger']);
-                                    }
-                                }
+                    $html .= '<li><a href="' . url('claims/cbupdate') . '?pensioner=1&claim_id=' . $claim->claim_id . '">Поставить\Убрать галочку "Пенсионер"</a></li>';
+                    $html .= '<li><a href="' . url('claims/cbupdate') . '?postclient=1&claim_id=' . $claim->claim_id . '">Поставить\Убрать галочку "Постоянный клиент"</a></li>';
+                    if ($claim->subdiv_name == 'Teleport') {
+                        $html .= '<li><a href="' . url('teleport/status/send/' . $claim->claim_id) . '">Отправить статус в телепорт</a></li>';
+                        $html .= '<li><a href="' . url('claims/setedit/' . $claim->claim_id) . '">Поставить статус "Поправить"</a></li>';
+                    }
+                }
+                if (Auth::user()->id == 5) {
+                    $html .= '<li><a href="" onclick="$.dashboardCtrl.openCardFrameForClaim(' . $claim->claim_id . '); return false;">Открыть окно с короной</a></li>';
+                }
+                $html .= '</ul></div>';
+                return $html;
+            })
+            ->addColumn('print', function ($claim) {
+                return HtmlHelper::Buttton(null, [
+                    'size' => 'sm',
+                    'glyph' => 'print',
+                    'onclick' => '$.dashboardCtrl.showPrintDocsModal(' . $claim->claim_id . '); return false;'
+                ]);
+            })
+            ->addColumn('enroll', function ($claim) {
+                //убирает кнопку зачисления денег по займу если займ зачислен
+                if (!is_null($claim->loan)) {
+                    if ($claim->enrolled) {
+                        if ($claim->is_terminal) {
+                            if ($claim->on_balance) {
+                                return HtmlHelper::Label('Зачислено на баланс', ['class' => 'label-success']);
                             } else {
-                                return HtmlHelper::Label((($claim->in_cash) ? 'РКО сформирован' : 'Зачислено'), ['class' => 'label-success']);
+                                if (Claim::hasSignedContract($claim->claim_id)) {
+                                    return '<a onclick="$.app.blockScreen(true);" class="btn btn-default btn-sm" href="' . url('loans/sendtobalance/' . $claim->loan) . '" title="Перевести сумму на баланс клиента">'
+                                        . '<span class="glyphicon glyphicon-export"></span> На баланс'
+                                        . '</a>';
+                                } else {
+                                    return HtmlHelper::Label('Нет договора', ['class' => 'label-danger']);
+                                }
                             }
                         } else {
-                            return HtmlHelper::Buttton(url('loans/enroll/' . $claim->loan), ['onclick' => '$.app.blockScreen(true);', 'size' => 'sm', 'glyph' => 'export']);
+                            return HtmlHelper::Label((($claim->in_cash) ? 'РКО сформирован' : 'Зачислено'),
+                                ['class' => 'label-success']);
                         }
                     } else {
-                        return HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'export', 'disabled' => true]);
+                        return HtmlHelper::Buttton(url('loans/enroll/' . $claim->loan),
+                            ['onclick' => '$.app.blockScreen(true);', 'size' => 'sm', 'glyph' => 'export']);
                     }
-                })
-                ->filter(function ($query) use ($request) {
-                    //поиск по заявкам
-                    if ($request->has('fio')) {
-                        $query->where('passports.fio', 'like', "%" . $request->get('fio') . "%");
+                } else {
+                    return HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'export', 'disabled' => true]);
+                }
+            })
+            ->filter(function ($query) use ($request) {
+                //поиск по заявкам
+                if ($request->has('fio')) {
+                    $query->where('passports.fio', 'like', "%" . $request->get('fio') . "%");
+                }
+                if ($request->has('telephone')) {
+                    $query->where('customers.telephone', '=', $request->get('tele'));
+                }
+                $list = ['series', 'number'];
+                foreach ($list as $v) {
+                    if ($request->has($v)) {
+                        $query->where('passports.' . $v, '=', $request->get($v));
                     }
-                    if ($request->has('telephone')) {
-                        $query->where('customers.telephone', '=', $request->get('tele'));
-                    }
-                    $list = ['series', 'number'];
-                    foreach ($list as $v) {
-                        if ($request->has($v)) {
-                            $query->where('passports.' . $v, '=', $request->get($v));
-                        }
-                    }
-                    if ($request->has('subdivision_id')) {
-                        $query->where('claims.subdivision_id', $request->subdivision_id);
-                    }
-                    //если пользователь админ или стоит галочка "искать в другом подразделении", то искать в других подразделениях, иначе только в подразделении на котором зарегестрирован пользователь
-//                    if (!$request->has('fio') && !$request->has('telephone') && !$request->has('series') && !$request->has('number') && !$request->has('subdivision_id') && !Auth::user()->isAdmin()) {
-//                        if (!Auth::user()->isCC()) {
-//                            $query->whereIn('claims.subdivision_id', [Auth::user()->subdivision_id]);
-//                        } else {
-//                            $terminal_subdivs = \App\Subdivision::where('is_terminal', "1")->lists('id');
-//                            $query->whereIn('claims.subdivision_id', $terminal_subdivs);
-//                        }
-//                    }
-                })
-                ->removeColumn('promocode_id')
-                ->removeColumn('claim_id_1c')
-                ->removeColumn('subdivision')
-                ->removeColumn('loan')
-                ->removeColumn('customer')
-                ->removeColumn('pass_series')
-                ->removeColumn('pass_number')
-                ->removeColumn('claimstatus')
-                ->removeColumn('rko')
-                ->removeColumn('enrolled')
-                ->removeColumn('seb_phone')
-                ->removeColumn('user_name')
-                ->removeColumn('subdiv_name')
-                ->removeColumn('loan_claimed_for_remove')
-                ->removeColumn('claim_claimed_for_remove')
-                ->removeColumn('claim_subdivision')
-                ->removeColumn('on_balance')
-                ->removeColumn('is_terminal')
-                ->removeColumn('claim_comment')
-                ->removeColumn('claim_updated_at')
-                ->removeColumn('loan_uki')
-                ->removeColumn('claim_uki')
-                ->removeColumn('loan_closed')
-                ->removeColumn('in_cash');
+                }
+                if ($request->has('subdivision_id')) {
+                    $query->where('claims.subdivision_id', $request->subdivision_id);
+                }
+            })
+            ->removeColumn('promocode_id')
+            ->removeColumn('claim_id_1c')
+            ->removeColumn('subdivision')
+            ->removeColumn('loan')
+            ->removeColumn('customer')
+            ->removeColumn('pass_series')
+            ->removeColumn('pass_number')
+            ->removeColumn('claimstatus')
+            ->removeColumn('rko')
+            ->removeColumn('enrolled')
+            ->removeColumn('seb_phone')
+            ->removeColumn('user_name')
+            ->removeColumn('subdiv_name')
+            ->removeColumn('loan_claimed_for_remove')
+            ->removeColumn('claim_claimed_for_remove')
+            ->removeColumn('claim_subdivision')
+            ->removeColumn('on_balance')
+            ->removeColumn('is_terminal')
+            ->removeColumn('claim_comment')
+            ->removeColumn('claim_updated_at')
+            ->removeColumn('loan_uki')
+            ->removeColumn('claim_uki')
+            ->removeColumn('loan_closed')
+            ->removeColumn('in_cash');
         if (Auth::user()->isAdmin()) {
-            $dt->addColumn('remove', function($claim) {
+            $dt->addColumn('remove', function ($claim) {
                 if (!$claim->enrolled) {
                     $ddItems = [
-                        HtmlHelper::DropDownItem('Заявку (только с сайта)', ['href' => url('claims/mark4remove2/' . $claim->claim_id), 'title' => 'Только если уже удалено в 1С!']),
-                        HtmlHelper::DropDownItem('Займ (только с сайта)', ['href' => url('loans/remove2/' . $claim->loan), 'title' => 'Только если уже удалено в 1С!']),
+                        HtmlHelper::DropDownItem('Заявку (только с сайта)', [
+                            'href' => url('claims/mark4remove2/' . $claim->claim_id),
+                            'title' => 'Только если уже удалено в 1С!'
+                        ]),
+                        HtmlHelper::DropDownItem('Займ (только с сайта)', [
+                            'href' => url('loans/remove2/' . $claim->loan),
+                            'title' => 'Только если уже удалено в 1С!'
+                        ]),
                         HtmlHelper::DropDownItem('Заявку', ['href' => url('claims/mark4remove/' . $claim->claim_id)])
                     ];
                     if (!is_null($claim->loan)) {
@@ -486,18 +560,23 @@ class HomeController extends Controller {
                     $html = HtmlHelper::DropDown('Удалить', $ddItems);
                 } else {
                     $html = HtmlHelper::DropDown('Удалить', [
-                                HtmlHelper::DropDownItem('Заявку (только с сайта)', ['href' => url('claims/mark4remove2/' . $claim->claim_id), 'title' => 'Только если уже удалено в 1С!']),
-                                HtmlHelper::DropDownItem('Займ (только с сайта)', ['href' => url('loans/remove2/' . $claim->loan), 'title' => 'Только если уже удалено в 1С!'])
+                        HtmlHelper::DropDownItem('Заявку (только с сайта)', [
+                            'href' => url('claims/mark4remove2/' . $claim->claim_id),
+                            'title' => 'Только если уже удалено в 1С!'
+                        ]),
+                        HtmlHelper::DropDownItem('Займ (только с сайта)', [
+                            'href' => url('loans/remove2/' . $claim->loan),
+                            'title' => 'Только если уже удалено в 1С!'
+                        ])
                     ]);
-//                    $html = HtmlHelper::Buttton(null, ['size' => 'sm', 'disabled' => true, 'text' => 'Удалить']);
                 }
                 return $html;
             });
-            $dt->addColumn('userinfo', function($claim) {
+            $dt->addColumn('userinfo', function ($claim) {
                 return '<small style="line-height:1; display:inline-block">' . $claim->user_name . '<br><span style="font-size:xx-small">' . $claim->subdiv_name . '</span></small>';
             });
         } else {
-            $dt->addColumn('remove', function($claim) {
+            $dt->addColumn('remove', function ($claim) {
                 $html = '<div class="btn-group btn-group-sm remove-dropdown">
                             <button type="button" class="btn ' . ((!is_null($claim->claim_claimed_for_remove) || !is_null($claim->loan_claimed_for_remove)) ? 'btn-danger' : 'btn-default') . ' dropdown-toggle" 
                             data-toggle="dropdown"><span class="glyphicon glyphicon-exclamation-sign"></span> <span class="caret"></span></button>
@@ -515,16 +594,16 @@ class HomeController extends Controller {
                         $html .= '<li><a class="bg-danger" title="Заявка подана"><span class="glyphicon glyphicon-exclamation-sign"></span> Кредитный договор</a></li>';
                     }
                 }
-                $html.='</ul></div>';
+                $html .= '</ul></div>';
                 return $html;
             });
             if (Auth::user()->isCC()) {
-                $dt->addColumn('userinfo', function($claim) {
+                $dt->addColumn('userinfo', function ($claim) {
                     return '<small><span>' . $claim->subdiv_name . '</span></small>';
                 });
             }
         }
-        $collection = $dt->make();
+        $collection = $dt->setTotalRecords(1000)->make();
         //если не найдено заявок, то сделать запрос в 1С
         $colObj = $collection->getData();
         if ($getFrom1cOnFail && $request->without1c == 0) {
@@ -533,16 +612,20 @@ class HomeController extends Controller {
                 if (!is_null($loanCtrl->updateLoanRepayments($request->get('series'), $request->get('number')))) {
                     return $this->claimsList($request, false);
                 }
-            } else if ($request->has('fio') && $request->fio != '' && substr_count($request->fio, ' ') > 1) {
-                $res1c = MySoap::getPassportsByFio($request->fio);
-                if (array_key_exists('fio', $res1c)) {
-                    foreach ($res1c['fio'] as $item) {
-                        if (is_array($item) && array_key_exists('passport_series', $item) && array_key_exists('passport_number', $item)) {
-                            $loanCtrl = new LoanController();
-                            $loanCtrl->updateLoanRepayments(\App\StrUtils::removeNonDigits($item['passport_series']), \App\StrUtils::removeNonDigits($item['passport_number']));
+            } else {
+                if ($request->has('fio') && $request->fio != '' && substr_count($request->fio, ' ') > 1) {
+                    $res1c = MySoap::getPassportsByFio($request->fio);
+                    if (array_key_exists('fio', $res1c)) {
+                        foreach ($res1c['fio'] as $item) {
+                            if (is_array($item) && array_key_exists('passport_series',
+                                    $item) && array_key_exists('passport_number', $item)) {
+                                $loanCtrl = new LoanController();
+                                $loanCtrl->updateLoanRepayments(\App\StrUtils::removeNonDigits($item['passport_series']),
+                                    \App\StrUtils::removeNonDigits($item['passport_number']));
+                            }
                         }
+                        return $this->claimsList($request, false);
                     }
-                    return $this->claimsList($request, false);
                 }
             }
         }

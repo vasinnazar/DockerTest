@@ -12,7 +12,7 @@ use Illuminate\Http\Request,
     App\Card,
     App\Order,
     Illuminate\Support\Facades\DB,
-    yajra\Datatables\Datatables,
+    Yajra\Datatables\Facades\Datatables,
     Carbon\Carbon,
     App\Spylog\Spylog,
     App\Spylog\SpylogModel,
@@ -48,91 +48,95 @@ class DailyCashReportController extends Controller {
      * возвращает список ежедневных отчетов для таблицы по аяксу
      * @return type
      */
-    public function getList(Request $req) {
+    public function getList(Request $req)
+    {
         $tablename = (new DailyCashReport())->getTable();
 
         $reports = DB::table($tablename)
-                ->leftJoin('users', $tablename . '.user_id', '=', 'users.id')
-                ->leftJoin('subdivisions', $tablename . '.subdivision_id', '=', 'subdivisions.id')
-                ->select($tablename . '.id as id', 'matches', $tablename . '.created_at as created_at', 'start_balance as sb', 'end_balance as eb', 'report_start_balance as rsb', 'report_end_balance as reb', 'users.name as username', 'subdivisions.name as subdiv_name', 'subdivisions.id as subdiv_id', $tablename . '.id_1c as report_id_1c');
+            ->leftJoin('users', $tablename . '.user_id', '=', 'users.id')
+            ->leftJoin('subdivisions', $tablename . '.subdivision_id', '=', 'subdivisions.id')
+            ->select($tablename . '.id as id', 'matches', $tablename . '.created_at as created_at',
+                'start_balance as sb', 'end_balance as eb', 'report_start_balance as rsb', 'report_end_balance as reb',
+                'users.name as username', 'subdivisions.name as subdiv_name', 'subdivisions.id as subdiv_id',
+                $tablename . '.id_1c as report_id_1c');
         if (!Auth::user()->isAdmin()) {
             $reports = $reports->where($tablename . '.subdivision_id', Auth::user()->subdivision_id);
         }
         return Datatables::of($reports)
-                        ->removeColumn('id')
-                        ->editColumn('matches', function($report) {
-                            return ((bool) $report->matches) ? '<span class="glyphicon glyphicon-ok"></span>' : '<span class="glyphicon glyphicon-remove"></span>';
-                        })
-                        ->editColumn('sb', function($report) {
-                            $html = ($report->rsb / 100) . ' руб.';
-//                            $html = ($report->sb / 100) . ' руб.';
-                            if(Auth::user()->id==5){
-                                $html .= '<br><small style="color:#A9A9A9;">'.($report->sb / 100) . ' руб.'.'</small>';
-                            }
-                            return $html;
-                        })
-                        ->editColumn('eb', function($report) {
-                            $html = ($report->reb / 100) . ' руб.';
-//                            $html = ($report->eb / 100) . ' руб.';
-                            if(Auth::user()->id==5){
-                                $html .= '<br><small style="color:#A9A9A9;">'.($report->eb / 100) . ' руб.'.'</small>';
-                            }
-                            return $html;
-                        })
-                        ->editColumn('created_at', function($report) {
-                            $html = with(new Carbon($report->created_at))->format('d.m.Y');
-                            if (Auth::user()->isAdmin()) {
-                                $html.='<br><small class="text-muted">№' . $report->report_id_1c . '</small>';
-                            }
-                            return $html;
-                        })
-                        ->editColumn('username', function($report) {
-                            if (Auth::user()->isAdmin()) {
-                                return $report->username . '<br>(<small>' . $report->subdiv_name . '</small>)';
-                            } else {
-                                return $report->username;
-                            }
-                        })
-                        ->addColumn('actions', function($report) {
-                            $html = '<div class="btn-group btn-group-sm">';
-                            $html .= '<a href="' . url('reports/pdf/dailycashreport/' . $report->id) . '" target="_blank" class="btn btn-default"><span class="glyphicon glyphicon-print"></span> Кассовая книга</a>';
-                            $html .= '<a title="Редактировать" class="btn btn-default" href="' . url('reports/dailycashreport/' . $report->id) . '"><span class="glyphicon glyphicon-pencil"></span></a>';
-                            if (Auth::user()->isAdmin()) {
-//                                $html .= '<a title="Редактировать" class="btn btn-default" href="' . url('reports/dailycashreport/' . $report->id) . '"><span class="glyphicon glyphicon-pencil"></span></a>';
-                                $html .= '<a title="Удалить" class="btn btn-default" href="' . url('reports/remove') . '?id=' . $report->id . '"><span class="glyphicon glyphicon-remove"></span></a>';
-                                $html .= '<a title="Синхронизировать кассовую книгу" class="btn btn-default" href="' . url('cashbook/sync2') .
-                                        '?date=' . Carbon::now()->setTime(0, 0, 0)->format('Y-m-d') .
-                                        '&subdivision_id=' . $report->subdiv_id . '"><span class="glyphicon glyphicon-refresh"></span></a>';
-                                $html .= '<a title="Сверить с кассовой книгой" class="btn btn-default" href="#" onclick="$.reportsListCtrl.matchWithCashbook(' . $report->id . '); return false;"><span class="glyphicon glyphicon-check"></span></a>';
-                                $html .= '<a title="Поставить галочку вручную" class="btn btn-default" href="' . url('reports/setmatch?id=' . $report->id) . '"><span class="glyphicon glyphicon-ok"></span></a>';
-                                $html .= '<a title="Дать доступ к редактированию" class="btn btn-default" href="' . url('reports/dailycashreport/editable/toggle?id=' . $report->id) . '"><span class="glyphicon glyphicon-pencil"></span></a>';
-                            } else {
-                                $html .= '<button disabled class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span></button>';
-                            }
-                            $html .= '</div>';
-                            return $html;
-                        })
-                        ->filter(function ($query) use ($req, $tablename) {
-                            if ($req->has('subdiv_name')) {
-                                $query->where('subdivisions.name', 'like', "%" . $req->get('subdiv_name') . "%");
-                            }
-                            if ($req->has('subdivision_id')) {
-                                $query->where('subdivisions.id', $req->subdivision_id);
-                            }
-                            if ($req->has('subdivision_code')) {
-                                $query->where('subdivisions.name_id', $req->subdivision_code);
-                            }
-                            if ($req->has('created_at')) {
-                                $query->where($tablename . '.created_at', '>=', with(new Carbon($req->get('created_at')))->setTime(0, 0, 0)->format('Y-m-d H:i:s'))
-                                ->where($tablename . '.created_at', '<=', with(new Carbon($req->get('created_at')))->setTime(23, 59, 59)->format('Y-m-d H:i:s'));
-                            }
-                        })
-                        ->removeColumn('subdiv_name')
-                        ->removeColumn('subdiv_id')
-                        ->removeColumn('report_id_1c')
-                        ->removeColumn('rsb')
-                        ->removeColumn('reb')
-                        ->make();
+            ->removeColumn('id')
+            ->editColumn('matches', function ($report) {
+                return ((bool)$report->matches) ? '<span class="glyphicon glyphicon-ok"></span>' : '<span class="glyphicon glyphicon-remove"></span>';
+            })
+            ->editColumn('sb', function ($report) {
+                $html = ($report->rsb / 100) . ' руб.';
+                if (Auth::user()->id == 5) {
+                    $html .= '<br><small style="color:#A9A9A9;">' . ($report->sb / 100) . ' руб.' . '</small>';
+                }
+                return $html;
+            })
+            ->editColumn('eb', function ($report) {
+                $html = ($report->reb / 100) . ' руб.';
+                if (Auth::user()->id == 5) {
+                    $html .= '<br><small style="color:#A9A9A9;">' . ($report->eb / 100) . ' руб.' . '</small>';
+                }
+                return $html;
+            })
+            ->editColumn('created_at', function ($report) {
+                $html = with(new Carbon($report->created_at))->format('d.m.Y');
+                if (Auth::user()->isAdmin()) {
+                    $html .= '<br><small class="text-muted">№' . $report->report_id_1c . '</small>';
+                }
+                return $html;
+            })
+            ->editColumn('username', function ($report) {
+                if (Auth::user()->isAdmin()) {
+                    return $report->username . '<br>(<small>' . $report->subdiv_name . '</small>)';
+                } else {
+                    return $report->username;
+                }
+            })
+            ->addColumn('actions', function ($report) {
+                $html = '<div class="btn-group btn-group-sm">';
+                $html .= '<a href="' . url('reports/pdf/dailycashreport/' . $report->id) . '" target="_blank" class="btn btn-default"><span class="glyphicon glyphicon-print"></span> Кассовая книга</a>';
+                $html .= '<a title="Редактировать" class="btn btn-default" href="' . url('reports/dailycashreport/' . $report->id) . '"><span class="glyphicon glyphicon-pencil"></span></a>';
+                if (Auth::user()->isAdmin()) {
+                    $html .= '<a title="Удалить" class="btn btn-default" href="' . url('reports/remove') . '?id=' . $report->id . '"><span class="glyphicon glyphicon-remove"></span></a>';
+                    $html .= '<a title="Синхронизировать кассовую книгу" class="btn btn-default" href="' . url('cashbook/sync2') .
+                        '?date=' . Carbon::now()->setTime(0, 0, 0)->format('Y-m-d') .
+                        '&subdivision_id=' . $report->subdiv_id . '"><span class="glyphicon glyphicon-refresh"></span></a>';
+                    $html .= '<a title="Сверить с кассовой книгой" class="btn btn-default" href="#" onclick="$.reportsListCtrl.matchWithCashbook(' . $report->id . '); return false;"><span class="glyphicon glyphicon-check"></span></a>';
+                    $html .= '<a title="Поставить галочку вручную" class="btn btn-default" href="' . url('reports/setmatch?id=' . $report->id) . '"><span class="glyphicon glyphicon-ok"></span></a>';
+                    $html .= '<a title="Дать доступ к редактированию" class="btn btn-default" href="' . url('reports/dailycashreport/editable/toggle?id=' . $report->id) . '"><span class="glyphicon glyphicon-pencil"></span></a>';
+                } else {
+                    $html .= '<button disabled class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span></button>';
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->filter(function ($query) use ($req, $tablename) {
+                if ($req->has('subdiv_name')) {
+                    $query->where('subdivisions.name', 'like', "%" . $req->get('subdiv_name') . "%");
+                }
+                if ($req->has('subdivision_id')) {
+                    $query->where('subdivisions.id', $req->subdivision_id);
+                }
+                if ($req->has('subdivision_code')) {
+                    $query->where('subdivisions.name_id', $req->subdivision_code);
+                }
+                if ($req->has('created_at')) {
+                    $query->where($tablename . '.created_at', '>=',
+                        with(new Carbon($req->get('created_at')))->setTime(0, 0, 0)->format('Y-m-d H:i:s'))
+                        ->where($tablename . '.created_at', '<=',
+                            with(new Carbon($req->get('created_at')))->setTime(23, 59, 59)->format('Y-m-d H:i:s'));
+                }
+            })
+            ->removeColumn('subdiv_name')
+            ->removeColumn('subdiv_id')
+            ->removeColumn('report_id_1c')
+            ->removeColumn('rsb')
+            ->removeColumn('reb')
+            ->setTotalRecords(1000)
+            ->make();
     }
     /**
      * Установить галочку что отчет совпадает вручную

@@ -33,7 +33,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Image;
-use yajra\Datatables\Datatables;
+use Yajra\Datatables\Facades\Datatables;
 
 class DebtorsController extends BasicController
 {
@@ -1351,101 +1351,82 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return type
      */
-    public function ajaxList(Request $req) {
+    public function ajaxList(Request $req)
+    {
         $debtors = $this->getDebtorsQuery($req);
 
         $user = auth()->user();
 
         $collection = Datatables::of($debtors)
-                ->editColumn('debtors_created_at', function($item) {
-                    return (!is_null($item->d_created_at)) ? date('d.m.Y', strtotime($item->d_created_at)) : '-';
-                })
-                ->editColumn('debtors_fixation_date', function($item) {
-                    return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y', strtotime($item->debtors_fixation_date)) : '-';
-                })
-                ->editColumn('debtors_od', function($item) {
-                    return number_format($item->debtors_od / 100, 2, '.', '');
-                })
-                ->editColumn('debtors_sum_indebt', function($item) {
-                    return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
-                })
-                ->editColumn('customers_telephone', function($item) {
-                    return \App\Services\PrivateDataService::formatPhone(auth()->user(), $item->customers_telephone);
-                })
-//                ->editColumn('debtors_debt_group_id', function($item) {
-//                    return (array_key_exists($item->debtors_debt_group_id, config('debtors')['debt_groups'])) ? config('debtors')['debt_groups'][$item->debtors_debt_group_id] : '';
-//                })
-                ->addColumn('actions', function($item) use ($user) {
-                    $glyph = $item->uploaded == 1 ? 'ok' : 'remove';
-                    $html = '';
-                    if (mb_strlen($item->debtors_responsible_user_id_1c)) {
-                        $pos = strpos(Auth::user()->id_1c, $item->debtors_responsible_user_id_1c);
-                        if ($user->hasRole('debtors_remote')) {
-                            $pos = true;
-                        }
-                    } else {
+            ->editColumn('debtors_created_at', function ($item) {
+                return (!is_null($item->d_created_at)) ? date('d.m.Y', strtotime($item->d_created_at)) : '-';
+            })
+            ->editColumn('debtors_fixation_date', function ($item) {
+                return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
+                    strtotime($item->debtors_fixation_date)) : '-';
+            })
+            ->editColumn('debtors_od', function ($item) {
+                return number_format($item->debtors_od / 100, 2, '.', '');
+            })
+            ->editColumn('debtors_sum_indebt', function ($item) {
+                return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
+            })
+            ->editColumn('customers_telephone', function ($item) {
+                return \App\Services\PrivateDataService::formatPhone(auth()->user(), $item->customers_telephone);
+            })
+            ->addColumn('actions', function ($item) use ($user) {
+                $glyph = $item->uploaded == 1 ? 'ok' : 'remove';
+                $html = '';
+                if (mb_strlen($item->debtors_responsible_user_id_1c)) {
+                    $pos = strpos(Auth::user()->id_1c, $item->debtors_responsible_user_id_1c);
+                    if ($user->hasRole('debtors_remote')) {
                         $pos = true;
                     }
-                    if (Auth::user()->hasRole('debtors_chief') || $pos !== false) {
-                        if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
-                            $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
-                            $arRegionTime = explode(':', $region_time);
-                            $weekday = date('N', time());
-                            $hour = $arRegionTime[0];
-                            if ($hour[0] == '0') {
-                                $hour = substr($hour, 1);
-                            }
-                            if ($weekday == 6 || $weekday == 7) {
-                                $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
-                            } else {
-                                $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
-                            }
+                } else {
+                    $pos = true;
+                }
+                if (Auth::user()->hasRole('debtors_chief') || $pos !== false) {
+                    if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
+                        $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
+                        $arRegionTime = explode(':', $region_time);
+                        $weekday = date('N', time());
+                        $hour = $arRegionTime[0];
+                        if ($hour[0] == '0') {
+                            $hour = substr($hour, 1);
                         }
-                        $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
-                        if (isset($dNoCall) && $dNoCall) {
-                            $arBtn['style'] = 'color: red;';
+                        if ($weekday == 6 || $weekday == 7) {
+                            $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
+                        } else {
+                            $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
                         }
+                    }
+                    $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
+                    if (isset($dNoCall) && $dNoCall) {
+                        $arBtn['style'] = 'color: red;';
+                    }
 
-                        $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
-                    }
-                    if (Auth::user()->isAdmin()) {
-                        $html .= HtmlHelper::Buttton(url('ajax/debtors/changeloadstatus/' . $item->debtors_id), ['glyph' => $glyph, 'size' => 'xs', 'class' => 'btn btn-default loadFlag']);
-                    }
-                    return $html;
-                })
-                ->removeColumn('debtors_id')
-                ->removeColumn('debtor_id_1c')
-                ->removeColumn('uploaded')
-                ->removeColumn('debtors_debt_group')
-                ->removeColumn('debtors_responsible_user_id_1c')
-                ->removeColumn('debtor_customer_id_1c')
-                ->removeColumn('debtor_is_bigmoney')
-                ->removeColumn('debtor_is_pledge')
-                ->removeColumn('debtor_is_pos')
-                ->removeColumn('debtor_is_online')
-                ->removeColumn('debtors_od_after_closing')
-                ->removeColumn('passports_fact_timezone')
-//                ->filter(function ($query) use ($req) {
-//                    $input = $req->input();
-//                    foreach ($input as $k => $v) {
-//                        if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === FALSE && !empty($v)) {
-//                            $fieldName = str_replace('search_field_', '', $k);
-//                            $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
-//                            $colName = substr($fieldName, strlen($tableName) + 1);
-//                            $condColName = $k . '_condition';
-//                            $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
-//                            if ($condition == 'like') {
-//                                $v = '%' . $v . '%';
-//                            }
-//                            if ($colName == 'od' || $colName == 'sum_indebt') {
-//                                $v = $v * 100;
-//                            }
-//                            $query->where($tableName . '.' . $colName, $condition, $v);
-//                        }
-//                    }
-//                })
-                ->make();
-        //$collection->getData();
+                    $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
+                }
+                if (Auth::user()->isAdmin()) {
+                    $html .= HtmlHelper::Buttton(url('ajax/debtors/changeloadstatus/' . $item->debtors_id),
+                        ['glyph' => $glyph, 'size' => 'xs', 'class' => 'btn btn-default loadFlag']);
+                }
+                return $html;
+            })
+            ->removeColumn('debtors_id')
+            ->removeColumn('debtor_id_1c')
+            ->removeColumn('uploaded')
+            ->removeColumn('debtors_debt_group')
+            ->removeColumn('debtors_responsible_user_id_1c')
+            ->removeColumn('debtor_customer_id_1c')
+            ->removeColumn('debtor_is_bigmoney')
+            ->removeColumn('debtor_is_pledge')
+            ->removeColumn('debtor_is_pos')
+            ->removeColumn('debtor_is_online')
+            ->removeColumn('debtors_od_after_closing')
+            ->removeColumn('passports_fact_timezone')
+            ->setTotalRecords(1000)
+            ->make();
         return $collection;
     }
 
@@ -1454,7 +1435,8 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return collection
      */
-    public function ajaxEventsList(Request $req) {
+    public function ajaxEventsList(Request $req)
+    {
         $cols = [];
         $tCols = [
             'debtor_events.date' => 'de_date',
@@ -1474,8 +1456,8 @@ class DebtorsController extends BasicController
 
         $arIn = DebtorUsersRef::getUserRefs();
         $date = (is_null($req->get('search_field_debtor_events@date'))) ?
-                Carbon::today() :
-                (new Carbon($req->get('search_field_debtor_events@date')));
+            Carbon::today() :
+            (new Carbon($req->get('search_field_debtor_events@date')));
 
         $date_from = $req->get('search_field_debtor_events@date_from');
         $date_to = $req->get('search_field_debtor_events@date_to');
@@ -1498,22 +1480,24 @@ class DebtorsController extends BasicController
 
         // получаем список запланированных мероприятий на сегодня
         $debtorEvents = DB::table('debtor_events')->select($cols)
-                ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
-                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-                ->leftJoin('debtors.passports', function($join) {
-                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-                })
-                ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
-                ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
-                ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
-                //->whereBetween('debtor_events.date', array($date->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')))
-                ->where('debtor_events.completed', 0)
-                ->groupBy('debtor_events.id');
+            ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
+            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+            ->leftJoin('debtors.passports', function ($join) {
+                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+            })
+            ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
+            ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
+            ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
+            ->where('debtor_events.completed', 0)
+            ->groupBy('debtor_events.id');
 
         if (!$date_from_fmt && !$date_to_fmt) {
-            $debtorEvents->whereBetween('debtor_events.date', array($date->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')));
+            $debtorEvents->whereBetween('debtor_events.date', array(
+                $date->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
+                $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')
+            ));
         } else {
             if ($date_from_fmt) {
                 $debtorEvents->where('debtor_events.date', '>=', $date_from_fmt);
@@ -1525,11 +1509,11 @@ class DebtorsController extends BasicController
         }
 
         if (!is_null($debt_group_id) && mb_strlen($debt_group_id)) {
-            $debtorEvents->where('debtors.debt_group_id', (int) $debt_group_id);
+            $debtorEvents->where('debtors.debt_group_id', (int)$debt_group_id);
         }
 
         if (!is_null($fact_timezone) && mb_strlen($fact_timezone)) {
-            $debtorEvents->where('passports.fact_timezone', (int) $fact_timezone);
+            $debtorEvents->where('passports.fact_timezone', (int)$fact_timezone);
         }
 
         if (!is_null($responsible_id_1c) && mb_strlen($responsible_id_1c)) {
@@ -1548,96 +1532,100 @@ class DebtorsController extends BasicController
 
         // формирование коллекции для заполнения таблицы
         $collection = Datatables::of($debtorEvents)
-                ->editColumn('de_date', function($item) {
-                    return date('d.m.Y', strtotime($item->de_date));
-                })
-                ->editColumn('de_created_at', function($item) {
-                    return date('d.m.Y', strtotime($item->de_created_at));
-                })
-                ->editColumn('de_type_id', function($item) {
-                    if (is_null($item->de_type_id)) {
-                        return 'Неопределен';
-                    }
-                    $arDebtData = config('debtors');
-                    return $arDebtData['event_types'][$item->de_type_id];
-                })
-                ->removeColumn('debtors_id')
-                ->removeColumn('passports_fact_timezone')
-                ->addColumn('actions', function($item) {
-                    $html = '';
+            ->editColumn('de_date', function ($item) {
+                return date('d.m.Y', strtotime($item->de_date));
+            })
+            ->editColumn('de_created_at', function ($item) {
+                return date('d.m.Y', strtotime($item->de_created_at));
+            })
+            ->editColumn('de_type_id', function ($item) {
+                if (is_null($item->de_type_id)) {
+                    return 'Неопределен';
+                }
+                $arDebtData = config('debtors');
+                return $arDebtData['event_types'][$item->de_type_id];
+            })
+            ->removeColumn('debtors_id')
+            ->removeColumn('passports_fact_timezone')
+            ->addColumn('actions', function ($item) {
+                $html = '';
 
-                    if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
-                        $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
-                        $arRegionTime = explode(':', $region_time);
-                        $weekday = date('N', time());
-                        $hour = $arRegionTime[0];
-                        if ($hour[0] == '0') {
-                            $hour = substr($hour, 1);
-                        }
-                        if ($weekday == 6 || $weekday == 7) {
-                            $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
-                        } else {
-                            $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
-                        }
+                if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
+                    $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
+                    $arRegionTime = explode(':', $region_time);
+                    $weekday = date('N', time());
+                    $hour = $arRegionTime[0];
+                    if ($hour[0] == '0') {
+                        $hour = substr($hour, 1);
                     }
-                    $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
-                    if (isset($dNoCall) && $dNoCall) {
-                        $arBtn['style'] = 'color: red;';
+                    if ($weekday == 6 || $weekday == 7) {
+                        $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
+                    } else {
+                        $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
                     }
+                }
+                $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
+                if (isset($dNoCall) && $dNoCall) {
+                    $arBtn['style'] = 'color: red;';
+                }
 
-                    $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
-                    return $html;
-                })
-                ->filter(function ($query) use ($req) {
-                    $input = $req->input();
-                    $no_empty_date = false;
-                    if (!empty($input['search_field_debtor_events@date'])) {
-                        $no_empty_date = true;
-                    }
-                    foreach ($input as $k => $v) {
-                        if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === FALSE && !empty($v)) {
-                            $fieldName = str_replace('search_field_', '', $k);
-                            $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
-                            $colName = substr($fieldName, strlen($tableName) + 1);
-                            $condColName = $k . '_condition';
-                            $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
-                            $condition = (empty($condition)) ? '=' : $condition;
+                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
+                return $html;
+            })
+            ->filter(function ($query) use ($req) {
+                $input = $req->input();
+                $no_empty_date = false;
+                if (!empty($input['search_field_debtor_events@date'])) {
+                    $no_empty_date = true;
+                }
+                foreach ($input as $k => $v) {
+                    if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
+                        $fieldName = str_replace('search_field_', '', $k);
+                        $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
+                        $colName = substr($fieldName, strlen($tableName) + 1);
+                        $condColName = $k . '_condition';
+                        $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
+                        $condition = (empty($condition)) ? '=' : $condition;
 
-                            if ($no_empty_date) {
-                                if ($k == 'search_field_debtor_events@date') {
-                                    $dateFmtd = new Carbon($v);
-                                    $query->whereBetween('debtor_events.date', array($dateFmtd->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $dateFmtd->setTime(23, 59, 59)->format('Y-m-d H:i:s')));
-                                    continue;
-                                }
-                            } else {
-                                if ($k == 'search_field_debtor_events@date_from') {
-                                    $dateFmtd = new Carbon($v);
-                                    $query->where('debtor_events.date', '>=', $dateFmtd->setTime(0, 0, 0)->format('Y-m-d H:i:s'));
-                                    continue;
-                                }
-
-                                if ($k == 'search_field_debtor_events@date_to') {
-                                    $dateFmtd = new Carbon($v);
-                                    $query->where('debtor_events.date', '<=', $dateFmtd->setTime(23, 59, 59)->format('Y-m-d H:i:s'));
-                                    continue;
-                                }
+                        if ($no_empty_date) {
+                            if ($k == 'search_field_debtor_events@date') {
+                                $dateFmtd = new Carbon($v);
+                                $query->whereBetween('debtor_events.date', array(
+                                    $dateFmtd->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
+                                    $dateFmtd->setTime(23, 59, 59)->format('Y-m-d H:i:s')
+                                ));
+                                continue;
                             }
-
-                            if ($k == 'search_field_debt_groups@id' && mb_strlen($v)) {
-                                $query->where('debtors.debt_group_id', (int) $v);
+                        } else {
+                            if ($k == 'search_field_debtor_events@date_from') {
+                                $dateFmtd = new Carbon($v);
+                                $query->where('debtor_events.date', '>=',
+                                    $dateFmtd->setTime(0, 0, 0)->format('Y-m-d H:i:s'));
                                 continue;
                             }
 
-                            if ($condition == 'like') {
-                                $v = '%' . $v . '%';
+                            if ($k == 'search_field_debtor_events@date_to') {
+                                $dateFmtd = new Carbon($v);
+                                $query->where('debtor_events.date', '<=',
+                                    $dateFmtd->setTime(23, 59, 59)->format('Y-m-d H:i:s'));
+                                continue;
                             }
-                            $query->where($tableName . '.' . $colName, $condition, $v);
                         }
-                    }
-                })
-                ->make();
 
-        //\PC::debug(count($debtorEvents->get()));
+                        if ($k == 'search_field_debt_groups@id' && mb_strlen($v)) {
+                            $query->where('debtors.debt_group_id', (int)$v);
+                            continue;
+                        }
+
+                        if ($condition == 'like') {
+                            $v = '%' . $v . '%';
+                        }
+                        $query->where($tableName . '.' . $colName, $condition, $v);
+                    }
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
 
         return $collection;
     }
@@ -3540,33 +3528,25 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function ajaxForgottenList(Request $req) {
+    public function ajaxForgottenList(Request $req)
+    {
         $debtors = $this->forgottenQuery($req);
 
         $collection = Datatables::of($debtors)
-                ->editColumn('debtors_fixation_date', function($item) {
-                    return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y', strtotime($item->debtors_fixation_date)) : '-';
-                })
-//                ->editColumn('debtors_od', function($item) {
-//                    return number_format($item->debtors_od / 100, 2, '.', '');
-//                })
-//                ->editColumn('debtors_sum_indebt', function($item) {
-//                    return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
-//                })
-//                ->editColumn('debtors_debt_group_id', function($item) {
-//                    return (array_key_exists($item->debtors_debt_group_id, config('debtors')['debt_groups'])) ? config('debtors')['debt_groups'][$item->debtors_debt_group_id] : '';
-//                })
-                ->addColumn('links', function($item) {
-                    $html = '';
-                    $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
-                    return $html;
-                }, 0)
-                ->removeColumn('debtors_id')
-                //->removeColumn('debtor_id_1c')
-                //->removeColumn('uploaded')
-                //->removeColumn('debtors_debt_group')
-                ->removeColumn('debtors_responsible_user_id_1c')
-                ->make();
+            ->editColumn('debtors_fixation_date', function ($item) {
+                return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
+                    strtotime($item->debtors_fixation_date)) : '-';
+            })
+            ->addColumn('links', function ($item) {
+                $html = '';
+                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id),
+                    ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
+                return $html;
+            }, 0)
+            ->removeColumn('debtors_id')
+            ->removeColumn('debtors_responsible_user_id_1c')
+            ->setTotalRecords(1000)
+            ->make();
         $collection->getData();
         return $collection;
     }
@@ -3691,7 +3671,8 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return collection
      */
-    public function ajaxRecommendsList(Request $req) {
+    public function ajaxRecommendsList(Request $req)
+    {
         $input = $req->input();
 
         $currentUser = User::find(Auth::id());
@@ -3740,18 +3721,19 @@ class DebtorsController extends BasicController
         }
 
         $debtors = Debtor::select($cols)
-                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-                ->leftJoin('debtors.customers', 'debtors.customers.id', '=', 'debtors.claims.customer_id')
-                ->leftJoin('debtors.passports', function($join) {
-                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-                })
-                ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.debtors.responsible_user_id_1c')
-                ->leftJoin('debtors.struct_subdivisions', 'debtors.struct_subdivisions.id_1c', '=', 'debtors.debtors.str_podr')
-                ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
-                ->leftJoin('debtors.debtor_events', 'debtors.debtor_events.debtor_id', '=', 'debtors.debtors.id')
-                ->groupBy('debtors.id');
+            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+            ->leftJoin('debtors.customers', 'debtors.customers.id', '=', 'debtors.claims.customer_id')
+            ->leftJoin('debtors.passports', function ($join) {
+                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+            })
+            ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.debtors.responsible_user_id_1c')
+            ->leftJoin('debtors.struct_subdivisions', 'debtors.struct_subdivisions.id_1c', '=',
+                'debtors.debtors.str_podr')
+            ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
+            ->leftJoin('debtors.debtor_events', 'debtors.debtor_events.debtor_id', '=', 'debtors.debtors.id')
+            ->groupBy('debtors.id');
 
         $debtors->where('debtors.base', '<>', 'Архив ЗД');
 
@@ -3759,76 +3741,57 @@ class DebtorsController extends BasicController
             $debtors->where('debtors.str_podr', $str_podr);
         }
 
-        //$debtors->where('debtors.recommend_completed', 1);
         $debtors->whereNotNull('debtors.recommend_created_at');
 
         if (isset($input['search_field_users@id_1c']) && !empty($input['search_field_users@id_1c']) && $currentUser->hasRole('debtors_chief')) {
             $debtors->where('responsible_user_id_1c', $input['search_field_users@id_1c']);
-        } else if ($isChief) {
-            $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
-            $usersDebtors = User::select('users.id_1c')
+        } else {
+            if ($isChief) {
+                $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
+                $usersDebtors = User::select('users.id_1c')
                     ->whereIn('id', $arResponsibleUserIds);
 
-            $arUsersDebtors = $usersDebtors->get()->toArray();
-            $arIn = [];
-            foreach ($arUsersDebtors as $tmpUser) {
-                if (strpos($tmpUser['id_1c'], 'Еричев') !== false) {
-                    continue;
+                $arUsersDebtors = $usersDebtors->get()->toArray();
+                $arIn = [];
+                foreach ($arUsersDebtors as $tmpUser) {
+                    if (strpos($tmpUser['id_1c'], 'Еричев') !== false) {
+                        continue;
+                    }
+                    $arIn[] = $tmpUser['id_1c'];
                 }
-                $arIn[] = $tmpUser['id_1c'];
-            }
 
-            //$debtors->whereIn('debtors.responsible_user_id_1c', $arIn);
-        } else {
-            $debtors->where('debtors.responsible_user_id_1c', $currentUser->id_1c);
+            } else {
+                $debtors->where('debtors.responsible_user_id_1c', $currentUser->id_1c);
+            }
         }
 
         $collection = Datatables::of($debtors)
-                ->editColumn('debtors_fixation_date', function($item) {
-                    return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y', strtotime($item->debtors_fixation_date)) : '-';
-                })
-                ->editColumn('debtors_od', function($item) {
-                    return number_format($item->debtors_od / 100, 2, '.', '');
-                })
-                ->editColumn('debtors_sum_indebt', function($item) {
-                    return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
-                })
-                ->editColumn('debtors_rec_completed', function($item) {
-                    return ($item->debtors_rec_completed == 1) ? 'Да' : 'Нет';
-                })
-//                ->editColumn('debtors_debt_group_id', function($item) {
-//                    return (array_key_exists($item->debtors_debt_group_id, config('debtors')['debt_groups'])) ? config('debtors')['debt_groups'][$item->debtors_debt_group_id] : '';
-//                })
-                ->addColumn('links', function($item) {
-                    $html = '';
-                    $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
-                    return $html;
-                }, 0)
-                ->removeColumn('debtors_id')
-                ->removeColumn('debtor_id_1c')
-                ->removeColumn('uploaded')
-                ->removeColumn('debtors_debt_group')
-                ->removeColumn('debtors_responsible_user_id_1c')
-//                ->filter(function ($query) use ($req) {
-//                    $input = $req->input();
-//                    foreach ($input as $k => $v) {
-//                        if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === FALSE && !empty($v)) {
-//                            $fieldName = str_replace('search_field_', '', $k);
-//                            $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
-//                            $colName = substr($fieldName, strlen($tableName) + 1);
-//                            $condColName = $k . '_condition';
-//                            $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
-//                            if ($condition == 'like') {
-//                                $v = '%' . $v . '%';
-//                            }
-//                            if ($colName == 'od' || $colName == 'sum_indebt') {
-//                                $v = $v * 100;
-//                            }
-//                            $query->where($tableName . '.' . $colName, $condition, $v);
-//                        }
-//                    }
-//                })
-                ->make();
+            ->editColumn('debtors_fixation_date', function ($item) {
+                return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
+                    strtotime($item->debtors_fixation_date)) : '-';
+            })
+            ->editColumn('debtors_od', function ($item) {
+                return number_format($item->debtors_od / 100, 2, '.', '');
+            })
+            ->editColumn('debtors_sum_indebt', function ($item) {
+                return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
+            })
+            ->editColumn('debtors_rec_completed', function ($item) {
+                return ($item->debtors_rec_completed == 1) ? 'Да' : 'Нет';
+            })
+            ->addColumn('links', function ($item) {
+                $html = '';
+                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id),
+                    ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
+                return $html;
+            }, 0)
+            ->removeColumn('debtors_id')
+            ->removeColumn('debtor_id_1c')
+            ->removeColumn('uploaded')
+            ->removeColumn('debtors_debt_group')
+            ->removeColumn('debtors_responsible_user_id_1c')
+            ->setTotalRecords(1000)
+            ->make();
         $collection->getData();
         return $collection;
     }

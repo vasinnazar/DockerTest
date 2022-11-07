@@ -11,7 +11,7 @@ use App\Utils\StrLib;
 use Auth;
 use App\Debtor;
 use App\Order;
-use yajra\Datatables\Datatables;
+use Yajra\Datatables\Facades\Datatables;
 use Illuminate\Support\Facades\DB;
 use App\StrUtils;
 use App\DebtorEvent;
@@ -81,7 +81,8 @@ class DebtorTransferController extends BasicController {
         return $filled;
     }
 
-    public function ajaxList(Request $req) {
+    public function ajaxList(Request $req)
+    {
         $cols = [];
         $tCols = $this->getDebtorsTableColumns();
         foreach ($tCols as $k => $v) {
@@ -91,19 +92,19 @@ class DebtorTransferController extends BasicController {
         $input = $req->input();
 
         $debtors = Debtor::select($cols)
-                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-                ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
-                ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
-                ->leftJoin('debtors.passports', function($join) {
-                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-                })
-                ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
-                ->leftJoin('struct_subdivisions', 'struct_subdivisions.id_1c', '=', 'debtors.str_podr')
+            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+            ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
+            ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
+            ->leftJoin('debtors.passports', function ($join) {
+                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+            })
+            ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
+            ->leftJoin('struct_subdivisions', 'struct_subdivisions.id_1c', '=', 'debtors.str_podr')
 //                ->where('armf.passports.fio', '<>', '')
 //                ->whereNotNull('armf.passports.fio')
-                ->groupBy('debtors.id');
+            ->groupBy('debtors.id');
 
         if (!$this->hasFilterFilled($input)) {
             $debtors->where('debtors.debtors.id', 0);
@@ -116,10 +117,12 @@ class DebtorTransferController extends BasicController {
             $debtors->where('qty_delays', '<=', $input['overdue_till']);
         }
         if (isset($input['passports@fact_address_region']) && mb_strlen($input['passports@fact_address_region'])) {
-            $debtors->where('passports.fact_address_region', 'like', '%' . $input['passports@fact_address_region'] . '%');
+            $debtors->where('passports.fact_address_region', 'like',
+                '%' . $input['passports@fact_address_region'] . '%');
         }
         if (isset($input['passports@fact_address_district']) && mb_strlen($input['passports@fact_address_district'])) {
-            $debtors->where('passports.fact_address_district', 'like', '%' . $input['passports@fact_address_district'] . '%');
+            $debtors->where('passports.fact_address_district', 'like',
+                '%' . $input['passports@fact_address_district'] . '%');
         }
 
         $is_online = (isset($input['search_field_debtors@is_lead']) && $input['search_field_debtors@is_lead'] == 1) ? 1 : 0;
@@ -134,7 +137,7 @@ class DebtorTransferController extends BasicController {
         }
 
         if ($is_bigmoney || $is_pledge || $is_pos) {
-            $debtors->where(function($query) use ($is_bigmoney, $is_pledge, $is_pos) {
+            $debtors->where(function ($query) use ($is_bigmoney, $is_pledge, $is_pos) {
                 if ($is_bigmoney) {
                     $query->where('debtors.debtors.is_bigmoney', 1);
                     if ($is_pledge) {
@@ -143,94 +146,101 @@ class DebtorTransferController extends BasicController {
                     if ($is_pos) {
                         $query->orWhere('debtors.debtors.is_pos', 1);
                     }
-                } else if ($is_pledge) {
-                    $query->where('debtors.debtors.is_pledge', 1);
-                    if ($is_pos) {
-                        $query->orWhere('debtors.debtors.is_pos', 1);
+                } else {
+                    if ($is_pledge) {
+                        $query->where('debtors.debtors.is_pledge', 1);
+                        if ($is_pos) {
+                            $query->orWhere('debtors.debtors.is_pos', 1);
+                        }
+                    } else {
+                        if ($is_pos) {
+                            $query->where('debtors.debtors.is_pos', 1);
+                        }
                     }
-                } else if ($is_pos) {
-                    $query->where('debtors.debtors.is_pos', 1);
                 }
             });
         }
 
         $collection = Datatables::of($debtors)
-                ->editColumn('debtors_fixation_date', function($item) {
-                    return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y', strtotime($item->debtors_fixation_date)) : '-';
-                })
-                ->editColumn('debtors_od', function($item) {
-                    return number_format($item->debtors_od / 100, 2, '.', '');
-                })
-                ->editColumn('debtors_debt_group_id', function($item) {
-                    return (array_key_exists($item->debtors_debt_group_id, config('debtors')['debt_groups'])) ? config('debtors')['debt_groups'][$item->debtors_debt_group_id] : '';
-                })
-                ->editColumn('debtors_last_user_id', function($item) {
-                    if (!is_null($item->debtors_last_user_id) && mb_strlen($item->debtors_last_user_id)) {
-                        $lastUser = User::find($item->debtors_last_user_id);
-                        return $lastUser->login;
-                    } else {
-                        return '-';
-                    }
-                })
-                ->editColumn('passports_fact_address_city', function($item) {
-                    $tmpCity = (empty($item->passports_fact_address_city)) ? $item->passports_fact_address_city1 : $item->passports_fact_address_city;
-                    $tmpDistrict = (empty($item->passports_fact_address_district) || is_null($item->passports_fact_address_district)) ? '' : $item->passports_fact_address_district . '<br>';
-                    return $tmpCity . '<br><span style="font-size: 80%; color: #555555; font-style: italic;">' . $tmpDistrict . $item->passports_fact_address_street . ', д. ' . $item->passports_fact_address_house . '</span>';
-                })
-                ->editColumn('debtors_str_podr', function($item) {
-                    switch ($item->debtors_str_podr) {
-                        case '000000000007':
-                            $struct_podr = 'Отдел личного взыскания';
-                            break;
+            ->editColumn('debtors_fixation_date', function ($item) {
+                return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
+                    strtotime($item->debtors_fixation_date)) : '-';
+            })
+            ->editColumn('debtors_od', function ($item) {
+                return number_format($item->debtors_od / 100, 2, '.', '');
+            })
+            ->editColumn('debtors_debt_group_id', function ($item) {
+                return (array_key_exists($item->debtors_debt_group_id,
+                    config('debtors')['debt_groups'])) ? config('debtors')['debt_groups'][$item->debtors_debt_group_id] : '';
+            })
+            ->editColumn('debtors_last_user_id', function ($item) {
+                if (!is_null($item->debtors_last_user_id) && mb_strlen($item->debtors_last_user_id)) {
+                    $lastUser = User::find($item->debtors_last_user_id);
+                    return $lastUser->login;
+                } else {
+                    return '-';
+                }
+            })
+            ->editColumn('passports_fact_address_city', function ($item) {
+                $tmpCity = (empty($item->passports_fact_address_city)) ? $item->passports_fact_address_city1 : $item->passports_fact_address_city;
+                $tmpDistrict = (empty($item->passports_fact_address_district) || is_null($item->passports_fact_address_district)) ? '' : $item->passports_fact_address_district . '<br>';
+                return $tmpCity . '<br><span style="font-size: 80%; color: #555555; font-style: italic;">' . $tmpDistrict . $item->passports_fact_address_street . ', д. ' . $item->passports_fact_address_house . '</span>';
+            })
+            ->editColumn('debtors_str_podr', function ($item) {
+                switch ($item->debtors_str_podr) {
+                    case '000000000007':
+                        $struct_podr = 'Отдел личного взыскания';
+                        break;
 
-                        case '000000000006':
-                            $struct_podr = 'Отдел удаленного взыскания';
-                            break;
+                    case '000000000006':
+                        $struct_podr = 'Отдел удаленного взыскания';
+                        break;
 
-                        case '0000000000001':
-                            $struct_podr = 'СБиВЗ';
-                            break;
+                    case '0000000000001':
+                        $struct_podr = 'СБиВЗ';
+                        break;
 
-                        default:
-                            $struct_podr = $item->debtors_str_podr;
-                            break;
-                    }
+                    default:
+                        $struct_podr = $item->debtors_str_podr;
+                        break;
+                }
 
-                    return $struct_podr;
-                })
-                ->addColumn('actions', function($item) {
-                    $html = '';
-                    $html .= '<input type="checkbox" name="debtor_transfer_id[]" value="' . $item->debtors_id . '" />';
-                    return $html;
-                }, 0)
-                ->addColumn('links', function($item) {
-                    $html = '';
-                    $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
-                    return $html;
-                }, 1)
-                ->removeColumn('debtors_id')
-                ->removeColumn('passports_fact_address_city1')
-                ->removeColumn('passports_fact_address_district')
-                ->removeColumn('passports_fact_address_street')
-                ->removeColumn('passports_fact_address_house')
-                ->filter(function ($query) use ($req) {
-                    $input = $req->input();
-                    foreach ($input as $k => $v) {
-                        if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === FALSE && !empty($v)) {
-                            $fieldName = str_replace('search_field_', '', $k);
-                            $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
-                            $colName = substr($fieldName, strlen($tableName) + 1);
-                            $condColName = $k . '_condition';
-                            $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
-                            if ($condition == 'like') {
-                                $v = '%' . $v . '%';
-                            }
-                            $query->where($tableName . '.' . $colName, $condition, $v);
+                return $struct_podr;
+            })
+            ->addColumn('actions', function ($item) {
+                $html = '';
+                $html .= '<input type="checkbox" name="debtor_transfer_id[]" value="' . $item->debtors_id . '" />';
+                return $html;
+            }, 0)
+            ->addColumn('links', function ($item) {
+                $html = '';
+                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id),
+                    ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
+                return $html;
+            }, 1)
+            ->removeColumn('debtors_id')
+            ->removeColumn('passports_fact_address_city1')
+            ->removeColumn('passports_fact_address_district')
+            ->removeColumn('passports_fact_address_street')
+            ->removeColumn('passports_fact_address_house')
+            ->filter(function ($query) use ($req) {
+                $input = $req->input();
+                foreach ($input as $k => $v) {
+                    if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
+                        $fieldName = str_replace('search_field_', '', $k);
+                        $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
+                        $colName = substr($fieldName, strlen($tableName) + 1);
+                        $condColName = $k . '_condition';
+                        $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
+                        if ($condition == 'like') {
+                            $v = '%' . $v . '%';
                         }
+                        $query->where($tableName . '.' . $colName, $condition, $v);
                     }
-                })
-                ->make();
-        //$collection->getData();
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
         return $collection;
     }
 

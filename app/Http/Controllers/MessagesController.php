@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request,
-    yajra\Datatables\Datatables,
+    Yajra\Datatables\Facades\Datatables,
     App\Utils\StrLib,
     Auth,
     App\Utils\HtmlHelper,
@@ -34,38 +34,39 @@ class MessagesController extends BasicController {
         return view('messages.table')->with('items', $items);
     }
 
-//
-//    public function editItem(Request $req) {
-//        return parent::editItem($req);
-//    }
-
-    public function getList(Request $req) {
+    public function getList(Request $req)
+    {
         parent::getList($req);
         $cols = [
-            'messages.id as msg_id', 'messages.created_at as msg_created',
-            'messages.text as msg_text', 'users.name as username'
+            'messages.id as msg_id',
+            'messages.created_at as msg_created',
+            'messages.text as msg_text',
+            'users.name as username'
         ];
         $items = Message::select($cols)
-                ->leftJoin('users', 'users.id', '=', 'messages.user_id');
+            ->leftJoin('users', 'users.id', '=', 'messages.user_id');
         $collection = Datatables::of($items)
-                ->editColumn('msg_created', function($item) {
-                    return with(new Carbon($item->msg_created))->format('d.m.Y');
-                })
-                ->addColumn('actions', function($item) {
-                    $html = '<div class="btn-group">';
-                    if (Auth::user()->isAdmin()) {
-                        $html .= HtmlHelper::Buttton(url('messages/edit?id=' . $item->msg_id), ['size' => 'sm', 'glyph' => 'pencil']);
-                        $html .= HtmlHelper::Buttton(url('messages/remove?id=' . $item->msg_id), ['size' => 'sm', 'glyph' => 'remove']);
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
-                ->filter(function ($query) use ($req) {
-                    if ($req->has('fio')) {
-                        $query->where('fio', 'like', "%" . $req->get('fio') . "%");
-                    }
-                })
-                ->make();
+            ->editColumn('msg_created', function ($item) {
+                return with(new Carbon($item->msg_created))->format('d.m.Y');
+            })
+            ->addColumn('actions', function ($item) {
+                $html = '<div class="btn-group">';
+                if (Auth::user()->isAdmin()) {
+                    $html .= HtmlHelper::Buttton(url('messages/edit?id=' . $item->msg_id),
+                        ['size' => 'sm', 'glyph' => 'pencil']);
+                    $html .= HtmlHelper::Buttton(url('messages/remove?id=' . $item->msg_id),
+                        ['size' => 'sm', 'glyph' => 'remove']);
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->filter(function ($query) use ($req) {
+                if ($req->has('fio')) {
+                    $query->where('fio', 'like', "%" . $req->get('fio') . "%");
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
         return $collection;
     }
 
