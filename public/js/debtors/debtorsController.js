@@ -125,8 +125,6 @@
         $debtCalcDate.change(function () {
             $('#multi_loan_block').html('<p style="text-align: center; color: blue; font-weight: bold;">Получение информации...</p>');
             $.post($.app.url + '/ajax/debtors/loans/getmultisum', {
-                passport_series: $('input[name="passport_series"]').val(),
-                passport_number: $('input[name="passport_number"]').val(),
                 loan_id_1c: $('input[name="loan_id_1c"]').val(),
                 customer_id_1c: $('input[name="customer_id_1c"]').val(),
                 date: $(this).val()
@@ -765,31 +763,29 @@
     };
 
     $.debtorsCtrl.intiInputModal = function (element) {
-            let idList = $(element).val();
-            if (idList == 10 || idList == 19) {
-                $('#datePayment').show();
-                $('#datePaymentLabel').text('Оплатите задолженность до :');
-                $('#discountPayment').hide();
-                $('#discountPaymentLabel').text('');
-                $('#dateAnswer').hide();
-                $('#dateAnswerLabel').text('');
-            }else if (idList == 17) {
-                $('#datePayment').show();
-                $('#datePaymentLabel').text('Предложение доступно до :');
-                $('#discountPayment').show();
-                $('#discountPaymentLabel').text('внесите руб :');
-                $('#dateAnswer').show();
-                $('#dateAnswerLabel').text('ДАЙТЕ ОТВЕТ до :');
-                let debtMoney = $('.debt_money_on_date').val();
-                $('#debtor_money_on_day').val(debtMoney);
-            }else{
-                $('#datePayment').hide();
-                $('#datePaymentLabel').text('');
-                $('#discountPayment').hide();
-                $('#discountPaymentLabel').text('');
-                $('#dateAnswer').hide();
-                $('#dateAnswerLabel').text('');
-            }
+        let idList = $(element).val();
+        if (idList == 10 || idList == 20 || idList == 15) {
+            $('#datePayment').show();
+            $('#datePaymentLabel').text('Оплатите задолженность до :');
+            $('#discountPayment').hide();
+            $('#discountPaymentLabel').text('');
+            $('#dateAnswer').hide();
+            $('#dateAnswerLabel').text('');
+        } else if (idList == 18) {
+            $('#datePayment').show();
+            $('#datePaymentLabel').text('Предложение доступно до :');
+            $('#discountPayment').show();
+            $('#discountPaymentLabel').text('внесите руб :');
+            $('#dateAnswer').show();
+            $('#dateAnswerLabel').text('ДАЙТЕ ОТВЕТ до :');
+        } else {
+            $('#datePayment').hide();
+            $('#datePaymentLabel').text('');
+            $('#discountPayment').hide();
+            $('#discountPaymentLabel').text('');
+            $('#dateAnswer').hide();
+            $('#dateAnswerLabel').text('');
+        }
 
     };
 })(jQuery);

@@ -144,6 +144,16 @@
                                         </p>
                                     </a>
                                 </span>
+                                @if($debtor->printCourtOrder() && auth()->user()->isChiefSpecialist())
+                                <span>
+                                    <a href="{{route('debtor.courtorder',$debtor->id)}}"
+                                       style="color: #fff; text-decoration: none;">
+                                        <p class="el_archive" style="margin: 5px; background-color: #d9534f;">
+                                            Печать заявления о выдаче судебного приказа
+                                        </p>
+                                    </a>
+                                </span>
+                                @endif
                             </div>
                         </div>
                         <input type="hidden" id="canCall" name="canCall" value="{{ ($pBgColor == '#28A93B') ? 1 : 0 }}">
@@ -927,7 +937,7 @@
                                                                 <?php foreach ($debtdata['debt_groups'] as $k => $type) {
                                                                 $selected = '';
                                                                 if ($bool_sel_disabled) {
-                                                                    if ($k == $data[0]['d_debt_group_id']) {
+                                                                    if ($k == $data[0]['d_debt_group_id']){
                                                                         $selected = ' selected';
                                                                     }
                                                                 }
@@ -1082,7 +1092,7 @@
 @endif
 @stop
 @section('scripts')
-<script src="{{asset('js/debtors/debtorsController.js?10')}}"></script>
+<script src="{{asset('js/debtors/debtorsController.js?12')}}"></script>
 <script src="{{asset('js/libs/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js')}}"></script>
 <script src="{{asset('js/libs/clipboard/clipboard.min.js')}}"></script>
 <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>
@@ -1173,7 +1183,7 @@ $(document).ready(function () {
         $('#debtor_history_button').removeAttr('disabled');
         console.log("loansUpload: " + data);
         
-        $.post($.app.url + '/ajax/debtors/loans/getmultisum', {passport_series: $('input[name="passport_series"]').val(), passport_number: $('input[name="passport_number"]').val(), loan_id_1c: $('input[name="loan_id_1c"]').val(), customer_id_1c: $('input[name="customer_id_1c"]').val()}).done(function (data){
+        $.post($.app.url + '/ajax/debtors/loans/getmultisum', {loan_id_1c: $('input[name="loan_id_1c"]').val(), customer_id_1c: $('input[name="customer_id_1c"]').val()}).done(function (data){
             if (data == '0') {
                 $('#multi_loan_block').html('');
             } else {

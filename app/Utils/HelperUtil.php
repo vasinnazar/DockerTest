@@ -307,4 +307,48 @@ class HelperUtil {
         return $process->getOutput();
     }
 
+    /**
+     * Отправлятель запросов через cURL
+     * @param string $url
+     * @param array $data
+     * @param boolean $is_post
+     *
+     * скопированно из сайта финтерра.рф для отправки чеков при удержании страховке
+     *
+     */
+    static public function sendByCurl($url, $data, $is_post = false, $username=null, $password=null, $chek=null) {
+        $ch = curl_init();
+        $user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36';
+        $hdrs = [
+            "cache-control: no-cache",
+            "content-type: application/json"
+        ];
+
+        curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
+        if ($is_post) {
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        } else {
+            curl_setopt($ch, CURLOPT_POST, false);
+            if(!empty($data)){
+                $query_string = http_build_query($data);
+                curl_setopt($ch, CURLOPT_URL, $url . '?' . $query_string);
+            }
+        }
+
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_USERPWD, $username.":".$password);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        if($chek==1){
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $hdrs);
+        }
+
+        $answer = curl_exec($ch);
+        curl_close($ch);
+
+        return $answer;
+    }
+
 }
