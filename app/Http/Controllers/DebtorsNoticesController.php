@@ -157,121 +157,6 @@ class DebtorsNoticesController extends Controller {
             mkdir(storage_path() . '/app/public/postPdfTasks/' . $noticesTask->id, 0777);
         }
 
-        \Excel::create($noticesTask->id, function($excel) use ($debtors, $input, $str_podr) {
-
-            $excel->sheet('page1', function($sheet) use ($debtors, $input, $str_podr) {
-
-                $sheet->row(1, [
-                    'ADDRESSLINE',
-                    'ADRESAT',
-                    'MASS',
-                    'VALUE',
-                    'PAYMENT',
-                    'COMMENT',
-                    'ORDERNUM',
-                    'TELADDRESS',
-                    'MAILTYPE',
-                    'MAILCATEGORY',
-                    'INDEXFROM',
-                    'VLENGTH',
-                    'VWIDTH',
-                    'VHEIGHT',
-                    'FRAGILE',
-                    'ENVELOPETYPE',
-                    'NOTIFICATIONTYPE',
-                    'COURIER',
-                    'SMSNOTICERECIPIENT',
-                    'WOMAILRANK',
-                    'PAYMENTMETHOD',
-                    'NOTICEPAYMENTMETHOD',
-                    'COMPLETENESSCHECKING',
-                    'NORETURN',
-                    'VSD',
-                    'TRANSPORTMODE',
-                    'EASYRETURN',
-                    'BRANCHNAME',
-                    'GROUPREFERENCE',
-                    'ID_PO',
-                    'PREPOSTALPREPARATION',
-                    'DELIVERYPOINT',
-                    'DIMENSIONTYPE',
-                    'SHELFLIFEDAYS',
-                    'WITHOUTOPENING',
-                    'CONTENTSCHECKING',
-                    'SENDERCOMMENT',
-                    'TRANSPORTTYPE'
-                ]);
-
-                $cnt = 2;
-                foreach ($debtors as $debtor) {
-                    $notice = NoticeNumbers::where('debtor_id_1c', $debtor->debtor_id_1c)
-                            ->where('str_podr', $str_podr)
-                            ->first();
-
-                    if (!is_null($notice)) {
-                        continue;
-                    }
-
-                    $passport = Passport::where('series', $debtor->passport_series)
-                            ->where('number', $debtor->passport_number)
-                            ->first();
-
-                    if (is_null($passport)) {
-                        continue;
-                    }
-
-                    if ($input['address_type'] == 1) {
-                        $addressLine = $passport::getFullAddress($passport, true);
-                    } else {
-                        $addressLine = $passport::getFullAddress($passport);
-                    }
-
-                    $sheet->row($cnt, [
-                        $addressLine,
-                        $passport->fio,
-                        '0,1',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '2',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        ''
-                    ]);
-
-                    $cnt++;
-                }
-            });
-        })->store('xls', storage_path() . '/app/public/postPdfTasks/' . $noticesTask->id);
-
         $this->createPdf($debtors, $input['address_type'], $noticesTask->id, $str_podr);
 
         $noticesTask->in_progress = 0;
@@ -285,6 +170,28 @@ class DebtorsNoticesController extends Controller {
         $user = auth()->user();
 
         $i = 1;
+
+        $excel = \Excel::create($task_id);
+        $sheet = $excel->sheet('page1');
+        
+        $activeSheet = $excel->getActiveSheet();
+
+        $activeSheet->appendRow(1, [
+            'FILE_NAME',
+            'ADDRESSLINE_TO',
+            'RECIPIENT_TYPE',
+            'RECIPIENT',
+            'INN',
+            'KPP',
+            'LETTER_REG_NUMBER',
+            'LETTER_TITLE',
+            'MAILCATEGORY',
+            'ADDRESSLINE_RETURN',
+            'WOMAILRANK',
+            'ADDITIONAL_INFO',
+            'LETTER_COMMENT'
+        ]);
+
         foreach ($debtors as $debtor) {
 
             $notice = NoticeNumbers::where('debtor_id_1c', $debtor->debtor_id_1c)
@@ -294,7 +201,7 @@ class DebtorsNoticesController extends Controller {
             if (!is_null($notice)) {
                 continue;
             }
-            
+
             $arParams = [];
 
             $debtorData = Debtor::select(DB::raw('*, passports.id as d_passport_id, '
@@ -778,11 +685,144 @@ class DebtorsNoticesController extends Controller {
 
                 \App\Utils\FileToPdfUtil::replaceKeys($doc->tplFileName, $arParams, 'debtors', $arMassTask);
 
+                $activeSheet->appendRow($i, [
+                    $arMassTask['filename'] . '.pdf',
+                    $arParams['print_address'],
+                    '0',
+                    $arParams['debtor_fio'],
+                    '',
+                    '',
+                    $notice_number->id,
+                    '',
+                    '0',
+                    '650000, г. Кемерово, пр. Советский, 2/6',
+                    '',
+                    '',
+                    ''
+                ]);
+
                 sleep(5);
             }
         }
 
         $path = storage_path() . '/app/public/postPdfTasks/' . $task_id;
+        
+        $excel->store('xls', $path);
+
+        /*\Excel::create($noticesTask->id, function($excel) use ($debtors, $address_type, $str_podr) {
+
+            $excel->sheet('page1', function($sheet) use ($debtors, $address_type, $str_podr) {
+
+                $sheet->row(1, [
+                    'ADDRESSLINE',
+                    'ADRESAT',
+                    'MASS',
+                    'VALUE',
+                    'PAYMENT',
+                    'COMMENT',
+                    'ORDERNUM',
+                    'TELADDRESS',
+                    'MAILTYPE',
+                    'MAILCATEGORY',
+                    'INDEXFROM',
+                    'VLENGTH',
+                    'VWIDTH',
+                    'VHEIGHT',
+                    'FRAGILE',
+                    'ENVELOPETYPE',
+                    'NOTIFICATIONTYPE',
+                    'COURIER',
+                    'SMSNOTICERECIPIENT',
+                    'WOMAILRANK',
+                    'PAYMENTMETHOD',
+                    'NOTICEPAYMENTMETHOD',
+                    'COMPLETENESSCHECKING',
+                    'NORETURN',
+                    'VSD',
+                    'TRANSPORTMODE',
+                    'EASYRETURN',
+                    'BRANCHNAME',
+                    'GROUPREFERENCE',
+                    'ID_PO',
+                    'PREPOSTALPREPARATION',
+                    'DELIVERYPOINT',
+                    'DIMENSIONTYPE',
+                    'SHELFLIFEDAYS',
+                    'WITHOUTOPENING',
+                    'CONTENTSCHECKING',
+                    'SENDERCOMMENT',
+                    'TRANSPORTTYPE'
+                ]);
+
+                $cnt = 2;
+                foreach ($debtors as $debtor) {
+                    $notice = NoticeNumbers::where('debtor_id_1c', $debtor->debtor_id_1c)
+                            ->where('str_podr', $str_podr)
+                            ->first();
+
+                    if (!is_null($notice)) {
+                        continue;
+                    }
+
+                    $passport = Passport::where('series', $debtor->passport_series)
+                            ->where('number', $debtor->passport_number)
+                            ->first();
+
+                    if (is_null($passport)) {
+                        continue;
+                    }
+
+                    if ($address_type == 1) {
+                        $addressLine = $passport::getFullAddress($passport, true);
+                    } else {
+                        $addressLine = $passport::getFullAddress($passport);
+                    }
+
+                    $sheet->row($cnt, [
+                        $addressLine,
+                        $passport->fio,
+                        '0,1',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '2',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        ''
+                    ]);
+
+                    $cnt++;
+                }
+            });
+        })->store('xls', $path);*/
 
         $arDir = scandir($path);
 
