@@ -946,7 +946,7 @@
                                                                     continue;
                                                                 }
 //                                                                ?>
-                                                            <option value="{{$k}}"{{$selected}}>{{$type}}</option>
+                                                            <option value="{{ $k }}"{{$selected}}>{{$type}}</option>
                                                             <?php } ?>
                                                         @endif
                                                     </select>

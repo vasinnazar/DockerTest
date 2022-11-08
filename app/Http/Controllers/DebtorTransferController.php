@@ -625,17 +625,7 @@ class DebtorTransferController extends BasicController {
     }
 
     public function _sendPeaceClaims($debtor) {
-        if ($debtor->sum_indebt >= 300000 && $debtor->sum_indebt <= 1000000) {
-            $arPeaceClaim[] = [
-                'repayment_type_id' => 14,
-                'times' => 90,
-                'amount' => 100000,
-                'start_at' => date('Y-m-d', time()),
-                'end_at' => date('Y-m-d', strtotime('+60 day')),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
+        if ($debtor->sum_indebt >= 500000 && $debtor->sum_indebt <= 1000000) {
             $arPeaceClaim[] = [
                 'repayment_type_id' => 14,
                 'times' => 90,
@@ -662,7 +652,7 @@ class DebtorTransferController extends BasicController {
             $arPeaceClaim[] = [
                 'repayment_type_id' => 14,
                 'times' => 150,
-                'amount' => 100000,
+                'amount' => 200000,
                 'start_at' => date('Y-m-d', time()),
                 'end_at' => date('Y-m-d', strtotime('+60 day')),
                 'loan_id_1c' => $debtor->loan_id_1c,
