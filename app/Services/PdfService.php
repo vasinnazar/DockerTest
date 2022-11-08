@@ -117,13 +117,13 @@ class PdfService
         }
 
         if ($amount >= 20001 && $amount <= 100000) {
-            $duty = ($amount / 100) * 3;
-            $duty = (800 + $duty) /2 ;
+            $duty = ($amount - 20000) * 0.03;
+            $duty = (800 + $duty) / 2;
         }
 
         if ($amount >= 100001 && $amount <= 200000) {
-            $duty = ($amount / 100) * 2;
-            $duty = (3200 + $duty) / 2 ;
+            $duty = ($amount - 100000) * 0.02;
+            $duty = (3200 + $duty) / 2;
         }
 
         return $duty;
