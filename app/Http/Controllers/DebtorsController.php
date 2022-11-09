@@ -8,7 +8,7 @@ use App\DebtorGeocode;
 use App\DebtorsInfo;
 use App\DebtorSmsTpls;
 use App\DebtorUsersRef;
-use App\Http\Requests\DebtorCard\CourtOrderRequest;
+use App\DebtorsEventType;
 use App\Http\Requests\DebtorCard\MultiSumRequest;
 use App\Loan;
 use App\Message;
