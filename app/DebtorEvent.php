@@ -9,7 +9,8 @@ use Carbon\Carbon;
 use App\StrUtils;
 use Log;
 
-class DebtorEvent extends Model {
+class DebtorEvent extends Model
+{
 
     protected $table = 'debtors.debtor_events';
     protected $fillable = [
@@ -36,7 +37,8 @@ class DebtorEvent extends Model {
      * Генерирует номер мероприятия для 1с
      * @return string
      */
-    static function getNextNumber($connection = 'mysql') {
+    static function getNextNumber($connection = 'mysql')
+    {
         $number = 'А000000001';
         $lastEvent = DB::connection($connection)->select('select debtors.debtor_events.id_1c from debtors.debtor_events order by SUBSTRING(debtors.debtor_events.id_1c, 2) desc limit 1');
         if (count($lastEvent) > 0) {
@@ -46,15 +48,17 @@ class DebtorEvent extends Model {
         return $number;
     }
 
-    static function generateNumberById($id) {
-        return 'А'.str_pad($id, 9, '0', STR_PAD_LEFT);
+    static function generateNumberById($id)
+    {
+        return 'А' . str_pad($id, 9, '0', STR_PAD_LEFT);
     }
 
     /**
      * Загружает старые мероприятия в новые
      * @param array $debtorsList список айдишников должников из 1с
      */
-    static function uploadFromOldEvents($debtorsList) {
+    static function uploadFromOldEvents($debtorsList)
+    {
         if (!is_array($debtorsList)) {
             $debtorsList = $debtorsList->toArray();
         }
@@ -78,7 +82,8 @@ class DebtorEvent extends Model {
         \PC::debug($uploaded, 'uploaded');
     }
 
-    public function update(array $attributes = array()) {
+    public function update(array $attributes = array())
+    {
         if (!is_null(Auth::user())) {
             $this->last_user_id = Auth::user()->id;
         } else {
@@ -87,7 +92,8 @@ class DebtorEvent extends Model {
         parent::update($attributes);
     }
 
-    public function save(array $options = array()) {
+    public function save(array $options = array())
+    {
         if (!is_null(Auth::user())) {
             $this->last_user_id = Auth::user()->id;
         } else {
@@ -96,7 +102,8 @@ class DebtorEvent extends Model {
         parent::save($options);
     }
 
-    static function getFields() {
+    static function getFields()
+    {
         return [
             'id' => 'ИД',
             'date' => 'Дата',
@@ -117,7 +124,8 @@ class DebtorEvent extends Model {
         ];
     }
 
-    static function getPlannedForUser($user, $firstDate, $daysNum = 10) {
+    static function getPlannedForUser($user, $firstDate, $daysNum = 10)
+    {
         $res = [];
         $totalTypes = [];
         $totalDays = [];
@@ -136,48 +144,15 @@ class DebtorEvent extends Model {
             $cols[] = $intname;
             $totalDays[$intname] = 0;
         }
-//        $usersId = ;
-//        \PC::debug($usersId);
-        $isChief = $user->hasRole('debtors_chief');
-
-        if ($isChief) {
-            $usersIdIsChief = array_merge([$user->id], json_decode(User::getUsersWithDebtorRole(), true));
-        }
         $usersId = array_merge([$user->id], json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true));
-
         foreach ($dates as $intk => $intv) {
             $data = DB::table('debtor_events')
-                    ->select(DB::raw('count(*) as num, event_type_id'))
-                    ->whereIn('user_id', $usersId)
-                    ->whereBetween('date', $intv)
-                    ->where('completed', 0)
-                    ->groupBy('event_type_id')
-                    ->get();
-
-            if ($isChief) {
-                $dataChief = DB::table('debtor_events')
-                    ->select(DB::raw('count(*) as num, event_type_id'))
-                    ->where('event_type_id', DebtorsEventType::ScheduledCallAiOmicron)
-                    ->whereIn('user_id', $usersIdIsChief)
-                    ->whereNotIn('user_id', $usersId)
-                    ->whereBetween('date', $intv)
-                    ->where('completed', 0)
-                    ->groupBy('event_type_id')
-                    ->get();
-
-                if (!in_array(DebtorsEventType::ScheduledCallAiOmicron, array_column($data, 'event_type_id'))) {
-                    $data = array_merge($data, $dataChief);
-                } else {
-                    foreach ($data as $datum) {
-                        if ($datum->event_type_id === DebtorsEventType::ScheduledCallAiOmicron) {
-                            foreach ($dataChief as $itemDataChief) {
-                                $datum->num = $datum->num + $itemDataChief->num;
-                            }
-                        }
-                    }
-                }
-            }
-
+                ->select(DB::raw('count(*) as num, event_type_id'))
+                ->whereIn('user_id', $usersId)
+                ->whereBetween('date', $intv)
+                ->where('completed', 0)
+                ->groupBy('event_type_id')
+                ->get();
             foreach ($data as $item) {
                 $tableData[$item->event_type_id][$intk] = $item->num;
                 if (!array_key_exists($item->event_type_id, $totalTypes)) {
@@ -211,7 +186,8 @@ class DebtorEvent extends Model {
      * Набор полей для поиска по мероприятиям
      * @return type
      */
-    static function getSearchFields() {
+    static function getSearchFields()
+    {
         return [
             [
                 'name' => 'debtor_events@date_from',
@@ -245,7 +221,7 @@ class DebtorEvent extends Model {
                 'name' => 'debtors@loan_id_1c',
                 'input_type' => 'text',
                 'label' => 'Договор',
-            //'hidden_value_field' => 'debtors@loan_id_1c'
+                //'hidden_value_field' => 'debtors@loan_id_1c'
             ],
             [
                 'name' => 'passports@fact_timezone',
@@ -275,8 +251,9 @@ class DebtorEvent extends Model {
             ],
         ];
     }
-    
-    static function getGroupPlanFields() {
+
+    static function getGroupPlanFields()
+    {
         return [
             [
                 'name' => 'debtor_events@date_plan',
@@ -304,14 +281,17 @@ class DebtorEvent extends Model {
         ];
     }
 
-    static function saveEventsIn1c($debtor_id_1c, $dateStart) {
+    static function saveEventsIn1c($debtor_id_1c, $dateStart)
+    {
         $connection = (config('app.version_type') == 'debtors') ? 'mysql' : 'debtors';
         \PC::debug($debtor_id_1c);
-        $events = DB::connection($connection)->table('debtor_events')->where('refresh_date', '>=', $dateStart)->whereNull('id_1c')->where('debtor_id_1c', $debtor_id_1c)->get();
-        Log::info('DebtorEvent.saveEventsIn1c events to send',['events'=>$events]);
+        $events = DB::connection($connection)->table('debtor_events')->where('refresh_date', '>=',
+            $dateStart)->whereNull('id_1c')->where('debtor_id_1c', $debtor_id_1c)->get();
+        Log::info('DebtorEvent.saveEventsIn1c events to send', ['events' => $events]);
         DebtorEvent::updateId1cForEvents($events, $connection);
         $xml = [
-            'user_id_1c' => DB::connection($connection)->table('debtors')->where('debtor_id_1c', $debtor_id_1c)->value('responsible_user_id_1c'),
+            'user_id_1c' => DB::connection($connection)->table('debtors')->where('debtor_id_1c',
+                $debtor_id_1c)->value('responsible_user_id_1c'),
             'debtor_id_1c' => $debtor_id_1c,
             'events' => [],
             'type' => 'EditDebtorCreateEvent'
@@ -327,7 +307,7 @@ class DebtorEvent extends Model {
         \PC::debug($events, 'events');
         \PC::debug($xml, 'xml');
         $res1c = MySoap::sendExchangeArm(MySoap::createXML($xml));
-        return ((int) $res1c->result == 1);
+        return ((int)$res1c->result == 1);
     }
 
     /**
@@ -336,12 +316,14 @@ class DebtorEvent extends Model {
      * @param string $connection
      * @return type
      */
-    static function updateId1cForEvents(&$events, $connection) {
+    static function updateId1cForEvents(&$events, $connection)
+    {
         foreach ($events as &$event) {
             if (empty($event->id_1c)) {
                 $event_id_1c = DebtorEvent::generateNumberById($event->id);
                 $event->id_1c = $event_id_1c;
-                DB::connection($connection)->table('debtor_events')->where('id', $event->id)->update(['id_1c' => $event_id_1c]);
+                DB::connection($connection)->table('debtor_events')->where('id',
+                    $event->id)->update(['id_1c' => $event_id_1c]);
             }
         }
         return $events;
