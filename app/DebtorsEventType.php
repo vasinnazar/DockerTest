@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class DebtorsEventType extends Model
 {
-    const ScheduledCallAiOmicron = 22;
-
     protected $table = 'debtors.debtors_event_types';
     protected $fillable = ['name'];
     
