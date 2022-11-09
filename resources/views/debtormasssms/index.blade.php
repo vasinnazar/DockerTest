@@ -133,13 +133,6 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <!--div class="pull-left" style="text-align: left;">
-                        <span><input type="checkbox" name="search_field_debtors@is_bigmoney" value="1">&nbsp;Большие деньги</span>
-                        <br>
-                        <span><input type="checkbox" name="search_field_debtors@is_pledge" value="1">&nbsp;Залоговые займы</span>
-                        <br>
-                        <span><input type="checkbox" name="search_field_debtors@is_pos" value="1">&nbsp;Товарные займы</span>
-                        </div-->
                         {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorMassSmsClearFilterBtn'])!!}
                         {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'debtorMassSmsFilterButton'])!!}
                     </div>
@@ -150,7 +143,7 @@
     @include('elements.debtorsMassSmsModal')
 @stop
 @section('scripts')
-    <script src="{{asset('js/debtors/debtorsController.js?4')}}"></script>
+    <script src="{{asset('js/debtors/debtorsController.js?5')}}"></script>
     <script>
         $(document).ready(function () {
             $.debtorsCtrl.init();
