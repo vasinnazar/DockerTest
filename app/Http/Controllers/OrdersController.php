@@ -22,7 +22,7 @@ use Illuminate\Http\Request,
     App\Passport,
     App\RemoveRequest,
     Illuminate\Support\Facades\DB,
-    yajra\Datatables\Datatables,
+    Yajra\Datatables\Facades\Datatables,
     Carbon\Carbon,
     App\Spylog\Spylog,
     App\Spylog\SpylogModel,
@@ -158,14 +158,21 @@ class OrdersController extends BasicController {
      * @param Request $request
      * @return \yajra\Datatables\Facades\Datatables
      */
-    public function getOrdersList(Request $request) {
-        $search_params = ['order_number', 'fio', 'series', 'number', 'responsible', 'created_at_min', 'created_at_max', 'subdivision_id', 'plus'];
-//        if (Auth::user()->isAdmin()) {
-//            $subdiv_id = ($request->has('subdivision_id')) ? (($request->subdivision_id == Auth::user()->subdivision_id) ? null : $request->subdivision_id) : null;
-//        } else {
-//            $subdiv_id = Auth::user()->subdivision_id;
-//        }
-        if (Auth::user()->hasPermission(Permission::makeName(Permission::ACTION_SELECT, 'orders', Permission::COND_ALL, Permission::TIME_ALL))) {
+    public function getOrdersList(Request $request)
+    {
+        $search_params = [
+            'order_number',
+            'fio',
+            'series',
+            'number',
+            'responsible',
+            'created_at_min',
+            'created_at_max',
+            'subdivision_id',
+            'plus'
+        ];
+        if (Auth::user()->hasPermission(Permission::makeName(Permission::ACTION_SELECT, 'orders', Permission::COND_ALL,
+            Permission::TIME_ALL))) {
             \PC::debug('wow');
             $subdiv_id = ($request->has('subdivision_id')) ? (($request->subdivision_id == Auth::user()->subdivision_id) ? null : $request->subdivision_id) : null;
         } else {
@@ -182,8 +189,8 @@ class OrdersController extends BasicController {
                 \App\Synchronizer::updateOrders($request->created_at_min, null, null, $subdiv->name_id);
             }
         }
-//        $subdiv_id = ($request->has('subdivision_id') && Auth::user()->isAdmin()) ? $request->subdivision_id : Auth::user()->subdivision_id;
-        $cols = ['orders.created_at as order_created_at',
+        $cols = [
+            'orders.created_at as order_created_at',
             'order_types.name as order_type',
             'order_types.plus as order_plus',
             'orders.number as order_number',
@@ -196,11 +203,11 @@ class OrdersController extends BasicController {
             'orders.repayment_id as order_repayment_id'
         ];
         $orders = Order::select($cols)
-                ->leftJoin('passports', 'passports.id', '=', 'orders.passport_id')
-                ->leftJoin('users', 'users.id', '=', 'orders.user_id')
-                ->leftJoin('order_types', 'order_types.id', '=', 'orders.type')
-                ->whereNotNull('orders.number')
-                ->where('orders.number', '<>', '');
+            ->leftJoin('passports', 'passports.id', '=', 'orders.passport_id')
+            ->leftJoin('users', 'users.id', '=', 'orders.user_id')
+            ->leftJoin('order_types', 'order_types.id', '=', 'orders.type')
+            ->whereNotNull('orders.number')
+            ->where('orders.number', '<>', '');
         if (!is_null($subdiv_id)) {
             $orders->where('orders.subdivision_id', $subdiv_id);
         }
@@ -208,7 +215,6 @@ class OrdersController extends BasicController {
             $orders->where('orders.number', 'like', "%" . $request->get('order_number') . "%");
         }
         if ($request->has('fio')) {
-//            $orders->where('passports.fio', 'like', "%" . $request->get('fio') . "%");
             $orders->whereRaw('(passports.fio like "%' . $request->get('fio') . '%" or orders.fio like "%' . $request->get('fio') . '%")');
         }
         if ($request->has('series')) {
@@ -221,10 +227,12 @@ class OrdersController extends BasicController {
             $orders->where('users.name', 'like', "%" . $request->get('responsible') . "%");
         }
         if ($request->has('created_at_min')) {
-            $orders->where('orders.created_at', '>=', with(new Carbon($request->get('created_at_min')))->format('Y-m-d'));
+            $orders->where('orders.created_at', '>=',
+                with(new Carbon($request->get('created_at_min')))->format('Y-m-d'));
         }
         if ($request->has('created_at_max')) {
-            $orders->where('orders.created_at', '<=', with(new Carbon($request->get('created_at_max')))->format('Y-m-d'));
+            $orders->where('orders.created_at', '<=',
+                with(new Carbon($request->get('created_at_max')))->format('Y-m-d'));
         }
         if ($request->has('subdivision_id')) {
             $orders->where('orders.subdivision_id', $request->get('subdivision_id'));
@@ -249,53 +257,54 @@ class OrdersController extends BasicController {
             $orders->limit(100);
         }
         return Datatables::of($orders)
-                        ->editColumn('order_created_at', function($order) {
-                            return with(new Carbon($order->order_created_at))->format('d.m.Y H:i:s');
-                        })
-                        ->editColumn('order_money', function($order) {
-                            return ($order->order_money / 100) . ' руб.';
-                        })
-                        ->editColumn('customer_fio', function($order) {
-                            if (is_null($order->customer_fio) || $order->customer_fio == '') {
-                                return $order->order_fio;
-                            }
-                            return $order->customer_fio;
-                        })
-                        ->addColumn('actions', function($order) {
-                            $html = '<div class="btn-group">';
-                            $html .= '<a href="' . url('orders/pdf/' . $order->order_id) . '" '
-                                    . 'class="btn btn-default btn-sm" target="_blank">'
-                                    . '<span class="glyphicon glyphicon-print"></span></a>';
-                            if (is_null($order->order_claimed_for_remove) && with(new Carbon($order->order_created_at))->isToday() && (Auth::user()->isAdmin() || is_null($order->order_repayment_id))) {
-                                $html .= '<button onclick="$.uReqsCtrl.claimForRemove(' . $order->order_id . ',' . (($order->order_plus) ? MySoap::ITEM_PKO : MySoap::ITEM_RKO) . '); return false;"'
-                                        . 'class="btn btn-default btn-sm">'
-                                        . '<span class="glyphicon glyphicon-exclamation-sign"></span></button>';
-                            } else {
-                                if (!is_null($order->order_claimed_for_remove)) {
-                                    $html.='<button disabled class="btn btn-danger btn-sm"  title="Было запрошено удаление"><span class="glyphicon glyphicon-exclamation-sign"></span></button>';
-                                } else {
-                                    $html .= '<button disabled class="btn btn-default btn-sm"><span class="glyphicon glyphicon-exclamation-sign"></span></button>';
-                                }
-                            }
-                            if (Auth::user()->isAdmin()) {
-                                $html .= '<button onclick="$.ordersCtrl.editOrder(' . $order->order_id . '); return false;" '
-                                        . 'class="btn btn-default btn-sm edit-order-btn"><span class="glyphicon glyphicon-pencil"></span></button>';
-                                $html .= '<a href="' . url('orders/remove/' . $order->order_id) . '" '
-                                        . 'class="btn btn-default btn-sm">'
-                                        . '<span class="glyphicon glyphicon-remove"></span></a>';
-                            }
-                            $html .= '</div>';
-                            return $html;
-                        })
-                        ->removeColumn('order_id')
-                        ->removeColumn('passports.fio')
-                        ->removeColumn('order_fio')
-                        ->removeColumn('passports.series')
-                        ->removeColumn('passports.number')
-                        ->removeColumn('order_claimed_for_remove')
-                        ->removeColumn('order_plus')
-                        ->removeColumn('order_repayment_id')
-                        ->make();
+            ->editColumn('order_created_at', function ($order) {
+                return with(new Carbon($order->order_created_at))->format('d.m.Y H:i:s');
+            })
+            ->editColumn('order_money', function ($order) {
+                return ($order->order_money / 100) . ' руб.';
+            })
+            ->editColumn('customer_fio', function ($order) {
+                if (is_null($order->customer_fio) || $order->customer_fio == '') {
+                    return $order->order_fio;
+                }
+                return $order->customer_fio;
+            })
+            ->addColumn('actions', function ($order) {
+                $html = '<div class="btn-group">';
+                $html .= '<a href="' . url('orders/pdf/' . $order->order_id) . '" '
+                    . 'class="btn btn-default btn-sm" target="_blank">'
+                    . '<span class="glyphicon glyphicon-print"></span></a>';
+                if (is_null($order->order_claimed_for_remove) && with(new Carbon($order->order_created_at))->isToday() && (Auth::user()->isAdmin() || is_null($order->order_repayment_id))) {
+                    $html .= '<button onclick="$.uReqsCtrl.claimForRemove(' . $order->order_id . ',' . (($order->order_plus) ? MySoap::ITEM_PKO : MySoap::ITEM_RKO) . '); return false;"'
+                        . 'class="btn btn-default btn-sm">'
+                        . '<span class="glyphicon glyphicon-exclamation-sign"></span></button>';
+                } else {
+                    if (!is_null($order->order_claimed_for_remove)) {
+                        $html .= '<button disabled class="btn btn-danger btn-sm"  title="Было запрошено удаление"><span class="glyphicon glyphicon-exclamation-sign"></span></button>';
+                    } else {
+                        $html .= '<button disabled class="btn btn-default btn-sm"><span class="glyphicon glyphicon-exclamation-sign"></span></button>';
+                    }
+                }
+                if (Auth::user()->isAdmin()) {
+                    $html .= '<button onclick="$.ordersCtrl.editOrder(' . $order->order_id . '); return false;" '
+                        . 'class="btn btn-default btn-sm edit-order-btn"><span class="glyphicon glyphicon-pencil"></span></button>';
+                    $html .= '<a href="' . url('orders/remove/' . $order->order_id) . '" '
+                        . 'class="btn btn-default btn-sm">'
+                        . '<span class="glyphicon glyphicon-remove"></span></a>';
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->removeColumn('order_id')
+            ->removeColumn('passports.fio')
+            ->removeColumn('order_fio')
+            ->removeColumn('passports.series')
+            ->removeColumn('passports.number')
+            ->removeColumn('order_claimed_for_remove')
+            ->removeColumn('order_plus')
+            ->removeColumn('order_repayment_id')
+            ->setTotalRecords(1000)
+            ->make();
     }
 
     /**

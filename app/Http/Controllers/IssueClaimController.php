@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\IssueClaim;
-use yajra\Datatables\Datatables;
+use Yajra\Datatables\Facades\Datatables;
 use Auth;
 use Carbon\Carbon;
 use App\MySoap;
@@ -65,36 +65,44 @@ class IssueClaimController extends BasicController {
             $issueClaims->where('issue_claims.created_at', '<=', with(new Carbon($req->get('issue_claim_created_at_min')))->setTime(0, 0, 0)->format('Y-m-d H:i:s'));
         }
         return Datatables::of($issueClaims)
-                        ->editColumn('ic_created_at', function($item) {
-                            return with(new Carbon($item->ic_created_at))->format('d.m.Y H:i:s');
-                        })
-                        ->editColumn('ic_money', function($item) {
-                            return ($item->ic_money / 100) . ' руб.';
-                        })
-                        ->addColumn('actions', function($item) {
-                            $html = '<div class="btn-group">';
-                            if (Auth::user()->isAdmin()) {
-                                $html .= \App\Utils\HtmlHelper::Buttton(url('orders/issueclaims/delete/' . $item->ic_id), ['glyph' => 'remove']);
-                            }
-                            $html .= \App\Utils\HtmlHelper::Buttton(url('orders/issueclaims/pdf/' . $item->ic_id), ['glyph' => 'print', 'target' => '_blank']);
-                            if (Auth::user()->isAdmin()) {
-                                $html .= \App\Utils\HtmlHelper::Buttton(url('orders/issueclaims/pdf/' . $item->ic_id . '?type=2'), ['glyph' => 'print', 'target' => '_blank']);
-                            }
-                            $html .= \App\Utils\HtmlHelper::Buttton(null, ['glyph' => 'eye-open', 'onclick' => '$.issueClaimCtrl.openClaim(' . $item->ic_id . ')']);
-                            if (Auth::user()->isAdmin()) {
-                                $html .= \App\Utils\HtmlHelper::Buttton(null, ['glyph' => 'pencil', 'onclick' => '$.issueClaimCtrl.editClaim(' . $item->ic_id . ')']);
-                            }
-                            if (!empty($item->ic_claimed_for_remove)) {
-                                $html .= \App\Utils\HtmlHelper::Buttton(null, ['glyph' => 'alert', 'class' => 'btn btn-danger', 'disabled' => true]);
-                            } else {
-                                $html .= \App\Utils\HtmlHelper::Buttton(url('orders/issueclaims/claimforremove/' . $item->ic_id), ['glyph' => 'alert']);
-                            }
-                            $html .= '</div>';
-                            return $html;
-                        })
-                        ->removeColumn('ic_id')
-                        ->removeColumn('ic_claimed_for_remove')
-                        ->make();
+            ->editColumn('ic_created_at', function ($item) {
+                return with(new Carbon($item->ic_created_at))->format('d.m.Y H:i:s');
+            })
+            ->editColumn('ic_money', function ($item) {
+                return ($item->ic_money / 100) . ' руб.';
+            })
+            ->addColumn('actions', function ($item) {
+                $html = '<div class="btn-group">';
+                if (Auth::user()->isAdmin()) {
+                    $html .= \App\Utils\HtmlHelper::Buttton(url('orders/issueclaims/delete/' . $item->ic_id),
+                        ['glyph' => 'remove']);
+                }
+                $html .= \App\Utils\HtmlHelper::Buttton(url('orders/issueclaims/pdf/' . $item->ic_id),
+                    ['glyph' => 'print', 'target' => '_blank']);
+                if (Auth::user()->isAdmin()) {
+                    $html .= \App\Utils\HtmlHelper::Buttton(url('orders/issueclaims/pdf/' . $item->ic_id . '?type=2'),
+                        ['glyph' => 'print', 'target' => '_blank']);
+                }
+                $html .= \App\Utils\HtmlHelper::Buttton(null,
+                    ['glyph' => 'eye-open', 'onclick' => '$.issueClaimCtrl.openClaim(' . $item->ic_id . ')']);
+                if (Auth::user()->isAdmin()) {
+                    $html .= \App\Utils\HtmlHelper::Buttton(null,
+                        ['glyph' => 'pencil', 'onclick' => '$.issueClaimCtrl.editClaim(' . $item->ic_id . ')']);
+                }
+                if (!empty($item->ic_claimed_for_remove)) {
+                    $html .= \App\Utils\HtmlHelper::Buttton(null,
+                        ['glyph' => 'alert', 'class' => 'btn btn-danger', 'disabled' => true]);
+                } else {
+                    $html .= \App\Utils\HtmlHelper::Buttton(url('orders/issueclaims/claimforremove/' . $item->ic_id),
+                        ['glyph' => 'alert']);
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->removeColumn('ic_id')
+            ->removeColumn('ic_claimed_for_remove')
+            ->setTotalRecords(1000)
+            ->make();
     }
 
     /**

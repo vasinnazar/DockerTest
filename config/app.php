@@ -97,7 +97,6 @@ return [
      */
     'providers' => [
         'PhpConsole\Laravel\ServiceProvider',
-        'yajra\Datatables\DatatablesServiceProvider',
 //        'Artisaninweb\SoapWrapper\ServiceProvider',
         'Arcanedev\LogViewer\LogViewerServiceProvider',
         'Intervention\Image\ImageServiceProvider',
@@ -142,6 +141,7 @@ return [
         'App\Providers\FtpCustomServiceProvider',
         Barryvdh\Debugbar\ServiceProvider::class,
         Maatwebsite\Excel\ExcelServiceProvider::class,
+        \Yajra\Datatables\DatatablesServiceProvider::class,
         
     ],
     /*

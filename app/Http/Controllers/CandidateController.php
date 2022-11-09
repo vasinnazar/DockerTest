@@ -13,7 +13,7 @@ use Auth;
 use App\Candidate;
 use App\Region;
 use App\Order;
-use yajra\Datatables\Datatables;
+use Yajra\Datatables\Facades\Datatables;
 use Illuminate\Support\Facades\DB;
 use App\StrUtils;
 use App\Utils\HtmlHelper;
@@ -632,4 +632,3 @@ class CandidateController extends BasicController {
 }
 
 
-		

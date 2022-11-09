@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request,
     App\WorkTime,
-    yajra\Datatables\Datatables,
     App\Utils\StrLib,
     Auth,
     App\Utils\HtmlHelper,

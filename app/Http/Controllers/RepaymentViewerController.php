@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request,
     App\NpfContract,
     App\NpfFond,
-    yajra\Datatables\Datatables,
+    Yajra\Datatables\Facades\Datatables,
     App\Utils\StrLib,
     Auth,
     App\Utils\HtmlHelper,
@@ -75,59 +75,81 @@ class RepaymentViewerController extends BasicController {
         return view($this->table . '.edit')->with('item', $item);
     }
 
-    public function getList(Request $req) {
+    public function getList(Request $req)
+    {
         parent::getList($req);
         $cols = [
-            'repayments.created_at as rep_created_at', 'repayments.id as rep_id',
-            'repayments.id_1c as rep_id_1c', 'loans.id_1c as loan_id_1c',
-            'loans.id as loan_id', 'passports.fio as pass_fio',
-            'repayment_types.name as reptype_name', 'repayment_types.text_id as reptype_text_id'
+            'repayments.created_at as rep_created_at',
+            'repayments.id as rep_id',
+            'repayments.id_1c as rep_id_1c',
+            'loans.id_1c as loan_id_1c',
+            'loans.id as loan_id',
+            'passports.fio as pass_fio',
+            'repayment_types.name as reptype_name',
+            'repayment_types.text_id as reptype_text_id'
         ];
         $items = Repayment::select($cols)
-                ->leftJoin('passports', 'passports.id', '=', 'claims.passport_id')
-                ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-                ->leftJoin('repayment_types', 'repayment_types.id', '=', 'repayment_types.loan_id');
+            ->leftJoin('passports', 'passports.id', '=', 'claims.passport_id')
+            ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
+            ->leftJoin('repayment_types', 'repayment_types.id', '=', 'repayment_types.loan_id');
         $collection = Datatables::of($items)
-                ->editColumn('rep_created_at', function($item) {
-                    return with(new Carbon($item->rep_created_at))->format('d.m.Y');
-                })
-                ->addColumn('actions', function($item) {
-                    $html = '<div class="btn-group">';
-                    if (Auth::user()->isAdmin()) {
-                        $html .= HtmlHelper::Buttton(url('npf/edit?id=' . $item->npfid), ['size' => 'sm', 'glyph' => 'pencil']);
-                        $html .= HtmlHelper::Buttton(url('npf/remove?id=' . $item->npfid), ['size' => 'sm', 'glyph' => 'remove']);
-                    }
-                    if (is_null($item->npfclaimed)) {
-                        $html .= HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'exclamation-sign', 'onclick' => '$.uReqsCtrl.claimForRemove(' . $item->npfid . ',' . MySoap::ITEM_NPF . '); return false;']);
-                    } else {
-                        $html .= HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'exclamation-sign', 'disabled' => true, 'class' => 'btn-danger btn']);
-                    }
-                    $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->contract_form_id . '/' . $item->npfid), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Договор']);
-                    $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->npf_form_id . '/' . $item->npfid), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Заявление (из НПФ)']);
-                    $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->pfr_form_id . '/' . $item->npfid), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Заявление (из ПФР)']);
-                    $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->pd_form_id . '/' . $item->npfid), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Согласие на обработку ПД']);
-                    if (strstr($item->fondname, 'Доверие') !== FALSE) {
-                        $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->anketa_id . '/' . $item->npfid), ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Анкета']);
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
-                ->removeColumn('npf_form_id')
-                ->removeColumn('pfr_form_id')
-                ->removeColumn('pd_form_id')
-                ->removeColumn('contract_form_id')
-                ->removeColumn('anketa_id')
-                ->removeColumn('npfclaimed')
-                ->removeColumn('subdivision')
-                ->filter(function ($query) use ($req) {
-                    if ($req->has('fio')) {
-                        $query->where('fio', 'like', "%" . $req->get('fio') . "%");
-                    }
-                    if (!Auth::user()->isAdmin()) {
-                        $query->where('npf_contracts.subdivision_id', Auth::user()->subdivision_id);
-                    }
-                })
-                ->make();
+            ->editColumn('rep_created_at', function ($item) {
+                return with(new Carbon($item->rep_created_at))->format('d.m.Y');
+            })
+            ->addColumn('actions', function ($item) {
+                $html = '<div class="btn-group">';
+                if (Auth::user()->isAdmin()) {
+                    $html .= HtmlHelper::Buttton(url('npf/edit?id=' . $item->npfid),
+                        ['size' => 'sm', 'glyph' => 'pencil']);
+                    $html .= HtmlHelper::Buttton(url('npf/remove?id=' . $item->npfid),
+                        ['size' => 'sm', 'glyph' => 'remove']);
+                }
+                if (is_null($item->npfclaimed)) {
+                    $html .= HtmlHelper::Buttton(null, [
+                        'size' => 'sm',
+                        'glyph' => 'exclamation-sign',
+                        'onclick' => '$.uReqsCtrl.claimForRemove(' . $item->npfid . ',' . MySoap::ITEM_NPF . '); return false;'
+                    ]);
+                } else {
+                    $html .= HtmlHelper::Buttton(null, [
+                        'size' => 'sm',
+                        'glyph' => 'exclamation-sign',
+                        'disabled' => true,
+                        'class' => 'btn-danger btn'
+                    ]);
+                }
+                $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->contract_form_id . '/' . $item->npfid),
+                    ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Договор']);
+                $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->npf_form_id . '/' . $item->npfid),
+                    ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Заявление (из НПФ)']);
+                $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->pfr_form_id . '/' . $item->npfid),
+                    ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Заявление (из ПФР)']);
+                $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->pd_form_id . '/' . $item->npfid),
+                    ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Согласие на обработку ПД']);
+                if (strstr($item->fondname, 'Доверие') !== false) {
+                    $html .= HtmlHelper::Buttton(url('npf/pdf/' . $item->anketa_id . '/' . $item->npfid),
+                        ['size' => 'sm', 'glyph' => 'print', 'target' => '_blank', 'text' => ' Анкета']);
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->removeColumn('npf_form_id')
+            ->removeColumn('pfr_form_id')
+            ->removeColumn('pd_form_id')
+            ->removeColumn('contract_form_id')
+            ->removeColumn('anketa_id')
+            ->removeColumn('npfclaimed')
+            ->removeColumn('subdivision')
+            ->filter(function ($query) use ($req) {
+                if ($req->has('fio')) {
+                    $query->where('fio', 'like', "%" . $req->get('fio') . "%");
+                }
+                if (!Auth::user()->isAdmin()) {
+                    $query->where('npf_contracts.subdivision_id', Auth::user()->subdivision_id);
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
         return $collection;
     }
 

@@ -7,7 +7,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Auth;
 use Input;
-use yajra\Datatables\Datatables;
+use Yajra\Datatables\Facades\Datatables;
 use App\UserPhoto;
 use Carbon\Carbon;
 
@@ -50,19 +50,20 @@ class UserPhotoController extends Controller {
         }
         $items = $this->ajaxListSearch($items, $req);
         return Datatables::of($items)
-                        ->editColumn('up_created_at', function($item) {
-                            return with(new Carbon($item->up_created_at))->format('d.m.Y H:i:s');
-                        })
-                        ->editColumn('up_path', function($item) {
-                            return '<a href="'.url($item->up_path).'" target="_blank"><img src="' . url($item->up_path) . '" width="200px" /></a>';
-                        })
-                        ->addColumn('actions', function($item) {
-                            $html = '<div class="btn-group">';
-                            $html .= '</div>';
-                            return $html;
-                        })
-                        ->removeColumn('up_id')
-                        ->make();
+            ->editColumn('up_created_at', function ($item) {
+                return with(new Carbon($item->up_created_at))->format('d.m.Y H:i:s');
+            })
+            ->editColumn('up_path', function ($item) {
+                return '<a href="' . url($item->up_path) . '" target="_blank"><img src="' . url($item->up_path) . '" width="200px" /></a>';
+            })
+            ->addColumn('actions', function ($item) {
+                $html = '<div class="btn-group">';
+                $html .= '</div>';
+                return $html;
+            })
+            ->removeColumn('up_id')
+            ->setTotalRecords(1000)
+            ->make();
     }
     function ajaxListSearch($items,$req){
         /**

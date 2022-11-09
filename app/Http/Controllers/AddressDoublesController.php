@@ -8,7 +8,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\AddressDouble;
 use Illuminate\Support\Facades\DB;
-use yajra\Datatables\Datatables;
+use Yajra\Datatables\Facades\Datatables;
 
 class AddressDoublesController extends BasicController
 {
@@ -27,21 +27,23 @@ class AddressDoublesController extends BasicController
      * @param Request $req
      * @return type
      */
-    public function ajaxList(Request $req){
+    public function ajaxList(Request $req)
+    {
         $items = AddressDouble::whereNotNull('id');
         $this->addSearchConditionsToQuery($items, $req->input());
         \PC::debug($items->toSql());
         $collection = Datatables::of($items)
-                ->removeColumn('id')
-                ->removeColumn('created_at')
-                ->removeColumn('updated_at')
-                ->editColumn('is_debtor',function($item){
-                    return ($item->is_debtor)?'Да':'Нет';
-                })
-                ->addColumn('action',function($item){
-                    return '';
-                })
-                ->make();
+            ->removeColumn('id')
+            ->removeColumn('created_at')
+            ->removeColumn('updated_at')
+            ->editColumn('is_debtor', function ($item) {
+                return ($item->is_debtor) ? 'Да' : 'Нет';
+            })
+            ->addColumn('action', function ($item) {
+                return '';
+            })
+            ->setTotalRecords(1000)
+            ->make();
         return $collection;
     }
 

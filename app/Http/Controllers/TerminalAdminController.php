@@ -24,72 +24,83 @@ class TerminalAdminController extends Controller {
         return view('adminpanel.terminals');
     }
 
-    public function getTerminalsList(Request $req) {
-        $cols = ['id', 'description as name', 'is_locked', 'bill_count as billcount', 'bill_cash as billcash', 'dispenser_count as dispcount',
-            'DispenserStatus', 'stWebcamStatus', 'stValidatorStatus', 'stPrinterStatus', 'stScannerStatus', 'last_status'];
+    public function getTerminalsList(Request $req)
+    {
+        $cols = [
+            'id',
+            'description as name',
+            'is_locked',
+            'bill_count as billcount',
+            'bill_cash as billcash',
+            'dispenser_count as dispcount',
+            'DispenserStatus',
+            'stWebcamStatus',
+            'stValidatorStatus',
+            'stPrinterStatus',
+            'stScannerStatus',
+            'last_status'
+        ];
         $items = Terminal::select($cols);
         return Datatables::of($items)
-                        ->editColumn('name', function($item) {
-                            return ($item->closed) ? ('<s>' . $item->name . '</s>') : $item->name;
-                        })
-                        ->addColumn('status', function($item) {
-                            $html = '<div id="terminalStatusHolder' . $item->id . '">';
-                            $con_status = (Carbon::now()->diffInMinutes(new Carbon($item->last_status)) > TerminalController::MINS_TO_ALERT) ? 'label-danger' : 'label-success';
-                            $con_time = (is_null($item->last_status))?('-'):(with(new Carbon($item->last_status))->format('d.m.y H:i'));
-                            $html .= '<span class="label ' . $con_status . ' status_connection">' . $con_time . '</span>';
-                            $html .= ' <span title="' . $item->stWebcamStatus . '" class="label ' . (($item->stWebcamStatus == '') ? 'label-success' : 'label-danger') . ' status_camera">Камера</span>';
-                            $html .= ' <span title="' . $item->stPrinterStatus . '" class="label ' . (($item->stPrinterStatus == '') ? 'label-success' : 'label-danger') . ' status_printer">Принтер</span>';
-                            $html .= ' <span title="' . $item->stScannerStatus . '" class="label ' . (($item->stScannerStatus == '') ? 'label-success' : 'label-danger') . ' status_scanner">Сканер</span>';
-                            $html .= ' <span class="label ' . ((bool) (str_replace(',', '', $item->DispenserStatus)) ? 'label-danger' : 'label-success') . ' status_dispenser">Диспенсер</span>';
-//                            if (strstr($item->DispenserStatus, ',') !== FALSE) {
-//                                $html .= ' <span class="label label-danger status_money">Дисп. пуст</span>';
-//                            }
-//                            $html .= ' <button class="btn btn-default btn-xs" onclick="$.terminalsCtrl.refreshStatus(' . $item->id . '); return false;"><span class="glyphicon glyphicon-refresh"></span></button>';
-                            $html .= '</div>';
-                            return $html;
-                        })
-                        ->addColumn('dispenser_cash', function($item) {
-                            return ($item->dispcount * 1000) . ' руб.';
-                        })
-                        ->addColumn('dispenser_count', function($item) {
-                            return $item->dispcount . ' шт.';
-                        })
-                        ->addColumn('bill_cash', function($item) {
-                            return ($item->billcash / 100) . ' руб.';
-                        })
-                        ->addColumn('lock_status', function($item) {
-                            return '<input' . (($item->is_locked) ? ' checked' : '')
-                                    . ' class="checkbox" id="is_locked' . $item->id . '" name="is_locked" type="checkbox" value="'
-                                    . $item->is_locked . '"><label for="is_locked' . $item->id . '" onclick="$.terminalsCtrl.changeLockStatus('
-                                    . $item->id . ');" ></label>';
-                        })
-                        ->addColumn('actions', function($item) {
-                            $html = '<div class="btn-group btn-group-sm">';
-                            $html .= '<button class="btn btn-default" onclick="$.terminalsCtrl.openIncassModal(' . $item->id . '); return false;">Инкассация</button>';
-                            $html .= '<button class="btn btn-default" onclick="$.terminalsCtrl.openAddCashModal(' . $item->id . '); return false;">Пополнить</button>';
-                            $html .= '<button class="btn btn-default" onclick="$.terminalsCtrl.openAddCommandModal(' . $item->id . '); return false;">Команда</button>';
-                            $html .= HtmlHelper::Buttton(url('adminpanel/terminals/edit?id=' . $item->id), ['glyph' => 'pencil']);
-                            $html .= HtmlHelper::Buttton(url('adminpanel/terminals/remove?id=' . $item->id), ['glyph' => 'remove']);
-                            $html .= '</div>';
-                            return $html;
-                        })
-                        ->removeColumn('id')
-                        ->removeColumn('last_status')
-                        ->removeColumn('is_locked')
-                        ->removeColumn('billcount')
-                        ->removeColumn('billcash')
-                        ->removeColumn('dispcount')
-                        ->removeColumn('DispenserStatus')
-                        ->removeColumn('stWebcamStatus')
-                        ->removeColumn('stValidatorStatus')
-                        ->removeColumn('stPrinterStatus')
-                        ->removeColumn('stScannerStatus')
-                        ->filter(function ($query) use ($req) {
-                            if ($req->has('description')) {
-                                $query->where('description', 'like', "%" . $req->get('description') . "%");
-                            }
-                        })
-                        ->make();
+            ->editColumn('name', function ($item) {
+                return ($item->closed) ? ('<s>' . $item->name . '</s>') : $item->name;
+            })
+            ->addColumn('status', function ($item) {
+                $html = '<div id="terminalStatusHolder' . $item->id . '">';
+                $con_status = (Carbon::now()->diffInMinutes(new Carbon($item->last_status)) > TerminalController::MINS_TO_ALERT) ? 'label-danger' : 'label-success';
+                $con_time = (is_null($item->last_status)) ? ('-') : (with(new Carbon($item->last_status))->format('d.m.y H:i'));
+                $html .= '<span class="label ' . $con_status . ' status_connection">' . $con_time . '</span>';
+                $html .= ' <span title="' . $item->stWebcamStatus . '" class="label ' . (($item->stWebcamStatus == '') ? 'label-success' : 'label-danger') . ' status_camera">Камера</span>';
+                $html .= ' <span title="' . $item->stPrinterStatus . '" class="label ' . (($item->stPrinterStatus == '') ? 'label-success' : 'label-danger') . ' status_printer">Принтер</span>';
+                $html .= ' <span title="' . $item->stScannerStatus . '" class="label ' . (($item->stScannerStatus == '') ? 'label-success' : 'label-danger') . ' status_scanner">Сканер</span>';
+                $html .= ' <span class="label ' . ((bool)(str_replace(',', '',
+                        $item->DispenserStatus)) ? 'label-danger' : 'label-success') . ' status_dispenser">Диспенсер</span>';
+                $html .= '</div>';
+                return $html;
+            })
+            ->addColumn('dispenser_cash', function ($item) {
+                return ($item->dispcount * 1000) . ' руб.';
+            })
+            ->addColumn('dispenser_count', function ($item) {
+                return $item->dispcount . ' шт.';
+            })
+            ->addColumn('bill_cash', function ($item) {
+                return ($item->billcash / 100) . ' руб.';
+            })
+            ->addColumn('lock_status', function ($item) {
+                return '<input' . (($item->is_locked) ? ' checked' : '')
+                    . ' class="checkbox" id="is_locked' . $item->id . '" name="is_locked" type="checkbox" value="'
+                    . $item->is_locked . '"><label for="is_locked' . $item->id . '" onclick="$.terminalsCtrl.changeLockStatus('
+                    . $item->id . ');" ></label>';
+            })
+            ->addColumn('actions', function ($item) {
+                $html = '<div class="btn-group btn-group-sm">';
+                $html .= '<button class="btn btn-default" onclick="$.terminalsCtrl.openIncassModal(' . $item->id . '); return false;">Инкассация</button>';
+                $html .= '<button class="btn btn-default" onclick="$.terminalsCtrl.openAddCashModal(' . $item->id . '); return false;">Пополнить</button>';
+                $html .= '<button class="btn btn-default" onclick="$.terminalsCtrl.openAddCommandModal(' . $item->id . '); return false;">Команда</button>';
+                $html .= HtmlHelper::Buttton(url('adminpanel/terminals/edit?id=' . $item->id), ['glyph' => 'pencil']);
+                $html .= HtmlHelper::Buttton(url('adminpanel/terminals/remove?id=' . $item->id), ['glyph' => 'remove']);
+                $html .= '</div>';
+                return $html;
+            })
+            ->removeColumn('id')
+            ->removeColumn('last_status')
+            ->removeColumn('is_locked')
+            ->removeColumn('billcount')
+            ->removeColumn('billcash')
+            ->removeColumn('dispcount')
+            ->removeColumn('DispenserStatus')
+            ->removeColumn('stWebcamStatus')
+            ->removeColumn('stValidatorStatus')
+            ->removeColumn('stPrinterStatus')
+            ->removeColumn('stScannerStatus')
+            ->filter(function ($query) use ($req) {
+                if ($req->has('description')) {
+                    $query->where('description', 'like', "%" . $req->get('description') . "%");
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
     }
 
     public function addCash(Request $req) {

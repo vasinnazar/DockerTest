@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use yajra\Datatables\Datatables;
+use Yajra\Datatables\Facades\Datatables;
 use App\RemoveRequest;
 use App\MySoap;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +29,8 @@ class UsersRequestsController extends Controller {
      * @param Request $request
      * @return type
      */
-    public function removeRequestsList(Request $request) {
+    public function removeRequestsList(Request $request)
+    {
         $cols = [
             'remove_requests.status as req_status',
             'remove_requests.created_at as req_created_at',
@@ -41,209 +42,276 @@ class UsersRequestsController extends Controller {
         ];
         $remreqs = RemoveRequest::select($cols)->leftJoin('users', 'users.id', '=', 'remove_requests.requester_id');
         return Datatables::of($remreqs)
-                        ->removeColumn('req_id')
-                        ->editColumn('req_doc_id',function($item){
-                            $html = $item->req_doc_id;
-                            if ($item->req_doc_type == MySoap::ITEM_PKO || $item->req_doc_type == MySoap::ITEM_RKO) {
-                                    $obj = \App\Order::find($item->req_doc_id);
-                                    if(!is_null($obj)){
-                                        $html .= '<br>'.$obj->fio;
-                                    }
-                                } else if ($item->req_doc_type >= MySoap::ITEM_REP_CLAIM && $item->req_doc_type <= MySoap::ITEM_REP_CLOSING) {
-                                    $obj = \App\Repayment::find($item->req_doc_id);
-                                    if(!is_null($obj) && !is_null($obj->loan) && !is_null($obj->loan->claim) && !is_null($obj->loan->claim->passport)){
-                                        $html .= '<br>'.$obj->loan->claim->passport->fio;
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_CLAIM) {
-                                    $obj = \App\Claim::find($item->req_doc_id);
-                                    if(!is_null($obj) && !is_null($obj->passport)){
-                                        $html .= '<br>'.$obj->passport->fio;
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_LOAN) {
-                                    $obj = \App\Loan::find($item->req_doc_id);
-                                    if(!is_null($obj) && !is_null($obj->claim) && !is_null($obj->claim->passport)){
-                                        $html .= '<br>'.$obj->claim->passport->fio;
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_NPF) {
+            ->removeColumn('req_id')
+            ->editColumn('req_doc_id', function ($item) {
+                $html = $item->req_doc_id;
+                if ($item->req_doc_type == MySoap::ITEM_PKO || $item->req_doc_type == MySoap::ITEM_RKO) {
+                    $obj = \App\Order::find($item->req_doc_id);
+                    if (!is_null($obj)) {
+                        $html .= '<br>' . $obj->fio;
+                    }
+                } else {
+                    if ($item->req_doc_type >= MySoap::ITEM_REP_CLAIM && $item->req_doc_type <= MySoap::ITEM_REP_CLOSING) {
+                        $obj = \App\Repayment::find($item->req_doc_id);
+                        if (!is_null($obj) && !is_null($obj->loan) && !is_null($obj->loan->claim) && !is_null($obj->loan->claim->passport)) {
+                            $html .= '<br>' . $obj->loan->claim->passport->fio;
+                        }
+                    } else {
+                        if ($item->req_doc_type == MySoap::ITEM_CLAIM) {
+                            $obj = \App\Claim::find($item->req_doc_id);
+                            if (!is_null($obj) && !is_null($obj->passport)) {
+                                $html .= '<br>' . $obj->passport->fio;
+                            }
+                        } else {
+                            if ($item->req_doc_type == MySoap::ITEM_LOAN) {
+                                $obj = \App\Loan::find($item->req_doc_id);
+                                if (!is_null($obj) && !is_null($obj->claim) && !is_null($obj->claim->passport)) {
+                                    $html .= '<br>' . $obj->claim->passport->fio;
+                                }
+                            } else {
+                                if ($item->req_doc_type == MySoap::ITEM_NPF) {
                                     $obj = \App\NpfContract::find($item->req_doc_id);
-                                    if(!is_null($obj)){
-                                        $html .= '<br>'.$obj->passport->fio;
+                                    if (!is_null($obj)) {
+                                        $html .= '<br>' . $obj->passport->fio;
                                     }
-                                } else if ($item->req_doc_type == MySoap::ITEM_ISSUE_CLAIM) {
-                                    $obj = \App\IssueClaim::find($item->req_doc_id);
-                                    if(!is_null($obj)){
-                                        $html .= '<br>'.$obj->user->name;
-                                    }
-                                }
-                                return $html;
-                        })
-                        ->editColumn('req_status', function($item) {
-                            $html = '';
-                            if ($item->req_status == RemoveRequest::STATUS_CLAIMED) {
-                                $html .= '<big><span class="glyphicon glyphicon-question-sign info"></span></big>';
-                            } else if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                $html.= '<big><span class="glyphicon glyphicon-ok-sign success"></span></big>';
-                            }
-                            $html .= '<div class="visible-xs hidden-sm hidden-lg">';
-                            if (Auth::user()->isAdmin()) {
-                                if ($item->req_doc_type == MySoap::ITEM_PKO || $item->req_doc_type == MySoap::ITEM_RKO) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
-                                    } else {
-                                        $html .= HtmlHelper::Buttton(url('orders/remove/' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
-                                    }
-                                } else if ($item->req_doc_type >= MySoap::ITEM_REP_CLAIM && $item->req_doc_type <= MySoap::ITEM_REP_CLOSING) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
-                                    } else {
-                                        $html .= HtmlHelper::Buttton(url('repayments/remove/' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_CLAIM) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
-                                    } else {
-                                        $html .= HtmlHelper::Buttton(url('claims/mark4remove/' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_LOAN) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
-                                    } else {
-                                        $html .= HtmlHelper::Buttton(url('loans/remove/' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_NPF) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
-                                    } else {
-                                        $html .= HtmlHelper::Buttton(url('npf/remove?id=' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_ISSUE_CLAIM) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
-                                    } else {
-                                        $html .= HtmlHelper::Buttton(url('orders/issueclaims/delete/' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                                } else {
+                                    if ($item->req_doc_type == MySoap::ITEM_ISSUE_CLAIM) {
+                                        $obj = \App\IssueClaim::find($item->req_doc_id);
+                                        if (!is_null($obj)) {
+                                            $html .= '<br>' . $obj->user->name;
+                                        }
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+                return $html;
+            })
+            ->editColumn('req_status', function ($item) {
+                $html = '';
+                if ($item->req_status == RemoveRequest::STATUS_CLAIMED) {
+                    $html .= '<big><span class="glyphicon glyphicon-question-sign info"></span></big>';
+                } else {
+                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                        $html .= '<big><span class="glyphicon glyphicon-ok-sign success"></span></big>';
+                    }
+                }
+                $html .= '<div class="visible-xs hidden-sm hidden-lg">';
+                if (Auth::user()->isAdmin()) {
+                    if ($item->req_doc_type == MySoap::ITEM_PKO || $item->req_doc_type == MySoap::ITEM_RKO) {
+                        if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                            $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
+                        } else {
+                            $html .= HtmlHelper::Buttton(url('orders/remove/' . $item->req_doc_id),
+                                ['glyph' => 'remove']);
+                            $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                        }
+                    } else {
+                        if ($item->req_doc_type >= MySoap::ITEM_REP_CLAIM && $item->req_doc_type <= MySoap::ITEM_REP_CLOSING) {
                             if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                $html .= HtmlHelper::Buttton(null, ['disabled' => true, 'glyph' => 'eye-open']);
+                                $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
                             } else {
-                                $html .= HtmlHelper::Buttton(null, ['onclick' => '$.uReqsCtrl.showInfo(' . $item->req_id . '); return false;', 'glyph' => 'eye-open']);
+                                $html .= HtmlHelper::Buttton(url('repayments/remove/' . $item->req_doc_id),
+                                    ['glyph' => 'remove']);
+                                $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                    ['glyph' => 'minus', 'title' => 'Убрать пометку']);
                             }
-                            if (Auth::user()->isAdmin()) {
-                                $html .= '<a class="btn btn-default btn-sm" href="' . url('usersreqs/hide/' . $item->req_id) . '"><span class="glyphicon glyphicon-eye-close"></span></a>';
-                            }
-                            $html .= '</div>';
-                            return $html;
-                        })
-                        ->editColumn('req_created_at', function($item) {
-                            return with(new Carbon($item->req_created_at))->format('d.m.Y H:i:s');
-                        })
-                        ->editColumn('req_doc_type', function($item) {
-                            switch ($item->req_doc_type) {
-                                case MySoap::ITEM_CLAIM:
-                                    $res = 'Заявка';
-                                    break;
-                                case MySoap::ITEM_LOAN:
-                                    $res = 'Кредитный договор';
-                                    break;
-                                case MySoap::ITEM_RKO:
-                                    $res = 'Расходный кассовый ордер';
-                                    break;
-                                case MySoap::ITEM_REP_CLAIM:
-                                    $res = 'Соглашение о приостановке процентов';
-                                    break;
-                                case MySoap::ITEM_REP_DOP:
-                                    $res = 'Доп. договор';
-                                    break;
-                                case MySoap::ITEM_REP_PEACE:
-                                    $res = 'Согл. об урег-ии задолж';
-                                    break;
-                                case MySoap::ITEM_REP_SUZ:
-                                    $res = 'СУЗ';
-                                    break;
-                                case MySoap::ITEM_REP_CLOSING:
-                                    $res = 'Закрытие';
-                                    break;
-                                case MySoap::ITEM_PKO:
-                                    $res = 'Приход';
-                                    break;
-                                case MySoap::ITEM_NPF:
-                                    $res = 'Договор НПФ';
-                                    break;
-                                case MySoap::ITEM_ISSUE_CLAIM:
-                                    $res = 'Заявка на подотчет';
-                                    break;
-                            }
-                            return $res;
-                        })
-                        ->addColumn('actions', function($item) {
-                            $html = '<div class="btn-group btn-group-sm">';
-                            if (Auth::user()->isAdmin()) {
-                                if ($item->req_doc_type == MySoap::ITEM_PKO || $item->req_doc_type == MySoap::ITEM_RKO) {
+                        } else {
+                            if ($item->req_doc_type == MySoap::ITEM_CLAIM) {
+                                if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                                    $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
+                                } else {
+                                    $html .= HtmlHelper::Buttton(url('claims/mark4remove/' . $item->req_doc_id),
+                                        ['glyph' => 'remove']);
+                                    $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                        ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                                }
+                            } else {
+                                if ($item->req_doc_type == MySoap::ITEM_LOAN) {
                                     if ($item->req_status == RemoveRequest::STATUS_DONE) {
                                         $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
                                     } else {
-                                        $html .= HtmlHelper::Buttton(url('orders/remove/' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                                        $html .= HtmlHelper::Buttton(url('loans/remove/' . $item->req_doc_id),
+                                            ['glyph' => 'remove']);
+                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                            ['glyph' => 'minus', 'title' => 'Убрать пометку']);
                                     }
-                                } else if ($item->req_doc_type >= MySoap::ITEM_REP_CLAIM && $item->req_doc_type <= MySoap::ITEM_REP_CLOSING) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
+                                } else {
+                                    if ($item->req_doc_type == MySoap::ITEM_NPF) {
+                                        if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                                            $html .= HtmlHelper::Buttton(null,
+                                                ['glyph' => 'remove', 'disabled' => true]);
+                                        } else {
+                                            $html .= HtmlHelper::Buttton(url('npf/remove?id=' . $item->req_doc_id),
+                                                ['glyph' => 'remove']);
+                                            $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                                ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                                        }
                                     } else {
-                                        $html .= HtmlHelper::Buttton(url('repayments/remove/' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_CLAIM) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
-                                    } else {
-                                        $html .= HtmlHelper::Buttton(url('claims/mark4remove/' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_LOAN) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
-                                    } else {
-                                        $html .= HtmlHelper::Buttton(url('loans/remove/' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_NPF) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
-                                    } else {
-                                        $html .= HtmlHelper::Buttton(url('npf/remove?id=' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
-                                    }
-                                } else if ($item->req_doc_type == MySoap::ITEM_ISSUE_CLAIM) {
-                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
-                                    } else {
-                                        $html .= HtmlHelper::Buttton(url('orders/issueclaims/delete/' . $item->req_doc_id), ['glyph' => 'remove']);
-                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id), ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                                        if ($item->req_doc_type == MySoap::ITEM_ISSUE_CLAIM) {
+                                            if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                                                $html .= HtmlHelper::Buttton(null,
+                                                    ['glyph' => 'remove', 'disabled' => true]);
+                                            } else {
+                                                $html .= HtmlHelper::Buttton(url('orders/issueclaims/delete/' . $item->req_doc_id),
+                                                    ['glyph' => 'remove']);
+                                                $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                                    ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                                            }
+                                        }
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+                if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                    $html .= HtmlHelper::Buttton(null, ['disabled' => true, 'glyph' => 'eye-open']);
+                } else {
+                    $html .= HtmlHelper::Buttton(null, [
+                        'onclick' => '$.uReqsCtrl.showInfo(' . $item->req_id . '); return false;',
+                        'glyph' => 'eye-open'
+                    ]);
+                }
+                if (Auth::user()->isAdmin()) {
+                    $html .= '<a class="btn btn-default btn-sm" href="' . url('usersreqs/hide/' . $item->req_id) . '"><span class="glyphicon glyphicon-eye-close"></span></a>';
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->editColumn('req_created_at', function ($item) {
+                return with(new Carbon($item->req_created_at))->format('d.m.Y H:i:s');
+            })
+            ->editColumn('req_doc_type', function ($item) {
+                switch ($item->req_doc_type) {
+                    case MySoap::ITEM_CLAIM:
+                        $res = 'Заявка';
+                        break;
+                    case MySoap::ITEM_LOAN:
+                        $res = 'Кредитный договор';
+                        break;
+                    case MySoap::ITEM_RKO:
+                        $res = 'Расходный кассовый ордер';
+                        break;
+                    case MySoap::ITEM_REP_CLAIM:
+                        $res = 'Соглашение о приостановке процентов';
+                        break;
+                    case MySoap::ITEM_REP_DOP:
+                        $res = 'Доп. договор';
+                        break;
+                    case MySoap::ITEM_REP_PEACE:
+                        $res = 'Согл. об урег-ии задолж';
+                        break;
+                    case MySoap::ITEM_REP_SUZ:
+                        $res = 'СУЗ';
+                        break;
+                    case MySoap::ITEM_REP_CLOSING:
+                        $res = 'Закрытие';
+                        break;
+                    case MySoap::ITEM_PKO:
+                        $res = 'Приход';
+                        break;
+                    case MySoap::ITEM_NPF:
+                        $res = 'Договор НПФ';
+                        break;
+                    case MySoap::ITEM_ISSUE_CLAIM:
+                        $res = 'Заявка на подотчет';
+                        break;
+                }
+                return $res;
+            })
+            ->addColumn('actions', function ($item) {
+                $html = '<div class="btn-group btn-group-sm">';
+                if (Auth::user()->isAdmin()) {
+                    if ($item->req_doc_type == MySoap::ITEM_PKO || $item->req_doc_type == MySoap::ITEM_RKO) {
+                        if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                            $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
+                        } else {
+                            $html .= HtmlHelper::Buttton(url('orders/remove/' . $item->req_doc_id),
+                                ['glyph' => 'remove']);
+                            $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                        }
+                    } else {
+                        if ($item->req_doc_type >= MySoap::ITEM_REP_CLAIM && $item->req_doc_type <= MySoap::ITEM_REP_CLOSING) {
                             if ($item->req_status == RemoveRequest::STATUS_DONE) {
-                                $html .= HtmlHelper::Buttton(null, ['disabled' => true, 'text' => 'Подробности']);
+                                $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
                             } else {
-                                $html .= HtmlHelper::Buttton(null, ['onclick' => '$.uReqsCtrl.showInfo(' . $item->req_id . '); return false;', 'text' => 'Подробности']);
+                                $html .= HtmlHelper::Buttton(url('repayments/remove/' . $item->req_doc_id),
+                                    ['glyph' => 'remove']);
+                                $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                    ['glyph' => 'minus', 'title' => 'Убрать пометку']);
                             }
-                            if (Auth::user()->isAdmin()) {
-                                $html .= '<a class="btn btn-default btn-sm" href="' . url('usersreqs/hide/' . $item->req_id) . '"><span class="glyphicon glyphicon-eye-close"></span> Скрыть запрос</a>';
+                        } else {
+                            if ($item->req_doc_type == MySoap::ITEM_CLAIM) {
+                                if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                                    $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
+                                } else {
+                                    $html .= HtmlHelper::Buttton(url('claims/mark4remove/' . $item->req_doc_id),
+                                        ['glyph' => 'remove']);
+                                    $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                        ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                                }
+                            } else {
+                                if ($item->req_doc_type == MySoap::ITEM_LOAN) {
+                                    if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                                        $html .= HtmlHelper::Buttton(null, ['glyph' => 'remove', 'disabled' => true]);
+                                    } else {
+                                        $html .= HtmlHelper::Buttton(url('loans/remove/' . $item->req_doc_id),
+                                            ['glyph' => 'remove']);
+                                        $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                            ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                                    }
+                                } else {
+                                    if ($item->req_doc_type == MySoap::ITEM_NPF) {
+                                        if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                                            $html .= HtmlHelper::Buttton(null,
+                                                ['glyph' => 'remove', 'disabled' => true]);
+                                        } else {
+                                            $html .= HtmlHelper::Buttton(url('npf/remove?id=' . $item->req_doc_id),
+                                                ['glyph' => 'remove']);
+                                            $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                                ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                                        }
+                                    } else {
+                                        if ($item->req_doc_type == MySoap::ITEM_ISSUE_CLAIM) {
+                                            if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                                                $html .= HtmlHelper::Buttton(null,
+                                                    ['glyph' => 'remove', 'disabled' => true]);
+                                            } else {
+                                                $html .= HtmlHelper::Buttton(url('orders/issueclaims/delete/' . $item->req_doc_id),
+                                                    ['glyph' => 'remove']);
+                                                $html .= HtmlHelper::Buttton(url('usersreqs/remove/request?id=' . $item->req_id),
+                                                    ['glyph' => 'minus', 'title' => 'Убрать пометку']);
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            $html .= '</div>';
-                            return $html;
-                        })
-                        ->filter(function ($query) use ($request) {
-                            
-                        })
-                        ->make();
+                        }
+                    }
+                }
+                if ($item->req_status == RemoveRequest::STATUS_DONE) {
+                    $html .= HtmlHelper::Buttton(null, ['disabled' => true, 'text' => 'Подробности']);
+                } else {
+                    $html .= HtmlHelper::Buttton(null, [
+                        'onclick' => '$.uReqsCtrl.showInfo(' . $item->req_id . '); return false;',
+                        'text' => 'Подробности'
+                    ]);
+                }
+                if (Auth::user()->isAdmin()) {
+                    $html .= '<a class="btn btn-default btn-sm" href="' . url('usersreqs/hide/' . $item->req_id) . '"><span class="glyphicon glyphicon-eye-close"></span> Скрыть запрос</a>';
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->filter(function ($query) use ($request) {
+
+            })
+            ->setTotalRecords(1000)
+            ->make();
     }
     /**
      * подать заявку на удаление

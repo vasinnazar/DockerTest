@@ -11,7 +11,7 @@ use App\Utils\StrLib;
 use Auth;
 use App\Debtor;
 use App\Order;
-use yajra\Datatables\Datatables;
+use Yajra\Datatables\Facades\Datatables;
 use Illuminate\Support\Facades\DB;
 use App\StrUtils;
 use App\DebtorEvent;

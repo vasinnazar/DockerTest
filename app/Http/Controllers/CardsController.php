@@ -6,7 +6,7 @@ use Illuminate\Http\Request,
     Carbon\Carbon,
     App\Customer,
     App\CardChange,
-    yajra\Datatables\Datatables,
+    Yajra\Datatables\Facades\Datatables,
     Illuminate\Support\Facades\Validator,
     Illuminate\Support\Facades\DB,
     Auth,
@@ -68,35 +68,39 @@ class CardsController extends Controller {
             $items->where('card_changes.subdivision_id', Auth::user()->subdivision_id);
         }
         $collection = Datatables::of($items)
-                ->editColumn('ccdate', function($item) {
-                    return with(new Carbon($item->ccdate))->format('d.m.Y H:i:s');
-                })
-                ->addColumn('actions', function($item) {
-                    $html = '<div class="btn-group btn-group-sm">';
-                    if (!is_null(Auth::user()) && Auth::user()->isAdmin()) {
-                        $html .= HtmlHelper::Buttton(url('cardchanges/remove/' . $item->ccid), ['class' => 'btn btn-default btn-sm', 'glyph' => 'remove']);
-                    }
-                    if (is_null($item->ccclaim)) {
-                        $html .= HtmlHelper::Buttton(url('cardchanges/claimforremove/' . $item->ccid), ['class' => 'btn btn-default btn-sm', 'glyph' => 'exclamation-sign']);
-                    } else {
-                        $html .= HtmlHelper::Buttton(null, ['disabled' => true, 'class' => 'btn btn-danger btn-sm', 'glyph' => 'exclamation-sign']);
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
-                ->removeColumn('ccclaim')
-                ->filter(function ($query) use ($req) {
-                    if ($req->has('fio')) {
-                        $query->where('passports.fio', 'like', "%" . $req->get('fio') . "%");
-                    }
-                    if ($req->has('old_card_number')) {
-                        $query->where('card_changes.old_card_number', '=', $req->get('old_card_number'));
-                    }
-                    if ($req->has('new_card_number')) {
-                        $query->where('card_changes.new_card_number', '=', $req->get('new_card_number'));
-                    }
-                })
-                ->make();
+            ->editColumn('ccdate', function ($item) {
+                return with(new Carbon($item->ccdate))->format('d.m.Y H:i:s');
+            })
+            ->addColumn('actions', function ($item) {
+                $html = '<div class="btn-group btn-group-sm">';
+                if (!is_null(Auth::user()) && Auth::user()->isAdmin()) {
+                    $html .= HtmlHelper::Buttton(url('cardchanges/remove/' . $item->ccid),
+                        ['class' => 'btn btn-default btn-sm', 'glyph' => 'remove']);
+                }
+                if (is_null($item->ccclaim)) {
+                    $html .= HtmlHelper::Buttton(url('cardchanges/claimforremove/' . $item->ccid),
+                        ['class' => 'btn btn-default btn-sm', 'glyph' => 'exclamation-sign']);
+                } else {
+                    $html .= HtmlHelper::Buttton(null,
+                        ['disabled' => true, 'class' => 'btn btn-danger btn-sm', 'glyph' => 'exclamation-sign']);
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->removeColumn('ccclaim')
+            ->filter(function ($query) use ($req) {
+                if ($req->has('fio')) {
+                    $query->where('passports.fio', 'like', "%" . $req->get('fio') . "%");
+                }
+                if ($req->has('old_card_number')) {
+                    $query->where('card_changes.old_card_number', '=', $req->get('old_card_number'));
+                }
+                if ($req->has('new_card_number')) {
+                    $query->where('card_changes.new_card_number', '=', $req->get('new_card_number'));
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
         return $collection;
     }
 

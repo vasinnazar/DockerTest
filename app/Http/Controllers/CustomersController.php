@@ -18,7 +18,7 @@ use Illuminate\Http\Request,
     App\Claim,
     App\StrUtils,
     Illuminate\Support\Facades\DB,
-    yajra\Datatables\Datatables,
+    Yajra\Datatables\Facades\Datatables,
     Carbon\Carbon,
     App\Spylog\Spylog,
     App\Spylog\SpylogModel,
@@ -38,59 +38,81 @@ class CustomersController extends Controller {
         return view('customers.customers', ['subdivision_id' => ((is_null($id)) ? Auth::user()->subdivision_id : $id)]);
     }
 
-    public function getList(Request $request, $getFrom1cOnFail = true) {
+    public function getList(Request $request, $getFrom1cOnFail = true)
+    {
         $cols = [
-            'customers.id as customer_id', 'passports.fio as fio',
-            'passports.birth_date as birth_date', 'passports.series as series',
-            'passports.number as number', 'customers.telephone as telephone',
+            'customers.id as customer_id',
+            'passports.fio as fio',
+            'passports.birth_date as birth_date',
+            'passports.series as series',
+            'passports.number as number',
+            'customers.telephone as telephone',
             'cards.card_number as card_number'
         ];
-        $customers = Customer::select($cols)->leftJoin('passports', 'passports.customer_id', '=', 'customers.id')->leftJoin('cards', 'cards.customer_id', '=', 'customers.id')->distinct();
+        $customers = Customer::select($cols)->leftJoin('passports', 'passports.customer_id', '=',
+            'customers.id')->leftJoin('cards', 'cards.customer_id', '=', 'customers.id')->distinct();
         if (!$request->has('fio') && !$request->has('series') && !$request->has('number') && !config('app.dev')) {
-            $customers->whereBetween('customers.created_at', [Carbon::now()->setTime(0, 0, 0)->format('d.m.Y H:i:s'), Carbon::now()->setTime(23, 59, 59)->format('d.m.Y H:i:s')]);
+            $customers->whereBetween('customers.created_at', [
+                Carbon::now()->setTime(0, 0, 0)->format('d.m.Y H:i:s'),
+                Carbon::now()->setTime(23, 59, 59)->format('d.m.Y H:i:s')
+            ]);
         }
         $collection = Datatables::of($customers)
-                ->editColumn('telephone', function($customer) {
-                    return $customer->telephone ? StrUtils::hidePhone($customer->telephone) : '';
-                })
-                ->editColumn('birth_date', function($customer) {
-                    return with(new Carbon($customer->birth_date))->format('d.m.Y');
-                })
-                ->addColumn('actions', function($customer) {
-                    $html = '<div class="btn-group">';
-                    foreach (Passport::where('customer_id', $customer->customer_id)->select('id')->get() as $passport) {
-                        $html .= HtmlHelper::Buttton(url('customers/edit/' . $customer->customer_id . '/' . $passport->id), ['size' => 'sm', 'glyph' => 'pencil']);
-                    }
-                    if (Auth::user()->isAdmin()) {
-                        $html .= HtmlHelper::Buttton(url('customers/remove/' . $customer->customer_id), ['size' => 'sm', 'glyph' => 'remove']);
-                        $html .= HtmlHelper::Buttton(url('customers/remove2/' . $customer->customer_id), ['size' => 'sm', 'glyph' => 'remove', 'text' => 'Удалить(в крайнем случае)']);
-                        $html .= HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'credit-card', 'onclick' => '$.custCtrl.showCardsListModal(' . $customer->customer_id . ')']);
-                        $html .= HtmlHelper::Buttton(null, ['size' => 'sm', 'glyph' => 'plus', 'onclick' => '$.custCtrl.openAddCardModal(' . $customer->customer_id . ')']);
-                    }
-                    $html .= '</div>';
-                    return $html;
-                })
-                ->filter(function ($query) use ($request) {
-                    if ($request->has('fio')) {
-                        $query->where('fio', 'like', "%" . $request->get('fio') . "%");
-                    }
-                    if ($request->has('series')) {
-                        $query->where('series', '=', $request->get('series'));
-                    }
-                    if ($request->has('number')) {
-                        $query->where('number', '=', $request->get('number'));
-                    }
-                })
-                ->make();
+            ->editColumn('telephone', function ($customer) {
+                return $customer->telephone ? StrUtils::hidePhone($customer->telephone) : '';
+            })
+            ->editColumn('birth_date', function ($customer) {
+                return with(new Carbon($customer->birth_date))->format('d.m.Y');
+            })
+            ->addColumn('actions', function ($customer) {
+                $html = '<div class="btn-group">';
+                foreach (Passport::where('customer_id', $customer->customer_id)->select('id')->get() as $passport) {
+                    $html .= HtmlHelper::Buttton(url('customers/edit/' . $customer->customer_id . '/' . $passport->id),
+                        ['size' => 'sm', 'glyph' => 'pencil']);
+                }
+                if (Auth::user()->isAdmin()) {
+                    $html .= HtmlHelper::Buttton(url('customers/remove/' . $customer->customer_id),
+                        ['size' => 'sm', 'glyph' => 'remove']);
+                    $html .= HtmlHelper::Buttton(url('customers/remove2/' . $customer->customer_id),
+                        ['size' => 'sm', 'glyph' => 'remove', 'text' => 'Удалить(в крайнем случае)']);
+                    $html .= HtmlHelper::Buttton(null, [
+                        'size' => 'sm',
+                        'glyph' => 'credit-card',
+                        'onclick' => '$.custCtrl.showCardsListModal(' . $customer->customer_id . ')'
+                    ]);
+                    $html .= HtmlHelper::Buttton(null, [
+                        'size' => 'sm',
+                        'glyph' => 'plus',
+                        'onclick' => '$.custCtrl.openAddCardModal(' . $customer->customer_id . ')'
+                    ]);
+                }
+                $html .= '</div>';
+                return $html;
+            })
+            ->filter(function ($query) use ($request) {
+                if ($request->has('fio')) {
+                    $query->where('fio', 'like', "%" . $request->get('fio') . "%");
+                }
+                if ($request->has('series')) {
+                    $query->where('series', '=', $request->get('series'));
+                }
+                if ($request->has('number')) {
+                    $query->where('number', '=', $request->get('number'));
+                }
+            })
+            ->setTotalRecords(1000)
+            ->make();
         $colObj = $collection->getData();
         if ($getFrom1cOnFail) {
             if ($request->has('series') && $request->has('number')) {
                 if (!is_null($this->findCustomerIn1C($request->get('series'), $request->get('number')))) {
                     return $this->getList($request, false);
                 }
-            } else if ($request->has('fio')) {
-                if (!is_null($this->findCustomerIn1CByFio($request->fio))) {
-                    return $this->getList($request, false);
+            } else {
+                if ($request->has('fio')) {
+                    if (!is_null($this->findCustomerIn1CByFio($request->fio))) {
+                        return $this->getList($request, false);
+                    }
                 }
             }
         }
