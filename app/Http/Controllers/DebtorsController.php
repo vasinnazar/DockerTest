@@ -1472,7 +1472,11 @@ class DebtorsController extends BasicController
 
         $currentUser = User::find(Auth::id());
 
+        $isChief = $currentUser->hasRole('debtors_chief');
         $arIn = DebtorUsersRef::getUserRefs();
+        if ($isChief) {
+            $arInIsChief = User::getUsersIdsWithDebtorRole();
+        }
         $date = (is_null($req->get('search_field_debtor_events@date'))) ?
                 Carbon::today() :
                 (new Carbon($req->get('search_field_debtor_events@date')));
@@ -1511,6 +1515,23 @@ class DebtorsController extends BasicController
                 //->whereBetween('debtor_events.date', array($date->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')))
                 ->where('debtor_events.completed', 0)
                 ->groupBy('debtor_events.id');
+        if ($isChief) {
+            //Если пользователь имеет роль debtors_chief, дублируем билдер в другую переменную для дальнейших манипуляций с запросом
+            $debtorEventsChief = DB::table('debtor_events')->select($cols)
+                ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
+                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.passports', function($join) {
+                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+                })
+                ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
+                ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
+                ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
+                //->whereBetween('debtor_events.date', array($date->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')))
+                ->where('debtor_events.completed', 0)
+                ->groupBy('debtor_events.id');
+        }
 
         if (!$date_from_fmt && !$date_to_fmt) {
             $debtorEvents->whereBetween('debtor_events.date', array($date->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')));
@@ -1539,10 +1560,19 @@ class DebtorsController extends BasicController
         if ($currentUser->hasRole('debtors_personal')) {
             $debtorEvents->where('debtors.debtor_events.user_id', $currentUser->id);
         } else {
-
-            // если придет пустой массив - будут показаны все планы на день
-            if (count($arIn) && (is_null($responsible_id_1c) || !mb_strlen($responsible_id_1c))) {
-                $debtorEvents->whereIn('debtors.debtor_events.user_id', $arIn);
+            if($isChief) {
+                if ((count($arIn) && count($arInIsChief)) && (is_null($responsible_id_1c) || !mb_strlen($responsible_id_1c))) {
+                    $debtorEventsChief = $debtorEventsChief->whereIn('debtors.debtor_events.user_id', $arInIsChief)
+                        ->whereNotIn('debtors.debtor_events.user_id', $arIn)
+                        ->where('event_type_id', DebtorsEventType::ScheduledCallAiOmicron);
+                    $debtorEvents = $debtorEvents->whereIn('debtors.debtor_events.user_id', $arIn);
+                    $debtorEvents = $debtorEventsChief->unionAll($debtorEvents);
+                }
+            } else {
+                // если придет пустой массив - будут показаны все планы на день
+                if (count($arIn) && (is_null($responsible_id_1c) || !mb_strlen($responsible_id_1c))) {
+                    $debtorEvents->whereIn('debtors.debtor_events.user_id', $arIn);
+                }
             }
         }
 

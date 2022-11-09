@@ -138,7 +138,13 @@ class DebtorEvent extends Model {
         }
 //        $usersId = ;
 //        \PC::debug($usersId);
+        $isChief = $user->hasRole('debtors_chief');
+
+        if ($isChief) {
+            $usersIdIsChief = array_merge([$user->id], json_decode(User::getUsersWithDebtorRole(), true));
+        }
         $usersId = array_merge([$user->id], json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true));
+
         foreach ($dates as $intk => $intv) {
             $data = DB::table('debtor_events')
                     ->select(DB::raw('count(*) as num, event_type_id'))
@@ -147,6 +153,31 @@ class DebtorEvent extends Model {
                     ->where('completed', 0)
                     ->groupBy('event_type_id')
                     ->get();
+
+            if ($isChief) {
+                $dataChief = DB::table('debtor_events')
+                    ->select(DB::raw('count(*) as num, event_type_id'))
+                    ->where('event_type_id', DebtorsEventType::ScheduledCallAiOmicron)
+                    ->whereIn('user_id', $usersIdIsChief)
+                    ->whereNotIn('user_id', $usersId)
+                    ->whereBetween('date', $intv)
+                    ->where('completed', 0)
+                    ->groupBy('event_type_id')
+                    ->get();
+
+                if (!in_array(DebtorsEventType::ScheduledCallAiOmicron, array_column($data, 'event_type_id'))) {
+                    $data = array_merge($data, $dataChief);
+                } else {
+                    foreach ($data as $datum) {
+                        if ($datum->event_type_id === DebtorsEventType::ScheduledCallAiOmicron) {
+                            foreach ($dataChief as $itemDataChief) {
+                                $datum->num = $datum->num + $itemDataChief->num;
+                            }
+                        }
+                    }
+                }
+            }
+
             foreach ($data as $item) {
                 $tableData[$item->event_type_id][$intk] = $item->num;
                 if (!array_key_exists($item->event_type_id, $totalTypes)) {
