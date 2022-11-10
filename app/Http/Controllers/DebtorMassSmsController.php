@@ -252,13 +252,12 @@ class DebtorMassSmsController extends BasicController
             ]);
         }
 
-        $d = $debtors->groupBy('customer_id_1c')->get();
+        $d = $debtors->get();
         $cnt = 0;
-
         foreach ($d as $debtor) {
             $loan = \App\Loan::where('id_1c', $debtor->loan_id_1c)->first();
             $customer = \App\Customer::where('id_1c', $debtor->customer_id_1c)->first();
-
+            logger('collectCustomer', ['customers' => $debtor->customer_id_1c]);
             if (is_null($loan)) {
                 continue;
             }
@@ -275,34 +274,34 @@ class DebtorMassSmsController extends BasicController
             try {
                 $debtorsSmsCheck = Debtor::where('customer_id_1c', $customer->id_1c)->where('is_debtor', 1)->get();
 
-                foreach ($debtorsSmsCheck as $debtorCheck) {
-                    $this->checkSendSms($debtorCheck);
-                }
+//                foreach ($debtorsSmsCheck as $debtorCheck) {
+//                    $this->checkSendSms($debtorCheck);
+//                }
 
-                if (mb_strlen($phone) == 11) {
-
-                    $smsText = str_replace([
-                        '##sms_till_date##',
-                        '##spec_phone##',
-                        '##sms_loan_info##'
-                    ], [
-                        $input['sms_tpl_date'],
-                        $resp_user->phone,
-                        $debtor->loan_id_1c . ' от ' . Carbon::parse($loan->created_at)->format('d.m.Y')
-                    ], $tpl->text_tpl);
-
-                    if (SMSer::send($phone, $smsText)) {
-                        // увеличиваем счетчик отправленных пользователем смс
-                        $resp_user->increaseSentSms();
-                        // создаем мероприятие отправки смс
-                        $debt = Debtor::where('customer_id_1c', $customer->id_1c)
-                            ->where('is_debtor', 1)
-                            ->first();
-                        $report = $phone . ' SMS: ' . $smsText;
-                        $this->createEventSms($debt, $resp_user, $report);
-                        $cnt++;
-                    }
-                }
+//                if (mb_strlen($phone) == 11) {
+//
+//                    $smsText = str_replace([
+//                        '##sms_till_date##',
+//                        '##spec_phone##',
+//                        '##sms_loan_info##'
+//                    ], [
+//                        $input['sms_tpl_date'],
+//                        $resp_user->phone,
+//                        $debtor->loan_id_1c . ' от ' . Carbon::parse($loan->created_at)->format('d.m.Y')
+//                    ], $tpl->text_tpl);
+//
+//                    if (SMSer::send($phone, $smsText)) {
+//                        // увеличиваем счетчик отправленных пользователем смс
+//                        $resp_user->increaseSentSms();
+//                        // создаем мероприятие отправки смс
+//                        $debt = Debtor::where('customer_id_1c', $customer->id_1c)
+//                            ->where('is_debtor', 1)
+//                            ->first();
+//                        $report = $phone . ' SMS: ' . $smsText;
+//                        $this->createEventSms($debt, $resp_user, $report);
+//                        $cnt++;
+//                    }
+//                }
 
             } catch (SmsCheckException $e) {
                 return response()->json([
@@ -325,8 +324,8 @@ class DebtorMassSmsController extends BasicController
     public function checkSendSms(Debtor $debtor)
     {
         $smsSentDay = \App\DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
-            ->where('created_at', '>=', date('Y-m-d 00:00:00', time()))
-            ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
+            ->where('created_at', '>=', Carbon::now()->startOfDay())
+            ->where('created_at', '<=', Carbon::now()->endOfDay())
             ->where('event_type_id', 12)
             ->count();
 
@@ -334,9 +333,8 @@ class DebtorMassSmsController extends BasicController
             throw new SmsCheckException('sms_send_day');
         }
 
-        $startWeek = Carbon::now()->locale('en_US')->startOfWeek(Carbon::MONDAY)->format('Y-m-d H:i:s');
-        $endWeek = Carbon::now()->locale('en_US')->endOfWeek(Carbon::SUNDAY)->format('Y-m-d H:i:s');
-
+        $startWeek = Carbon::now()->startOfWeek(Carbon::MONDAY)->format('Y-m-d H:i:s');
+        $endWeek = Carbon::now()->endOfWeek(Carbon::SUNDAY)->format('Y-m-d H:i:s');
         $smsSentWeek = \App\DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
             ->where('created_at', '>=', $startWeek)
             ->where('created_at', '<=', $endWeek)
@@ -346,8 +344,8 @@ class DebtorMassSmsController extends BasicController
         if ($smsSentWeek >= 4) {
             throw new SmsCheckException('sms_send_week');
         }
-        $startMonth = Carbon::now()->locale('en_US')->startOfMonth()->format('Y-m-d H:i:s');
-        $endMonth = Carbon::now()->locale('en_US')->endOfMonth()->format('Y-m-d H:i:s');
+        $startMonth = Carbon::now()->startOfMonth()->format('Y-m-d H:i:s');
+        $endMonth = Carbon::now()->endOfMonth()->format('Y-m-d H:i:s');
 
         $smsSentMonth = \App\DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
             ->where('created_at', '>=', $startMonth)
