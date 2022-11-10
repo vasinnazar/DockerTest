@@ -82,6 +82,7 @@ class FromSellingARMController extends Controller {
 
             if ($debtor->str_podr == '000000000006' || $debtor->str_podr == '000000000007') {
                 $debtorItems = Debtor::where('customer_id_1c', $customer_id_1c)->where('is_debtor', 1);
+                $user = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
                 
                 $siteLog = new DebtorsSiteLoginLog();
                 
@@ -90,6 +91,7 @@ class FromSellingARMController extends Controller {
                 $siteLog->sum_loans_debt = $debtorItems->sum('sum_indebt');
                 $siteLog->debt_loans_count = $debtorItems->count();
                 $siteLog->debt_group_id = $debtor->debt_group_id;
+                $siteLog->responsible_user_id = (!is_null($user)) ? $user->id : null;
                 
                 $siteLog->save();
             }

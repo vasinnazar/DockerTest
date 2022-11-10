@@ -312,6 +312,8 @@ class DebtorsReportsController extends BasicController {
     }
     
     public function exportToExcelDebtorsLoginLog(Request $request) {
+        $user = auth()->user();
+        
         $dateStart = $request->get('dateStart', '');
         $dateEnd = $request->get('dateEnd', '');
         $mode = $request->get('mode', 'uv');
@@ -340,6 +342,10 @@ class DebtorsReportsController extends BasicController {
             $debtorsLog->where('str_podr', '000000000007');
         } else {
             $debtorsLog->where('str_podr', '000000000006');
+        }
+        
+        if (!$user->hasRole('debtors_chief')) {
+            $debtorsLog->where('responsible_user_id', $user->id);
         }
         
         $debtorsLog = $debtorsLog->get();
