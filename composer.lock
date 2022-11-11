@@ -308,21 +308,21 @@
         },
         {
             "name": "deployer/deployer",
-            "version": "v6.9.0",
+            "version": "v6.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/deployphp/deployer.git",
-                "reference": "c4380effdc9f6d9c6ae549bb76f0a22bcb1d31d2"
+                "reference": "6242bb8748c714dab628d67e3a0e1c57cb8d4afe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/deployphp/deployer/zipball/c4380effdc9f6d9c6ae549bb76f0a22bcb1d31d2",
-                "reference": "c4380effdc9f6d9c6ae549bb76f0a22bcb1d31d2",
+                "url": "https://api.github.com/repos/deployphp/deployer/zipball/6242bb8748c714dab628d67e3a0e1c57cb8d4afe",
+                "reference": "6242bb8748c714dab628d67e3a0e1c57cb8d4afe",
                 "shasum": ""
             },
             "require": {
                 "deployer/phar-update": "~2.2",
-                "php": "^7.2 || ^8.0",
+                "php": "~7.0",
                 "pimple/pimple": "~3.0",
                 "symfony/console": "~2.7|~3.0|~4.0|~5.0",
                 "symfony/process": "~2.7|~3.0|~4.0|~5.0",
@@ -361,13 +361,7 @@
                 "issues": "https://github.com/deployphp/deployer/issues",
                 "source": "https://github.com/deployphp/deployer"
             },
-            "funding": [
-                {
-                    "url": "https://github.com/antonmedv",
-                    "type": "github"
-                }
-            ],
-            "time": "2022-08-03T18:09:01+00:00"
+            "time": "2019-12-15T14:13:11+00:00"
         },
         {
             "name": "deployer/phar-update",
