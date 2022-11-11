@@ -106,6 +106,7 @@ class DebtorsNoticesController extends Controller {
         $debtors = Debtor::where('is_debtor', 1)
                 ->whereBetween('fixation_date', [$fixation_date_from, $fixation_date_to])
                 ->whereIn('responsible_user_id_1c', $respUsers)
+                ->whereIn('debt_group_id', $input['debt_group_ids'])
                 ->get();
 
         //$this->makeExcel($debtors, $input['address_type'], $noticesTask->id);

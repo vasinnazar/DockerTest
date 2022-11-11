@@ -96,6 +96,17 @@
                                 </td>
                             </tr>
                             <tr>
+                                <td>Группа долга: </td>
+                                <td></td>
+                                <td>
+                                    <select name="debt_group_ids[]" multiple="multiple">
+                                        <option value="4">Бесконтактный</option>
+                                        <option value="5">Сложный</option>
+                                        <option value="6">Безнадежный</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>Ответственный: </td>
                                 <td></td>
                                 <td>
