@@ -310,7 +310,6 @@ class DebtorMassSmsController extends BasicController
     public function getCustomersToArray($customersIds)
     {
         foreach ($customersIds as $customerId){
-            logger('test',['customer'=>$customerId,'customerId1c'=>$customerId['customer_id_1c']]);
             $customers[] = $customerId['customer_id_1c'];
         }
         return Customer::whereIn('id_1c',$customers)->get();
