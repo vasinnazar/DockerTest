@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Customer;
 use App\DebtorEvent;
 use App\Exceptions\SmsCheckException;
 use App\Utils\SMSer;
@@ -218,95 +219,85 @@ class DebtorMassSmsController extends BasicController
             ]);
         }
 
-        $debtors = Debtor::leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
+        $debtorsCustomers = Debtor::select('debtors.customer_id_1c')
+            ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
             ->leftJoin('debtors.passports', function ($join) {
                 $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
                 $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
             })
-            ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
-            ->groupBy('debtors.id');
+            ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c');
 
-        $debtors->where('responsible_user_id_1c', $resp_user->id_1c);
-        $debtors->where('is_debtor', 1);
+        $debtorsCustomers->where('responsible_user_id_1c', $resp_user->id_1c);
+        $debtorsCustomers->where('is_debtor', 1);
 
         if (isset($input['overdue_from']) && mb_strlen($input['overdue_from'])) {
-            $debtors->where('qty_delays', '>=', $input['overdue_from']);
+            $debtorsCustomers->where('qty_delays', '>=', $input['overdue_from']);
         }
         if (isset($input['overdue_till']) && mb_strlen($input['overdue_till'])) {
-            $debtors->where('qty_delays', '<=', $input['overdue_till']);
+            $debtorsCustomers->where('qty_delays', '<=', $input['overdue_till']);
         }
         if (isset($input['passports@fact_address_region']) && mb_strlen($input['passports@fact_address_region'])) {
-            $debtors->where('passports.fact_address_region', 'like',
+            $debtorsCustomers->where('passports.fact_address_region', 'like',
                 '%' . $input['passports@fact_address_region'] . '%');
         }
         if (isset($input['search_field_debtors@base']) && mb_strlen($input['search_field_debtors@base'])) {
-            $debtors->where('base', $input['search_field_debtors@base']);
+            $debtorsCustomers->where('base', $input['search_field_debtors@base']);
         }
         if (isset($input['search_field_debt_groups@id']) && mb_strlen($input['search_field_debt_groups@id'])) {
-            $debtors->where('debt_group_id', $input['search_field_debt_groups@id']);
+            $debtorsCustomers->where('debt_group_id', $input['search_field_debt_groups@id']);
         }
         if (isset($input['fixation_date']) && mb_strlen($input['fixation_date'])) {
-            $debtors->whereBetween('fixation_date', [
+            $debtorsCustomers->whereBetween('fixation_date', [
                 Carbon::parse($input['fixation_date'])->startOfDay(),
                 Carbon::parse($input['fixation_date'])->endOfDay()
             ]);
         }
+        foreach ($input as $k => $v) {
+            if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
+                $fieldName = str_replace('search_field_', '', $k);
+                $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
+                $colName = substr($fieldName, strlen($tableName) + 1);
+                $condColName = $k . '_condition';
+                $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
+                if ($condition == 'like') {
+                    $v = '%' . $v . '%';
+                }
+                $debtorsCustomers->where($tableName . '.' . $colName, $condition, $v);
+            }
+        }
 
-        $d = $debtors->get();
+        $customersIds = $debtorsCustomers->groupBy('customer_id_1c')->get();
+        $customers = $this->getCustomersToArray($customersIds);
+
         $cnt = 0;
-        foreach ($d as $debtor) {
-            $loan = \App\Loan::where('id_1c', $debtor->loan_id_1c)->first();
-            $customer = \App\Customer::where('id_1c', $debtor->customer_id_1c)->first();
-            logger('collectCustomer', ['customers' => $debtor->customer_id_1c]);
-            if (is_null($loan)) {
-                continue;
-            }
-
-            if (is_null($customer)) {
-                continue;
-            }
+        foreach ($customers as $customer) {
 
             $phone = $customer->telephone;
             if (isset($phone[0]) && $phone[0] == '8') {
                 $phone[0] = '7';
             }
 
-            try {
-                $debtorsSmsCheck = Debtor::where('customer_id_1c', $customer->id_1c)->where('is_debtor', 1)->get();
+            if (mb_strlen($phone) == 11) {
 
-//                foreach ($debtorsSmsCheck as $debtorCheck) {
-//                    $this->checkSendSms($debtorCheck);
-//                }
+                $smsText = str_replace([
+                    '##sms_till_date##',
+                    '##spec_phone##',
+                ], [
+                    $input['sms_tpl_date'],
+                    $resp_user->phone,
+                ], $tpl->text_tpl);
 
-//                if (mb_strlen($phone) == 11) {
-//
-//                    $smsText = str_replace([
-//                        '##sms_till_date##',
-//                        '##spec_phone##',
-//                        '##sms_loan_info##'
-//                    ], [
-//                        $input['sms_tpl_date'],
-//                        $resp_user->phone,
-//                        $debtor->loan_id_1c . ' от ' . Carbon::parse($loan->created_at)->format('d.m.Y')
-//                    ], $tpl->text_tpl);
-//
-//                    if (SMSer::send($phone, $smsText)) {
-//                        // увеличиваем счетчик отправленных пользователем смс
-//                        $resp_user->increaseSentSms();
-//                        // создаем мероприятие отправки смс
-//                        $debt = Debtor::where('customer_id_1c', $customer->id_1c)
-//                            ->where('is_debtor', 1)
-//                            ->first();
-//                        $report = $phone . ' SMS: ' . $smsText;
-//                        $this->createEventSms($debt, $resp_user, $report);
-//                        $cnt++;
-//                    }
-//                }
-
-            } catch (SmsCheckException $e) {
-                return response()->json([
-                    'error' => $e->errorMessage,
-                ]);
+                if (SMSer::send($phone, $smsText)) {
+                    // увеличиваем счетчик отправленных пользователем смс
+                    $resp_user->increaseSentSms();
+                    // создаем мероприятие отправки смс
+                    $debt = Debtor::where('customer_id_1c', $customer->id_1c)
+                        ->where('is_debtor', 1)
+                        ->first();
+                    $report = $phone . ' SMS: ' . $smsText;
+                    $this->createEventSms($debt, $resp_user, $report);
+                    $cnt++;
+                }
             }
         }
 
@@ -316,48 +307,15 @@ class DebtorMassSmsController extends BasicController
         ]);
     }
 
-    /**
-     * @param Debtor $debtor
-     * @return void
-     * @throws SmsCheckException
-     */
-    public function checkSendSms(Debtor $debtor)
+    public function getCustomersToArray($customersIds)
     {
-        $smsSentDay = \App\DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
-            ->where('created_at', '>=', Carbon::now()->startOfDay())
-            ->where('created_at', '<=', Carbon::now()->endOfDay())
-            ->where('event_type_id', 12)
-            ->count();
-
-        if ($smsSentDay >= 2) {
-            throw new SmsCheckException('sms_send_day');
+        foreach ($customersIds as $customerId){
+            logger('test',['customer'=>$customerId,'customerId1c'=>$customerId['customer_id_1c']]);
+            $customers[] = $customerId['customer_id_1c'];
         }
+        return Customer::whereIn('id_1c',$customers)->get();
 
-        $startWeek = Carbon::now()->startOfWeek(Carbon::MONDAY)->format('Y-m-d H:i:s');
-        $endWeek = Carbon::now()->endOfWeek(Carbon::SUNDAY)->format('Y-m-d H:i:s');
-        $smsSentWeek = \App\DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
-            ->where('created_at', '>=', $startWeek)
-            ->where('created_at', '<=', $endWeek)
-            ->where('event_type_id', 12)
-            ->count();
-
-        if ($smsSentWeek >= 4) {
-            throw new SmsCheckException('sms_send_week');
-        }
-        $startMonth = Carbon::now()->startOfMonth()->format('Y-m-d H:i:s');
-        $endMonth = Carbon::now()->endOfMonth()->format('Y-m-d H:i:s');
-
-        $smsSentMonth = \App\DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
-            ->where('created_at', '>=', $startMonth)
-            ->where('created_at', '<=', $endMonth)
-            ->where('event_type_id', 12)
-            ->count();
-
-        if ($smsSentMonth >= 16) {
-            throw new SmsCheckException('sms_send_month');
-        }
     }
-
     /**
      * @param Debtor $debt
      * @param User $respUser
