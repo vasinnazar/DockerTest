@@ -427,6 +427,7 @@
         });
         return false;
     };
+
     $.debtorsCtrl.initDebtorMassSmsTable = function () {
         $.debtorsCtrl.debtorTransferTableCtrl = new TableController('debtormasssms', [
                 {data: '0', name: 'links', searchable: false, orderable: false},

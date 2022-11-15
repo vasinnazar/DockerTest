@@ -2,33 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Customer;
+use App\DebtorEvent;
+use App\Exceptions\SmsCheckException;
+use App\Utils\SMSer;
 use Illuminate\Http\Request;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
 use App\Utils\PermLib;
 use App\Permission;
 use App\Utils\StrLib;
 use Auth;
 use App\Debtor;
-use App\Order;
 use Yajra\Datatables\Facades\Datatables;
-use Illuminate\Support\Facades\DB;
-use App\StrUtils;
-use App\DebtorEvent;
 use App\Utils\HtmlHelper;
 use Carbon\Carbon;
-use App\Photo;
-use Illuminate\Support\Facades\Storage;
-use App\Passport;
-use App\DebtorUsersRef;
-use App\DebtorSmsTpls;
 use App\User;
-use App\Utils;
-use App\MySoap;
 
-class DebtorMassSmsController extends BasicController {
+class DebtorMassSmsController extends BasicController
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         if (!Auth::user()->hasPermission(Permission::makeName(PermLib::ACTION_OPEN, PermLib::SUBJ_DEBTOR_TRANSFER))) {
             return redirect('/')->with('msg_err', StrLib::ERR_NOT_ADMIN);
         }
@@ -39,13 +32,15 @@ class DebtorMassSmsController extends BasicController {
      *
      * @return \Illuminate\Http\Response
      */
-    public function index() {
+    public function index()
+    {
         return view('debtormasssms.index', [
             'debtorTransferFilterFields' => self::getSearchFields()
         ]);
     }
 
-    function getDebtorsTableColumns() {
+    function getDebtorsTableColumns()
+    {
         return [
             'debtors.passports.fio' => 'passports_fio',
             'debtors.od' => 'debtors_od',
@@ -69,12 +64,13 @@ class DebtorMassSmsController extends BasicController {
      * @param array $input
      * @return boolean
      */
-    function hasFilterFilled($input) {
+    function hasFilterFilled($input)
+    {
         $filled = false;
         foreach ($input as $k => $v) {
-            if (((strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === FALSE) || $k == 'users@login' || $k == 'debtors@base') && !empty($v)) {
-                $filled = true;
-                return $filled;
+            if (((strpos($k, 'search_field_') === 0 && strpos($k,
+                            '_condition') === false) || $k == 'users@login' || $k == 'debtors@base') && !empty($v)) {
+                return true;
             }
         }
         return $filled;
@@ -90,9 +86,6 @@ class DebtorMassSmsController extends BasicController {
 
         $input = $req->input();
         $debtors = Debtor::select($cols)
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
             ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
             ->leftJoin('debtors.passports', function ($join) {
                 $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
@@ -100,8 +93,6 @@ class DebtorMassSmsController extends BasicController {
             })
             ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
             ->leftJoin('struct_subdivisions', 'struct_subdivisions.id_1c', '=', 'debtors.str_podr')
-//                ->where('armf.passports.fio', '<>', '')
-//                ->whereNotNull('armf.passports.fio')
             ->groupBy('debtors.id');
 
         if (!$this->hasFilterFilled($input)) {
@@ -125,46 +116,16 @@ class DebtorMassSmsController extends BasicController {
                 '%' . $input['passports@fact_address_region'] . '%');
         }
 
-        $is_bigmoney = (isset($input['search_field_debtors@is_bigmoney']) && $input['search_field_debtors@is_bigmoney'] == 1) ? 1 : 0;
-        $is_pledge = (isset($input['search_field_debtors@is_pledge']) && $input['search_field_debtors@is_pledge'] == 1) ? 1 : 0;
-        $is_pos = (isset($input['search_field_debtors@is_pos']) && $input['search_field_debtors@is_pos'] == 1) ? 1 : 0;
-
-        if ($is_bigmoney || $is_pledge || $is_pos) {
-            $debtors->where(function ($query) use ($is_bigmoney, $is_pledge, $is_pos) {
-                if ($is_bigmoney) {
-                    $query->where('debtors.debtors.is_bigmoney', 1);
-                    if ($is_pledge) {
-                        $query->orWhere('debtors.debtors.is_pledge', 1);
-                    }
-                    if ($is_pos) {
-                        $query->orWhere('debtors.debtors.is_pos', 1);
-                    }
-                } else {
-                    if ($is_pledge) {
-                        $query->where('debtors.debtors.is_pledge', 1);
-                        if ($is_pos) {
-                            $query->orWhere('debtors.debtors.is_pos', 1);
-                        }
-                    } else {
-                        if ($is_pos) {
-                            $query->where('debtors.debtors.is_pos', 1);
-                        }
-                    }
-                }
-            });
-        }
-
         $collection = Datatables::of($debtors)
             ->editColumn('debtors_fixation_date', function ($item) {
-                return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
-                    strtotime($item->debtors_fixation_date)) : '-';
+                return (!is_null($item->debtors_fixation_date)) ? Carbon::parse($item->debtors_fixation_date)->format('d.m.Y') : '-';
             })
             ->editColumn('debtors_od', function ($item) {
                 return number_format($item->debtors_od / 100, 2, '.', '');
             })
             ->editColumn('debtors_debt_group_id', function ($item) {
                 return (array_key_exists($item->debtors_debt_group_id,
-                    config('debtors')['debt_groups'])) ? config('debtors')['debt_groups'][$item->debtors_debt_group_id] : '';
+                    config('debtors.debt_groups'))) ? config('debtors.debt_groups')[$item->debtors_debt_group_id] : '';
             })
             ->editColumn('passports_fact_address_city', function ($item) {
                 $tmpCity = (empty($item->passports_fact_address_city)) ? $item->passports_fact_address_city1 : $item->passports_fact_address_city;
@@ -223,186 +184,188 @@ class DebtorMassSmsController extends BasicController {
             ->make();
         return $collection;
     }
-    
-    public function sendMassSms(Request $request) {
+
+    public function sendMassSms(Request $request)
+    {
         set_time_limit(0);
-        
+
         $input = $request->input();
-        
+
         if (!isset($input['search_field_users@id']) || $input['search_field_users@id'] == '') {
             return response()->json([
                 'error' => 'Не указан пользователь.'
             ]);
         }
-        
+
         if (!isset($input['sms_tpl_id']) || $input['sms_tpl_id'] == '') {
             return response()->json([
                 'error' => 'Не выбран шаблон смс.'
             ]);
         }
-        
+
         $resp_user = User::find($input['search_field_users@id']);
-        
+
         if (is_null($resp_user)) {
             return response()->json([
                 'error' => 'Не найден выбранный ответственный.'
             ]);
         }
-        
+
         $tpl = \App\DebtorSmsTpls::find($input['sms_tpl_id']);
-        
+
         if (is_null($tpl)) {
             return response()->json([
                 'error' => 'Не найден смс шаблон.'
             ]);
         }
-        
-        $debtors = Debtor::leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-                ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
-                ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
-                ->leftJoin('debtors.passports', function($join) {
-                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-                })
-                ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
-                ->leftJoin('struct_subdivisions', 'struct_subdivisions.id_1c', '=', 'debtors.str_podr')
-//                ->where('armf.passports.fio', '<>', '')
-//                ->whereNotNull('armf.passports.fio')
-                ->groupBy('debtors.id');
-                
-        $debtors->where('responsible_user_id_1c', $resp_user->id_1c);
-        $debtors->where('is_debtor', 1);
-        
+
+        $debtorsCustomers = Debtor::select('debtors.customer_id_1c')
+            ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
+            ->leftJoin('debtors.passports', function ($join) {
+                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+            })
+            ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c');
+
+        $debtorsCustomers->where('responsible_user_id_1c', $resp_user->id_1c);
+        $debtorsCustomers->where('is_debtor', 1);
+
         if (isset($input['overdue_from']) && mb_strlen($input['overdue_from'])) {
-            $debtors->where('qty_delays', '>=', $input['overdue_from']);
+            $debtorsCustomers->where('qty_delays', '>=', $input['overdue_from']);
         }
         if (isset($input['overdue_till']) && mb_strlen($input['overdue_till'])) {
-            $debtors->where('qty_delays', '<=', $input['overdue_till']);
+            $debtorsCustomers->where('qty_delays', '<=', $input['overdue_till']);
         }
         if (isset($input['passports@fact_address_region']) && mb_strlen($input['passports@fact_address_region'])) {
-            $debtors->where('passports.fact_address_region', 'like', '%' . $input['passports@fact_address_region'] . '%');
+            $debtorsCustomers->where('passports.fact_address_region', 'like',
+                '%' . $input['passports@fact_address_region'] . '%');
         }
         if (isset($input['search_field_debtors@base']) && mb_strlen($input['search_field_debtors@base'])) {
-            $debtors->where('base', $input['search_field_debtors@base']);
+            $debtorsCustomers->where('base', $input['search_field_debtors@base']);
         }
         if (isset($input['search_field_debt_groups@id']) && mb_strlen($input['search_field_debt_groups@id'])) {
-            $debtors->where('debt_group_id', $input['search_field_debt_groups@id']);
+            $debtorsCustomers->where('debt_group_id', $input['search_field_debt_groups@id']);
         }
         if (isset($input['fixation_date']) && mb_strlen($input['fixation_date'])) {
-            $debtors->whereBetween('fixation_date',[
+            $debtorsCustomers->whereBetween('fixation_date', [
                 Carbon::parse($input['fixation_date'])->startOfDay(),
                 Carbon::parse($input['fixation_date'])->endOfDay()
             ]);
         }
-        
-        $d = $debtors->get();
-        
-        $cnt = 0;
-        
-        foreach ($d as $debtor) {
-            $loan = \App\Loan::where('id_1c', $debtor->loan_id_1c)->first();
-            
-            if (is_null($loan)) {
-                continue;
+        foreach ($input as $k => $v) {
+            if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
+                $fieldName = str_replace('search_field_', '', $k);
+                $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
+                $colName = substr($fieldName, strlen($tableName) + 1);
+                $condColName = $k . '_condition';
+                $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
+                if ($condition == 'like') {
+                    $v = '%' . $v . '%';
+                }
+                $debtorsCustomers->where($tableName . '.' . $colName, $condition, $v);
             }
-            
-            $smsAlreadySent = \App\DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
-                ->where('created_at', '>=', date('Y-m-d 00:00:00', time()))
-                ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
-                ->where('event_type_id', 12)
-                ->count();
+        }
 
-            if ($smsAlreadySent >= 2) {
-                continue;
-            }
-            
-            $customer = \App\Customer::where('id_1c', $debtor->customer_id_1c)->first();
-            
-            if (is_null($customer)) {
-                continue;
-            }
-            
+        $customersIds = $debtorsCustomers->groupBy('customer_id_1c')->get();
+        $customers = $this->getCustomersToArray($customersIds);
+
+        $cnt = 0;
+        foreach ($customers as $customer) {
+
             $phone = $customer->telephone;
             if (isset($phone[0]) && $phone[0] == '8') {
                 $phone[0] = '7';
             }
-            
+
             if (mb_strlen($phone) == 11) {
-                
-                $sms_text = $tpl->text_tpl;
-                $sms_text = str_replace('##sms_till_date##', $input['sms_tpl_date'], $sms_text);
-                $sms_text = str_replace('##spec_phone##', $resp_user->phone, $sms_text);
-                $sms_text = str_replace('##sms_loan_info##', $debtor->loan_id_1c . ' от ' . date('d.m.Y', strtotime($loan->created_at)), $sms_text);
-                
-                if (\App\Utils\SMSer::send($phone, $sms_text)) {
+
+                $smsText = str_replace([
+                    '##sms_till_date##',
+                    '##spec_phone##',
+                ], [
+                    $input['sms_tpl_date'],
+                    $resp_user->phone,
+                ], $tpl->text_tpl);
+
+                if (SMSer::send($phone, $smsText)) {
                     // увеличиваем счетчик отправленных пользователем смс
                     $resp_user->increaseSentSms();
-
                     // создаем мероприятие отправки смс
-                    $debtorEvent = new \App\DebtorEvent();
-                    $data = [];
-                    $data['created_at'] = date('Y-m-d H:i:s', time());
-                    $data['event_type_id'] = 12;
-                    $data['overdue_reason_id'] = 0;
-                    $data['event_result_id'] = 22;
-                    $data['debt_group_id'] = $debtor->debt_group_id;
-                    $data['report'] = $phone . ' SMS: ' . $sms_text;
-                    $data['completed'] = 1;
-                    $debtorEvent->fill($data);
-                    $debtorEvent->refresh_date = date('Y-m-d H:i:s', time());
-
-                    if (!is_null($debtor)) {
-                        $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
-                        $nd = Debtor::where('debtor_id_1c', $debtor->debtor_id_1c)->first();
-                        if ($nd) {
-                            $debtorEvent->debtor_id = $nd->id;
-                        }
-                    }
-                    $debtorEvent->user_id = $resp_user->id;
-                    $debtorEvent->user_id_1c = $resp_user->id_1c;
-    //                $debtorEvent->id_1c = DebtorEvent::getNextNumber();
-                    $debtorEvent->save();
-
-                    //$debtorEvent->id_1c = 'М' . StrUtils::addChars(strval($debtorEvent->id), 9, '0', false);
-                    //$debtorEvent->save();
-                    
+                    $debt = Debtor::where('customer_id_1c', $customer->id_1c)
+                        ->where('is_debtor', 1)
+                        ->first();
+                    $report = $phone . ' SMS: ' . $smsText;
+                    $this->createEventSms($debt, $resp_user, $report);
                     $cnt++;
                 }
             }
         }
-        
+
         return response()->json([
             'error' => 'success',
             'cnt' => $cnt
         ]);
     }
 
-    static function getSearchFields() {
+    public function getCustomersToArray($customersIds)
+    {
+        foreach ($customersIds as $customerId){
+            $customers[] = $customerId['customer_id_1c'];
+        }
+        return Customer::whereIn('id_1c',$customers)->get();
+
+    }
+    /**
+     * @param Debtor $debt
+     * @param User $respUser
+     * @param string $report
+     * @return void
+     */
+    public function createEventSms($debt, $respUser, $report)
+    {
+        DebtorEvent::create([
+            'debtor_id' => $debt->id,
+            'debtor_id_1c' => $debt->debtor_id_1c,
+            'customer_id_1c' => $debt->customer_id_1c,
+            'loan_id_1c' => $debt->loan_id_1c,
+            'debt_group_id' => $debt->debt_group_id,
+            'user_id' => $respUser->id,
+            'user_id_1c' => $respUser->id_1c,
+            'event_type_id' => 12,
+            'report' => $report,
+            'refresh_date' => Carbon::now(),
+            'overdue_reason_id' => 0,
+            'event_result_id' => 22,
+            'completed' => 1,
+        ]);
+    }
+
+    static function getSearchFields()
+    {
         return [
-                
-                [
+
+            [
                 'name' => 'users@login',
                 'input_type' => 'text',
                 'label' => 'Ответственный',
                 'hidden_value_field' => 'users@id',
                 'field_id' => 'old_user_id'
             ],
-                [
+            [
                 'name' => 'passports@fact_address_region',
                 'input_type' => 'text',
                 'label' => 'Регион',
                 //'hidden_value_field' => 'passports@fact_address_region',
                 'field_id' => ''
             ],
-                [
+            [
                 'name' => 'debtors@base',
                 'input_type' => 'text',
                 'label' => 'База',
                 'hidden_value_field' => 'debtors@base',
                 'field_id' => ''
             ],
-                [
+            [
                 'name' => 'debt_groups@name',
                 'input_type' => 'text',
                 'label' => 'Группа долга',
