@@ -275,9 +275,10 @@ class DebtorsController extends BasicController
         $whatsAppEvent = true;
         try{
             foreach($all_debts as $debt){
-                $this->debtEventService->checkLimitEvent($debt,24);
+                $this->debtEventService->checkLimitEvent($debt,23);
             }
         }catch (DebtorException $e){
+            Log::error('CheckLimitEvent',['message' => $e->errorMessage,'customerId'=>$customer->id,'eventType'=>23]);
             $whatsAppEvent = false;
         }
         $ar_debtor_ids = [];
@@ -1847,6 +1848,7 @@ class DebtorsController extends BasicController
                     $this->debtEventService->checkLimitEvent($debt, 12);
                 }
             } catch (DebtorException $e) {
+                Log::error('CheckLimitEvent',['message' => $e->errorMessage,'customerId'=>$customer->id,'eventType'=>12]);
                 return response()->json([
                     'title' => 'Ошибка',
                     'msg' => $e->errorMessage

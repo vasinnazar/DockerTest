@@ -9,6 +9,7 @@ use App\Http\Requests\Email\EmailSendRequest;
 use App\Services\DebtorEventService;
 use App\Services\EmailService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class EmailController extends Controller
 {
@@ -58,6 +59,7 @@ class EmailController extends Controller
                       Возможно,неверные логин и пароль для входа в корпоративную почту,обратитесь в техподдержку.');
 
         } catch (DebtorException $e) {
+            Log::error('CheckLimitEvent',['message' => $e->errorMessage,'customerId'=>$customer->id,'eventType'=>24]);
             return redirect()->back()->with('msg_err', $e->errorMessage);
         }
 

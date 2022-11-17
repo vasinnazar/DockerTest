@@ -13,6 +13,7 @@ use App\Permission;
 use App\Utils\StrLib;
 use Illuminate\Support\Facades\Auth;
 use App\Debtor;
+use Illuminate\Support\Facades\Log;
 use Yajra\Datatables\Facades\Datatables;
 use App\Utils\HtmlHelper;
 use Carbon\Carbon;
@@ -281,6 +282,7 @@ class DebtorMassSmsController extends BasicController
                     $this->debtorEventService->checkLimitEvent($debtor,12);
                 }
             }catch (DebtorException $e){
+                Log::error('CheckLimitEvent',['message' => $e->errorMessage,'customerId'=>$customer->id,'eventType'=>12]);
                 return response()->json([
                     'error' => $e->errorMessage,
                 ]);
