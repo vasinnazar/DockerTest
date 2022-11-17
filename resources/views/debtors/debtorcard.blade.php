@@ -157,7 +157,7 @@
                             </div>
                         </div>
                         <input type="hidden" id="canCall" name="canCall" value="{{ ($pBgColor == '#28A93B') ? 1 : 0 }}">
-                        
+
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center'>
                             <div class="btn-group btn-group-sm btn-group-vertical">
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['anketa'] . '/'.$debtor->id.'/0')}}" target="_blank" class="btn btn-default">Анкета</a>
@@ -247,7 +247,7 @@
                             </div>
                         </div>
                         @endif
-                        
+
                         @if (isset($dataHasPeaceClaim['result']) && $dataHasPeaceClaim['result'])
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 15px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
@@ -258,7 +258,7 @@
                         @endif
                             </div>
                         </div>
-                        
+
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
                         @if ($dataHasPeaceClaim['has_claim'] || $dataHasPeaceClaim['has_peace'])
@@ -352,8 +352,7 @@
                                                 <span class="glyphicon glyphicon-earphone"></span>
                                             </button>
                                         @endif
-
-
+                                        @if($whatsApp)
                                         <a href="whatsapp://send?phone={{$data[0]['telephone']}}"
                                            class="btn btn-default btn-xs" target="_blank">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"
@@ -361,6 +360,7 @@
                                                 <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
                                             </svg>
                                         </a>
+                                        @endif
                                         <a href="https://t.me/+{{$data[0]['telephone']}}" class="btn btn-default btn-xs"
                                            target="_blank">
                                             Т
@@ -648,11 +648,11 @@
                                     <b>({{$loan_first_percent}})</b> {{$loan_percents->pc}}
                                     @endif
                                     %,
-                                    пр. {{$loan_percents->exp_pc}}%, 
+                                    пр. {{$loan_percents->exp_pc}}%,
                                     пеня {{$loan_percents->fine}}%
                                 </li>
                                 <li class='list-group-item'>
-                                    <small>Договор:</small><br> 
+                                    <small>Договор:</small><br>
                                     {{$data[0]['loan_id_1c']}} от {{$data[0]['loans_created_at']}} | (сумма займа: {{number_format($data[0]['d_money'], 2, '.', '')}} руб.)
                                     @if(isset($data[0]['repl_in_cash']) && !$data[0]['repl_in_cash'] && $data[0]['has_tranche'])
                                     <!-- (транш №{!!str_pad($data[0]['loan_tranche_number'], 3, '0', STR_PAD_LEFT)!!} к договору № {{$data[0]['loan_first_loan_id_1c']}} от {{with(new \Carbon\Carbon($data[0]['loan_first_loan_date']))->format('d.m.Y')}}) -->
@@ -681,13 +681,13 @@
                                 @endforeach
                                 </li>
                                 @endif
-                                
+
                                 @if ($data_pledge)
                                 <li class='list-group-item'>
                                     {!! $data_pledge !!}
                                 </li>
                                 @endif
-                                
+
                                 @if (count($insurances_data))
                                 @foreach ($insurances_data as $insurance_data)
                                 <li class='list-group-item'>
@@ -708,7 +708,7 @@
                                         <th>Текущая</th>
                                         <th>
                                             На дату<br>
-                                            <input class='form-control input-sm' name='debt_calc_date' type='date'/>                                            
+                                            <input class='form-control input-sm' name='debt_calc_date' type='date'/>
                                         </th>
                                     </tr>
                                 </thead>
@@ -765,7 +765,7 @@
                                 </tbody>
                             </table>
                             @else
-                             
+
                             @endif
                             @if (isset($lastRepayment) && $lastRepayment)
                             <table class="table table-condensed table-bordered">
@@ -820,7 +820,7 @@
                         if ($payment->type != 3 && $payment->type != 0) {
                             if ($payment_date == date('d.m.Y', strtotime($payment->created_at))) {
                                 $day_sum += $payment->money;
-                                
+
                             } else {
                                 $payment_date = date('d.m.Y', strtotime($payment->created_at));
                                 ?>
@@ -874,7 +874,7 @@
             </div>
         </div>
         @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $debtroles['is_chief'])
-            
+
                 <div class="col-xs-12 col-sm-6 col-lg-8">
                     <form action="/debtors/addevent" id="event-form" enctype="multipart/form-data" method="POST">
                         {{ csrf_field() }}
@@ -1061,7 +1061,7 @@
                     </form>
 
                 </div>
-            
+
         @endif
     </div>
 
@@ -1178,11 +1178,11 @@ $(document).ready(function () {
     $(document).on('submit', '#event-form', function () {
         $('#submit_event').attr('disabled', true);
     });
-    
+
     $.post($.app.url + '/ajax/debtors/loans/upload', {debtor_id: $('input[name="debtor_id"]').val()}).done(function (data) {
         $('#debtor_history_button').removeAttr('disabled');
         console.log("loansUpload: " + data);
-        
+
         $.post($.app.url + '/ajax/debtors/loans/getmultisum', {loan_id_1c: $('input[name="loan_id_1c"]').val(), customer_id_1c: $('input[name="customer_id_1c"]').val()}).done(function (data){
             if (data == '0') {
                 $('#multi_loan_block').html('');
@@ -1222,17 +1222,19 @@ $(document).on('change', 'input[name="date_demand"]', function () {
 $(document).on('click', '#sendSMS', function () {
     var sms = $('input[name="sms_id"]:checked').parent().next().text();
     $.app.blockScreen(true);
-    $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {phone: $('input[name="sms_phone_number"]').val(), sms_text: sms, debtor_id_1c: $('input[name="debtor_id_1c"]').val(), debt_group_id: "{{$data[0]['d_debt_group_id']}}"}).done(function (data) {
+    $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {
+        phone: $('input[name="sms_phone_number"]').val(),
+        sms_id: $('input[name="sms_id"]:checked').val(),
+        sms_text: sms,
+        debtor_id_1c: $('input[name="debtor_id_1c"]').val(),
+        debt_group_id: "{{$data[0]['d_debt_group_id']}}"
+    }).done(function (data) {
         $.app.blockScreen(false);
         $('#debtorSMS').modal('hide');
-        if (data == '-1') {
-            $.app.openErrorModal('Ошибка', 'Превышен лимит отправки SMS');
-        } else {
-            $.app.ajaxResult(data);
-            setTimeout(function () {
-                window.location.reload();
-            }, 2000);
-        }
+        $.app.openErrorModal(data.title, data.msg);
+        setTimeout(function () {
+            window.location.reload();
+        }, 2000);
     });
 });
 $(document).on('click', '#showSmsLink', function() {
@@ -1268,7 +1270,7 @@ $(document).on('click', '#sendSMSLink', function() {
     } else {
         var sms_phone = $('input[name="sms_phone_number"]').val();
     }
-    
+
     var amount = 0;
     if ($('#paymentLinkSumType1').is(':checked')) {
         amount = $('#paymentLinkSumFull').val();
@@ -1276,7 +1278,7 @@ $(document).on('click', '#sendSMSLink', function() {
     if ($('#paymentLinkSumType2').is(':checked')) {
         amount = $('#paymentLinkSum').val();
     }
-    
+
     $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {phone: sms_phone, sms_type: 'link', amount: amount, debtor_id_1c: $('input[name="debtor_id_1c"]').val(), debt_group_id: "{{$data[0]['d_debt_group_id']}}"}).done(function (data) {
         $.app.blockScreen(false);
         $('#debtorSMS').modal('hide');
@@ -1292,9 +1294,9 @@ $(document).on('click', '#sendSMSLink', function() {
 });
 $(document).on('click', '#sendSMSProps', function() {
     $.app.blockScreen(true);
-    
+
     var sms_phone = $('input[name="sms_phone_number"]').val();
-    
+
     $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {phone: sms_phone, sms_type: 'props', debtor_id_1c: $('input[name="debtor_id_1c"]').val(), debt_group_id: "{{$data[0]['d_debt_group_id']}}"}).done(function (data) {
         $.app.blockScreen(false);
         $('#debtorSMS').modal('hide');
@@ -1311,13 +1313,13 @@ $(document).on('click', '#sendSMSProps', function() {
 $(document).on('click', '#getMessengerText', function() {
     $(this).prop('disabled', true);
     $(this).text('Формирование ссылки...');
-    
+
     if ($('#enableThirdPeople').is(':checked')) {
         var sms_phone = $('#phoneThirdPeople').val();
     } else {
         var sms_phone = $('input[name="sms_phone_number"]').val();
     }
-    
+
     var amount = 0;
     if ($('#paymentLinkSumType1').is(':checked')) {
         amount = $('#paymentLinkSumFull').val();
@@ -1325,7 +1327,7 @@ $(document).on('click', '#getMessengerText', function() {
     if ($('#paymentLinkSumType2').is(':checked')) {
         amount = $('#paymentLinkSum').val();
     }
-    
+
     $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {phone: sms_phone, sms_type: 'msg', amount: amount, debtor_id_1c: $('input[name="debtor_id_1c"]').val(), debt_group_id: "{{$data[0]['d_debt_group_id']}}"}).done(function (data) {
         if (data == '-1') {
             $.app.openErrorModal('Ошибка', 'Превышен лимит отправки SMS');
@@ -1394,7 +1396,7 @@ $(document).on('click', '.recommend-ctrl', function() {
     if (cAction == 'complete') {
         alert_txt = 'завершить работу по рекомендации?';
     }
-    
+
     if (confirm('Вы действительно хотите ' + alert_txt)) {
         $.post($.app.url + '/ajax/debtors/changeRecommend', {action: cAction, debtor_id: $('input[name="debtor_id"]').val(), text: $('#recommend_text').val()}).done(function () {
             window.location.reload();

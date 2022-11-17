@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
-use Auth;
 
 //group_id: 0-admin, 1-user,-1 - superadmin
 class DebtorSmsTpls extends Model implements AuthenticatableContract, CanResetPasswordContract {

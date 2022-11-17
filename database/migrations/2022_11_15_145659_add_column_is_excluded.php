@@ -9,14 +9,14 @@ class AddColumnIsExcluded extends Migration
     public function up()
     {
         Schema::table('debtors_sms_tpls', function (Blueprint $table) {
-
+            $table->integer('is_excluded')->nullable();
         });
     }
 
     public function down()
     {
         Schema::table('debtors_sms_tpls', function (Blueprint $table) {
-            //
+            $table->dropColumn('is_excluded');
         });
     }
 }

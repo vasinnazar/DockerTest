@@ -5,7 +5,7 @@ namespace App\Exceptions;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
-class SmsCheckException extends Exception
+class DebtorException extends Exception
 {
     public $errorId;
     public $errorMessage;
