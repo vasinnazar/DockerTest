@@ -8,6 +8,7 @@ use App\DebtorGeocode;
 use App\DebtorsInfo;
 use App\DebtorSmsTpls;
 use App\DebtorUsersRef;
+use App\Exceptions\DebtorException;
 use App\Http\Requests\DebtorCard\MultiSumRequest;
 use App\Loan;
 use App\Message;
@@ -18,6 +19,7 @@ use App\Permission;
 use App\PlannedDeparture;
 use App\Repayment;
 use App\Services\DebtorCardService;
+use App\Services\DebtorEventService;
 use App\StrUtils;
 use App\User;
 use App\Utils;
@@ -25,6 +27,7 @@ use App\Utils\HtmlHelper;
 use App\Utils\PermLib;
 use App\Utils\StrLib;
 use Carbon\Carbon;
+use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -38,8 +41,9 @@ class DebtorsController extends BasicController
 {
 
     public $debtCardService;
+    public $debtEventService;
 
-    public function __construct(DebtorCardService $debtService)
+    public function __construct(DebtorCardService $debtService,DebtorEventService $eventService)
     {
         $this->middleware('auth');
         if (is_null(Auth::user())) {
@@ -50,6 +54,7 @@ class DebtorsController extends BasicController
         }
 
         $this->debtCardService = $debtService;
+        $this->debtEventService = $eventService;
     }
 
     /**
@@ -266,6 +271,16 @@ class DebtorsController extends BasicController
         $today = with(new Carbon())->today();
 
         $all_debts = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
+
+        $whatsAppEvent = true;
+        try{
+            foreach($all_debts as $debt){
+                $this->debtEventService->checkLimitEvent($debt,23);
+            }
+        }catch (DebtorException $e){
+            Log::error('CheckLimitEvent',['message' => $e->errorMessage,'customerId'=>$customer->id,'eventType'=>23]);
+            $whatsAppEvent = false;
+        }
         $ar_debtor_ids = [];
         foreach ($all_debts as $obj_debt) {
             $ar_debtor_ids[] = $obj_debt->debtor_id_1c;
@@ -861,8 +876,8 @@ class DebtorsController extends BasicController
             'dataHasPeaceClaim' => $dataHasPeaceClaim,
             'enableRecurrentButton' => $enableRecurrentButton,
             'blockProlongation' => $blockProlongation,
-            'arDataCcCard' => $arDataCcCard
-            //'lastRepayment' => $this->getLastRepayment($data[0]['loan_id_1c'], $data[0]['customer_id_1c'])
+            'arDataCcCard' => $arDataCcCard,
+            'whatsApp' => $whatsAppEvent,
         ]);
     }
 
@@ -1812,22 +1827,41 @@ class DebtorsController extends BasicController
     /**
      * Отправляет SMS должнику
      * @param Request $req
-     * @return int
+     * @return \Illuminate\Http\JsonResponse|string
      */
     public function sendSmsToDebtor(Request $req)
     {
-        $objUser = User::find(Auth::id());
-        if (!$objUser->canSendSms()) {
-            return -1;
+        $debtor = Debtor::where('debtor_id_1c', $req->get('debtor_id_1c'))->first();
+        if (is_null($debtor)) {
+            return response()->json([
+                'title' => 'Ошибка',
+                'msg' => 'Не удалось получить информацию по должнику'
+            ]);
         }
-        $smsAlreadySent = DebtorEvent::where('debtor_id_1c', $req->get('debtor_id_1c'))
-            ->where('created_at', '>=', date('Y-m-d 00:00:00', time()))
-            ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
-            ->where('event_type_id', 12)
-            ->count();
 
-        if ($smsAlreadySent >= 2) {
-            return -1;
+        $sms = DebtorSmsTpls::where('id',$req->sms_id)->first();
+        if (!is_null($sms->is_excludes)) {
+            try {
+                $customer = $debtor->customer();
+                $debtors = Debtor::where('customer_id_1c', $customer->id_1c)->get();
+                foreach ($debtors as $debt) {
+                    $this->debtEventService->checkLimitEvent($debt, 12);
+                }
+            } catch (DebtorException $e) {
+                Log::error('CheckLimitEvent',['message' => $e->errorMessage,'customerId'=>$customer->id,'eventType'=>12]);
+                return response()->json([
+                    'title' => 'Ошибка',
+                    'msg' => $e->errorMessage
+                ]);
+            }
+        }
+
+        $user = Auth::user();
+        if (!$user->canSendSms()) {
+            return response()->json([
+                'title' => 'Ошибка',
+                'msg' => 'Первышел лимит СМС пользователя'
+            ]);
         }
 
         // приводим номер телефона к виду, для отправки смс
@@ -1836,102 +1870,104 @@ class DebtorsController extends BasicController
             $phone[0] = '7';
         }
         if (mb_strlen($phone) == 11) {
-            $debtor = Debtor::where('debtor_id_1c', $req->get('debtor_id_1c'))->first();
-            if (is_null($debtor)) {
-                return 0;
-            }
-            $sms_link = '';
-            $sms_type = $req->get('sms_type', false);
-            $sms_text = $req->get('sms_text', false);
 
-            if ($sms_type && $sms_type == 'link') {
+            $smsLink = '';
+            $smsType = $req->get('sms_type', false);
+            $smsText = $req->get('sms_text', false);
+
+            if ($smsType && $smsType == 'link') {
                 $amount = $req->get('amount', 0);
-                if (is_null($debtor)) {
-                    return 0;
-                }
                 $token = crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai');
                 $amount = $amount * 100;
-                $sms_text = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
-                $sms_link = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount . '&loan_1c_id=' . $debtor->loan_id_1c . '&order_id=&customer_id=' . $debtor->customer_id_1c . '&phone=' . $phone . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
+                $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
+                $smsLink = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount
+                    . '&loan_1c_id=' . $debtor->loan_id_1c
+                    . '&order_id=&customer_id=' . $debtor->customer_id_1c
+                    . '&phone=' . $phone
+                    . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
 
-                $json_tinkoff_link = file_get_contents($sms_link);
-                $arJson = json_decode($json_tinkoff_link, true);
+                $jsonTinkoffLink = file_get_contents($smsLink);
+                $arJson = json_decode($jsonTinkoffLink, true);
 
                 if (isset($arJson['success']) && $arJson['success']) {
-                    $sms_link = $arJson['url'];
+                    $smsLink = $arJson['url'];
                 } else {
-                    return 0;
+                    return response()->json([
+                        'title' => 'Ошибка',
+                        'msg' => 'Не удалось сформировать ссылку'
+                    ]);
                 }
             }
 
-            if ($sms_type && $sms_type == 'msg') {
+            if ($smsType && $smsType == 'msg') {
                 $amount = $req->get('amount', 0);
-                if (is_null($debtor)) {
-                    return 0;
-                }
                 $token = crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai');
                 $amount = $amount * 100;
-                $sms_text = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
-                $sms_link = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount . '&loan_1c_id=' . $debtor->loan_id_1c . '&order_id=&customer_id=' . $debtor->customer_id_1c . '&phone=' . $phone . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
+                $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
+                $smsLink = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount
+                    . '&loan_1c_id=' . $debtor->loan_id_1c
+                    . '&order_id=&customer_id=' . $debtor->customer_id_1c
+                    . '&phone=' . $phone
+                    . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
 
-                $json_tinkoff_link = file_get_contents($sms_link);
-                $arJson = json_decode($json_tinkoff_link, true);
+                $jsonTinkoffLink = file_get_contents($smsLink);
+                $arJson = json_decode($jsonTinkoffLink, true);
 
                 if (isset($arJson['success']) && $arJson['success']) {
-                    $sms_link = $arJson['url'];
+                    $smsLink = $arJson['url'];
                 } else {
-                    return 0;
+                    return response()->json([
+                        'title' => 'Ошибка',
+                        'msg' => 'Не удалось сформировать сообщение'
+                    ]);
                 }
 
-                return $sms_text . ' ' . $sms_link;
+                return $smsText . ' ' . $smsLink;
             }
 
-            if ($sms_type && $sms_type == 'props') {
-                if (is_null($debtor)) {
-                    return 0;
-                }
-                $sms_text = 'Направляем реквизиты для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344 путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
-                $sms_link = '';
+            if ($smsType && $smsType == 'props') {
+                $smsText = 'Направляем реквизиты для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344'
+                . ' путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
+                $smsLink = '';
             }
 
-            if (mb_strlen($sms_link) > 0) {
-                $sms_link = ' ' . $sms_link;
+            if (mb_strlen($smsLink) > 0) {
+                $smsLink = ' ' . $smsLink;
             }
 
-            if (Utils\SMSer::send($phone, $sms_text . $sms_link)) {
+            if (Utils\SMSer::send($phone, $smsText . $smsLink)) {
                 // увеличиваем счетчик отправленных пользователем смс
-                $objUser->increaseSentSms();
+                $user->increaseSentSms();
 
                 // создаем мероприятие отправки смс
                 $debtorEvent = new DebtorEvent();
                 $data = [];
-                $data['created_at'] = date('Y-m-d H:i:s', time());
+                $data['created_at'] = Carbon::now()->format('Y-m-d H:i:s');
                 $data['event_type_id'] = 12;
                 $data['overdue_reason_id'] = 0;
                 $data['event_result_id'] = 22;
                 $data['debt_group_id'] = $req->get('debt_group_id');
-                $data['report'] = $phone . ' SMS: ' . $sms_text;
+                $data['report'] = $phone . ' SMS: ' . $smsText;
                 $data['completed'] = 1;
                 $debtorEvent->fill($data);
                 $debtorEvent->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
-
-                if (!is_null($debtor)) {
-                    $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
-                    $debtorEvent->debtor_id = $debtor->id;
-                }
-                $debtorEvent->user_id = Auth::user()->id;
-                $debtorEvent->user_id_1c = Auth::user()->id_1c;
-//                $debtorEvent->id_1c = DebtorEvent::getNextNumber();
+                $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
+                $debtorEvent->debtor_id = $debtor->id;
+                $debtorEvent->user_id = $user->id;
+                $debtorEvent->user_id_1c = $user->id_1c;
                 $debtorEvent->save();
 
-                //$debtorEvent->id_1c = 'М' . StrUtils::addChars(strval($debtorEvent->id), 9, '0', false);
-                //$debtorEvent->save();
-
-                return 1;
+                return response()->json([
+                    'title' => 'Готово',
+                    'msg' => 'Сообщение отправленно'
+                ]);
             }
         }
 
-        return 0;
+        return response()->json([
+            'title' => 'Ошибка',
+            'msg' => 'Не правильный номер'
+        ]);
     }
 
     /**
@@ -4599,33 +4635,6 @@ class DebtorsController extends BasicController
         }
 
         return redirect()->back();
-    }
-
-    public function sendEmailToDebtor(Request $request)
-    {
-
-    }
-
-    public function massSmsSend(Request $request)
-    {
-
-    }
-
-    public function countCustomersOfUser()
-    {
-        $responsible_users = [
-            ''
-        ];
-    }
-
-    public function workedDebtors(Request $req)
-    {
-
-    }
-
-    public function closedDebtors(Request $req)
-    {
-
     }
 
     public static function pledgeFormParams()
