@@ -18,6 +18,7 @@ use App\Permission;
 use App\PlannedDeparture;
 use App\Repayment;
 use App\Services\DebtorCardService;
+use App\Services\TimezoneService;
 use App\StrUtils;
 use App\User;
 use App\Utils;
@@ -4308,6 +4309,8 @@ class DebtorsController extends BasicController
 
         $is_leading_task = $req->get('type', false);
 
+        $timezone = $req->get('timezone', false);
+
         if ($is_leading_task && $is_leading_task == 'ouv_chief' && ($user->id == 916 || $user->id == 69)) { // запуск по Ведущему личного взыскания Свиридовым
             $str_podr = '000000000007-1';
         } else {
@@ -4319,6 +4322,9 @@ class DebtorsController extends BasicController
                 } else {
                     if ($user->hasRole('debtors_personal')) {
                         $str_podr = '000000000007';
+                    } elseif ($user->hasRole('debtors_chief')) {
+                        //ToDo указать верный $str_podr
+                        $str_podr = '000000000007-1';
                     } else {
                         $str_podr = null;
                     }
@@ -4380,6 +4386,10 @@ class DebtorsController extends BasicController
 
             if ($debtors) {
                 $recurrent_task = new \App\MassRecurrentTask();
+
+                if ($timezone) {
+                    $debtors = TimezoneService::getDebtorsForTimezone($debtors, $timezone);
+                }
 
                 $recurrent_task->user_id = $user->id;
                 $recurrent_task->debtors_count = count($debtors);
