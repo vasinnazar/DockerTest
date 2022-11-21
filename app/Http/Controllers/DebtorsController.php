@@ -276,9 +276,14 @@ class DebtorsController extends BasicController
         try{
             foreach($all_debts as $debt){
                 $this->debtEventService->checkLimitEvent($debt,23);
+
             }
         }catch (DebtorException $e){
-            Log::error('CheckLimitEvent',['message' => $e->errorMessage,'customerId'=>$customer->id,'eventType'=>23]);
+            Log::error('CheckLimitEvent',
+                ['message' => $e->errorMessage,
+                    'customerId'=>$customer->id,
+                    'eventType'=>config('debtors.event_types')[23]
+                ]);
             $whatsAppEvent = false;
         }
         $ar_debtor_ids = [];
@@ -306,6 +311,19 @@ class DebtorsController extends BasicController
         $arPurposes = Order::getPurposeNames();
 
         $arDebtData = config('debtors');
+        try{
+            foreach($all_debts as $debt){
+                $this->debtEventService->checkLimitEvent($debt,15);
+            }
+        }catch (DebtorException $e){
+            Log::error('CheckLimitEvent',
+                ['message' => $e->errorMessage,
+                    'customerId'=>$customer->id,
+                    'eventType'=>config('debtors.event_types')[15]
+                ]);
+
+            unset($arDebtData['even_type'][22]);
+        }
 
         // получаем данные об ответственном пользователе
         $debtorRespUser = Debtor::select(DB::raw('*'))
@@ -1848,7 +1866,11 @@ class DebtorsController extends BasicController
                     $this->debtEventService->checkLimitEvent($debt, 12);
                 }
             } catch (DebtorException $e) {
-                Log::error('CheckLimitEvent',['message' => $e->errorMessage,'customerId'=>$customer->id,'eventType'=>12]);
+                Log::error('CheckLimitEvent',
+                    ['message' => $e->errorMessage,
+                        'customerId'=>$customer->id,
+                        'eventType'=>config('debtors.event_types')[12]
+                    ]);
                 return response()->json([
                     'title' => 'Ошибка',
                     'msg' => $e->errorMessage
