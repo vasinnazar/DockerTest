@@ -4322,9 +4322,6 @@ class DebtorsController extends BasicController
                 } else {
                     if ($user->hasRole('debtors_personal')) {
                         $str_podr = '000000000007';
-                    } elseif ($user->hasRole('debtors_chief')) {
-                        //ToDo указать верный $str_podr
-                        $str_podr = '000000000007-1';
                     } else {
                         $str_podr = null;
                     }
