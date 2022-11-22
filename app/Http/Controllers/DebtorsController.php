@@ -1859,7 +1859,7 @@ class DebtorsController extends BasicController
         }
 
         $sms = DebtorSmsTpls::where('id',$req->sms_id)->first();
-        if (!is_null($sms->is_excludes)) {
+        if ($sms && !is_null($sms->is_excludes)) {
             try {
                 $customer = $debtor->customer();
                 $debtors = Debtor::where('customer_id_1c', $customer->id_1c)->get();
@@ -1878,7 +1878,6 @@ class DebtorsController extends BasicController
                 ]);
             }
         }
-
         $user = Auth::user();
         if (!$user->canSendSms()) {
             return response()->json([
