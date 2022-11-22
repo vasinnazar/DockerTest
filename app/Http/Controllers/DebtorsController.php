@@ -314,15 +314,16 @@ class DebtorsController extends BasicController
         try{
             foreach($all_debts as $debt){
                 $this->debtEventService->checkLimitEvent($debt,15);
-            }
-        }catch (DebtorException $e){
-            Log::error('CheckLimitEvent',
-                ['message' => $e->errorMessage,
-                    'customerId'=>$customer->id,
-                    'eventType'=>config('debtors.event_types')[15]
-                ]);
 
-            unset($arDebtData['even_type'][22]);
+            }
+        }catch (DebtorException $e) {
+            Log::error('CheckLimitEvent',
+                [
+                    'message' => $e->errorMessage,
+                    'customerId' => $customer->id,
+                    'eventType' => config('debtors.event_types')[15]
+                ]);
+            unset($arDebtData['event_types'][15]);
         }
 
         // получаем данные об ответственном пользователе
