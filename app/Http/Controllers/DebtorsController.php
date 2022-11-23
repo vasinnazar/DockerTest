@@ -305,8 +305,10 @@ class DebtorsController extends BasicController
             }
         }catch (DebtorException $e){
             $whatsAppEvent = false;
+            unset($arDebtData['event_types'][12]);
             unset($arDebtData['event_types'][15]);
             unset($arDebtData['event_types'][23]);
+            unset($arDebtData['event_types'][24]);
         }
         // получаем данные об ответственном пользователе
         $debtorRespUser = Debtor::select(DB::raw('*'))
