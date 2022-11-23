@@ -12,6 +12,11 @@ use Log;
 class DebtorEvent extends Model
 {
 
+    const SMS_EVENT = 12;
+    const AUTOINFORMER_OMICRON_EVENT = 15;
+    const WHATSAPP_EVENT = 23;
+    const EMAIL_EVENT = 24;
+
     protected $table = 'debtors.debtor_events';
     protected $fillable = [
         'date',

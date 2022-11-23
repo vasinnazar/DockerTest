@@ -13,19 +13,25 @@ class DebtorEventService
     const LIMIT_PER_DAY = 2;
     const LIMIT_PER_WEEK = 4;
     const LIMIT_PER_MONTH = 16;
+
     /**
      * @param Debtor $debtor
      * @param int $typeEvent
      * @return void
      * @throws DebtorException
      */
-    public function checkLimitEvent(Debtor $debtor,int $typeEvent)
+    public function checkLimitEvent(Debtor $debtor)
     {
         $stringFormatDate = 'Y-m-d H:i:s';
         $countEventDay = DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
             ->where('created_at', '>=', Carbon::now()->startOfDay())
             ->where('created_at', '<=', Carbon::now()->endOfDay())
-            ->where('event_type_id', $typeEvent)
+            ->whereIn('event_type_id', [
+                DebtorEvent::SMS_EVENT,
+                DebtorEvent::AUTOINFORMER_OMICRON_EVENT,
+                DebtorEvent::WHATSAPP_EVENT,
+                DebtorEvent::EMAIL_EVENT
+            ])
             ->count();
 
         if ($countEventDay >= DebtorEventService::LIMIT_PER_DAY) {
@@ -37,7 +43,12 @@ class DebtorEventService
         $countEventWeek = DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
             ->where('created_at', '>=', $startWeek)
             ->where('created_at', '<=', $endWeek)
-            ->where('event_type_id', $typeEvent)
+            ->whereIn('event_type_id', [
+                DebtorEvent::SMS_EVENT,
+                DebtorEvent::AUTOINFORMER_OMICRON_EVENT,
+                DebtorEvent::WHATSAPP_EVENT,
+                DebtorEvent::EMAIL_EVENT
+            ])
             ->count();
 
         if ($countEventWeek >= DebtorEventService::LIMIT_PER_WEEK) {
@@ -49,11 +60,16 @@ class DebtorEventService
         $countEventMonth = DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
             ->where('created_at', '>=', $startMonth)
             ->where('created_at', '<=', $endMonth)
-            ->where('event_type_id', $typeEvent)
+            ->whereIn('event_type_id', [
+                DebtorEvent::SMS_EVENT,
+                DebtorEvent::AUTOINFORMER_OMICRON_EVENT,
+                DebtorEvent::WHATSAPP_EVENT,
+                DebtorEvent::EMAIL_EVENT
+            ])
             ->count();
 
         if ($countEventMonth >= DebtorEventService::LIMIT_PER_MONTH) {
             throw new DebtorException('limit_per_month');
         }
-  }
+    }
 }

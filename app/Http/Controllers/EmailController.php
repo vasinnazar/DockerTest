@@ -46,7 +46,7 @@ class EmailController extends Controller
 
         try {
             foreach ($debtors as $debt) {
-                $this->debtorEventService->checkLimitEvent($debt, 24);
+                $this->debtorEventService->checkLimitEvent($debt);
             }
 
             if ($this->emailService->sendEmailDebtor($arrayParam)) {
@@ -59,11 +59,6 @@ class EmailController extends Controller
                       Возможно,неверные логин и пароль для входа в корпоративную почту,обратитесь в техподдержку.');
 
         } catch (DebtorException $e) {
-            Log::error('CheckLimitEvent',
-                ['message' => $e->errorMessage,
-                    'customerId'=>$customer->id,
-                    'eventType'=>config('debtors.event_types')[24]
-                ]);
             return redirect()->back()->with('msg_err', $e->errorMessage);
         }
 

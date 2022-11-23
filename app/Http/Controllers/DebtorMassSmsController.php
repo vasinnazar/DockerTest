@@ -279,17 +279,12 @@ class DebtorMassSmsController extends BasicController
             try {
                 $debtors = Debtor::where('customer_id_1c',$customer->id_1c)->get();
                 foreach($debtors as $debtor){
-                    $this->debtorEventService->checkLimitEvent($debtor,12);
+                    $this->debtorEventService->checkLimitEvent($debtor);
                 }
             }catch (DebtorException $e){
-                Log::error('CheckLimitEvent',
-                    ['message' => $e->errorMessage,
-                        'customerId'=>$customer->id,
-                        'eventType'=>config('debtors.event_types')[12]
-                    ]);
                 return response()->json([
                     'error' => $e->errorMessage,
-                ]);
+                ],$e->errorCode);
             }
 
             $phone = $customer->telephone;
