@@ -282,9 +282,7 @@ class DebtorMassSmsController extends BasicController
                     $this->debtorEventService->checkLimitEvent($debtor);
                 }
             }catch (DebtorException $e){
-                return response()->json([
-                    'error' => $e->errorMessage,
-                ],$e->errorCode);
+                continue;
             }
 
             $phone = $customer->telephone;
