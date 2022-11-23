@@ -57,7 +57,7 @@
                 <li><a href="{{url('debtors/reports/plancalend')}}">Календарь планов</a></li>
                 <li><a href="{{url('debtors/reports/jobsdoneact')}}">Акт выполненных работ</a></li>
                 <li><a href="{{url('debtors/reports/ovz')}}">ОВЗ</a></li>
-                <li><a href="#" data-toggle="modal" data-target="#debtorsSiteLoginReportModal">Логин на сайт</a></li>
+                <li><a href="#" data-toggle="modal" data-target="#debtorsSiteLoginReportModal">Должник на сайте</a></li>
                 @if ($is_chief)
                 <li><a href="{{url('debtors/editSmsCount')}}">SMS</a></li>
                 @if ($personalGroup['isGroup'])
