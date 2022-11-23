@@ -20,9 +20,6 @@ use Input,
     App\StrUtils,
     App\DebtorEvent;
 
-/**
- * условия для типов кредитников. 
- */
 class DebtorsNoticesController extends Controller {
 
     public function __construct() {
@@ -108,49 +105,6 @@ class DebtorsNoticesController extends Controller {
                 ->whereIn('responsible_user_id_1c', $respUsers)
                 ->whereIn('debt_group_id', $input['debt_group_ids'])
                 ->get();
-
-        //$this->makeExcel($debtors, $input['address_type'], $noticesTask->id);
-
-        $colHeaders = [
-            'ADDRESSLINE',
-            'ADRESAT',
-            'MASS',
-            'VALUE',
-            'PAYMENT',
-            'COMMENT',
-            'ORDERNUM',
-            'TELADDRESS',
-            'MAILTYPE',
-            'MAILCATEGORY',
-            'INDEXFROM',
-            'VLENGTH',
-            'VWIDTH',
-            'VHEIGHT',
-            'FRAGILE',
-            'ENVELOPETYPE',
-            'NOTIFICATIONTYPE',
-            'COURIER',
-            'SMSNOTICERECIPIENT',
-            'WOMAILRANK',
-            'PAYMENTMETHOD',
-            'NOTICEPAYMENTMETHOD',
-            'COMPLETENESSCHECKING',
-            'NORETURN',
-            'VSD',
-            'TRANSPORTMODE',
-            'EASYRETURN',
-            'BRANCHNAME',
-            'GROUPREFERENCE',
-            'ID_PO',
-            'PREPOSTALPREPARATION',
-            'DELIVERYPOINT',
-            'DIMENSIONTYPE',
-            'SHELFLIFEDAYS',
-            'WITHOUTOPENING',
-            'CONTENTSCHECKING',
-            'SENDERCOMMENT',
-            'TRANSPORTTYPE'
-        ];
 
         $massDir = storage_path() . '/app/public/postPdfTasks/' . $noticesTask->id . '/';
 
@@ -710,121 +664,6 @@ class DebtorsNoticesController extends Controller {
         
         $excel->store('xls', $path);
 
-        /*\Excel::create($noticesTask->id, function($excel) use ($debtors, $address_type, $str_podr) {
-
-            $excel->sheet('page1', function($sheet) use ($debtors, $address_type, $str_podr) {
-
-                $sheet->row(1, [
-                    'ADDRESSLINE',
-                    'ADRESAT',
-                    'MASS',
-                    'VALUE',
-                    'PAYMENT',
-                    'COMMENT',
-                    'ORDERNUM',
-                    'TELADDRESS',
-                    'MAILTYPE',
-                    'MAILCATEGORY',
-                    'INDEXFROM',
-                    'VLENGTH',
-                    'VWIDTH',
-                    'VHEIGHT',
-                    'FRAGILE',
-                    'ENVELOPETYPE',
-                    'NOTIFICATIONTYPE',
-                    'COURIER',
-                    'SMSNOTICERECIPIENT',
-                    'WOMAILRANK',
-                    'PAYMENTMETHOD',
-                    'NOTICEPAYMENTMETHOD',
-                    'COMPLETENESSCHECKING',
-                    'NORETURN',
-                    'VSD',
-                    'TRANSPORTMODE',
-                    'EASYRETURN',
-                    'BRANCHNAME',
-                    'GROUPREFERENCE',
-                    'ID_PO',
-                    'PREPOSTALPREPARATION',
-                    'DELIVERYPOINT',
-                    'DIMENSIONTYPE',
-                    'SHELFLIFEDAYS',
-                    'WITHOUTOPENING',
-                    'CONTENTSCHECKING',
-                    'SENDERCOMMENT',
-                    'TRANSPORTTYPE'
-                ]);
-
-                $cnt = 2;
-                foreach ($debtors as $debtor) {
-                    $notice = NoticeNumbers::where('debtor_id_1c', $debtor->debtor_id_1c)
-                            ->where('str_podr', $str_podr)
-                            ->first();
-
-                    if (!is_null($notice)) {
-                        continue;
-                    }
-
-                    $passport = Passport::where('series', $debtor->passport_series)
-                            ->where('number', $debtor->passport_number)
-                            ->first();
-
-                    if (is_null($passport)) {
-                        continue;
-                    }
-
-                    if ($address_type == 1) {
-                        $addressLine = $passport::getFullAddress($passport, true);
-                    } else {
-                        $addressLine = $passport::getFullAddress($passport);
-                    }
-
-                    $sheet->row($cnt, [
-                        $addressLine,
-                        $passport->fio,
-                        '0,1',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '2',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        ''
-                    ]);
-
-                    $cnt++;
-                }
-            });
-        })->store('xls', $path);*/
-
         $arDir = scandir($path);
 
         $zip = new \ZipArchive();
@@ -866,6 +705,10 @@ class DebtorsNoticesController extends Controller {
         $response->header("Content-Disposition", $ext);
 
         return $response;
+    }
+    
+    public function suzNotices(Request $request) {
+        
     }
 
 }

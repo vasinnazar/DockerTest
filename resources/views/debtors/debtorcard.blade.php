@@ -747,12 +747,13 @@
                                         <td><span>Изменение платежа:</span></td>
                                         <td colspan="2" style="text-align: center; vertical-align: middle;" class="debt-diffpay-ondate"></td>
                                     </tr>
-                                    @if ($current_schedule)
                                     <tr>
                                         <td colspan="3">
+                                            @if ($current_schedule)
                                             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#schedule" style="font-size: 12px;">
                                                 Текущий график платежей
                                             </button>
+                                            @endif
                                             @if ($create_schedule)
                                             <br/>
                                             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createSchedule" style="font-size: 12px;">
@@ -761,7 +762,6 @@
                                             @endif
                                         </td>
                                     </tr>
-                                    @endif
                                 </tbody>
                             </table>
                             @else
