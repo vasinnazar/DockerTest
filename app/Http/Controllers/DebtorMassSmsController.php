@@ -282,7 +282,11 @@ class DebtorMassSmsController extends BasicController
                     $this->debtorEventService->checkLimitEvent($debtor,12);
                 }
             }catch (DebtorException $e){
-                Log::error('CheckLimitEvent',['message' => $e->errorMessage,'customerId'=>$customer->id,'eventType'=>12]);
+                Log::error('CheckLimitEvent',
+                    ['message' => $e->errorMessage,
+                        'customerId'=>$customer->id,
+                        'eventType'=>config('debtors.event_types')[12]
+                    ]);
                 return response()->json([
                     'error' => $e->errorMessage,
                 ]);

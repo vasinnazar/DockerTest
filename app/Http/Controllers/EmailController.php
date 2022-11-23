@@ -59,7 +59,11 @@ class EmailController extends Controller
                       Возможно,неверные логин и пароль для входа в корпоративную почту,обратитесь в техподдержку.');
 
         } catch (DebtorException $e) {
-            Log::error('CheckLimitEvent',['message' => $e->errorMessage,'customerId'=>$customer->id,'eventType'=>24]);
+            Log::error('CheckLimitEvent',
+                ['message' => $e->errorMessage,
+                    'customerId'=>$customer->id,
+                    'eventType'=>config('debtors.event_types')[24]
+                ]);
             return redirect()->back()->with('msg_err', $e->errorMessage);
         }
 
