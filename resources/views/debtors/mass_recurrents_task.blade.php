@@ -9,8 +9,8 @@
         @if (auth()->user()->hasRole('debtors_chief'))
             <div class="timezone">
                 <h4>Интервал часовых поясов:</h4>
-                <button id="startMassRecurrents1" class="btn btn-primary" value="past">Запустить -1+5</button>
-                <button id="startMassRecurrents2" class="btn btn-primary" value="future">Запустить -2-5</button>
+                <button id="startMassRecurrents1" class="btn btn-primary" value="east">Запустить -1+5</button>
+                <button id="startMassRecurrents2" class="btn btn-primary" value="west">Запустить -2-5</button>
             </div>
         @endif
         <h4 style="{{ !auth()->user()->hasRole('debtors_chief') ? 'display: none' : '' }}">Запустить весь пулл:</h4>
