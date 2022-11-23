@@ -305,10 +305,10 @@ class DebtorsController extends BasicController
             }
         }catch (DebtorException $e){
             $whatsAppEvent = false;
-            unset($arDebtData['event_types'][12]);
-            unset($arDebtData['event_types'][15]);
-            unset($arDebtData['event_types'][23]);
-            unset($arDebtData['event_types'][24]);
+            unset($arDebtData['event_types'][DebtorEvent::SMS_EVENT]);
+            unset($arDebtData['event_types'][DebtorEvent::AUTOINFORMER_OMICRON_EVENT]);
+            unset($arDebtData['event_types'][DebtorEvent::WHATSAPP_EVENT]);
+            unset($arDebtData['event_types'][DebtorEvent::EMAIL_EVENT]);
         }
         // получаем данные об ответственном пользователе
         $debtorRespUser = Debtor::select(DB::raw('*'))
