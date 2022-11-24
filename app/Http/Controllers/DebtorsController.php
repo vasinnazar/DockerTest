@@ -272,20 +272,7 @@ class DebtorsController extends BasicController
 
         $all_debts = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
 
-        $whatsAppEvent = true;
-        try{
-            foreach($all_debts as $debt){
-                $this->debtEventService->checkLimitEvent($debt,23);
 
-            }
-        }catch (DebtorException $e){
-            Log::error('CheckLimitEvent',
-                ['message' => $e->errorMessage,
-                    'customerId'=>$customer->id,
-                    'eventType'=>config('debtors.event_types')[23]
-                ]);
-            $whatsAppEvent = false;
-        }
         $ar_debtor_ids = [];
         foreach ($all_debts as $obj_debt) {
             $ar_debtor_ids[] = $obj_debt->debtor_id_1c;
@@ -311,21 +298,18 @@ class DebtorsController extends BasicController
         $arPurposes = Order::getPurposeNames();
 
         $arDebtData = config('debtors');
+        $whatsAppEvent = true;
         try{
             foreach($all_debts as $debt){
-                $this->debtEventService->checkLimitEvent($debt,15);
-
+                $this->debtEventService->checkLimitEvent($debt);
             }
-        }catch (DebtorException $e) {
-            Log::error('CheckLimitEvent',
-                [
-                    'message' => $e->errorMessage,
-                    'customerId' => $customer->id,
-                    'eventType' => config('debtors.event_types')[15]
-                ]);
-            unset($arDebtData['event_types'][15]);
+        }catch (DebtorException $e){
+            $whatsAppEvent = false;
+            unset($arDebtData['event_types'][DebtorEvent::SMS_EVENT]);
+            unset($arDebtData['event_types'][DebtorEvent::AUTOINFORMER_OMICRON_EVENT]);
+            unset($arDebtData['event_types'][DebtorEvent::WHATSAPP_EVENT]);
+            unset($arDebtData['event_types'][DebtorEvent::EMAIL_EVENT]);
         }
-
         // получаем данные об ответственном пользователе
         $debtorRespUser = Debtor::select(DB::raw('*'))
             ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c');
@@ -1864,18 +1848,13 @@ class DebtorsController extends BasicController
                 $customer = $debtor->customer();
                 $debtors = Debtor::where('customer_id_1c', $customer->id_1c)->get();
                 foreach ($debtors as $debt) {
-                    $this->debtEventService->checkLimitEvent($debt, 12);
+                    $this->debtEventService->checkLimitEvent($debt);
                 }
             } catch (DebtorException $e) {
-                Log::error('CheckLimitEvent',
-                    ['message' => $e->errorMessage,
-                        'customerId'=>$customer->id,
-                        'eventType'=>config('debtors.event_types')[12]
-                    ]);
                 return response()->json([
                     'title' => 'Ошибка',
                     'msg' => $e->errorMessage
-                ]);
+                ],$e->errorCode);
             }
         }
         $user = Auth::user();
