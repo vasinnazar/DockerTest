@@ -304,11 +304,15 @@ class DebtorsController extends BasicController
                 $this->debtEventService->checkLimitEvent($debt);
             }
         }catch (DebtorException $e){
+            Log::error("$e->errorName:", [
+                'customer'=>$debtor->customer_id_1c,
+                'file'=> __FILE__,
+                'method'=> __METHOD__,
+                'line'=> __LINE__,
+                'id' => $e->errorId,
+                'message' => $e->errorMessage,
+            ]);
             $whatsAppEvent = false;
-            unset($arDebtData['event_types'][DebtorEvent::SMS_EVENT]);
-            unset($arDebtData['event_types'][DebtorEvent::AUTOINFORMER_OMICRON_EVENT]);
-            unset($arDebtData['event_types'][DebtorEvent::WHATSAPP_EVENT]);
-            unset($arDebtData['event_types'][DebtorEvent::EMAIL_EVENT]);
         }
         // получаем данные об ответственном пользователе
         $debtorRespUser = Debtor::select(DB::raw('*'))
@@ -1851,6 +1855,14 @@ class DebtorsController extends BasicController
                     $this->debtEventService->checkLimitEvent($debt);
                 }
             } catch (DebtorException $e) {
+                Log::error("$e->errorName:", [
+                    'customer'=>$debtor->customer_id_1c,
+                    'file'=> __FILE__,
+                    'method'=> __METHOD__,
+                    'line'=> __LINE__,
+                    'id' => $e->errorId,
+                    'message' => $e->errorMessage,
+                ]);
                 return response()->json([
                     'title' => 'Ошибка',
                     'msg' => $e->errorMessage
