@@ -282,6 +282,14 @@ class DebtorMassSmsController extends BasicController
                     $this->debtorEventService->checkLimitEvent($debtor);
                 }
             }catch (DebtorException $e){
+                Log::error("$e->errorName:", [
+                    'customer'=>$debtor->customer_id_1c,
+                    'file'=> __FILE__,
+                    'method'=> __METHOD__,
+                    'line'=> __LINE__,
+                    'id' => $e->errorId,
+                    'message' => $e->errorMessage,
+                ]);
                 continue;
             }
 
