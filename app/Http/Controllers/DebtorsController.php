@@ -3751,7 +3751,7 @@ class DebtorsController extends BasicController
         $currentUser = User::find(Auth::id());
         $today = date('Y-m-d 00:00:00', time());
 
-        $arGoodResultIds = [0, 3, 6, 9, 10, 11, 12, 13, 17, 21, 22];
+        $arGoodResultIds = [0, 3, 6, 9, 10, 11, 12, 13, 17, 21, 22, 23, 24];
 
         $str_podr = false;
 
