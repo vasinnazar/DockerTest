@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Debtor;
 use App\Services\PdfService;
+use App\Utils\PdfUtil;
 
 class PdfController extends Controller
 {
@@ -22,6 +23,9 @@ class PdfController extends Controller
     public function getCourtOrderPdf(int $debtor_id)
     {
         $debtor = Debtor::find($debtor_id);
-        return $this->pdfService->getCourtOrder($debtor);
+        $html = $this->pdfService->getCourtOrder($debtor);
+        return PdfUtil::getPdfFromPrintServer($html);
     }
+
+
 }
