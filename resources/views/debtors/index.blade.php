@@ -72,6 +72,9 @@
                 @if ($is_chief)
                 <li><a href="{{url('/debtors/notices/index')}}">Отправка писем</a></li>
                 @endif
+                @if ($personalGroup['isGroup'] && $is_chief)
+                <li><a href="{{url('/debtors/courts/index')}}">Отправка судебников</a></li>
+                @endif
             </ul>
             @if ($canEditSmsCount)
             <a href="{{url('debtors/editSmsCount')}}" class="btn btn-default">Количество SMS</a>
