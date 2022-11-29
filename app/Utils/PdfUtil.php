@@ -94,5 +94,15 @@ class PdfUtil {
             'Content-Disposition' => 'inline; filename="' . $filename . '"'
         ]);
     }
+    
+    static function savePdfFromPrintServer($html, $filename, $opts = null) {
+        $res = HelperUtil::sendByCurl(
+            \App\Option::getByName('print_server', 'http://5.175.225.158:8081') . '/htmltopdf.loc/index.php',
+            ['html' => $html, 'opts' => (!is_array($opts)) ? [] : json_encode($opts)],
+            true
+        );
+        
+        file_put_contents($filename, $res);
+    }
 
 }

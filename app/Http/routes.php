@@ -755,6 +755,11 @@ Route::get('/debtors/exportForgotten/excel', ['uses' => 'DebtorsController@expor
 Route::get('debtors/export/postregistry', ['uses' => 'DebtorsController@exportPostRegistry']);
 Route::get('debtors/omicron/gettask', ['uses' => 'CronController@getOmicronTask']);
 
+Route::get('debtors/courts/index', ['uses' => 'DebtorsNoticesController@courtNotices']);
+Route::get('debtors/courts/start', ['uses' => 'DebtorsNoticesController@startCourtTask']);
+Route::get('debtors/notices/getFile/{type}/{task_id}', ['uses' => 'DebtorsNoticesController@getFile']);
+Route::get('debtors/courts/getFile/{type}/{task_id}', ['uses' => 'DebtorsNoticesController@getCourtFile']);
+
 Route::get('debtors/notices/index', ['uses' => 'DebtorsNoticesController@index']);
 Route::get('debtors/notices/start', ['uses' => 'DebtorsNoticesController@startTask']);
 Route::get('debtors/notices/getFile/{type}/{task_id}', ['uses' => 'DebtorsNoticesController@getFile']);
