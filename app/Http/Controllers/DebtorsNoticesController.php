@@ -26,8 +26,9 @@ use App\Utils\PdfUtil;
 
 class DebtorsNoticesController extends Controller {
 
-    public function __construct() {
+    public function __construct(PdfService $pdfService) {
         $this->middleware('auth');
+        $this->pdfService = $pdfService;
     }
 
     public function index(Request $request) {
@@ -723,8 +724,8 @@ class DebtorsNoticesController extends Controller {
         $taskInProgress = false;
 
         if ($struct_subdivision) {
-            $noticesTask = CourtOrderTasks::where('in_progress', 1)->where('struct_subdivision', $struct_subdivision)->first();
-            $taskInProgress = (!is_null($noticesTask)) ? true : false;
+            $courtTask = CourtOrderTasks::where('in_progress', 1)->where('struct_subdivision', $struct_subdivision)->first();
+            $taskInProgress = (!is_null($courtTask)) ? true : false;
         }
 
         $slavesUserIds = json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true);
@@ -741,7 +742,7 @@ class DebtorsNoticesController extends Controller {
         $debtorUsers[$user->id]['name'] = $user->name;
         $debtorUsers[$user->id]['group_id'] = $user->user_group_id;
 
-        $tasks = DebtorNotice::where('struct_subdivision', $struct_subdivision)
+        $tasks = CourtOrderTasks::where('struct_subdivision', $struct_subdivision)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -838,7 +839,7 @@ class DebtorsNoticesController extends Controller {
             }
 
             $html = $this->pdfService->getCourtOrder($debtor);
-            PdfUtil::savePdfFromPrintServer($html, $path . $debtor->id . '.pdf');
+            PdfUtil::savePdfFromPrintServer($html, $path . '/' . $debtor->id . '.pdf');
             
             $i++;
             
