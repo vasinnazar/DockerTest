@@ -1530,10 +1530,10 @@ class DebtorsController extends BasicController
         $groupId = $req->get('search_field_debt_groups@id');
 
         if (!is_null($dateFrom) && !empty($dateFrom)) {
-            $dateFrom = Carbon::create($dateFrom)->startOfDay()->format('Y-m-d H:i:s');
+            $dateFrom = Carbon::parse($dateFrom)->startOfDay()->format('Y-m-d H:i:s');
         }
         if (!is_null($dateTo) && !empty($dateTo)) {
-            $dateTo = Carbon::create($dateTo)->endOfDay()->format('Y-m-d H:i:s');
+            $dateTo = Carbon::parse($dateTo)->endOfDay()->format('Y-m-d H:i:s');
         }
 
         // получаем список запланированных мероприятий на сегодня
@@ -1669,11 +1669,12 @@ class DebtorsController extends BasicController
 
         $groupId = $req->get('search_field_debt_groups@id');
 
+        logger('tets123',['$dateFrom'=>$dateFrom,'$dateTo'=>$dateTo]);
         if (!is_null($dateFrom) && !empty($dateFrom)) {
-            $dateFrom = Carbon::create($dateFrom)->startOfDay()->format('Y-m-d H:i:s');
+            $dateFrom = Carbon::parse($dateFrom)->startOfDay()->format('Y-m-d H:i:s');
         }
         if (!is_null($dateTo) && !empty($dateTo)) {
-            $dateTo = Carbon::create($dateTo)->endOfDay()->format('Y-m-d H:i:s');
+            $dateTo = Carbon::parse($dateTo)->endOfDay()->format('Y-m-d H:i:s');
         }
 
         $responsibleId1c = $req->get('search_field_users@id_1c');
