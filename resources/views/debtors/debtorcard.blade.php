@@ -1279,17 +1279,19 @@ $(document).on('click', '#sendSMSLink', function() {
         amount = $('#paymentLinkSum').val();
     }
 
-    $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {phone: sms_phone, sms_type: 'link', amount: amount, debtor_id_1c: $('input[name="debtor_id_1c"]').val(), debt_group_id: "{{$data[0]['d_debt_group_id']}}"}).done(function (data) {
+    $.post($.app.url + '/ajax/debtors/sendsmstodebtor',
+        {phone: sms_phone,
+            sms_type: 'link',
+            amount: amount,
+            debtor_id_1c: $('input[name="debtor_id_1c"]').val(),
+            debt_group_id: "{{$data[0]['d_debt_group_id']}}"
+        }).done(function (data) {
         $.app.blockScreen(false);
         $('#debtorSMS').modal('hide');
-        if (data == '-1') {
-            $.app.openErrorModal('Ошибка', 'Превышен лимит отправки SMS');
-        } else {
-            $.app.ajaxResult(data);
-            setTimeout(function () {
-                window.location.reload();
-            }, 2000);
-        }
+        $.app.openErrorModal(data.title, data.msg);
+        setTimeout(function () {
+            window.location.reload();
+        }, 1000);
     });
 });
 $(document).on('click', '#sendSMSProps', function() {
@@ -1297,17 +1299,18 @@ $(document).on('click', '#sendSMSProps', function() {
 
     var sms_phone = $('input[name="sms_phone_number"]').val();
 
-    $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {phone: sms_phone, sms_type: 'props', debtor_id_1c: $('input[name="debtor_id_1c"]').val(), debt_group_id: "{{$data[0]['d_debt_group_id']}}"}).done(function (data) {
+    $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {
+        phone: sms_phone,
+        sms_type: 'props',
+        debtor_id_1c: $('input[name="debtor_id_1c"]').val(),
+        debt_group_id: "{{$data[0]['d_debt_group_id']}}"
+    }).done(function (data) {
         $.app.blockScreen(false);
         $('#debtorSMS').modal('hide');
-        if (data == '-1') {
-            $.app.openErrorModal('Ошибка', 'Превышен лимит отправки SMS');
-        } else {
-            $.app.ajaxResult(data);
-            setTimeout(function () {
-                window.location.reload();
-            }, 2000);
-        }
+        $.app.openErrorModal(data.title, data.msg);
+        setTimeout(function () {
+            window.location.reload();
+        }, 1000);
     });
 });
 $(document).on('click', '#getMessengerText', function() {
@@ -1328,13 +1331,19 @@ $(document).on('click', '#getMessengerText', function() {
         amount = $('#paymentLinkSum').val();
     }
 
-    $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {phone: sms_phone, sms_type: 'msg', amount: amount, debtor_id_1c: $('input[name="debtor_id_1c"]').val(), debt_group_id: "{{$data[0]['d_debt_group_id']}}"}).done(function (data) {
-        if (data == '-1') {
-            $.app.openErrorModal('Ошибка', 'Превышен лимит отправки SMS');
-        } else {
-            $('#textForMessengerBlock').show();
-            $('#textForMessenger').text(data);
-        }
+    $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {
+        phone: sms_phone,
+        sms_type: 'msg',
+        amount: amount,
+        debtor_id_1c: $('input[name="debtor_id_1c"]').val(),
+        debt_group_id: "{{$data[0]['d_debt_group_id']}}"
+    }).done(function (data) {
+        $.app.blockScreen(false);
+        $('#debtorSMS').modal('hide');
+        $.app.openErrorModal(data.title, data.msg);
+        setTimeout(function () {
+            window.location.reload();
+        }, 1000);
     });
 });
 $(document).on('click', '.notice_personal', function(){
