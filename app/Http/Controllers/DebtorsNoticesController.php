@@ -786,6 +786,7 @@ class DebtorsNoticesController extends Controller {
                 ->whereBetween('fixation_date', [$fixation_date_from, $fixation_date_to])
                 ->whereIn('responsible_user_id_1c', $respUsers)
                 ->whereIn('debt_group_id', $input['debt_group_ids'])
+                ->where('qty_delays', '>=', 95)
                 ->get();
 
         $massDir = storage_path() . '/app/public/courtPdfTasks/' . $courtTask->id . '/';
