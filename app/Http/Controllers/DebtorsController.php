@@ -3360,8 +3360,7 @@ class DebtorsController extends BasicController
     public function exportToExcel(Request $req)
     {
         \PC::debug($req->input());
-        $debtors = $this->getDebtorsQuery($req, true);
-        $debtors->sortBy('passports_fio');
+        $debtors = $this->getDebtorsQuery($req, true)->sortBy('passports_fio');
         $html = '<table>';
         $colHeaders = [
             'debtors_fixation_date' => 'Дата закрепления',
