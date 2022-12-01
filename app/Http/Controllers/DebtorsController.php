@@ -1669,7 +1669,6 @@ class DebtorsController extends BasicController
 
         $groupId = $req->get('search_field_debt_groups@id');
 
-        logger('tets123',['$dateFrom'=>$dateFrom,'$dateTo'=>$dateTo]);
         if (!is_null($dateFrom) && !empty($dateFrom)) {
             $dateFrom = Carbon::parse($dateFrom)->startOfDay()->format('Y-m-d H:i:s');
         }
@@ -3361,12 +3360,9 @@ class DebtorsController extends BasicController
     public function exportToExcel(Request $req)
     {
         \PC::debug($req->input());
-        $query = $this->getDebtorsQuery($req, true);
-        $query->orderBy('passports_fio');
-        $debtors = $query->get();
-        \PC::debug($debtors);
+        $debtors = $this->getDebtorsQuery($req, true);
+        $debtors->sortBy('passports_fio');
         $html = '<table>';
-        $firstRow = true;
         $colHeaders = [
             'debtors_fixation_date' => 'Дата закрепления',
             'passports_fio' => 'ФИО должника',
@@ -3377,7 +3373,6 @@ class DebtorsController extends BasicController
             'debtors_od' => 'Сумма ОД',
             'debtors_base' => 'База',
             'debtor_with_schedule' => 'Тип договора',
-            // col_num = 9 - getDebtorsQuery: customers_telephone - 9-й по счету
             'debtor_is_online' => 'Онлайн',
             'customers_telephone' => 'Телефон',
             'debtors_debt_group_id' => 'Группа долга',
@@ -3450,8 +3445,11 @@ class DebtorsController extends BasicController
                     $col_num++;
                     continue;
                 }
-                if ($k == 'debtors_od' || $k == 'debtors_sum_indebt') {
-                    if ($k == 'debtors_od' && isset($debtorArray['debtors_od_after_closing']) && !is_null($debtorArray['debtors_od_after_closing']) && $debtorArray['debtors_od_after_closing'] != 0) {
+                if ($k == 'debtors_od' || $k == 'debtors_sum_indebt'){
+                    if ($k == 'debtors_od' && isset($debtorArray['debtors_od_after_closing'])
+                        && !is_null($debtorArray['debtors_od_after_closing'])
+                        && $debtorArray['debtors_od_after_closing'] != 0
+                    ){
                         $v = $debtorArray['debtors_od_after_closing'];
                     }
                     $html .= '<td>' . StrUtils::kopToRub($v) . '</td>';
@@ -3482,8 +3480,6 @@ class DebtorsController extends BasicController
         }
         $html .= '</tbody>';
         $html .= '</table>';
-
-//        return $html;
 
         $file = "report.xls";
         header("Content-type: application/vnd.ms-excel");
