@@ -1,5 +1,5 @@
 @extends('app')
-@section('title') Реестр писем @stop
+@section('title') Судебные приказы @stop
 @section('css')
 <style>
     .debtors-frame{
@@ -22,12 +22,12 @@
 @else
 <div class='row'>
     <div class="col-xs-12">
-        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#debtorNoticesFilterModal"><span class='glyphicon glyphicon-search'></span> Фильтр</button>
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#debtorCourtsFilterModal"><span class='glyphicon glyphicon-search'></span> Фильтр</button>
     </div>
 </div>
 <div class='row'>
     <div class="col-xs-12">
-        <table id="debtorNoticesTable" class="pull-right">
+        <table id="debtorCourtsTable" class="pull-right">
             <tr>
                 <td style="padding-left: 20px; padding-right: 17px;">
                     <!--a href="/debtors/notices/start" class="btn btn-primary" target="_blank">Создать Excel</a>
@@ -52,10 +52,10 @@
                 <tr>
                     <td>{{ date('d.m.Y H:i', strtotime($task->created_at)) }}</td>
                     <td>
-                        <a href="/debtors/notices/getFile/xls/{{ $task->id }}">Скачать Excel</a>
+                        <a href="/debtors/courts/getFile/xls/{{ $task->id }}">Скачать Excel</a>
                     </td>
                     <td>
-                        <a href="/debtors/notices/getFile/zip/{{ $task->id }}">Скачать ZIP-архив</a>
+                        <a href="/debtors/courts/getFile/zip/{{ $task->id }}">Скачать ZIP-архив</a>
                     </td>
                 </tr>
                 @endforeach
@@ -63,18 +63,18 @@
         </table>
     </div>
 </div>
-<div class="modal fade" id="debtorNoticesFilterModal" tabindex="-1" role="dialog" aria-labelledby="debtorNoticesFilterModalLabel" aria-hidden="true">
+<div class="modal fade" id="debtorCourtsFilterModal" tabindex="-1" role="dialog" aria-labelledby="debtorCourtsFilterModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="debtorNoticesFilterModalLabel">Фильтр реестра требований</h4>
+                <h4 class="modal-title" id="debtorCourtsFilterModalLabel">Фильтр реестра приказов</h4>
             </div>
-            <form action="/debtors/notices/start">
+            <form action="/debtors/courts/start">
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xs-12">
-                        <table class='table table-borderless' id='debtorNoticesFilter'>
+                        <table class='table table-borderless' id='debtorCourtsFilter'>
                             <tr>
                                 <td>Дата закрепления, с</td>
                                 <td></td>
@@ -84,16 +84,6 @@
                                 <td>Дата закрепления, до</td>
                             <td></td>
                                 <td><input name="fixation_date_to" type='text' class='form-control'/></td>
-                            </tr>
-                            <tr>
-                                <td>Адрес: </td>
-                                <td></td>
-                                <td>
-                                    <select name="address_type">
-                                        <option value="0">Регистрации</option>
-                                        <option value="1">Фактический</option>
-                                    </select>
-                                </td>
                             </tr>
                             <tr>
                                 <td>Группа долга: </td>
@@ -122,7 +112,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorNoticesClearFilterBtn'])!!}
+                {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorCourtsClearFilterBtn'])!!}
                 <button type="submit" class="btn btn-primary">Создать реестр</button>
             </div>
             </form>

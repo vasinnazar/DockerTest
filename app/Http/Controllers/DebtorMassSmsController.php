@@ -4,14 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Customer;
 use App\DebtorEvent;
-use App\Exceptions\SmsCheckException;
+use App\Exceptions\DebtorException;
+use App\Services\DebtorEventService;
 use App\Utils\SMSer;
 use Illuminate\Http\Request;
 use App\Utils\PermLib;
 use App\Permission;
 use App\Utils\StrLib;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Debtor;
+use Illuminate\Support\Facades\Log;
 use Yajra\Datatables\Facades\Datatables;
 use App\Utils\HtmlHelper;
 use Carbon\Carbon;
@@ -20,11 +22,13 @@ use App\User;
 class DebtorMassSmsController extends BasicController
 {
 
-    public function __construct()
+    public $debtorEventService;
+    public function __construct(DebtorEventService $service)
     {
         if (!Auth::user()->hasPermission(Permission::makeName(PermLib::ACTION_OPEN, PermLib::SUBJ_DEBTOR_TRANSFER))) {
             return redirect('/')->with('msg_err', StrLib::ERR_NOT_ADMIN);
         }
+        $this->debtorEventService = $service;
     }
 
     /**
@@ -271,6 +275,23 @@ class DebtorMassSmsController extends BasicController
 
         $cnt = 0;
         foreach ($customers as $customer) {
+
+            try {
+                $debtors = Debtor::where('customer_id_1c',$customer->id_1c)->get();
+                foreach($debtors as $debtor){
+                    $this->debtorEventService->checkLimitEvent($debtor);
+                }
+            }catch (DebtorException $e){
+                Log::error("$e->errorName:", [
+                    'customer'=>$debtor->customer_id_1c,
+                    'file'=> __FILE__,
+                    'method'=> __METHOD__,
+                    'line'=> __LINE__,
+                    'id' => $e->errorId,
+                    'message' => $e->errorMessage,
+                ]);
+                continue;
+            }
 
             $phone = $customer->telephone;
             if (isset($phone[0]) && $phone[0] == '8') {

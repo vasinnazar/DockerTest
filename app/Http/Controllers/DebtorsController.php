@@ -8,6 +8,7 @@ use App\DebtorGeocode;
 use App\DebtorsInfo;
 use App\DebtorSmsTpls;
 use App\DebtorUsersRef;
+use App\Exceptions\DebtorException;
 use App\Http\Requests\DebtorCard\MultiSumRequest;
 use App\Loan;
 use App\Message;
@@ -18,6 +19,7 @@ use App\Permission;
 use App\PlannedDeparture;
 use App\Repayment;
 use App\Services\DebtorCardService;
+use App\Services\DebtorEventService;
 use App\Services\TimezoneService;
 use App\StrUtils;
 use App\User;
@@ -26,6 +28,7 @@ use App\Utils\HtmlHelper;
 use App\Utils\PermLib;
 use App\Utils\StrLib;
 use Carbon\Carbon;
+use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -39,8 +42,9 @@ class DebtorsController extends BasicController
 {
 
     public $debtCardService;
+    public $debtEventService;
 
-    public function __construct(DebtorCardService $debtService)
+    public function __construct(DebtorCardService $debtService,DebtorEventService $eventService)
     {
         $this->middleware('auth');
         if (is_null(Auth::user())) {
@@ -51,6 +55,7 @@ class DebtorsController extends BasicController
         }
 
         $this->debtCardService = $debtService;
+        $this->debtEventService = $eventService;
     }
 
     /**
@@ -267,6 +272,8 @@ class DebtorsController extends BasicController
         $today = with(new Carbon())->today();
 
         $all_debts = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
+
+
         $ar_debtor_ids = [];
         foreach ($all_debts as $obj_debt) {
             $ar_debtor_ids[] = $obj_debt->debtor_id_1c;
@@ -292,7 +299,22 @@ class DebtorsController extends BasicController
         $arPurposes = Order::getPurposeNames();
 
         $arDebtData = config('debtors');
-
+        $whatsAppEvent = true;
+        try{
+            foreach($all_debts as $debt){
+                $this->debtEventService->checkLimitEvent($debt);
+            }
+        }catch (DebtorException $e){
+            Log::error("$e->errorName:", [
+                'customer'=>$debtor->customer_id_1c,
+                'file'=> __FILE__,
+                'method'=> __METHOD__,
+                'line'=> __LINE__,
+                'id' => $e->errorId,
+                'message' => $e->errorMessage,
+            ]);
+            $whatsAppEvent = false;
+        }
         // получаем данные об ответственном пользователе
         $debtorRespUser = Debtor::select(DB::raw('*'))
             ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c');
@@ -862,8 +884,8 @@ class DebtorsController extends BasicController
             'dataHasPeaceClaim' => $dataHasPeaceClaim,
             'enableRecurrentButton' => $enableRecurrentButton,
             'blockProlongation' => $blockProlongation,
-            'arDataCcCard' => $arDataCcCard
-            //'lastRepayment' => $this->getLastRepayment($data[0]['loan_id_1c'], $data[0]['customer_id_1c'])
+            'arDataCcCard' => $arDataCcCard,
+            'whatsApp' => $whatsAppEvent,
         ]);
     }
 
@@ -1227,7 +1249,6 @@ class DebtorsController extends BasicController
             'search_field_users@id_1c',
             'search_field_passports@series',
             'search_field_passports@number',
-            //'search_field_planned_departures@debtor_id',
             'search_field_struct_subdivisions@id_1c',
             'search_field_debt_groups@id',
         ];
@@ -1245,7 +1266,6 @@ class DebtorsController extends BasicController
             }
         }
 
-//        if(Auth::user()->id==5){
         $debtors = Debtor::select($cols)
             ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
             ->leftJoin('debtors.subdivisions', 'debtors.subdivisions.id', '=', 'debtors.loans.subdivision_id')
@@ -1383,7 +1403,7 @@ class DebtorsController extends BasicController
             });
         }
 
-        return $debtors;
+        return collect($debtors->get());
     }
 
     /**
@@ -1465,7 +1485,7 @@ class DebtorsController extends BasicController
             ->removeColumn('debtor_is_online')
             ->removeColumn('debtors_od_after_closing')
             ->removeColumn('passports_fact_timezone')
-            ->setTotalRecords(1000)
+            ->setTotalRecords(count($debtors))
             ->make();
         return $collection;
     }
@@ -1473,9 +1493,9 @@ class DebtorsController extends BasicController
     /**
      * Возвращает данные для таблицы "Запланированные мероприятия" в разделе "Должники"
      * @param Request $req
-     * @return collection
+     * @return \Illuminate\Support\Collection
      */
-    public function ajaxEventsList(Request $req)
+    public function ajaxEventsMissedCalls(Request $req)
     {
         $cols = [];
         $tCols = [
@@ -1487,36 +1507,35 @@ class DebtorsController extends BasicController
             'debtors.id' => 'debtors_id',
             'debtors.passports.fact_timezone' => 'passports_fact_timezone'
         ];
-
         foreach ($tCols as $k => $v) {
             $cols[] = $k . ' as ' . $v;
         }
+        $currentUser = Auth::user();
+        $arIn =(User::select('id')
+        ->where('banned', 0)
+        ->where('user_group_id', $currentUser->user_group_id)
+        ->get())->toArray();
 
-        $currentUser = User::find(Auth::id());
-
-        $arIn = DebtorUsersRef::getUserRefs();
         $date = (is_null($req->get('search_field_debtor_events@date'))) ?
             Carbon::today() :
             (new Carbon($req->get('search_field_debtor_events@date')));
 
-        $date_from = $req->get('search_field_debtor_events@date_from');
-        $date_to = $req->get('search_field_debtor_events@date_to');
+        $dateFrom = $req->get('search_field_debtor_events@date_from') == "" ? null
+            : $req->get('search_field_debtor_events@date_from');
 
-        $fact_timezone = $req->get('search_field_passports@fact_timezone');
+        $dateTo = $req->get('search_field_debtor_events@date_to') == "" ? null
+            : $req->get('search_field_debtor_events@date_to');
 
-        $debt_group_id = $req->get('search_field_debt_groups@id');
+        $factTimezone = $req->get('search_field_passports@fact_timezone');
 
-        $date_from_fmt = false;
-        if (!is_null($date_from) && !empty($date_from)) {
-            $date_from_fmt = date('Y-m-d 00:00:00', strtotime($date_from));
+        $groupId = $req->get('search_field_debt_groups@id');
+
+        if (!is_null($dateFrom) && !empty($dateFrom)) {
+            $dateFrom = Carbon::parse($dateFrom)->startOfDay()->format('Y-m-d H:i:s');
         }
-
-        $date_to_fmt = false;
-        if (!is_null($date_to) && !empty($date_to)) {
-            $date_to_fmt = date('Y-m-d 23:59:59', strtotime($date_to));
+        if (!is_null($dateTo) && !empty($dateTo)) {
+            $dateTo = Carbon::parse($dateTo)->endOfDay()->format('Y-m-d H:i:s');
         }
-
-        $responsible_id_1c = $req->get('search_field_users@id_1c');
 
         // получаем список запланированных мероприятий на сегодня
         $debtorEvents = DB::table('debtor_events')->select($cols)
@@ -1530,49 +1549,255 @@ class DebtorsController extends BasicController
             ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
             ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
             ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
-            //->whereBetween('debtor_events.date', array($date->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')))
+            ->where('debtor_events.completed', 0)
+            ->where('debtor_events.event_type_id', 4)
+            ->groupBy('debtor_events.id');
+
+        $input = $req->input();
+        $noEmptyDate = false;
+        if (!empty($input['search_field_debtor_events@date'])) {
+            $noEmptyDate = true;
+        }
+        foreach ($input as $k => $v) {
+            if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
+                $fieldName = str_replace('search_field_', '', $k);
+                $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
+                $colName = substr($fieldName, strlen($tableName) + 1);
+                $condColName = $k . '_condition';
+                $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
+                $condition = (empty($condition)) ? '=' : $condition;
+
+                if ($noEmptyDate) {
+                    if ($k === 'search_field_debtor_events@date') {
+                        $date = new Carbon($v);
+                        $debtorEvents->whereBetween('debtor_events.date', [
+                            $date->startOfDay()->format('Y-m-d H:i:s'),
+                            $date->endOfDay()->format('Y-m-d H:i:s')
+                        ]);
+                        continue;
+                    }
+                } else {
+                    if ($k === 'search_field_debtor_events@date_from') {
+                        $dateFrom = new Carbon($v);
+                        $debtorEvents->where('debtor_events.date', '>=',
+                            $dateFrom
+                                ->startOfDay()
+                                ->format('Y-m-d H:i:s')
+                        );
+                        continue;
+                    }
+
+                    if ($k === 'search_field_debtor_events@date_to') {
+                        $dateTo = new Carbon($v);
+                        $debtorEvents->where('debtor_events.date', '<=',
+                            $dateTo
+                                ->endOfDay()
+                                ->format('Y-m-d H:i:s')
+                        );
+                        continue;
+                    }
+                }
+
+                if ($k === 'search_field_debt_groups@id' && mb_strlen($v)) {
+                    $debtorEvents->where('debtors.debt_group_id', (int)$v);
+                    continue;
+                }
+
+                if ($condition === 'like') {
+                    $v = '%' . $v . '%';
+                }
+                $debtorEvents->where($tableName . '.' . $colName, $condition, $v);
+            }
+        }
+        if (!$dateFrom && !$dateTo) {
+            $debtorEvents->whereBetween('debtor_events.date', [
+                $date->startOfDay()->format('Y-m-d H:i:s'),
+                $date->endOfDay()->format('Y-m-d H:i:s')
+            ]);
+        } else {
+            if ($dateFrom) {
+                $debtorEvents->where('debtor_events.date', '>=', $dateFrom);
+            }
+
+            if ($dateTo) {
+                $debtorEvents->where('debtor_events.date', '<=', $dateTo);
+            }
+        }
+        if (!is_null($groupId) && mb_strlen($groupId)) {
+            $debtorEvents->where('debtors.debt_group_id', (int)$groupId);
+        }
+
+        if (!is_null($factTimezone) && mb_strlen($factTimezone)) {
+            $debtorEvents->where('passports.fact_timezone', (int)$factTimezone);
+        }
+
+        $debtorEvents->whereIn('debtors.debtor_events.user_id', $arIn);
+        return collect($debtorEvents->get());
+
+    }
+
+
+    public function ajaxEventsList(Request $req)
+    {
+
+        $cols = [];
+        $tCols = [
+            'debtor_events.date' => 'de_date',
+            'debtor_events.event_type_id' => 'de_type_id',
+            'debtors.passports.fio' => 'passports_fio',
+            'debtor_events.created_at' => 'de_created_at',
+            'users.login' => 'de_username',
+            'debtors.id' => 'debtors_id',
+            'debtors.passports.fact_timezone' => 'passports_fact_timezone'
+        ];
+        foreach ($tCols as $k => $v) {
+            $cols[] = $k . ' as ' . $v;
+        }
+        $currentUser = Auth::user();
+        $arIn = DebtorUsersRef::getUserRefs();
+
+        $date = (is_null($req->get('search_field_debtor_events@date'))) ?
+            Carbon::today() :
+            (new Carbon($req->get('search_field_debtor_events@date')));
+
+        $dateFrom = $req->get('search_field_debtor_events@date_from') == "" ? null
+            : $req->get('search_field_debtor_events@date_from');
+
+        $dateTo = $req->get('search_field_debtor_events@date_to') == "" ? null
+            : $req->get('search_field_debtor_events@date_to');
+
+        $factTimezone = $req->get('search_field_passports@fact_timezone');
+
+        $groupId = $req->get('search_field_debt_groups@id');
+
+        if (!is_null($dateFrom) && !empty($dateFrom)) {
+            $dateFrom = Carbon::parse($dateFrom)->startOfDay()->format('Y-m-d H:i:s');
+        }
+        if (!is_null($dateTo) && !empty($dateTo)) {
+            $dateTo = Carbon::parse($dateTo)->endOfDay()->format('Y-m-d H:i:s');
+        }
+
+        $responsibleId1c = $req->get('search_field_users@id_1c');
+
+        // получаем список запланированных мероприятий на сегодня
+        $debtorEvents = DB::table('debtor_events')->select($cols)
+            ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
+            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+            ->leftJoin('debtors.passports', function ($join) {
+                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+            })
+            ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
+            ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
+            ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
             ->where('debtor_events.completed', 0)
             ->groupBy('debtor_events.id');
 
-        if (!$date_from_fmt && !$date_to_fmt) {
-            $debtorEvents->whereBetween('debtor_events.date', array(
-                $date->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
-                $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')
-            ));
+        $input = $req->input();
+        $noEmptyDate = false;
+        if (!empty($input['search_field_debtor_events@date'])) {
+            $noEmptyDate = true;
+        }
+        foreach ($input as $k => $v) {
+            if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
+                $fieldName = str_replace('search_field_', '', $k);
+                $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
+                $colName = substr($fieldName, strlen($tableName) + 1);
+                $condColName = $k . '_condition';
+                $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
+                $condition = (empty($condition)) ? '=' : $condition;
+
+                if ($noEmptyDate) {
+                    if ($k === 'search_field_debtor_events@date') {
+                        $date = new Carbon($v);
+                        $debtorEvents->whereBetween('debtor_events.date', [
+                            $date->startOfDay()->format('Y-m-d H:i:s'),
+                            $date->endOfDay()->format('Y-m-d H:i:s')
+                        ]);
+                        continue;
+                    }
+                } else {
+                    if ($k === 'search_field_debtor_events@date_from') {
+                        $dateFrom = new Carbon($v);
+                        $debtorEvents->where('debtor_events.date', '>=',
+                            $dateFrom
+                                ->startOfDay()
+                                ->format('Y-m-d H:i:s')
+                        );
+                        continue;
+                    }
+
+                    if ($k === 'search_field_debtor_events@date_to') {
+                        $dateTo = new Carbon($v);
+                        $debtorEvents->where('debtor_events.date', '<=',
+                            $dateTo
+                                ->endOfDay()
+                                ->format('Y-m-d H:i:s')
+                        );
+                        continue;
+                    }
+                }
+
+                if ($k === 'search_field_debt_groups@id' && mb_strlen($v)) {
+                    $debtorEvents->where('debtors.debt_group_id', (int)$v);
+                    continue;
+                }
+
+                if ($condition === 'like') {
+                    $v = '%' . $v . '%';
+                }
+                $debtorEvents->where($tableName . '.' . $colName, $condition, $v);
+            }
+        }
+
+        if (!$dateFrom && !$dateTo) {
+            $debtorEvents->whereBetween('debtor_events.date', [
+                $date->startOfDay()->format('Y-m-d H:i:s'),
+                $date->endOfDay()->format('Y-m-d H:i:s')
+            ]);
         } else {
-            if ($date_from_fmt) {
-                $debtorEvents->where('debtor_events.date', '>=', $date_from_fmt);
+            if ($dateFrom) {
+                $debtorEvents->where('debtor_events.date', '>=', $dateFrom);
             }
 
-            if ($date_to_fmt) {
-                $debtorEvents->where('debtor_events.date', '<=', $date_to_fmt);
+            if ($dateTo) {
+                $debtorEvents->where('debtor_events.date', '<=', $dateTo);
             }
         }
 
-        if (!is_null($debt_group_id) && mb_strlen($debt_group_id)) {
-            $debtorEvents->where('debtors.debt_group_id', (int)$debt_group_id);
+        if (!is_null($groupId) && mb_strlen($groupId)) {
+            $debtorEvents->where('debtors.debt_group_id', (int)$groupId);
         }
 
-        if (!is_null($fact_timezone) && mb_strlen($fact_timezone)) {
-            $debtorEvents->where('passports.fact_timezone', (int)$fact_timezone);
+        if (!is_null($factTimezone) && mb_strlen($factTimezone)) {
+            $debtorEvents->where('passports.fact_timezone', (int)$factTimezone);
         }
 
-        if (!is_null($responsible_id_1c) && mb_strlen($responsible_id_1c)) {
-            $debtorEvents->where('debtors.debtor_events.user_id_1c', $responsible_id_1c);
+        if ($currentUser->hasRole('missed_calls')) {
+            $missedCallsEvent = $this->ajaxEventsMissedCalls($req);
         }
 
+        if (!is_null($responsibleId1c) && mb_strlen($responsibleId1c)) {
+            $debtorEvents->where('debtors.debtor_events.user_id_1c', $responsibleId1c);
+        }
         if ($currentUser->hasRole('debtors_personal')) {
             $debtorEvents->where('debtors.debtor_events.user_id', $currentUser->id);
         } else {
             // если придет пустой массив - будут показаны все планы на день
-            if (count($arIn) && (is_null($responsible_id_1c) || !mb_strlen($responsible_id_1c))) {
+            if (!empty($arIn) && (is_null($responsibleId1c) || !mb_strlen($responsibleId1c))) {
                 $debtorEvents->whereIn('debtors.debtor_events.user_id', $arIn);
             }
         }
 
+        $events = collect($debtorEvents->get());
+
+        if(!empty($missedCallsEvent)){
+            $events->merge($missedCallsEvent);
+        }
 
         // формирование коллекции для заполнения таблицы
-        $collection = Datatables::of($debtorEvents)
+        return Datatables::of($events)
             ->editColumn('de_date', function ($item) {
                 return date('d.m.Y', strtotime($item->de_date));
             })
@@ -1590,7 +1815,6 @@ class DebtorsController extends BasicController
             ->removeColumn('passports_fact_timezone')
             ->addColumn('actions', function ($item) {
                 $html = '';
-
                 if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
                     $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
                     $arRegionTime = explode(':', $region_time);
@@ -1613,62 +1837,8 @@ class DebtorsController extends BasicController
                 $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
                 return $html;
             })
-            ->filter(function ($query) use ($req) {
-                $input = $req->input();
-                $no_empty_date = false;
-                if (!empty($input['search_field_debtor_events@date'])) {
-                    $no_empty_date = true;
-                }
-                foreach ($input as $k => $v) {
-                    if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
-                        $fieldName = str_replace('search_field_', '', $k);
-                        $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
-                        $colName = substr($fieldName, strlen($tableName) + 1);
-                        $condColName = $k . '_condition';
-                        $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
-                        $condition = (empty($condition)) ? '=' : $condition;
-
-                        if ($no_empty_date) {
-                            if ($k == 'search_field_debtor_events@date') {
-                                $dateFmtd = new Carbon($v);
-                                $query->whereBetween('debtor_events.date', array(
-                                    $dateFmtd->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
-                                    $dateFmtd->setTime(23, 59, 59)->format('Y-m-d H:i:s')
-                                ));
-                                continue;
-                            }
-                        } else {
-                            if ($k == 'search_field_debtor_events@date_from') {
-                                $dateFmtd = new Carbon($v);
-                                $query->where('debtor_events.date', '>=',
-                                    $dateFmtd->setTime(0, 0, 0)->format('Y-m-d H:i:s'));
-                                continue;
-                            }
-
-                            if ($k == 'search_field_debtor_events@date_to') {
-                                $dateFmtd = new Carbon($v);
-                                $query->where('debtor_events.date', '<=',
-                                    $dateFmtd->setTime(23, 59, 59)->format('Y-m-d H:i:s'));
-                                continue;
-                            }
-                        }
-
-                        if ($k == 'search_field_debt_groups@id' && mb_strlen($v)) {
-                            $query->where('debtors.debt_group_id', (int)$v);
-                            continue;
-                        }
-
-                        if ($condition == 'like') {
-                            $v = '%' . $v . '%';
-                        }
-                        $query->where($tableName . '.' . $colName, $condition, $v);
-                    }
-                }
-            })
-            ->setTotalRecords(1000)
+            ->setTotalRecords(count($events))
             ->make();
-
-        return $collection;
     }
 
     /**
@@ -1813,22 +1983,47 @@ class DebtorsController extends BasicController
     /**
      * Отправляет SMS должнику
      * @param Request $req
-     * @return int
+     * @return \Illuminate\Http\JsonResponse|string
      */
     public function sendSmsToDebtor(Request $req)
     {
-        $objUser = User::find(Auth::id());
-        if (!$objUser->canSendSms()) {
-            return -1;
+        $debtor = Debtor::where('debtor_id_1c', $req->get('debtor_id_1c'))->first();
+        if (is_null($debtor)) {
+            return response()->json([
+                'title' => 'Ошибка',
+                'msg' => 'Не удалось получить информацию по должнику'
+            ]);
         }
-        $smsAlreadySent = DebtorEvent::where('debtor_id_1c', $req->get('debtor_id_1c'))
-            ->where('created_at', '>=', date('Y-m-d 00:00:00', time()))
-            ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
-            ->where('event_type_id', 12)
-            ->count();
 
-        if ($smsAlreadySent >= 2) {
-            return -1;
+        $sms = DebtorSmsTpls::where('id',$req->sms_id)->first();
+        if ($sms && !is_null($sms->is_excludes)) {
+            try {
+                $customer = $debtor->customer();
+                $debtors = Debtor::where('customer_id_1c', $customer->id_1c)->get();
+                foreach ($debtors as $debt) {
+                    $this->debtEventService->checkLimitEvent($debt);
+                }
+            } catch (DebtorException $e) {
+                Log::error("$e->errorName:", [
+                    'customer'=>$debtor->customer_id_1c,
+                    'file'=> __FILE__,
+                    'method'=> __METHOD__,
+                    'line'=> __LINE__,
+                    'id' => $e->errorId,
+                    'message' => $e->errorMessage,
+                ]);
+                return response()->json([
+                    'title' => 'Ошибка',
+                    'msg' => $e->errorMessage
+                ],$e->errorCode);
+            }
+        }
+        $user = Auth::user();
+        if (!$user->canSendSms()) {
+            return response()->json([
+                'title' => 'Ошибка',
+                'msg' => 'Первышел лимит СМС пользователя'
+            ]);
         }
 
         // приводим номер телефона к виду, для отправки смс
@@ -1837,102 +2032,104 @@ class DebtorsController extends BasicController
             $phone[0] = '7';
         }
         if (mb_strlen($phone) == 11) {
-            $debtor = Debtor::where('debtor_id_1c', $req->get('debtor_id_1c'))->first();
-            if (is_null($debtor)) {
-                return 0;
-            }
-            $sms_link = '';
-            $sms_type = $req->get('sms_type', false);
-            $sms_text = $req->get('sms_text', false);
 
-            if ($sms_type && $sms_type == 'link') {
+            $smsLink = '';
+            $smsType = $req->get('sms_type', false);
+            $smsText = $req->get('sms_text', false);
+
+            if ($smsType && $smsType == 'link') {
                 $amount = $req->get('amount', 0);
-                if (is_null($debtor)) {
-                    return 0;
-                }
                 $token = crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai');
                 $amount = $amount * 100;
-                $sms_text = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
-                $sms_link = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount . '&loan_1c_id=' . $debtor->loan_id_1c . '&order_id=&customer_id=' . $debtor->customer_id_1c . '&phone=' . $phone . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
+                $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
+                $smsLink = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount
+                    . '&loan_1c_id=' . $debtor->loan_id_1c
+                    . '&order_id=&customer_id=' . $debtor->customer_id_1c
+                    . '&phone=' . $phone
+                    . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
 
-                $json_tinkoff_link = file_get_contents($sms_link);
-                $arJson = json_decode($json_tinkoff_link, true);
+                $jsonTinkoffLink = file_get_contents($smsLink);
+                $arJson = json_decode($jsonTinkoffLink, true);
 
                 if (isset($arJson['success']) && $arJson['success']) {
-                    $sms_link = $arJson['url'];
+                    $smsLink = $arJson['url'];
                 } else {
-                    return 0;
+                    return response()->json([
+                        'title' => 'Ошибка',
+                        'msg' => 'Не удалось сформировать ссылку'
+                    ]);
                 }
             }
 
-            if ($sms_type && $sms_type == 'msg') {
+            if ($smsType && $smsType == 'msg') {
                 $amount = $req->get('amount', 0);
-                if (is_null($debtor)) {
-                    return 0;
-                }
                 $token = crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai');
                 $amount = $amount * 100;
-                $sms_text = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
-                $sms_link = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount . '&loan_1c_id=' . $debtor->loan_id_1c . '&order_id=&customer_id=' . $debtor->customer_id_1c . '&phone=' . $phone . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
+                $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
+                $smsLink = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount
+                    . '&loan_1c_id=' . $debtor->loan_id_1c
+                    . '&order_id=&customer_id=' . $debtor->customer_id_1c
+                    . '&phone=' . $phone
+                    . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
 
-                $json_tinkoff_link = file_get_contents($sms_link);
-                $arJson = json_decode($json_tinkoff_link, true);
+                $jsonTinkoffLink = file_get_contents($smsLink);
+                $arJson = json_decode($jsonTinkoffLink, true);
 
                 if (isset($arJson['success']) && $arJson['success']) {
-                    $sms_link = $arJson['url'];
+                    $smsLink = $arJson['url'];
                 } else {
-                    return 0;
+                    return response()->json([
+                        'title' => 'Ошибка',
+                        'msg' => 'Не удалось сформировать сообщение'
+                    ]);
                 }
 
-                return $sms_text . ' ' . $sms_link;
+                return $smsText . ' ' . $smsLink;
             }
 
-            if ($sms_type && $sms_type == 'props') {
-                if (is_null($debtor)) {
-                    return 0;
-                }
-                $sms_text = 'Направляем реквизиты для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344 путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
-                $sms_link = '';
+            if ($smsType && $smsType == 'props') {
+                $smsText = 'Направляем реквизиты для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344'
+                . ' путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
+                $smsLink = '';
             }
 
-            if (mb_strlen($sms_link) > 0) {
-                $sms_link = ' ' . $sms_link;
+            if (mb_strlen($smsLink) > 0) {
+                $smsLink = ' ' . $smsLink;
             }
 
-            if (Utils\SMSer::send($phone, $sms_text . $sms_link)) {
+            if (Utils\SMSer::send($phone, $smsText . $smsLink)) {
                 // увеличиваем счетчик отправленных пользователем смс
-                $objUser->increaseSentSms();
+                $user->increaseSentSms();
 
                 // создаем мероприятие отправки смс
                 $debtorEvent = new DebtorEvent();
                 $data = [];
-                $data['created_at'] = date('Y-m-d H:i:s', time());
+                $data['created_at'] = Carbon::now()->format('Y-m-d H:i:s');
                 $data['event_type_id'] = 12;
                 $data['overdue_reason_id'] = 0;
                 $data['event_result_id'] = 22;
                 $data['debt_group_id'] = $req->get('debt_group_id');
-                $data['report'] = $phone . ' SMS: ' . $sms_text;
+                $data['report'] = $phone . ' SMS: ' . $smsText;
                 $data['completed'] = 1;
                 $debtorEvent->fill($data);
                 $debtorEvent->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
-
-                if (!is_null($debtor)) {
-                    $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
-                    $debtorEvent->debtor_id = $debtor->id;
-                }
-                $debtorEvent->user_id = Auth::user()->id;
-                $debtorEvent->user_id_1c = Auth::user()->id_1c;
-//                $debtorEvent->id_1c = DebtorEvent::getNextNumber();
+                $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
+                $debtorEvent->debtor_id = $debtor->id;
+                $debtorEvent->user_id = $user->id;
+                $debtorEvent->user_id_1c = $user->id_1c;
                 $debtorEvent->save();
 
-                //$debtorEvent->id_1c = 'М' . StrUtils::addChars(strval($debtorEvent->id), 9, '0', false);
-                //$debtorEvent->save();
-
-                return 1;
+                return response()->json([
+                    'title' => 'Готово',
+                    'msg' => 'Сообщение отправленно'
+                ]);
             }
         }
 
-        return 0;
+        return response()->json([
+            'title' => 'Ошибка',
+            'msg' => 'Не правильный номер'
+        ]);
     }
 
     /**
@@ -3164,12 +3361,8 @@ class DebtorsController extends BasicController
     public function exportToExcel(Request $req)
     {
         \PC::debug($req->input());
-        $query = $this->getDebtorsQuery($req, true);
-        $query->orderBy('passports_fio');
-        $debtors = $query->get();
-        \PC::debug($debtors);
+        $debtors = $this->getDebtorsQuery($req, true)->sortBy('passports_fio');
         $html = '<table>';
-        $firstRow = true;
         $colHeaders = [
             'debtors_fixation_date' => 'Дата закрепления',
             'passports_fio' => 'ФИО должника',
@@ -3180,7 +3373,6 @@ class DebtorsController extends BasicController
             'debtors_od' => 'Сумма ОД',
             'debtors_base' => 'База',
             'debtor_with_schedule' => 'Тип договора',
-            // col_num = 9 - getDebtorsQuery: customers_telephone - 9-й по счету
             'debtor_is_online' => 'Онлайн',
             'customers_telephone' => 'Телефон',
             'debtors_debt_group_id' => 'Группа долга',
@@ -3253,8 +3445,11 @@ class DebtorsController extends BasicController
                     $col_num++;
                     continue;
                 }
-                if ($k == 'debtors_od' || $k == 'debtors_sum_indebt') {
-                    if ($k == 'debtors_od' && isset($debtorArray['debtors_od_after_closing']) && !is_null($debtorArray['debtors_od_after_closing']) && $debtorArray['debtors_od_after_closing'] != 0) {
+                if ($k == 'debtors_od' || $k == 'debtors_sum_indebt'){
+                    if ($k == 'debtors_od' && isset($debtorArray['debtors_od_after_closing'])
+                        && !is_null($debtorArray['debtors_od_after_closing'])
+                        && $debtorArray['debtors_od_after_closing'] != 0
+                    ){
                         $v = $debtorArray['debtors_od_after_closing'];
                     }
                     $html .= '<td>' . StrUtils::kopToRub($v) . '</td>';
@@ -3285,8 +3480,6 @@ class DebtorsController extends BasicController
         }
         $html .= '</tbody>';
         $html .= '</table>';
-
-//        return $html;
 
         $file = "report.xls";
         header("Content-type: application/vnd.ms-excel");
@@ -3703,7 +3896,7 @@ class DebtorsController extends BasicController
         $currentUser = User::find(Auth::id());
         $today = date('Y-m-d 00:00:00', time());
 
-        $arGoodResultIds = [0, 3, 6, 9, 10, 11, 12, 13, 17, 21, 22];
+        $arGoodResultIds = [0, 3, 6, 9, 10, 11, 12, 13, 17, 21, 22, 23, 24];
 
         $str_podr = false;
 
@@ -4606,33 +4799,6 @@ class DebtorsController extends BasicController
         }
 
         return redirect()->back();
-    }
-
-    public function sendEmailToDebtor(Request $request)
-    {
-
-    }
-
-    public function massSmsSend(Request $request)
-    {
-
-    }
-
-    public function countCustomersOfUser()
-    {
-        $responsible_users = [
-            ''
-        ];
-    }
-
-    public function workedDebtors(Request $req)
-    {
-
-    }
-
-    public function closedDebtors(Request $req)
-    {
-
     }
 
     public static function pledgeFormParams()

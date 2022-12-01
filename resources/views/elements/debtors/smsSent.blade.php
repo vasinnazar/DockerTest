@@ -5,7 +5,8 @@ $arSmsStatuses = [
     3 => 'Отправлено',
     4 => 'Проверяется',
     5 => 'Доставлено',
-    6 => 'Ошибка'
+    6 => 'Ошибка',
+    7 => 'Черный список'
 ];
 ?>
 <div class="modal fade" id="debtorSmsSent" tabindex="-1" role="dialog" aria-labelledby="debtorSmsSentLabel" aria-hidden="true">

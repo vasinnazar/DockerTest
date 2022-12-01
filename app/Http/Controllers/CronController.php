@@ -25,7 +25,7 @@ class CronController extends Controller {
                 ->first();
         
 
-        //$omicron_task_today = OmicronTask::orderBy('id', 'desc')->where('created_at', '>=', '2022-07-10 00:00:00')->where('created_at', '<=', '2022-07-10 23:59:59')->first();
+        //$omicron_task_today = OmicronTask::orderBy('id', 'desc')->where('created_at', '>=', '2022-11-21 00:00:00')->where('created_at', '<=', '2022-11-21 23:59:59')->first();
 
         if (is_null($omicron_task_today)) {
             exit();
@@ -61,8 +61,8 @@ class CronController extends Controller {
 
             $events = \App\DebtorEvent::where('date', '>=', $today . ' 00:00:00')
                     ->where('date', '<=', $today . ' 23:59:59')
-                    //where('date', '>=', '2022-07-10 00:00:00')
-                    //->where('date', '<=', '2022-07-10 23:59:59')
+                    //where('date', '>=', '2022-11-21 00:00:00')
+                    //->where('date', '<=', '2022-11-21 23:59:59')
                     ->where('event_type_id', 22)
                     ->where('completed', 0)
                     ->get();

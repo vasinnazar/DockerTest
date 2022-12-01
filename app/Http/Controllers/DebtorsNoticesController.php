@@ -18,15 +18,17 @@ use Input,
     App\ContractForm,
     App\Loan,
     App\StrUtils,
-    App\DebtorEvent;
+    App\DebtorEvent,
+    App\CourtOrder,
+    App\CourtOrderTasks;
+use App\Services\PdfService;
+use App\Utils\PdfUtil;
 
-/**
- * условия для типов кредитников. 
- */
 class DebtorsNoticesController extends Controller {
 
-    public function __construct() {
+    public function __construct(PdfService $pdfService) {
         $this->middleware('auth');
+        $this->pdfService = $pdfService;
     }
 
     public function index(Request $request) {
@@ -109,49 +111,6 @@ class DebtorsNoticesController extends Controller {
                 ->whereIn('debt_group_id', $input['debt_group_ids'])
                 ->get();
 
-        //$this->makeExcel($debtors, $input['address_type'], $noticesTask->id);
-
-        $colHeaders = [
-            'ADDRESSLINE',
-            'ADRESAT',
-            'MASS',
-            'VALUE',
-            'PAYMENT',
-            'COMMENT',
-            'ORDERNUM',
-            'TELADDRESS',
-            'MAILTYPE',
-            'MAILCATEGORY',
-            'INDEXFROM',
-            'VLENGTH',
-            'VWIDTH',
-            'VHEIGHT',
-            'FRAGILE',
-            'ENVELOPETYPE',
-            'NOTIFICATIONTYPE',
-            'COURIER',
-            'SMSNOTICERECIPIENT',
-            'WOMAILRANK',
-            'PAYMENTMETHOD',
-            'NOTICEPAYMENTMETHOD',
-            'COMPLETENESSCHECKING',
-            'NORETURN',
-            'VSD',
-            'TRANSPORTMODE',
-            'EASYRETURN',
-            'BRANCHNAME',
-            'GROUPREFERENCE',
-            'ID_PO',
-            'PREPOSTALPREPARATION',
-            'DELIVERYPOINT',
-            'DIMENSIONTYPE',
-            'SHELFLIFEDAYS',
-            'WITHOUTOPENING',
-            'CONTENTSCHECKING',
-            'SENDERCOMMENT',
-            'TRANSPORTTYPE'
-        ];
-
         $massDir = storage_path() . '/app/public/postPdfTasks/' . $noticesTask->id . '/';
 
         if (!is_dir($massDir)) {
@@ -174,7 +133,7 @@ class DebtorsNoticesController extends Controller {
 
         $excel = \Excel::create($task_id);
         $sheet = $excel->sheet('page1');
-        
+
         $activeSheet = $excel->getActiveSheet();
 
         $activeSheet->appendRow(1, [
@@ -707,123 +666,8 @@ class DebtorsNoticesController extends Controller {
         }
 
         $path = storage_path() . '/app/public/postPdfTasks/' . $task_id;
-        
+
         $excel->store('xls', $path);
-
-        /*\Excel::create($noticesTask->id, function($excel) use ($debtors, $address_type, $str_podr) {
-
-            $excel->sheet('page1', function($sheet) use ($debtors, $address_type, $str_podr) {
-
-                $sheet->row(1, [
-                    'ADDRESSLINE',
-                    'ADRESAT',
-                    'MASS',
-                    'VALUE',
-                    'PAYMENT',
-                    'COMMENT',
-                    'ORDERNUM',
-                    'TELADDRESS',
-                    'MAILTYPE',
-                    'MAILCATEGORY',
-                    'INDEXFROM',
-                    'VLENGTH',
-                    'VWIDTH',
-                    'VHEIGHT',
-                    'FRAGILE',
-                    'ENVELOPETYPE',
-                    'NOTIFICATIONTYPE',
-                    'COURIER',
-                    'SMSNOTICERECIPIENT',
-                    'WOMAILRANK',
-                    'PAYMENTMETHOD',
-                    'NOTICEPAYMENTMETHOD',
-                    'COMPLETENESSCHECKING',
-                    'NORETURN',
-                    'VSD',
-                    'TRANSPORTMODE',
-                    'EASYRETURN',
-                    'BRANCHNAME',
-                    'GROUPREFERENCE',
-                    'ID_PO',
-                    'PREPOSTALPREPARATION',
-                    'DELIVERYPOINT',
-                    'DIMENSIONTYPE',
-                    'SHELFLIFEDAYS',
-                    'WITHOUTOPENING',
-                    'CONTENTSCHECKING',
-                    'SENDERCOMMENT',
-                    'TRANSPORTTYPE'
-                ]);
-
-                $cnt = 2;
-                foreach ($debtors as $debtor) {
-                    $notice = NoticeNumbers::where('debtor_id_1c', $debtor->debtor_id_1c)
-                            ->where('str_podr', $str_podr)
-                            ->first();
-
-                    if (!is_null($notice)) {
-                        continue;
-                    }
-
-                    $passport = Passport::where('series', $debtor->passport_series)
-                            ->where('number', $debtor->passport_number)
-                            ->first();
-
-                    if (is_null($passport)) {
-                        continue;
-                    }
-
-                    if ($address_type == 1) {
-                        $addressLine = $passport::getFullAddress($passport, true);
-                    } else {
-                        $addressLine = $passport::getFullAddress($passport);
-                    }
-
-                    $sheet->row($cnt, [
-                        $addressLine,
-                        $passport->fio,
-                        '0,1',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '2',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        ''
-                    ]);
-
-                    $cnt++;
-                }
-            });
-        })->store('xls', $path);*/
 
         $arDir = scandir($path);
 
@@ -847,6 +691,206 @@ class DebtorsNoticesController extends Controller {
 
     public function getFile($type, $task_id) {
         $path = storage_path('app/public/postPdfTasks/') . $task_id;
+
+        if ($type == 'zip') {
+            $path .= '/' . $task_id . '.zip';
+            $ext = 'attachment; filename="' . $task_id . '.zip"';
+        } else if ($type == 'xls') {
+            $path .= '/' . $task_id . '.xls';
+            $ext = 'attachment; filename="' . $task_id . '.xls"';
+        } else {
+            
+        }
+
+        $file = File::get($path);
+        $filetype = File::mimeType($path);
+
+        $response = Response::make($file, 200);
+        $response->header("Content-Type", $filetype);
+        $response->header("Content-Disposition", $ext);
+
+        return $response;
+    }
+
+    public function courtNotices(Request $request) {
+        $user = auth()->user();
+
+        if ($user->hasRole('debtors_personal')) {
+            $struct_subdivision = '000000000007';
+        } else {
+            $struct_subdivision = false;
+        }
+
+        $taskInProgress = false;
+
+        if ($struct_subdivision) {
+            $courtTask = CourtOrderTasks::where('in_progress', 1)->where('struct_subdivision', $struct_subdivision)->first();
+            $taskInProgress = (!is_null($courtTask)) ? true : false;
+        }
+
+        $slavesUserIds = json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true);
+        $slave_list = [];
+        foreach ($slavesUserIds as $slave) {
+            $slave_list[] = $slave['user_id'];
+        }
+        $arDebtorUsers = User::whereIn('id', $slave_list)->get();
+        $debtorUsers = [];
+        foreach ($arDebtorUsers as $debtorUser) {
+            $debtorUsers[$debtorUser->id]['name'] = $debtorUser->name;
+            $debtorUsers[$debtorUser->id]['group_id'] = $debtorUser->user_group_id;
+        }
+        $debtorUsers[$user->id]['name'] = $user->name;
+        $debtorUsers[$user->id]['group_id'] = $user->user_group_id;
+
+        $tasks = CourtOrderTasks::where('struct_subdivision', $struct_subdivision)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+        return view('debtors.notices.courtNotices', [
+            'taskInProgress' => $taskInProgress,
+            'debtorUsers' => $debtorUsers,
+            'tasks' => $tasks
+        ]);
+    }
+
+    public function startCourtTask(Request $request) {
+        $input = $request->input();
+
+        $user = auth()->user();
+        if ($user->hasRole('debtors_personal')) {
+            $str_podr = '000000000007';
+        } else {
+            $str_podr = false;
+        }
+
+        if (!$str_podr) {
+            return redirect()->back();
+        }
+
+        $courtTask = new CourtOrderTasks();
+        $courtTask->struct_subdivision = $str_podr;
+        $courtTask->in_progress = 1;
+        $courtTask->completed = 0;
+        $courtTask->save();
+
+        $fixation_date_from = date('Y-m-d 00:00:00', strtotime($input['fixation_date_from']));
+        $fixation_date_to = date('Y-m-d 23:59:59', strtotime($input['fixation_date_to']));
+
+        $respUsers = [];
+        foreach ($input['responsible_users_ids'] as $uid) {
+            $respUser = User::find($uid);
+            $respUsers[] = $respUser->id_1c;
+        }
+
+        $debtors = Debtor::where('is_debtor', 1)
+                ->whereBetween('fixation_date', [$fixation_date_from, $fixation_date_to])
+                ->whereIn('responsible_user_id_1c', $respUsers)
+                ->whereIn('debt_group_id', $input['debt_group_ids'])
+                ->where('qty_delays', '>=', 95)
+                ->get();
+
+        $massDir = storage_path() . '/app/public/courtPdfTasks/' . $courtTask->id . '/';
+
+        if (!is_dir($massDir)) {
+            mkdir(storage_path() . '/app/public/courtPdfTasks/' . $courtTask->id, 0777);
+        }
+
+        $this->createCourtPdf($debtors, $courtTask->id, $str_podr);
+
+        $courtTask->in_progress = 0;
+        $courtTask->completed = 1;
+        $courtTask->save();
+
+        return redirect()->back();
+    }
+
+    public function createCourtPdf($debtors, $task_id, $str_podr) {
+        $user = auth()->user();
+
+        $i = 1;
+
+        $excel = \Excel::create($task_id);
+        $sheet = $excel->sheet('page1');
+
+        $activeSheet = $excel->getActiveSheet();
+
+        $activeSheet->appendRow(1, [
+            'FILE_NAME',
+            'ADDRESSLINE_TO',
+            'RECIPIENT_TYPE',
+            'RECIPIENT',
+            'INN',
+            'KPP',
+            'LETTER_REG_NUMBER',
+            'LETTER_TITLE',
+            'MAILCATEGORY',
+            'ADDRESSLINE_RETURN',
+            'WOMAILRANK',
+            'ADDITIONAL_INFO',
+            'LETTER_COMMENT'
+        ]);
+        
+        $path = storage_path() . '/app/public/courtPdfTasks/' . $task_id;
+
+        foreach ($debtors as $debtor) {
+            $courtOrder = CourtOrder::where('debtor_id', $debtor->id)->first();
+
+            if (!is_null($courtOrder)) {
+                continue;
+            }
+
+            $html = $this->pdfService->getCourtOrder($debtor);
+            PdfUtil::savePdfFromPrintServer($html, $path . '/' . $debtor->id . '.pdf');
+            
+            $i++;
+            
+            $passport = Passport::where('series', $debtor->passport_series)
+                    ->where('number', $debtor->passport_number)
+                    ->first();
+
+            $activeSheet->appendRow($i, [
+                $debtor->id . '.pdf',
+                Passport::getFullAddress($passport),
+                '0',
+                $passport->fio,
+                '',
+                '',
+                $debtor->id,
+                '',
+                '0',
+                '650000, г. Кемерово, пр. Советский, 2/6',
+                '',
+                '',
+                ''
+            ]);
+            
+            sleep(5);
+        }
+
+        $excel->store('xls', $path);
+        
+        $arDir = scandir($path);
+
+        $zip = new \ZipArchive();
+        if ($zip->open($path . '/' . $task_id . '.zip', \ZipArchive::CREATE) === TRUE) {
+            foreach ($arDir as $k => $pdfFile) {
+                if ($k == 0 || $k == 1) {
+                    continue;
+                }
+
+                if (str_contains($pdfFile, '.xls')) {
+                    continue;
+                }
+
+                $zip->addFile($path . '/' . $pdfFile, $pdfFile);
+            }
+
+            $zip->close();
+        }
+    }
+    
+    public function getCourtFile($type, $task_id) {
+        $path = storage_path('app/public/courtPdfTasks/') . $task_id;
 
         if ($type == 'zip') {
             $path .= '/' . $task_id . '.zip';

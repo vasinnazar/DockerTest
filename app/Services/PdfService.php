@@ -43,7 +43,7 @@ class PdfService
             'is_printed'=>1,
         ]);
 
-        return PdfUtil::getPdfFromPrintServer($html);
+        return $html;
     }
 
     public function replaceValuesCourtOrder($html, $debtor)

@@ -57,7 +57,7 @@
                 <li><a href="{{url('debtors/reports/plancalend')}}">Календарь планов</a></li>
                 <li><a href="{{url('debtors/reports/jobsdoneact')}}">Акт выполненных работ</a></li>
                 <li><a href="{{url('debtors/reports/ovz')}}">ОВЗ</a></li>
-                <li><a href="#" data-toggle="modal" data-target="#debtorsSiteLoginReportModal">Логин на сайт</a></li>
+                <li><a href="#" data-toggle="modal" data-target="#debtorsSiteLoginReportModal">Должник на сайте</a></li>
                 @if ($is_chief)
                 <li><a href="{{url('debtors/editSmsCount')}}">SMS</a></li>
                 @if ($personalGroup['isGroup'])
@@ -71,6 +71,9 @@
                 @endif
                 @if ($is_chief)
                 <li><a href="{{url('/debtors/notices/index')}}">Отправка писем</a></li>
+                @endif
+                @if ($personalGroup['isGroup'] && $is_chief)
+                <li><a href="{{url('/debtors/courts/index')}}">Отправка судебников</a></li>
                 @endif
             </ul>
             @if ($canEditSmsCount)
@@ -251,7 +254,7 @@
 @include('elements.debtors.debtorsSiteLoginReportModal')
 @stop
 @section('scripts')
-<script src="{{asset('js/debtors/debtorsController.js?5')}}"></script>
+<script src="{{asset('js/debtors/debtorsController.js?6')}}"></script>
 <script>
                         $(document).ready(function () {
                         $.debtorsCtrl.init();

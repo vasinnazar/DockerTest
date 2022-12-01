@@ -12,6 +12,11 @@ use Log;
 class DebtorEvent extends Model
 {
 
+    const SMS_EVENT = 12;
+    const AUTOINFORMER_OMICRON_EVENT = 15;
+    const WHATSAPP_EVENT = 23;
+    const EMAIL_EVENT = 24;
+
     protected $table = 'debtors.debtor_events';
     protected $fillable = [
         'date',
@@ -155,6 +160,20 @@ class DebtorEvent extends Model
                 ->get();
             foreach ($data as $item) {
                 $tableData[$item->event_type_id][$intk] = $item->num;
+
+                if($user->hasRole('missed_calls') && $item->event_type_id == 4){
+                    $missedCallsUsersId = (User::select('id')
+                        ->where('banned', 0)
+                        ->where('user_group_id', $user->user_group_id)
+                        ->get())->toArray();
+                    $countMissedCallsEvent = DB::table('debtor_events')
+                        ->whereIn('user_id', $missedCallsUsersId)
+                        ->whereBetween('date', $intv)
+                        ->where('completed', 0)
+                        ->where('event_type_id', 4)
+                        ->count();
+                    $tableData[$item->event_type_id][$intk] = $countMissedCallsEvent;
+                }
                 if (!array_key_exists($item->event_type_id, $totalTypes)) {
                     $totalTypes[$item->event_type_id] = 0;
                 }
