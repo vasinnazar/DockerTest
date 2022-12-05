@@ -44,7 +44,7 @@ class DebtorsController extends BasicController
     public $debtCardService;
     public $debtEventService;
 
-    public function __construct(DebtorCardService $debtService,DebtorEventService $eventService)
+    public function __construct(DebtorCardService $debtService, DebtorEventService $eventService)
     {
         $this->middleware('auth');
         if (is_null(Auth::user())) {
@@ -300,16 +300,16 @@ class DebtorsController extends BasicController
 
         $arDebtData = config('debtors');
         $whatsAppEvent = true;
-        try{
-            foreach($all_debts as $debt){
+        try {
+            foreach ($all_debts as $debt) {
                 $this->debtEventService->checkLimitEvent($debt);
             }
-        }catch (DebtorException $e){
+        } catch (DebtorException $e) {
             Log::error("$e->errorName:", [
-                'customer'=>$debtor->customer_id_1c,
-                'file'=> __FILE__,
-                'method'=> __METHOD__,
-                'line'=> __LINE__,
+                'customer' => $debtor->customer_id_1c,
+                'file' => __FILE__,
+                'method' => __METHOD__,
+                'line' => __LINE__,
                 'id' => $e->errorId,
                 'message' => $e->errorMessage,
             ]);
@@ -1511,10 +1511,10 @@ class DebtorsController extends BasicController
             $cols[] = $k . ' as ' . $v;
         }
         $currentUser = Auth::user();
-        $arIn =(User::select('id')
-        ->where('banned', 0)
-        ->where('user_group_id', $currentUser->user_group_id)
-        ->get())->toArray();
+        $arIn = (User::select('id')
+            ->where('banned', 0)
+            ->where('user_group_id', $currentUser->user_group_id)
+            ->get())->toArray();
 
         $date = (is_null($req->get('search_field_debtor_events@date'))) ?
             Carbon::today() :
@@ -1792,7 +1792,7 @@ class DebtorsController extends BasicController
 
         $events = collect($debtorEvents->get());
 
-        if(!empty($missedCallsEvent)){
+        if (!empty($missedCallsEvent)) {
             $events->merge($missedCallsEvent);
         }
 
@@ -1995,7 +1995,7 @@ class DebtorsController extends BasicController
             ]);
         }
 
-        $sms = DebtorSmsTpls::where('id',$req->sms_id)->first();
+        $sms = DebtorSmsTpls::where('id', $req->sms_id)->first();
         if ($sms && !is_null($sms->is_excludes)) {
             try {
                 $customer = $debtor->customer();
@@ -2005,17 +2005,17 @@ class DebtorsController extends BasicController
                 }
             } catch (DebtorException $e) {
                 Log::error("$e->errorName:", [
-                    'customer'=>$debtor->customer_id_1c,
-                    'file'=> __FILE__,
-                    'method'=> __METHOD__,
-                    'line'=> __LINE__,
+                    'customer' => $debtor->customer_id_1c,
+                    'file' => __FILE__,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
                     'id' => $e->errorId,
                     'message' => $e->errorMessage,
                 ]);
                 return response()->json([
                     'title' => 'Ошибка',
                     'msg' => $e->errorMessage
-                ],$e->errorCode);
+                ], $e->errorCode);
             }
         }
         $user = Auth::user();
@@ -2089,7 +2089,7 @@ class DebtorsController extends BasicController
 
             if ($smsType && $smsType == 'props') {
                 $smsText = 'Направляем реквизиты для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344'
-                . ' путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
+                    . ' путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
                 $smsLink = '';
             }
 
@@ -3445,11 +3445,11 @@ class DebtorsController extends BasicController
                     $col_num++;
                     continue;
                 }
-                if ($k == 'debtors_od' || $k == 'debtors_sum_indebt'){
+                if ($k == 'debtors_od' || $k == 'debtors_sum_indebt') {
                     if ($k == 'debtors_od' && isset($debtorArray['debtors_od_after_closing'])
                         && !is_null($debtorArray['debtors_od_after_closing'])
                         && $debtorArray['debtors_od_after_closing'] != 0
-                    ){
+                    ) {
                         $v = $debtorArray['debtors_od_after_closing'];
                     }
                     $html .= '<td>' . StrUtils::kopToRub($v) . '</td>';
@@ -3893,43 +3893,32 @@ class DebtorsController extends BasicController
     {
         $input = $req->input();
 
-        $currentUser = User::find(Auth::id());
-        $today = date('Y-m-d 00:00:00', time());
-
+        $user = Auth::user();
+        $today = Carbon::now()->startOfDay()->format('Y-m-d 00:00:00');
         $arGoodResultIds = [0, 3, 6, 9, 10, 11, 12, 13, 17, 21, 22, 23, 24];
 
-        $str_podr = false;
+        $structSubdivision = false;
 
-        if ($currentUser->hasRole('debtors_personal')) {
-            $str_podr = '000000000007';
-            $forgotten_date = date('Y-m-d 00:00:00', strtotime('-7 day', strtotime($today)));
+        if ($user->isDebtorsPersonal()) {
+            $structSubdivision = '000000000007';
+            $forgottenDate = Carbon::now()->startOfDay()->subDays(7)->format('Y-m-d 00:00:00');
         }
 
-        if ($currentUser->hasRole('debtors_remote')) {
-            $str_podr = '000000000006';
-            $forgotten_date = date('Y-m-d 00:00:00', strtotime('-12 day', strtotime($today)));
+        if ($user->isDebtorsRemote()) {
+            $structSubdivision = '000000000006';
+            $forgottenDate = Carbon::now()->startOfDay()->subDays(12)->format('Y-m-d 00:00:00');
         }
 
-        if (!$str_podr) {
+        if (!$structSubdivision) {
             return $this->backWithErr('Вы не привязаны к структурным подразделениям взыскания.');
         }
 
         $debtorColumns = [
             'debtors.fixation_date' => 'debtors_fixation_date',
             'debtors.passports.fio' => 'passports_fio',
-            //'debtors.loan_id_1c' => 'debtors_loan_id_1c',
-            //'debtors.qty_delays' => 'debtors_qty_delays',
-            //'debtors.sum_indebt' => 'debtors_sum_indebt',
-            //'debtors.od' => 'debtors_od',
-            //'debtors.base' => 'debtors_base',
-            //'debtors.customers.telephone' => 'customers_telephone',
-            //'debtors.debt_groups.name' => 'debtors_debt_group_id',
             'debtors.id' => 'debtors_id',
             'debtors.users.name' => 'debtors_username',
-            //'debtors.debtor_id_1c' => 'debtor_id_1c',
             'debtors.struct_subdivisions.name' => 'debtor_str_podr',
-            //'debtors.uploaded' => 'uploaded',
-            //'debtors.debt_group_id' => 'debtors_debt_group',
             'debtors.responsible_user_id_1c' => 'debtors_responsible_user_id_1c'
         ];
 
@@ -3947,40 +3936,17 @@ class DebtorsController extends BasicController
             ->leftJoin('debtors.users', 'debtors.responsible_user_id_1c', '=', 'users.id_1c')
             ->leftJoin('debtors.struct_subdivisions', 'debtors.str_podr', '=', 'struct_subdivisions.id_1c')
             ->groupBy('debtors.customer_id_1c')
-            ->havingRaw('MAX(debtor_events.created_at) <= \'' . $forgotten_date . '\'');
-
-        /* $debtors = Debtor::select($cols, DB::raw('MAX(debtor_events.created_at) as max_created_at'))
-          ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-          ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-          ->leftJoin('debtors.customers', 'debtors.customers.id', '=', 'debtors.claims.customer_id')
-          ->leftJoin('debtors.passports', function($join) {
-          $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-          $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-          })
-          ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.debtors.responsible_user_id_1c')
-          ->leftJoin('debtors.struct_subdivisions', 'debtors.struct_subdivisions.id_1c', '=', 'debtors.debtors.str_podr')
-          ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
-          //->leftJoin('debtors.debtor_events', 'debtors.debtor_events.debtor_id', '=', 'debtors.debtors.id')
-          ->leftJoin('debtors.debtor_events', function($oJoin) {
-          $oJoin->on('debtors.debtor_events.debtor_id', '=', 'debtors.debtors.id');
-          $oJoin->on('debtors.debtor_events.user_id_1c', '=', 'debtors.debtors.responsible_user_id_1c');
-          })
-          ->groupBy('debtors.id')
-          //->groupBy('debtor_events.customer_id_1c')
-          //->orderBy('debtor_events.created_at', 'desc')
-          ->havingRaw('MAX(debtor_events.created_at) <= \'' . $forgotten_date . '\''); */
+            ->havingRaw('MAX(debtor_events.created_at) <= \'' . $forgottenDate . '\'');
 
         $debtors->where('debtors.base', '<>', 'Архив ЗД');
         $debtors->where('debtors.is_debtor', 1);
 
-        $debtors->where('debtors.str_podr', $str_podr);
+        $debtors->where('debtors.str_podr', $structSubdivision);
 
-        $debtors->whereIn('event_result_id', $arGoodResultIds);
-
-        if (isset($input['search_field_users@id_1c']) && !empty($input['search_field_users@id_1c']) && $currentUser->hasRole('debtors_chief')) {
+        if (isset($input['search_field_users@id_1c']) && !empty($input['search_field_users@id_1c']) && $user->hasRole('debtors_chief')) {
             $debtors->where('responsible_user_id_1c', $input['search_field_users@id_1c']);
         } else {
-            if ($currentUser->hasRole('debtors_chief')) {
+            if ($user->hasRole('debtors_chief')) {
                 $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
                 $usersDebtors = User::select('users.id_1c')
                     ->whereIn('id', $arResponsibleUserIds);
@@ -3996,7 +3962,7 @@ class DebtorsController extends BasicController
 
                 $debtors->whereIn('debtors.responsible_user_id_1c', $arIn);
             } else {
-                $debtors->where('debtors.responsible_user_id_1c', $currentUser->id_1c);
+                $debtors->where('debtors.responsible_user_id_1c', $user->id_1c);
             }
         }
 
