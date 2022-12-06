@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DebtGroup;
 use App\Debtor;
 use App\DebtorEvent;
 use App\DebtorGeocode;
@@ -36,6 +37,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Image;
+use Maatwebsite\Excel\Excel;
 use Yajra\Datatables\Facades\Datatables;
 
 class DebtorsController extends BasicController
@@ -3641,66 +3643,46 @@ class DebtorsController extends BasicController
 
     public function exportForgottenToExcel(Request $req)
     {
-        $qDebtors = $this->forgottenQuery($req);
+        $collectDebtors = $this->forgottenQuery($req);
 
-        $colHeaders = [
-            'debtors_fixation_date' => 'Дата закрепления',
-            'passports_fio' => 'ФИО',
-            'debtors_loan_id_1c' => 'Договор',
-            'debtors_qty_delays' => 'Дней просрочки',
-            'debtors_sum_indebt' => 'Задолженность',
-            'debtors_od' => 'Осн. долг',
-            'debtors_base' => 'База',
-            'customers_telephone' => 'Телефон',
-            'debtors_debt_group_id' => 'Группа долга',
-            'debtors_username' => 'Ответственный',
-            'debtor_str_podr' => 'Структурное подразделение'
-        ];
+        $excel = \Excel::create('Забытые должники');
+        $excel->sheet('Лист 1');
+        $activeSheet = $excel->getActiveSheet();
 
-        $html = '<table>';
-        $firstRow = true;
-        $html .= '<thead>';
-        $html .= '<tr>';
-        foreach ($colHeaders as $k => $v) {
-            $html .= '<th>' . $v . '</th>';
+        $lineNumber = 1;
+        $activeSheet->appendRow($lineNumber, [
+            'Дата закрепления',
+            'ФИО',
+            'Договор',
+            'Дней просрочки',
+            'Задолженность',
+            'Осн. долг',
+            'База',
+            'Телефон',
+            'Группа долга',
+            'Ответственный',
+            'Структурное подразделение'
+        ]);
+
+        foreach ($collectDebtors as $item) {
+            $debtor = Debtor::find($item['debtors_id']);
+            $nameDebtorGroup = DebtGroup::where('id',$debtor->debt_group_id)->first();
+            $lineNumber++;
+            $activeSheet->appendRow($lineNumber, [
+                Carbon::parse($item['debtors_fixation_date'])->format('d.m.Y'),
+                $item['passports_fio'],
+                $debtor->loan_id_1c,
+                $debtor->qty_delays,
+                $debtor->sum_indebt / 100,
+                $debtor->od / 100,
+                $debtor->base,
+                ($debtor->customer())->telephone,
+                $nameDebtorGroup ? $nameDebtorGroup->name : '',
+                $item['debtors_username'],
+                $item['debtor_str_podr']
+            ]);
         }
-        $html .= '</tr>';
-        $html .= '</thead>';
-        $html .= '<tbody>';
-
-        $debtors = $qDebtors->get();
-
-        foreach ($debtors as $debtor) {
-            $debtorArray = $debtor->toArray();
-            $html .= '<tr>';
-            foreach ($debtorArray as $k => $v) {
-                if (in_array($k, ['debtors_fixation_date'])) {
-                    $html .= '<td>' . with(new Carbon($v))->format('d.m.Y') . '</td>';
-                } else {
-                    if (in_array($k, [
-                        'debtors_id',
-                        'debtor_id_1c',
-                        'uploaded',
-                        'debtors_debt_group',
-                        'debtors_responsible_user_id_1c'
-                    ])) {
-                        continue;
-                    } else {
-                        $html .= '<td>' . $v . '</td>';
-                    }
-                }
-            }
-            $html .= '</tr>';
-        }
-        $html .= '</tbody>';
-        $html .= '</table>';
-
-        $file = "report_forgotten.xls";
-        header("Content-type: application/vnd.ms-excel");
-        header("Content-Disposition: attachment; filename=$file");
-        return response($html)
-            ->header("Content-type", "application/vnd.ms-excel")
-            ->header("Content-Disposition", "attachment; filename=$file");
+        $excel->download();
     }
 
     public function changeLoadStatus($debtor_id)
@@ -3866,23 +3848,21 @@ class DebtorsController extends BasicController
     {
         $debtors = $this->forgottenQuery($req);
 
-        $collection = Datatables::of($debtors)
+        return Datatables::of($debtors)
             ->editColumn('debtors_fixation_date', function ($item) {
-                return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
-                    strtotime($item->debtors_fixation_date)) : '-';
+                return (!is_null($item['debtors_fixation_date'])) ? date('d.m.Y',
+                    strtotime($item['debtors_fixation_date'])) : '-';
             })
             ->addColumn('links', function ($item) {
                 $html = '';
-                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id),
+                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item['debtors_id']),
                     ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
                 return $html;
             }, 0)
             ->removeColumn('debtors_id')
             ->removeColumn('debtors_responsible_user_id_1c')
-            ->setTotalRecords(1000)
+            ->setTotalRecords(count($debtors))
             ->make();
-        $collection->getData();
-        return $collection;
     }
 
     /**
@@ -3894,14 +3874,13 @@ class DebtorsController extends BasicController
         $input = $req->input();
 
         $user = Auth::user();
-        $today = Carbon::now()->startOfDay()->format('Y-m-d 00:00:00');
-        $arGoodResultIds = [0, 3, 6, 9, 10, 11, 12, 13, 17, 21, 22, 23, 24];
+        $arGoodResultIds = [0, 1, 6, 9, 10, 11, 12, 13, 22, 24, 27, 29];
 
         $structSubdivision = false;
 
         if ($user->isDebtorsPersonal()) {
             $structSubdivision = '000000000007';
-            $forgottenDate = Carbon::now()->startOfDay()->subDays(7)->format('Y-m-d 00:00:00');
+            $forgottenDate = Carbon::now()->startOfDay()->subDays(10)->format('Y-m-d 00:00:00');
         }
 
         if ($user->isDebtorsRemote()) {
@@ -3913,37 +3892,10 @@ class DebtorsController extends BasicController
             return $this->backWithErr('Вы не привязаны к структурным подразделениям взыскания.');
         }
 
-        $debtorColumns = [
-            'debtors.fixation_date' => 'debtors_fixation_date',
-            'debtors.passports.fio' => 'passports_fio',
-            'debtors.id' => 'debtors_id',
-            'debtors.users.name' => 'debtors_username',
-            'debtors.struct_subdivisions.name' => 'debtor_str_podr',
-            'debtors.responsible_user_id_1c' => 'debtors_responsible_user_id_1c'
-        ];
-
-        foreach ($debtorColumns as $k => $v) {
-            $cols[] = $k . ' as ' . $v;
-        }
-
-        $debtors = DebtorEvent::select($cols, DB::raw('MAX(debtor_events.created_at) as max_created_at'))
-            ->leftJoin('debtors.debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
-            ->leftJoin('debtors.customers', 'debtors.customer_id_1c', '=', 'customers.id_1c')
-            ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passport_series', '=', 'passports.series');
-                $join->on('debtors.passport_number', '=', 'passports.number');
-            })
-            ->leftJoin('debtors.users', 'debtors.responsible_user_id_1c', '=', 'users.id_1c')
-            ->leftJoin('debtors.struct_subdivisions', 'debtors.str_podr', '=', 'struct_subdivisions.id_1c')
-            ->groupBy('debtors.customer_id_1c')
-            ->havingRaw('MAX(debtor_events.created_at) <= \'' . $forgottenDate . '\'');
-
-        $debtors->where('debtors.base', '<>', 'Архив ЗД');
-        $debtors->where('debtors.is_debtor', 1);
-
-        $debtors->where('debtors.str_podr', $structSubdivision);
-
-        if (isset($input['search_field_users@id_1c']) && !empty($input['search_field_users@id_1c']) && $user->hasRole('debtors_chief')) {
+        $debtors = Debtor::where('is_debtor', 1)->where('str_podr', $structSubdivision);
+        if (isset($input['search_field_users@id_1c'])
+            && !empty($input['search_field_users@id_1c'])
+            && $user->hasRole('debtors_chief')) {
             $debtors->where('responsible_user_id_1c', $input['search_field_users@id_1c']);
         } else {
             if ($user->hasRole('debtors_chief')) {
@@ -3954,9 +3906,6 @@ class DebtorsController extends BasicController
                 $arUsersDebtors = $usersDebtors->get()->toArray();
                 $arIn = [];
                 foreach ($arUsersDebtors as $tmpUser) {
-                    if (strpos($tmpUser['id_1c'], 'Еричев') !== false) {
-                        continue;
-                    }
                     $arIn[] = $tmpUser['id_1c'];
                 }
 
@@ -3965,8 +3914,32 @@ class DebtorsController extends BasicController
                 $debtors->where('debtors.responsible_user_id_1c', $user->id_1c);
             }
         }
-
-        return $debtors;
+        $debtors = $debtors->groupBy('id')->get();
+        $collectDebtors = collect();
+        foreach ($debtors as $debtor) {
+            $arrDebtors = (Debtor::select('id')->where('customer_id_1c', $debtor->customer_id_1c)->get())->toArray();
+            $event = DebtorEvent::whereIn('debtor_id', $arrDebtors)
+                ->whereIn('event_result_id', $arGoodResultIds)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            if (!is_null($event)
+                && ($event->created_at->startOfDay()->lessThan($forgottenDate)
+                    || $event->created_at->startOfDay()->equalTo($forgottenDate))
+            ) {
+                $itemCollect = [
+                    'debtors_fixation_date' => $debtor->fixation_date,
+                    'passports_fio' => ($debtor->customer())->getLastPassport()->fio,
+                    'debtors_id' => $debtor->id,
+                    'debtors_username' => (User::select('name')
+                        ->where('id_1c', $debtor->responsible_user_id_1c)
+                        ->first())->name,
+                    'debtor_str_podr' => $debtor->str_podr,
+                    'debtors_responsible_user_id_1c' => $debtor->responsible_user_id_1c,
+                ];
+                $collectDebtors->push($itemCollect);
+            }
+        }
+        return $collectDebtors;
     }
 
     /**
