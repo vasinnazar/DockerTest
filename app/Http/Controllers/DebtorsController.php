@@ -2017,7 +2017,7 @@ class DebtorsController extends BasicController
                 return response()->json([
                     'title' => 'Ошибка',
                     'msg' => $e->errorMessage
-                ],$e->errorCode);
+                ]);
             }
         }
         $user = Auth::user();
