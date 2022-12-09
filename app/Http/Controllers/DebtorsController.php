@@ -2001,7 +2001,7 @@ class DebtorsController extends BasicController
             ]);
         }
 
-        $sms = DebtorSmsTpls::where('id',$req->sms_id)->first();
+        $sms = DebtorSmsTpls::where('id', $req->sms_id)->first();
         if ($sms && is_null($sms->is_excluded)) {
             try {
                 $customer = $debtor->customer();
