@@ -1286,13 +1286,15 @@ $(document).on('click', '#sendSMSLink', function() {
             debtor_id_1c: $('input[name="debtor_id_1c"]').val(),
             debt_group_id: "{{$data[0]['d_debt_group_id']}}"
         }).done(function (data) {
-        $.app.blockScreen(false);
-        $('#debtorSMS').modal('hide');
-        $.app.openErrorModal(data.title, data.msg);
-        setTimeout(function () {
-            window.location.reload();
-        }, 1000);
+        if (data.title == 'Ошибка') {
+            $.app.openErrorModal('Ошибка', data.msg);
+            $.app.blockScreen(false);
+        } else {
+            $('#textForMessengerBlock').show();
+            $('#textForMessenger').text(data);
+        }
     });
+
 });
 $(document).on('click', '#sendSMSProps', function() {
     $.app.blockScreen(true);
@@ -1338,12 +1340,13 @@ $(document).on('click', '#getMessengerText', function() {
         debtor_id_1c: $('input[name="debtor_id_1c"]').val(),
         debt_group_id: "{{$data[0]['d_debt_group_id']}}"
     }).done(function (data) {
-        $.app.blockScreen(false);
-        $('#debtorSMS').modal('hide');
-        $.app.openErrorModal(data.title, data.msg);
-        setTimeout(function () {
-            window.location.reload();
-        }, 1000);
+        if (data.title == 'Ошибка') {
+            $.app.openErrorModal('Ошибка', data.msg);
+            $.app.blockScreen(false);
+        } else {
+            $('#textForMessengerBlock').show();
+            $('#textForMessenger').text(data);
+        }
     });
 });
 $(document).on('click', '.notice_personal', function(){
