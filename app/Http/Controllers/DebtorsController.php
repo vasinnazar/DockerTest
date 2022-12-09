@@ -415,6 +415,8 @@ class DebtorsController extends BasicController
                     $spec_phone = (mb_strlen($objUser->phone) < 6) ? '88003014344' : $objUser->phone;
                     $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##spec_phone##', $spec_phone,
                         $arSmsPersonalRows[$k]['text_tpl']);
+                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_till_date##', date('d.m.Y', time()),
+                    $arSmsPersonalRows[$k]['text_tpl']);
                     $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_debtor_name##',
                         (isset($arDebtorName[1]) ? $arDebtorName[1] : '') . ' ' . (isset($arDebtorName[2]) ? $arDebtorName[2] : ''),
                         $arSmsPersonalRows[$k]['text_tpl']);

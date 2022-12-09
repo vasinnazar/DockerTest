@@ -38,6 +38,12 @@
 
                             @if (isset($debtroles['personal']))
                             <h4>Личное взыскание</h4>
+                                <table style="margin-bottom: 15px;">
+                                    <tr>
+                                        <td>Дата для SMS:</td>
+                                        <td style="padding-left: 15px;"><input type="date" name="sms_date" class="form-control" style="width: 200px;" min="{{date('Y-m-d', time())}}"></td>
+                                    </tr>
+                                </table>
                             <table class="table table-bordered table-condensed">
                                 <thead>
                                     <tr>
