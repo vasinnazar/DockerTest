@@ -417,6 +417,8 @@ class DebtorsController extends BasicController
                     $spec_phone = (mb_strlen($objUser->phone) < 6) ? '88003014344' : $objUser->phone;
                     $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##spec_phone##', $spec_phone,
                         $arSmsPersonalRows[$k]['text_tpl']);
+                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_till_date##', date('d.m.Y', time()),
+                    $arSmsPersonalRows[$k]['text_tpl']);
                     $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_debtor_name##',
                         (isset($arDebtorName[1]) ? $arDebtorName[1] : '') . ' ' . (isset($arDebtorName[2]) ? $arDebtorName[2] : ''),
                         $arSmsPersonalRows[$k]['text_tpl']);
@@ -953,6 +955,7 @@ class DebtorsController extends BasicController
             $debtorEvent->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
             if (!is_null($debtor)) {
                 $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
+                $debtorEvent->customer_id_1c = $debtor->customer_id_1c;
                 if ($debtor->debt_group_id != $data['debt_group_id'] && !$is_archive) {
                     Debtor::where('customer_id_1c', $debtor->customer_id_1c)
                         ->where('is_debtor', 1)
@@ -1057,6 +1060,7 @@ class DebtorsController extends BasicController
 
             $planEvent->debtor_id = $debtor->id;
             $planEvent->debtor_id_1c = $debtor->debtor_id_1c;
+            $planEvent->customer_id_1c = $debtor->customer_id_1c;
             $planEvent->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
 //            $planEvent->id_1c = DebtorEvent::getNextNumber();
             $planEvent->completed = 0;
@@ -1997,8 +2001,8 @@ class DebtorsController extends BasicController
             ]);
         }
 
-        $sms = DebtorSmsTpls::where('id', $req->sms_id)->first();
-        if ($sms && !is_null($sms->is_excludes)) {
+        $sms = DebtorSmsTpls::where('id',$req->sms_id)->first();
+        if ($sms && is_null($sms->is_excluded)) {
             try {
                 $customer = $debtor->customer();
                 $debtors = Debtor::where('customer_id_1c', $customer->id_1c)->get();
@@ -2017,7 +2021,7 @@ class DebtorsController extends BasicController
                 return response()->json([
                     'title' => 'Ошибка',
                     'msg' => $e->errorMessage
-                ], $e->errorCode);
+                ]);
             }
         }
         $user = Auth::user();
@@ -2849,19 +2853,19 @@ class DebtorsController extends BasicController
                   $arParams['spec_phone'] = '‭+79034101149‬';
                   } */
 
-                /*if ($debtorTmp->id == 170278772) {
+                /*if ($debtorTmp->id == 165897647) {
                   $arParams['req_spec_position'] = 'Специалист';
-                  $arParams['spec_fio'] = 'Литасов Виктор Владимирович';
-                  $arParams['spec_phone'] = '89039846339';
+                  $arParams['spec_fio'] = 'Бутузова Наталья Викторовна';
+                  $arParams['spec_phone'] = '89069262562';
 
                   $arParams['spec_doc'] = '72/22р от 31 марта 2022 г';
                   //$arParams['req_spec_position'] = 'Руководитель';
                   //$arParams['loan_id_1c'] = '00001198819-007';
                   //$arParams['loan_created_at'] = '14 февраля 2019 г.';
 
-                  $arParams['date_sent'] = '25.08.2022';
-                  $arParams['print_date'] = '25.08.2022';
-                  $arParams['notice_number'] = '812505';
+                  $arParams['date_sent'] = '03.09.2022';
+                  $arParams['print_date'] = '03.09.2022';
+                  $arParams['notice_number'] = '816033';
                   }*/
             }
 

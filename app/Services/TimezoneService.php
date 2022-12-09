@@ -14,7 +14,7 @@ class TimezoneService
      * @param $region
      * @return Carbon|null
      */
-    public static function getRegionTime($region): ?Carbon
+    public static function getRegionTime($region)
     {
         if(is_null($region)){
             return null;
@@ -31,7 +31,7 @@ class TimezoneService
      * @param $timezone
      * @return Collection
      */
-    public static function getDebtorsForTimezone($debtors, $timezone): Collection
+    public static function getDebtorsForTimezone($debtors, $timezone)
     {
         $timezone = $timezone === 'east' ? [5, -1] : [-2, -5];
         $regions = self::getTimezoneRegions($timezone);
@@ -60,7 +60,7 @@ class TimezoneService
      * @param $timezone
      * @return array|null
      */
-    public static function getTimezoneRegions($timezone): ?array
+    public static function getTimezoneRegions($timezone)
     {
         if(is_null($timezone)){
             return null;
