@@ -1058,6 +1058,10 @@ class DebtorsController extends BasicController
                 $planEvent->user_id_1c = Auth::user()->id_1c;
             }
 
+            if (isset($data['amountOfAgreement']) && $data['amountOfAgreement'] != '') {
+                $planEvent->amount = $data['amountOfAgreement'];
+            }
+
             $planEvent->debtor_id = $debtor->id;
             $planEvent->debtor_id_1c = $debtor->debtor_id_1c;
             $planEvent->customer_id_1c = $debtor->customer_id_1c;
@@ -1652,6 +1656,7 @@ class DebtorsController extends BasicController
             'debtor_events.event_type_id' => 'de_type_id',
             'debtors.passports.fio' => 'passports_fio',
             'debtor_events.created_at' => 'de_created_at',
+            'debtor_events.amount' => 'de_amount',
             'users.login' => 'de_username',
             'debtors.id' => 'debtors_id',
             'debtors.passports.fact_timezone' => 'passports_fact_timezone'
@@ -1816,6 +1821,12 @@ class DebtorsController extends BasicController
                 }
                 $arDebtData = config('debtors');
                 return $arDebtData['event_types'][$item->de_type_id];
+            })
+            ->editColumn('de_amount', function ($item) {
+                if (is_null($item->de_amount)) {
+                    return 'Н/Д';
+                }
+                return $item->de_amount;
             })
             ->removeColumn('debtors_id')
             ->removeColumn('passports_fact_timezone')
@@ -3512,6 +3523,7 @@ class DebtorsController extends BasicController
             'debtor_events.event_type_id' => 'de_type_id',
             'debtors.passports.fio' => 'passports_fio',
             'debtor_events.created_at' => 'de_created_at',
+            'debtor_events.amount' => 'de_amount',
             'users.login' => 'de_username',
             'debtors.id' => 'debtors_id'
         ];
@@ -3600,6 +3612,7 @@ class DebtorsController extends BasicController
             'de_type_id' => 'Тип мероприятия',
             'passports_fio' => 'ФИО должника',
             'de_created_at' => 'Дата факт',
+            'de_amount' => 'Сумма договорённости',
             'de_username' => 'Ответственный',
         ];
         $html .= '<thead>';
