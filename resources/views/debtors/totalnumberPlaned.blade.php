@@ -46,12 +46,6 @@
             @endforeach
             <td>{{$total_debtor_events['total']}}</td>
         </tr>
-        <tr>
-        <td>Общая сумма договорённости</td>
-        @foreach($total_debtor_events['totalDayAmount'] as $k=>$num)
-            <td>{{$num}}</td>
-        @endforeach
-        </tr>
         </tbody>
     </table>
 </div>
