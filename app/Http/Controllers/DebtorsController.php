@@ -4560,6 +4560,7 @@ class DebtorsController extends BasicController
 
         $task_id = $req->get('task_id', false);
         $recurrent_type = $req->get('recurrent_type', false);
+        $timezone = $req->get('timezone', false);
 
         if (!$task_id) {
             return 0;
@@ -4614,6 +4615,8 @@ class DebtorsController extends BasicController
         }
 
         if (isset($debtors) && $debtors) {
+            $debtors = TimezoneService::getDebtorsForTimezone($debtors, $timezone);
+
             foreach ($debtors as $debtor) {
                 $postdata = [
                     'customer_external_id' => $debtor->customer_id_1c,
