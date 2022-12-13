@@ -135,7 +135,6 @@ class DebtorEvent extends Model
         $totalTypes = [];
         $totalDays = [];
         $tableData = [];
-        $amount = [];
         $total = 0;
         $dates = [];
         $cols = [];
@@ -182,13 +181,6 @@ class DebtorEvent extends Model
                     $totalDays[$intk] = 0;
                 }
             }
-            $amountOfAgreement = DB::table('debtor_events')
-                ->select(DB::raw('ifnull(sum(amount),0) as amount'))
-                ->whereIn('user_id', $usersId)
-                ->whereBetween('date', $intv)
-                ->where('completed', 0)
-                ->first();
-            $amount[$intk] = $amountOfAgreement->amount;
         }
         foreach ($tableData as $tdk => $tdv) {
             foreach ($cols as $col) {
@@ -205,7 +197,6 @@ class DebtorEvent extends Model
         $res['total_types'] = $totalTypes;
         $res['total_days'] = $totalDays;
         $res['total'] = $total;
-        $res['totalDayAmount'] = $amount;
         \PC::debug($res);
         return $res;
     }
