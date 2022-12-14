@@ -49,7 +49,7 @@
         <tr>
         <td>Общая сумма договорённости</td>
         @foreach($total_debtor_events['totalDayAmount'] as $k=>$num)
-            <td>{{$num}}</td>
+            <td>{{ number_format($num / 100, '2', '.', '') }}</td>
         @endforeach
         </tr>
         </tbody>

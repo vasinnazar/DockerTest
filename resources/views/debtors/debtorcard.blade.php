@@ -650,7 +650,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        {{ $event['amount'] }} &#8381;
+                                        {{ number_format($event['amount'] / 100, '2', '.', '') }} &#8381;
                                     </td>
                                     <td>
                                         @if(array_key_exists($event['event_result_id'],$debtdata['event_results']))

@@ -1820,7 +1820,7 @@ class DebtorsController extends BasicController
                 if (is_null($item->de_amount)) {
                     return 'Н/Д';
                 }
-                return $item->de_amount;
+                return number_format($item->de_amount / 100, '2', '.', '');
             })
             ->removeColumn('debtors_id')
             ->removeColumn('passports_fact_timezone')
