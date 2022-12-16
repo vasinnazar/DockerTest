@@ -97,13 +97,13 @@ class DebtorEventService
         }
         $usersId = array_merge([$user->id], json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true));
         foreach ($dates as $intk => $intv) {
-            $data = collect(DebtorEvent::select(DB::raw('count(*) as num, event_type_id'))
+            $data = DebtorEvent::select(DB::raw('count(*) as num, event_type_id'))
                 ->whereIn('user_id', $usersId)
                 ->whereBetween('date', $intv)
                 ->where('completed', 0)
                 ->groupBy('event_type_id')
-                ->get());
-            if($user->hasRole('missed_calls')){
+                ->get();
+            if ($user->hasRole('missed_calls')) {
                 $missedCallsUsersId = User::where('banned', 0)
                     ->where('user_group_id', $user->user_group_id)
                     ->get()
@@ -117,7 +117,7 @@ class DebtorEventService
                     ->get();
                 foreach ($missedCallsEvent as $mce) {
                     if ($mce->num != 0 && !is_null($mce->event_type_id)) {
-                        $data = $data->merge(collect($missedCallsEvent));
+                        $data = $data->merge($missedCallsEvent);
                     }
                 }
             }
