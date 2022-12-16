@@ -138,7 +138,7 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function totalNumberPlaned(Request $request)
+    public function totalNumberPlaned(Request $request, DebtorEventService $debtorEventService)
     {
         $user = User::where('id', $request->userId)->first();
         $debtorsOverall = [];
@@ -149,7 +149,8 @@ class DebtorsController extends BasicController
             'user_id' => $user->id,
             'event_types' => config('debtors.event_types'),
             'debtorsOverall' => $debtorsOverall,
-            'total_debtor_events' => DebtorEvent::getPlannedForUser(Auth::user(), Carbon::today()->subDays(15), 30),
+            'total_debtor_events' => $debtorEventService->getPlannedForUser(Auth::user(), Carbon::today()->subDays(15),
+                30),
         ]);
 
     }
@@ -1505,6 +1506,7 @@ class DebtorsController extends BasicController
     {
         $cols = [];
         $tCols = [
+            'debtor_events.id' => 'de_id',
             'debtor_events.date' => 'de_date',
             'debtor_events.event_type_id' => 'de_type_id',
             'debtors.passports.fio' => 'passports_fio',
@@ -1517,10 +1519,11 @@ class DebtorsController extends BasicController
             $cols[] = $k . ' as ' . $v;
         }
         $currentUser = Auth::user();
-        $arIn = (User::select('id')
-            ->where('banned', 0)
+        $arIn = User::where('banned', 0)
             ->where('user_group_id', $currentUser->user_group_id)
-            ->get())->toArray();
+            ->get()
+            ->pluck('id')
+            ->toArray();
 
         $date = (is_null($req->get('search_field_debtor_events@date'))) ?
             Carbon::today() :
@@ -1555,8 +1558,8 @@ class DebtorsController extends BasicController
             ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
             ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
             ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
-            ->where('debtor_events.completed', 0)
             ->where('debtor_events.event_type_id', 4)
+            ->where('debtor_events.completed', 0)
             ->groupBy('debtor_events.id');
 
         $input = $req->input();
@@ -1648,6 +1651,7 @@ class DebtorsController extends BasicController
 
         $cols = [];
         $tCols = [
+            'debtor_events.id' => 'de_id',
             'debtor_events.date' => 'de_date',
             'debtor_events.event_type_id' => 'de_type_id',
             'debtors.passports.fio' => 'passports_fio',
@@ -1797,9 +1801,11 @@ class DebtorsController extends BasicController
         }
 
         $events = collect($debtorEvents->get());
-
         if (!empty($missedCallsEvent)) {
-            $events->merge($missedCallsEvent);
+            $events = $events->merge($missedCallsEvent);
+            $events = $events->unique(function ($item) {
+                return $item->de_id;
+            });
         }
 
         // формирование коллекции для заполнения таблицы
@@ -1818,6 +1824,7 @@ class DebtorsController extends BasicController
                 return $arDebtData['event_types'][$item->de_type_id];
             })
             ->removeColumn('debtors_id')
+            ->removeColumn('de_id')
             ->removeColumn('passports_fact_timezone')
             ->addColumn('actions', function ($item) {
                 $html = '';
@@ -3318,13 +3325,16 @@ class DebtorsController extends BasicController
         return json_encode($res);
     }
 
-    public function refreshTotalEventTable(Request $req)
+    public function refreshTotalEventTable(Request $req, DebtorEventService $debtorEventService)
     {
         $id1c = $req->get('user_id_1c');
         if (is_null($id1c) || !mb_strlen($id1c)) {
-            return view('elements.debtors.totalEventsTable', [
+            return view(
+                'elements.debtors.totalEventsTable', [
                 'event_types' => config('debtors.event_types'),
-                'total_debtor_events' => DebtorEvent::getPlannedForUser(Auth::user(), Carbon::today()->subDays(15), 30)
+                'total_debtor_events' => $debtorEventService->getPlannedForUser(
+                    Auth::user(),
+                    Carbon::today()->subDays(15), 30)
             ]);
         }
 
@@ -3336,7 +3346,9 @@ class DebtorsController extends BasicController
 
         return view('elements.debtors.totalEventsTable', [
             'event_types' => config('debtors.event_types'),
-            'total_debtor_events' => DebtorEvent::getPlannedForUser($user, Carbon::today()->subDays(15), 30)
+            'total_debtor_events' => $debtorEventService->getPlannedForUser(
+                $user,
+                Carbon::today()->subDays(15), 30)
         ]);
     }
 
