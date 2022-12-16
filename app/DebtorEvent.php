@@ -177,10 +177,7 @@ class DebtorEvent extends Model
                     }
                 }
             }
-            logger('testHUI1',[$data]);
             foreach ($data as $item) {
-                logger('testHUI2',[$item]);
-
                 $tableData[$item->event_type_id][$intk] = $item->num;
 
                 if (!array_key_exists($item->event_type_id, $totalTypes)) {
