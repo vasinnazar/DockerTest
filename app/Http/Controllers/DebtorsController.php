@@ -138,7 +138,7 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function totalNumberPlaned(Request $request)
+    public function totalNumberPlaned(Request $request, DebtorEventService $debtorEventService)
     {
         $user = User::where('id', $request->userId)->first();
         $debtorsOverall = [];
@@ -149,7 +149,8 @@ class DebtorsController extends BasicController
             'user_id' => $user->id,
             'event_types' => config('debtors.event_types'),
             'debtorsOverall' => $debtorsOverall,
-            'total_debtor_events' => DebtorEvent::getPlannedForUser(Auth::user(), Carbon::today()->subDays(15), 30),
+            'total_debtor_events' => $debtorEventService->getPlannedForUser(Auth::user(), Carbon::today()->subDays(15),
+                30),
         ]);
 
     }
@@ -3324,13 +3325,16 @@ class DebtorsController extends BasicController
         return json_encode($res);
     }
 
-    public function refreshTotalEventTable(Request $req)
+    public function refreshTotalEventTable(Request $req, DebtorEventService $debtorEventService)
     {
         $id1c = $req->get('user_id_1c');
         if (is_null($id1c) || !mb_strlen($id1c)) {
-            return view('elements.debtors.totalEventsTable', [
+            return view(
+                'elements.debtors.totalEventsTable', [
                 'event_types' => config('debtors.event_types'),
-                'total_debtor_events' => DebtorEvent::getPlannedForUser(Auth::user(), Carbon::today()->subDays(15), 30)
+                'total_debtor_events' => $debtorEventService->getPlannedForUser(
+                    Auth::user(),
+                    Carbon::today()->subDays(15), 30)
             ]);
         }
 
@@ -3342,7 +3346,9 @@ class DebtorsController extends BasicController
 
         return view('elements.debtors.totalEventsTable', [
             'event_types' => config('debtors.event_types'),
-            'total_debtor_events' => DebtorEvent::getPlannedForUser($user, Carbon::today()->subDays(15), 30)
+            'total_debtor_events' => $debtorEventService->getPlannedForUser(
+                $user,
+                Carbon::today()->subDays(15), 30)
         ]);
     }
 

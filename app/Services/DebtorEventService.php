@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Debtor;
 use App\DebtorEvent;
+use App\DebtorUsersRef;
 use App\Exceptions\DebtorException;
+use App\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DebtorEventService
 {
@@ -71,5 +74,79 @@ class DebtorEventService
         if ($countEventMonth >= DebtorEventService::LIMIT_PER_MONTH) {
             throw new DebtorException('limit_per_month');
         }
+    }
+
+    public function getPlannedForUser($user, $firstDate, $daysNum = 10)
+    {
+        $res = [];
+        $totalTypes = [];
+        $totalDays = [];
+        $tableData = [];
+        $total = 0;
+        $dates = [];
+        $cols = [];
+        for ($i = 0; $i < $daysNum; $i++) {
+            $date = $firstDate->copy()->addDays($i);
+            $intname = $date->format('d.m.y');
+            $dates[$intname] = [
+                $date->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
+                $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')
+            ];
+            $cols[] = $intname;
+            $totalDays[$intname] = 0;
+        }
+        $usersId = array_merge([$user->id], json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true));
+        foreach ($dates as $intk => $intv) {
+            $data = collect(DebtorEvent::select(DB::raw('count(*) as num, event_type_id'))
+                ->whereIn('user_id', $usersId)
+                ->whereBetween('date', $intv)
+                ->where('completed', 0)
+                ->groupBy('event_type_id')
+                ->get());
+            if($user->hasRole('missed_calls')){
+                $missedCallsUsersId = User::where('banned', 0)
+                    ->where('user_group_id', $user->user_group_id)
+                    ->get()
+                    ->pluck('id')
+                    ->toArray();
+                $missedCallsEvent = DebtorEvent::select(DB::raw('count(*) as num, event_type_id'))
+                    ->whereIn('user_id', $missedCallsUsersId)
+                    ->whereBetween('date', $intv)
+                    ->where('completed', 0)
+                    ->where('event_type_id', 4)
+                    ->get();
+                foreach ($missedCallsEvent as $mce) {
+                    if ($mce->num != 0 && !is_null($mce->event_type_id)) {
+                        $data = $data->merge(collect($missedCallsEvent));
+                    }
+                }
+            }
+            foreach ($data as $item) {
+                $tableData[$item->event_type_id][$intk] = $item->num;
+
+                if (!array_key_exists($item->event_type_id, $totalTypes)) {
+                    $totalTypes[$item->event_type_id] = 0;
+                }
+                if (!array_key_exists($intk, $totalDays)) {
+                    $totalDays[$intk] = 0;
+                }
+            }
+        }
+        foreach ($tableData as $tdk => $tdv) {
+            foreach ($cols as $col) {
+                if (!array_key_exists($col, $tableData[$tdk])) {
+                    $tableData[$tdk][$col] = 0;
+                }
+                $totalDays[$col] += $tableData[$tdk][$col];
+                $totalTypes[$tdk] += $tableData[$tdk][$col];
+                $total += $tableData[$tdk][$col];
+            }
+        }
+        $res['data'] = $tableData;
+        $res['cols'] = $cols;
+        $res['total_types'] = $totalTypes;
+        $res['total_days'] = $totalDays;
+        $res['total'] = $total;
+        return $res;
     }
 }
