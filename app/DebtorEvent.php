@@ -151,29 +151,38 @@ class DebtorEvent extends Model
         }
         $usersId = array_merge([$user->id], json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true));
         foreach ($dates as $intk => $intv) {
-            $data = DB::table('debtor_events')
+            $data = collect(DB::table('debtor_events')
                 ->select(DB::raw('count(*) as num, event_type_id'))
                 ->whereIn('user_id', $usersId)
                 ->whereBetween('date', $intv)
                 ->where('completed', 0)
                 ->groupBy('event_type_id')
-                ->get();
+                ->get());
+            if($user->hasRole('missed_calls')){
+                $missedCallsUsersId = User::where('banned', 0)
+                    ->where('user_group_id', $user->user_group_id)
+                    ->get()
+                    ->pluck('id')
+                    ->toArray();
+                $missedCallsEvent = DB::table('debtor_events')
+                    ->select(DB::raw('count(*) as num, event_type_id'))
+                    ->whereIn('user_id', $missedCallsUsersId)
+                    ->whereBetween('date', $intv)
+                    ->where('completed', 0)
+                    ->where('event_type_id', 4)
+                    ->get();
+                foreach ($missedCallsEvent as $mce) {
+                    if ($mce->num != 0 && !is_null($mce->event_type_id)) {
+                        $data = $data->merge(collect($missedCallsEvent));
+                    }
+                }
+            }
+            logger('testHUI1',[$data]);
             foreach ($data as $item) {
+                logger('testHUI2',[$item]);
+
                 $tableData[$item->event_type_id][$intk] = $item->num;
 
-                if($user->hasRole('missed_calls') && $item->event_type_id == 4){
-                    $missedCallsUsersId = (User::select('id')
-                        ->where('banned', 0)
-                        ->where('user_group_id', $user->user_group_id)
-                        ->get())->toArray();
-                    $countMissedCallsEvent = DB::table('debtor_events')
-                        ->whereIn('user_id', $missedCallsUsersId)
-                        ->whereBetween('date', $intv)
-                        ->where('completed', 0)
-                        ->where('event_type_id', 4)
-                        ->count();
-                    $tableData[$item->event_type_id][$intk] = $countMissedCallsEvent;
-                }
                 if (!array_key_exists($item->event_type_id, $totalTypes)) {
                     $totalTypes[$item->event_type_id] = 0;
                 }
