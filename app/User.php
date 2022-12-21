@@ -38,12 +38,13 @@ class User extends Model implements AuthenticatableContract,AuthorizableContract
      */
     protected $hidden = ['password', 'remember_token'];
 
-    public function isAdmin() {
-//        return ($this->hasRole(Role::ADMIN));
+    public function isAdmin()
+    {
         return ($this->group_id == 0 || $this->group_id == -1);
     }
 
-    public function isSuperAdmin() {
+    public function isSuperAdmin()
+    {
         return ($this->group_id == -1);
     }
     /**
@@ -51,33 +52,35 @@ class User extends Model implements AuthenticatableContract,AuthorizableContract
      */
     public function isDebtorsRemote()
     {
-        $role = $this->roles()->where('role_id',Role::DEBTORS_REMOTE)->first();
-        return !is_null($role);
+        return !is_null($this->roles()->where('role_id',Role::DEBTORS_REMOTE)->first());
     }
     /**
      * @return boolean
      */
     public function isDebtorsPersonal()
     {
-        $role = $this->roles()->where('role_id', Role::DEBTORS_PERSONAL)->first();
-        return !is_null($role);
+        return !is_null($this->roles()->where('role_id', Role::DEBTORS_PERSONAL)->first());
     }
 
-    public function isCC() {
+    public function isCC()
+    {
         return ($this->subdivision_id == config('options.office_subdivision_id') && !$this->isAdmin()) ? true : false;
     }
     /**
      * @return boolean
      */
-    public function isChiefSpecialist() {
+    public function isChiefSpecialist()
+    {
         return !is_null($this->roles()->where('role_id',Role::DEBTORS_CHIEF)->first());
     }
 
-    public function subdivision() {
+    public function subdivision()
+    {
         return $this->belongsTo('App\Subdivision');
     }
 
-    public function customer() {
+    public function customer()
+    {
         return $this->belongsTo('App\Customer');
     }
 
