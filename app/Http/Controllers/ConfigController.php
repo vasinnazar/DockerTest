@@ -197,7 +197,7 @@ class ConfigController extends BasicController {
             }
         }*/
         
-        $debtorsLog = \App\DebtorsSiteLoginLog::whereNull('responsible_user_id')->get();
+        /*$debtorsLog = \App\DebtorsSiteLoginLog::whereNull('responsible_user_id')->get();
         
         foreach ($debtorsLog as $d) {
             $debtor = \App\Debtor::where('customer_id_1c', $d->customer_id_1c)->where('is_debtor', 1)->first();
@@ -209,9 +209,9 @@ class ConfigController extends BasicController {
                     $d->save();
                 }
             }
-        }
+        }*/
 
-        /*$rDate = date('Y-m-d H:i:s', time());
+        $rDate = date('Y-m-d H:i:s', time());
         
         $timezones = \App\DebtorRegionTimezone::get();
         
@@ -221,7 +221,7 @@ class ConfigController extends BasicController {
                 continue;
             }
             \App\Passport::where('fact_address_region', 'like', '%' . $tz->root_word . '%')->whereNull('fact_timezone')->update(['fact_timezone' => $tz->timezone]);
-        }*/
+        }
         
         /*$de = \App\DebtorEvent::where('created_at', '>=', '2021-07-26 14:00:00')
                 ->where('event_type_id', 12)
