@@ -1823,6 +1823,12 @@ class DebtorsController extends BasicController
                 $arDebtData = config('debtors');
                 return $arDebtData['event_types'][$item->de_type_id];
             })
+            ->editColumn('de_amount', function ($item) {
+                if (is_null($item->de_amount)) {
+                    return 'Н/Д';
+                }
+                return number_format($item->de_amount / 100, '2', '.', '');
+            })
             ->removeColumn('debtors_id')
             ->removeColumn('de_id')
             ->removeColumn('passports_fact_timezone')
