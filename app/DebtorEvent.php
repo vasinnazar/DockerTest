@@ -2,12 +2,20 @@
 
 namespace App;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\StrUtils;
 use Log;
+
+/**
+ * Class DebtorEvent
+ * @package App
+ *
+ * @mixin Builder
+ * @mixin \Illuminate\Database\Query\Builder
+ */
 
 class DebtorEvent extends Model
 {
@@ -67,14 +75,10 @@ class DebtorEvent extends Model
         if (!is_array($debtorsList)) {
             $debtorsList = $debtorsList->toArray();
         }
-//        \PC::debug($debtorsList);
         $oldevents = DB::connection('oldevents')->table('debtor_events')->whereIn('debtor_id_1c', $debtorsList)->get();
-//        \PC::debug($oldevents,'oldevents');
-        \PC::debug(count($oldevents), 'oldevents');
         $toupload = 0;
         $uploaded = 0;
         foreach ($oldevents as $oe) {
-//            \PC::debug($oe);
             $e = DebtorEvent::where('id_1c', $oe->id_1c)->first();
             if (is_null($e)) {
                 $toupload++;
@@ -127,78 +131,6 @@ class DebtorEvent extends Model
             'id_1c' => 'Номер мероприятия в 1С',
             'last_user_id' => 'Последний редактировавший пользователь'
         ];
-    }
-
-    static function getPlannedForUser($user, $firstDate, $daysNum = 10)
-    {
-        $res = [];
-        $totalTypes = [];
-        $totalDays = [];
-        $tableData = [];
-        $total = 0;
-        $dates = [];
-        $cols = [];
-        $rows = [];
-        for ($i = 0; $i < $daysNum; $i++) {
-            $date = $firstDate->copy()->addDays($i);
-            $intname = $date->format('d.m.y');
-            $dates[$intname] = [
-                $date->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
-                $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')
-            ];
-            $cols[] = $intname;
-            $totalDays[$intname] = 0;
-        }
-        $usersId = array_merge([$user->id], json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true));
-        foreach ($dates as $intk => $intv) {
-            $data = DB::table('debtor_events')
-                ->select(DB::raw('count(*) as num, event_type_id'))
-                ->whereIn('user_id', $usersId)
-                ->whereBetween('date', $intv)
-                ->where('completed', 0)
-                ->groupBy('event_type_id')
-                ->get();
-            foreach ($data as $item) {
-                $tableData[$item->event_type_id][$intk] = $item->num;
-
-                if($user->hasRole('missed_calls') && $item->event_type_id == 4){
-                    $missedCallsUsersId = (User::select('id')
-                        ->where('banned', 0)
-                        ->where('user_group_id', $user->user_group_id)
-                        ->get())->toArray();
-                    $countMissedCallsEvent = DB::table('debtor_events')
-                        ->whereIn('user_id', $missedCallsUsersId)
-                        ->whereBetween('date', $intv)
-                        ->where('completed', 0)
-                        ->where('event_type_id', 4)
-                        ->count();
-                    $tableData[$item->event_type_id][$intk] = $countMissedCallsEvent;
-                }
-                if (!array_key_exists($item->event_type_id, $totalTypes)) {
-                    $totalTypes[$item->event_type_id] = 0;
-                }
-                if (!array_key_exists($intk, $totalDays)) {
-                    $totalDays[$intk] = 0;
-                }
-            }
-        }
-        foreach ($tableData as $tdk => $tdv) {
-            foreach ($cols as $col) {
-                if (!array_key_exists($col, $tableData[$tdk])) {
-                    $tableData[$tdk][$col] = 0;
-                }
-                $totalDays[$col] += $tableData[$tdk][$col];
-                $totalTypes[$tdk] += $tableData[$tdk][$col];
-                $total += $tableData[$tdk][$col];
-            }
-        }
-        $res['data'] = $tableData;
-        $res['cols'] = $cols;
-        $res['total_types'] = $totalTypes;
-        $res['total_days'] = $totalDays;
-        $res['total'] = $total;
-        \PC::debug($res);
-        return $res;
     }
 
     /**

@@ -135,7 +135,8 @@ class DebtorsController extends BasicController {
         ]);
     }
 
-    public function totalNumberPlaned(Request $request) {
+    public function totalNumberPlaned(Request $request, DebtorEventService $debtorEventService)
+    {
         $user = User::where('id', $request->userId)->first();
         $debtorsOverall = [];
         if ($user->id == 916 || $user->id == 227) {
@@ -145,7 +146,8 @@ class DebtorsController extends BasicController {
             'user_id' => $user->id,
             'event_types' => config('debtors.event_types'),
             'debtorsOverall' => $debtorsOverall,
-            'total_debtor_events' => DebtorEvent::getPlannedForUser(Auth::user(), Carbon::today()->subDays(15), 30),
+            'total_debtor_events' => $debtorEventService->getPlannedForUser(Auth::user(), Carbon::today()->subDays(15),
+                30),
         ]);
     }
 
@@ -1451,6 +1453,7 @@ class DebtorsController extends BasicController {
     public function ajaxEventsMissedCalls(Request $req) {
         $cols = [];
         $tCols = [
+            'debtor_events.id' => 'de_id',
             'debtor_events.date' => 'de_date',
             'debtor_events.event_type_id' => 'de_type_id',
             'debtors.passports.fio' => 'passports_fio',
@@ -1463,10 +1466,11 @@ class DebtorsController extends BasicController {
             $cols[] = $k . ' as ' . $v;
         }
         $currentUser = Auth::user();
-        $arIn = (User::select('id')
-        ->where('banned', 0)
-        ->where('user_group_id', $currentUser->user_group_id)
-        ->get())->toArray();
+        $arIn = User::where('banned', 0)
+            ->where('user_group_id', $currentUser->user_group_id)
+            ->get()
+            ->pluck('id')
+            ->toArray();
 
         $date = (is_null($req->get('search_field_debtor_events@date'))) ?
                 Carbon::today() :
@@ -1489,19 +1493,19 @@ class DebtorsController extends BasicController {
 
         // получаем список запланированных мероприятий на сегодня
         $debtorEvents = DB::table('debtor_events')->select($cols)
-                ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
-                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-                ->leftJoin('debtors.passports', function ($join) {
-                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-                })
-                ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
-                ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
-                ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
-                ->where('debtor_events.completed', 0)
-                ->where('debtor_events.event_type_id', 4)
-                ->groupBy('debtor_events.id');
+            ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
+            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+            ->leftJoin('debtors.passports', function ($join) {
+                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+            })
+            ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
+            ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
+            ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
+            ->where('debtor_events.event_type_id', 4)
+            ->where('debtor_events.completed', 0)
+            ->groupBy('debtor_events.id');
 
         $input = $req->input();
         $noEmptyDate = false;
@@ -1587,6 +1591,7 @@ class DebtorsController extends BasicController {
 
         $cols = [];
         $tCols = [
+            'debtor_events.id' => 'de_id',
             'debtor_events.date' => 'de_date',
             'debtor_events.event_type_id' => 'de_type_id',
             'debtors.passports.fio' => 'passports_fio',
@@ -1732,48 +1737,57 @@ class DebtorsController extends BasicController {
         }
 
         $events = collect($debtorEvents->get());
-
         if (!empty($missedCallsEvent)) {
-            $events->merge($missedCallsEvent);
+            $events = $events->merge($missedCallsEvent);
+            $events = $events->unique(function ($item) {
+                return $item->de_id;
+            });
         }
 
         // формирование коллекции для заполнения таблицы
         return Datatables::of($events)
-                        ->editColumn('de_date', function ($item) {
-                            return date('d.m.Y', strtotime($item->de_date));
-                        })
-                        ->editColumn('de_created_at', function ($item) {
-                            return date('d.m.Y', strtotime($item->de_created_at));
-                        })
-                        ->editColumn('de_type_id', function ($item) {
-                            if (is_null($item->de_type_id)) {
-                                return 'Неопределен';
-                            }
-                            $arDebtData = config('debtors');
-                            return $arDebtData['event_types'][$item->de_type_id];
-                        })
-                        ->removeColumn('debtors_id')
-                        ->removeColumn('passports_fact_timezone')
-                        ->addColumn('actions', function ($item) {
-                            $html = '';
-                            if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
-                                $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
-                                $arRegionTime = explode(':', $region_time);
-                                $weekday = date('N', time());
-                                $hour = $arRegionTime[0];
-                                if ($hour[0] == '0') {
-                                    $hour = substr($hour, 1);
-                                }
-                                if ($weekday == 6 || $weekday == 7) {
-                                    $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
-                                } else {
-                                    $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
-                                }
-                            }
-                            $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
-                            if (isset($dNoCall) && $dNoCall) {
-                                $arBtn['style'] = 'color: red;';
-                            }
+            ->editColumn('de_date', function ($item) {
+                return date('d.m.Y', strtotime($item->de_date));
+            })
+            ->editColumn('de_created_at', function ($item) {
+                return date('d.m.Y', strtotime($item->de_created_at));
+            })
+            ->editColumn('de_type_id', function ($item) {
+                if (is_null($item->de_type_id)) {
+                    return 'Неопределен';
+                }
+                $arDebtData = config('debtors');
+                return $arDebtData['event_types'][$item->de_type_id];
+            })
+            ->editColumn('de_amount', function ($item) {
+                if (is_null($item->de_amount)) {
+                    return 'Н/Д';
+                }
+                return number_format($item->de_amount / 100, '2', '.', '');
+            })
+            ->removeColumn('debtors_id')
+            ->removeColumn('de_id')
+            ->removeColumn('passports_fact_timezone')
+            ->addColumn('actions', function ($item) {
+                $html = '';
+                if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
+                    $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
+                    $arRegionTime = explode(':', $region_time);
+                    $weekday = date('N', time());
+                    $hour = $arRegionTime[0];
+                    if ($hour[0] == '0') {
+                        $hour = substr($hour, 1);
+                    }
+                    if ($weekday == 6 || $weekday == 7) {
+                        $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
+                    } else {
+                        $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
+                    }
+                }
+                $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
+                if (isset($dNoCall) && $dNoCall) {
+                    $arBtn['style'] = 'color: red;';
+                }
 
                             $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
                             return $html;
@@ -3217,12 +3231,16 @@ class DebtorsController extends BasicController {
         return json_encode($res);
     }
 
-    public function refreshTotalEventTable(Request $req) {
+    public function refreshTotalEventTable(Request $req, DebtorEventService $debtorEventService)
+    {
         $id1c = $req->get('user_id_1c');
         if (is_null($id1c) || !mb_strlen($id1c)) {
-            return view('elements.debtors.totalEventsTable', [
+            return view(
+                'elements.debtors.totalEventsTable', [
                 'event_types' => config('debtors.event_types'),
-                'total_debtor_events' => DebtorEvent::getPlannedForUser(Auth::user(), Carbon::today()->subDays(15), 30)
+                'total_debtor_events' => $debtorEventService->getPlannedForUser(
+                    Auth::user(),
+                    Carbon::today()->subDays(15), 30)
             ]);
         }
 
@@ -3234,7 +3252,9 @@ class DebtorsController extends BasicController {
 
         return view('elements.debtors.totalEventsTable', [
             'event_types' => config('debtors.event_types'),
-            'total_debtor_events' => DebtorEvent::getPlannedForUser($user, Carbon::today()->subDays(15), 30)
+            'total_debtor_events' => $debtorEventService->getPlannedForUser(
+                $user,
+                Carbon::today()->subDays(15), 30)
         ]);
     }
 
@@ -4416,6 +4436,7 @@ class DebtorsController extends BasicController {
 
         $task_id = $req->get('task_id', false);
         $recurrent_type = $req->get('recurrent_type', false);
+        $timezone = $req->get('timezone', false);
 
         if (!$task_id) {
             return 0;
@@ -4470,6 +4491,8 @@ class DebtorsController extends BasicController {
         }
 
         if (isset($debtors) && $debtors) {
+            $debtors = TimezoneService::getDebtorsForTimezone($debtors, $timezone);
+
             foreach ($debtors as $debtor) {
                 $postdata = [
                     'customer_external_id' => $debtor->customer_id_1c,

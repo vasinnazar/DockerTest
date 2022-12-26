@@ -604,6 +604,79 @@
                 </table>
             </div>
         </div>
+        <div class='col-xs-12 col-sm-6 col-lg-8'>
+            <div class="panel panel-default debtor-comments-table">
+                <div class="panel-heading">
+                    Сумма договорённостей
+                </div>
+                <table class="table table-condensed">
+                    <thead>
+                    <tr>
+                        <th>Дата план</th>
+                        <th>Тип мероприятия</th>
+                        <th>Сумма договорённости</th>
+                        <th>Ответственный</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody class="debtor-comments-block">
+                    @if (is_array($dataevents) && count($dataevents))
+                        <?php
+                        $curDay = $dataevents[0]['day'];
+                        $row_color = 'ffffff';
+                        $isMasterUser = \App\DebtorUsersRef::isMasterUserWithSlaves(Auth::user()->id);
+                        ?>
+                        @foreach ($dataevents as $event)
+                            @if($event['event_type_id'] === 26)
+                                <?php
+                                if ($curDay != $event['day'] || $row_color == 'ffaaa7' || $row_color == '6C8CD5') {
+                                    if ($row_color == 'ffffff') {
+                                        $row_color = 'dddddd';
+                                    } else {
+                                        $row_color = 'ffffff';
+                                    }
+
+                                    $curDay = $event['day'];
+                                }
+                                if (strpos($event['user_id_1c'], 'Кондратенко И') !== false || strpos($event['user_id_1c'], 'Рифель Ю. О.') !== false) {
+                                    $row_color = 'ffaaa7';
+                                }
+                                ?>
+                                <tr style="background-color: #{{$row_color}}">
+                                    <td>{{($event['date'] == '0000-00-00 00:00:00' || is_null($event['date'])) ? '' : date('d.m.Y H:i:s', strtotime($event['date']))}}</td>
+                                    <td>
+                                        @if(array_key_exists($event['event_type_id'],$debtdata['event_types']))
+                                            {{$debtdata['event_types'][$event['event_type_id']]}}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        {{ number_format($event['amount'] / 100, '2', '.', '') }} &#8381;
+                                    </td>
+                                    <td>
+                                        @if(array_key_exists($event['event_result_id'],$debtdata['event_results']))
+                                            {{$debtdata['event_results'][$event['event_result_id']]}}
+                                        @endif
+                                    </td>
+                                    <td>{{$event['report']}}</td>
+                                    <td>{{$event['login']}}</td>
+                                    <td>
+                                        <input type="checkbox" name="eventDone[]" value="{{$event['id']}}" {{($event['completed'] == 1) ? 'checked' : ''}}/>
+                                        @if($isMasterUser)
+                                            <button type="button" name="debtor_event_edit" class="btn btn-default btn-xs" onclick="$.debtorsCtrl.openDebtorEvent({{$event['id']}});"><span class="glyphicon glyphicon-pencil"></span></button>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    @else
+                        <tr>
+                            <td colspan="7">Мероприятия еще не созданы</td>
+                        </tr>
+                    @endif
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <div class="row">
