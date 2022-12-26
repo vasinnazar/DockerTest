@@ -40,14 +40,12 @@ use Image;
 use Maatwebsite\Excel\Excel;
 use Yajra\Datatables\Facades\Datatables;
 
-class DebtorsController extends BasicController
-{
+class DebtorsController extends BasicController {
 
     public $debtCardService;
     public $debtEventService;
 
-    public function __construct(DebtorCardService $debtService, DebtorEventService $eventService)
-    {
+    public function __construct(DebtorCardService $debtService, DebtorEventService $eventService) {
         $this->middleware('auth');
         if (is_null(Auth::user())) {
             return redirect('auth/login');
@@ -65,8 +63,7 @@ class DebtorsController extends BasicController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
+    public function index() {
         $user_id = Auth::id();
 
         $objUser = User::find($user_id);
@@ -96,7 +93,7 @@ class DebtorsController extends BasicController
 
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
         $usersDebtors = User::select('users.id_1c')
-            ->whereIn('id', $arResponsibleUserIds);
+                ->whereIn('id', $arResponsibleUserIds);
 
         $arUsersDebtors = $usersDebtors->get()->toArray();
         $arIn = [];
@@ -138,8 +135,7 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function totalNumberPlaned(Request $request)
-    {
+    public function totalNumberPlaned(Request $request) {
         $user = User::where('id', $request->userId)->first();
         $debtorsOverall = [];
         if ($user->id == 916 || $user->id == 227) {
@@ -151,19 +147,16 @@ class DebtorsController extends BasicController
             'debtorsOverall' => $debtorsOverall,
             'total_debtor_events' => DebtorEvent::getPlannedForUser(Auth::user(), Carbon::today()->subDays(15), 30),
         ]);
-
     }
 
-    public function uploadOldDebtorEvents()
-    {
+    public function uploadOldDebtorEvents() {
         //$debtorsList = $this->getDebtorsQuery()->lists('debtor_id_1c');
         $debtorsList = Debtor::lists('debtor_id_1c');
         DebtorEvent::uploadFromOldEvents($debtorsList);
         return 1;
     }
 
-    public function calendar()
-    {
+    public function calendar() {
         return view('debtors.calendar', []);
     }
 
@@ -172,8 +165,7 @@ class DebtorsController extends BasicController
      * @param int $debtor_id
      * @return type
      */
-    public function debtorcard(int $debtor_id)
-    {
+    public function debtorcard(int $debtor_id) {
         $user_id = Auth::id();
 
         $objUser = User::find($user_id);
@@ -209,8 +201,7 @@ class DebtorsController extends BasicController
 
         $customer = \App\Customer::where('id_1c', $debtor->customer_id_1c)->first();
         // получаем данные по клиенту и договору
-        $passport = Passport::where('series', $debtor->passport_series)->where('number',
-            $debtor->passport_number)->first();
+        $passport = Passport::where('series', $debtor->passport_series)->where('number', $debtor->passport_number)->first();
 
         $debtorcard = Debtor::select(DB::raw('*, loans.created_at as loans_created_at, loantypes.percent as loantype_percent, loantypes.exp_pc as loantype_exp_pc, 
                                                 loans.special_percent as loan_special_percent, loantypes.special_pc as loantype_special_pc,
@@ -221,19 +212,19 @@ class DebtorsController extends BasicController
                                                 customers.telephone as telephone, debtors.debt_group_id as d_debt_group_id,
                                                 loans.tranche_number as loan_tranche_number, loans.first_loan_id_1c as loan_first_loan_id_1c, loans.first_loan_date as loan_first_loan_date,
                                                 claims.id as r_claim_id, loans.id as r_loan_id, struct_subdivisions.name as str_podr_name, loans.time as time'))
-            ->leftJoin('loans', 'loans.id_1c', '=', 'debtors.debtors.loan_id_1c')
-            ->leftJoin('customers', 'debtors.debtors.customer_id_1c', '=', 'customers.id_1c')
-            ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-            ->leftJoin('passports', function ($join) {
-                $join->on('passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->leftJoin('struct_subdivisions', 'debtors.str_podr', '=', 'struct_subdivisions.id_1c')
-            ->leftJoin('about_clients', 'claims.about_client_id', '=', 'about_clients.id')
-            ->leftJoin('subdivisions', 'claims.subdivision_id', '=', 'subdivisions.id')
-            ->leftJoin('loantypes', 'loantypes.id', '=', 'loans.loantype_id')
-            ->where('debtors.debtors.id', $debtor_id)
-            ->get();
+                ->leftJoin('loans', 'loans.id_1c', '=', 'debtors.debtors.loan_id_1c')
+                ->leftJoin('customers', 'debtors.debtors.customer_id_1c', '=', 'customers.id_1c')
+                ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
+                ->leftJoin('passports', function ($join) {
+                    $join->on('passports.series', '=', 'debtors.debtors.passport_series');
+                    $join->on('passports.number', '=', 'debtors.debtors.passport_number');
+                })
+                ->leftJoin('struct_subdivisions', 'debtors.str_podr', '=', 'struct_subdivisions.id_1c')
+                ->leftJoin('about_clients', 'claims.about_client_id', '=', 'about_clients.id')
+                ->leftJoin('subdivisions', 'claims.subdivision_id', '=', 'subdivisions.id')
+                ->leftJoin('loantypes', 'loantypes.id', '=', 'loans.loantype_id')
+                ->where('debtors.debtors.id', $debtor_id)
+                ->get();
 
         $data = json_decode(json_encode($debtorcard), true);
 
@@ -283,13 +274,13 @@ class DebtorsController extends BasicController
 
         // получаем данные по мероприятиям на клиента
         $debtorevents = DebtorEvent::select(DB::raw('*, debtor_events.id as id, debtor_events.created_at as de_created_at'))
-            ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
-            ->leftJoin('customers', 'customers.id_1c', '=', 'debtor_events.customer_id_1c')
-            //->where('debtor_id_1c', $debtor->debtor_id_1c)
-            ->whereIn('debtor_id_1c', $ar_debtor_ids)
-            //->where('customer_id_1c', $debtor->customer_id_1c)
+                ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
+                ->leftJoin('customers', 'customers.id_1c', '=', 'debtor_events.customer_id_1c')
+                //->where('debtor_id_1c', $debtor->debtor_id_1c)
+                ->whereIn('debtor_id_1c', $ar_debtor_ids)
+                //->where('customer_id_1c', $debtor->customer_id_1c)
 //                ->where('debtor_events.user_id', $user_id)
-            ->orderBy('de_created_at', 'desc');
+                ->orderBy('de_created_at', 'desc');
         \PC::debug($debtorevents);
         //->whereBetween('debtor_events.created_at', array($today->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $today->setTime(23, 59, 59)->format('Y-m-d H:i:s')));
         $dataevents = $debtorevents->get()->toArray();
@@ -319,12 +310,11 @@ class DebtorsController extends BasicController
         }
         // получаем данные об ответственном пользователе
         $debtorRespUser = Debtor::select(DB::raw('*'))
-            ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c');
+                ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c');
 
         // форматируем данные
 //        if (Auth::user()->id == 5) {
-        $passport = Passport::where('series', $debtor->passport_series)->where('number',
-            $debtor->passport_number)->first();
+        $passport = Passport::where('series', $debtor->passport_series)->where('number', $debtor->passport_number)->first();
 //            \PC::debug($passport,'passport');
 //        } else {
 //            $passport = json_decode(json_encode(DB::connection('arm')->table('passports')->where('id', $data[0]['passport_id'])->first()), true);
@@ -334,17 +324,16 @@ class DebtorsController extends BasicController
 //        $datapayments = $debtorpayments->get();
 //        if(Auth::user()->id==5){
 
-        $passport_armf = DB::Table('armf.passports')->select(DB::raw('*'))->where('series',
-            $debtor->passport_series)->where('number', $debtor->passport_number)->first();
+        $passport_armf = DB::Table('armf.passports')->select(DB::raw('*'))->where('series', $debtor->passport_series)->where('number', $debtor->passport_number)->first();
         if (!is_null($passport_armf)) {
             $loan_id_replica = $this->getLoanIdFromArm($debtor->loan_id_1c, $debtor->customer_id_1c);
 
             $debtorpayments = DB::Table('armf.orders')
-                ->select(DB::raw('*'))
-                //->where('passport_id', $passport_armf->id)
-                ->whereIn('loan_id', $loan_id_replica)
-                ->whereNotNull('passport_id')
-                ->orderBy('created_at', 'asc');
+                    ->select(DB::raw('*'))
+                    //->where('passport_id', $passport_armf->id)
+                    ->whereIn('loan_id', $loan_id_replica)
+                    ->whereNotNull('passport_id')
+                    ->orderBy('created_at', 'asc');
             $datapayments = $debtorpayments->get();
 
             $arTypes = \App\OrderType::lists('name', 'id');
@@ -383,13 +372,11 @@ class DebtorsController extends BasicController
         $data[0]['fact_address_region'] = $passport->fact_address_region;
         $data[0]['loan_date_start'] = date('d.m.Y', strtotime($data[0]['loans_created_at']));
         $period_type = ($debtor->is_bigmoney || $debtor->is_pledge || $debtor->is_pos) ? 'month' : 'days';
-        $data[0]['loan_date_end'] = date('d.m.Y',
-            strtotime("+" . $data[0]['time'] . " " . $period_type, strtotime($data[0]['loans_created_at'])));
+        $data[0]['loan_date_end'] = date('d.m.Y', strtotime("+" . $data[0]['time'] . " " . $period_type, strtotime($data[0]['loans_created_at'])));
         \PC::debug($data[0]['loans_created_at']);
         $data[0]['loans_created_at'] = StrUtils::dateToStr($data[0]['loans_created_at']);
         \PC::debug($data[0]['loans_created_at']);
-        $data[0]['debt_group_text'] = (array_key_exists($data[0]['d_debt_group_id'],
-            $arDebtGroups)) ? $arDebtGroups[$data[0]['d_debt_group_id']] : '';
+        $data[0]['debt_group_text'] = (array_key_exists($data[0]['d_debt_group_id'], $arDebtGroups)) ? $arDebtGroups[$data[0]['d_debt_group_id']] : '';
         $data[0]['sms_available'] = (!is_null($objUser->sms_limit) ? $objUser->sms_limit : 0) - (!is_null($objUser->sms_sent) ? $objUser->sms_sent : 0);
 
         // определяем группу специалиста удаленного взыскания пользователя в "Должниках" (удаленное и личное)
@@ -400,13 +387,9 @@ class DebtorsController extends BasicController
                 $arSmsRemoteRows = DebtorSmsTpls::getSmsTpls('remote', $is_ubytki);
                 foreach ($arSmsRemoteRows as $k => $row) {
                     $spec_phone = (mb_strlen($objUser->phone) < 6) ? '88003014344' : $objUser->phone;
-                    $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##spec_phone##', $spec_phone,
-                        $arSmsRemoteRows[$k]['text_tpl']);
-                    $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##sms_till_date##', date('d.m.Y', time()),
-                        $arSmsRemoteRows[$k]['text_tpl']);
-                    $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##sms_loan_info##',
-                        $data[0]['loan_id_1c'] . ' от ' . $data[0]['loans_created_at'],
-                        $arSmsRemoteRows[$k]['text_tpl']);
+                    $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##spec_phone##', $spec_phone, $arSmsRemoteRows[$k]['text_tpl']);
+                    $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##sms_till_date##', date('d.m.Y', time()), $arSmsRemoteRows[$k]['text_tpl']);
+                    $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##sms_loan_info##', $data[0]['loan_id_1c'] . ' от ' . $data[0]['loans_created_at'], $arSmsRemoteRows[$k]['text_tpl']);
                 }
                 $debt_roles['remote'] = $arSmsRemoteRows;
             }
@@ -415,13 +398,9 @@ class DebtorsController extends BasicController
                 $arDebtorName = explode(' ', $data[0]['fio']);
                 foreach ($arSmsPersonalRows as $k => $row) {
                     $spec_phone = (mb_strlen($objUser->phone) < 6) ? '88003014344' : $objUser->phone;
-                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##spec_phone##', $spec_phone,
-                        $arSmsPersonalRows[$k]['text_tpl']);
-                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_till_date##', date('d.m.Y', time()),
-                    $arSmsPersonalRows[$k]['text_tpl']);
-                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_debtor_name##',
-                        (isset($arDebtorName[1]) ? $arDebtorName[1] : '') . ' ' . (isset($arDebtorName[2]) ? $arDebtorName[2] : ''),
-                        $arSmsPersonalRows[$k]['text_tpl']);
+                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##spec_phone##', $spec_phone, $arSmsPersonalRows[$k]['text_tpl']);
+                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_till_date##', date('d.m.Y', time()), $arSmsPersonalRows[$k]['text_tpl']);
+                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_debtor_name##', (isset($arDebtorName[1]) ? $arDebtorName[1] : '') . ' ' . (isset($arDebtorName[2]) ? $arDebtorName[2] : ''), $arSmsPersonalRows[$k]['text_tpl']);
                 }
                 $debt_roles['personal'] = $arSmsPersonalRows;
             }
@@ -461,8 +440,7 @@ class DebtorsController extends BasicController
             $is_orders_loaded = \App\DebtorsLossBase::where('debtor_id_1c', $debtor->debtor_id_1c)->first();
             if (is_null($is_orders_loaded) || $is_orders_loaded->is_loaded == 0) {
                 $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL,
-                    config('admin.sales_arm_url') . '/debtors/orders/upload?passport_series=' . $debtor->passport_series . '&passport_number=' . $debtor->passport_number . '&loan_id_1c=' . $debtor->loan_id_1c . '&customer_id_1c=' . $debtor->customer_id_1c);
+                curl_setopt($ch, CURLOPT_URL, config('admin.sales_arm_url') . '/debtors/orders/upload?passport_series=' . $debtor->passport_series . '&passport_number=' . $debtor->passport_number . '&loan_id_1c=' . $debtor->loan_id_1c . '&customer_id_1c=' . $debtor->customer_id_1c);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 $answer_curl = curl_exec($ch);
                 curl_close($ch);
@@ -473,18 +451,17 @@ class DebtorsController extends BasicController
 
         // определяем соглашение о персональных данных
         $arPdAgreement = [];
-        $pdagreement = DB::Table('armf.pdagreements')->select(DB::raw('*'))->where('customer_id_1c',
-            $debtor->customer_id_1c)->first();
+        $pdagreement = DB::Table('armf.pdagreements')->select(DB::raw('*'))->where('customer_id_1c', $debtor->customer_id_1c)->first();
         if (is_null($pdagreement)) {
             $loan_pd_date_cnt = DB::Table('armf.loans')
-                ->leftJoin('armf.claims', 'armf.claims.id', '=', 'armf.loans.claim_id')
-                ->leftJoin('armf.subdivisions', 'armf.subdivisions.id', '=', 'armf.loans.subdivision_id')
-                ->leftJoin('armf.customers', 'armf.customers.id', '=', 'armf.claims.customer_id')
-                ->where('armf.claims.created_at', '>', '2018-01-18')
-                ->whereNotIn('armf.subdivisions.name_id', ['Teleport', '000000012', 'ЗаймПоСМС'])
-                ->where('armf.subdivisions.is_terminal', '0')
-                ->where('armf.customers.id_1c', $debtor->customer_id_1c)
-                ->count();
+                    ->leftJoin('armf.claims', 'armf.claims.id', '=', 'armf.loans.claim_id')
+                    ->leftJoin('armf.subdivisions', 'armf.subdivisions.id', '=', 'armf.loans.subdivision_id')
+                    ->leftJoin('armf.customers', 'armf.customers.id', '=', 'armf.claims.customer_id')
+                    ->where('armf.claims.created_at', '>', '2018-01-18')
+                    ->whereNotIn('armf.subdivisions.name_id', ['Teleport', '000000012', 'ЗаймПоСМС'])
+                    ->where('armf.subdivisions.is_terminal', '0')
+                    ->where('armf.customers.id_1c', $debtor->customer_id_1c)
+                    ->count();
 
             $bool_pd_agreement = (!$loan_pd_date_cnt) ? false : true;
 
@@ -492,9 +469,9 @@ class DebtorsController extends BasicController
 
             if ($loan_pd_date_cnt) {
                 $agrClaim = DB::Table('armf.claims')
-                    ->leftJoin('armf.loans', 'armf.loans.claim_id', '=', 'armf.claims.id')
-                    ->where('armf.loans.id_1c', $debtor->loan_id_1c)
-                    ->first();
+                        ->leftJoin('armf.loans', 'armf.loans.claim_id', '=', 'armf.claims.id')
+                        ->where('armf.loans.id_1c', $debtor->loan_id_1c)
+                        ->first();
 
                 if (!is_null($agrClaim)) {
                     $agrSubdivision = DB::Table('armf.subdivisions')->where('id', $agrClaim->subdivision_id)->first();
@@ -546,8 +523,7 @@ class DebtorsController extends BasicController
         }
 
         // получаем отправленные уведомления по текущему должнику
-        $notices = NoticeNumbers::where('debtor_id_1c', $debtor->debtor_id_1c)->where('str_podr',
-            '000000000006')->orderBy('created_at', 'desc')->get();
+        $notices = NoticeNumbers::where('debtor_id_1c', $debtor->debtor_id_1c)->where('str_podr', '000000000006')->orderBy('created_at', 'desc')->get();
         if (is_null($notices)) {
             $notices = [];
         }
@@ -563,18 +539,17 @@ class DebtorsController extends BasicController
           ->toArray(); */
 
         $multi_loan_debts = Loan::select(DB::raw('*, debtors.debtors.id as debtor_id, debtors.loans.id_1c as mloan_id_1c'))
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.debtors', 'debtors.debtors.loan_id_1c', '=', 'debtors.loans.id_1c')
-            ->where('debtors.loans.claim_id', $data[0]['claim_id'])
-            //->where('debtors.debtors.is_debtor', 1)
-            ->get()
-            ->toArray();
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.debtors', 'debtors.debtors.loan_id_1c', '=', 'debtors.loans.id_1c')
+                ->where('debtors.loans.claim_id', $data[0]['claim_id'])
+                //->where('debtors.debtors.is_debtor', 1)
+                ->get()
+                ->toArray();
 
         $total_multi_sum = 0;
 
         foreach ($multi_loan_debts as $k => $mLoan) {
-            $replica_loan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c',
-                $mLoan['mloan_id_1c'])->first();
+            $replica_loan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c', $mLoan['mloan_id_1c'])->first();
 
             if (!is_null($replica_loan)) {
                 if (is_null($replica_loan->first_loan_date)) {
@@ -594,15 +569,15 @@ class DebtorsController extends BasicController
         $total_multi_sum = number_format($total_multi_sum / 100, 2, '.', ' ');
 
         $loan_percents = DB::Table('armf.loan_rates')->select(DB::raw('*'))
-            ->where('start_date', '<=', date('Y-m-d H:i:s', $data[0]['loans_created_at_time']))
-            ->orderBy('start_date', 'desc')
-            ->limit(1)
-            ->first();
+                ->where('start_date', '<=', date('Y-m-d H:i:s', $data[0]['loans_created_at_time']))
+                ->orderBy('start_date', 'desc')
+                ->limit(1)
+                ->first();
 
         if (!is_null($repl_loan)) {
             $repl_loantype = DB::Table('armf.loantypes')->select(DB::raw('*'))
-                ->where('id', $repl_loan->loantype_id)
-                ->first();
+                    ->where('id', $repl_loan->loantype_id)
+                    ->first();
 
             $loan_first_percent = $repl_loantype->percent;
         } else {
@@ -615,8 +590,7 @@ class DebtorsController extends BasicController
         $data_pos = false;
         if ($debtor->is_pos || $debtor->is_bigmoney) {
             if ($repl_loan) {
-                $schedule_row = DB::Table('armf.pos_loans')->where('loan_id', $repl_loan->id)->orderBy('created_at',
-                    'desc')->first();
+                $schedule_row = DB::Table('armf.pos_loans')->where('loan_id', $repl_loan->id)->orderBy('created_at', 'desc')->first();
                 if (!is_null($schedule_row->pays)) {
                     $current_schedule = json_decode($schedule_row->pays, true);
                 }
@@ -627,12 +601,10 @@ class DebtorsController extends BasicController
                 if ($debtor->is_pos) {
                     $pos_claim = DB::Table('armf.pos_claims')->where('claim_id', $repl_loan->claim_id)->first();
                     if ($pos_claim) {
-                        $claim_goods = DB::Table('armf.pos_claim_pos_nomenclature')->where('pos_claim_id',
-                            $pos_claim->id)->get();
+                        $claim_goods = DB::Table('armf.pos_claim_pos_nomenclature')->where('pos_claim_id', $pos_claim->id)->get();
                         if ($claim_goods) {
                             foreach ($claim_goods as $claim_good) {
-                                $good = DB::Table('armf.pos_nomenclatures')->where('id',
-                                    $claim_good->pos_nomenclature_id)->first();
+                                $good = DB::Table('armf.pos_nomenclatures')->where('id', $claim_good->pos_nomenclature_id)->first();
                                 if ($good) {
                                     $data_pos[] = [
                                         'good_name' => $good->name,
@@ -648,10 +620,8 @@ class DebtorsController extends BasicController
         }
 
         if ($debtor->is_pledge) {
-            $schedule_first = DB::Table('armf.pledge_loans')->where('loan_id', $repl_loan->id)->orderBy('created_at',
-                'asc')->first();
-            $schedule_last = DB::Table('armf.pledge_loans')->where('loan_id', $repl_loan->id)->orderBy('created_at',
-                'desc')->first();
+            $schedule_first = DB::Table('armf.pledge_loans')->where('loan_id', $repl_loan->id)->orderBy('created_at', 'asc')->first();
+            $schedule_last = DB::Table('armf.pledge_loans')->where('loan_id', $repl_loan->id)->orderBy('created_at', 'desc')->first();
 
             $current_schedule = json_decode($schedule_last->pays, true);
 
@@ -709,16 +679,14 @@ class DebtorsController extends BasicController
 
         $arInsurancesData = [];
         if (!is_null($repl_loan)) {
-            $insurances = DB::Table('armf.insurance_claim_data')->where('claim_id',
-                $repl_loan->claim_id)->whereNotNull('date_signed')->get();
+            $insurances = DB::Table('armf.insurance_claim_data')->where('claim_id', $repl_loan->claim_id)->whereNotNull('date_signed')->get();
             if (!is_null($insurances)) {
                 foreach ($insurances as $k => $insurance) {
                     $arInsurancesData[$k]['policy_number'] = $insurance->policy_number;
                     $arInsurancesData[$k]['time'] = $insurance->time;
                     $arInsurancesData[$k]['money'] = $insurance->money;
 
-                    $insurance_type = DB::Table('armf.insurance_types')->where('id',
-                        $insurance->insurance_type_id)->first();
+                    $insurance_type = DB::Table('armf.insurance_types')->where('id', $insurance->insurance_type_id)->first();
 
                     $arInsurancesData[$k]['insurance_name_company'] = '';
                     $arInsurancesData[$k]['name'] = '';
@@ -751,9 +719,9 @@ class DebtorsController extends BasicController
         $hasSentNoticePersonal = false;
         if ($debtor->str_podr == '000000000007') {
             $debtors_personal = Debtor::where('customer_id_1c', $debtor->customer_id_1c)
-                ->where('str_podr', '000000000007')
-                ->where('is_debtor', 1)
-                ->get();
+                    ->where('str_podr', '000000000007')
+                    ->where('is_debtor', 1)
+                    ->get();
 
             if (!is_null($debtors_personal)) {
 
@@ -764,8 +732,8 @@ class DebtorsController extends BasicController
 
                 if (count($arDebtorsPersonalIds) > 0) {
                     $noticeToday = NoticeNumbers::whereIn('debtor_id_1c', $arDebtorsPersonalIds)
-                        ->where('str_podr', '000000000007')
-                        ->get();
+                            ->where('str_podr', '000000000007')
+                            ->get();
 
                     if (count($noticeToday) > 0) {
                         $hasSentNoticePersonal = true;
@@ -780,25 +748,24 @@ class DebtorsController extends BasicController
           ->get(); */
 
         $credit_vacation_data = DB::Table('armf.credit_vacation')
-            ->where('customer_id_1c', $debtor->customer_id_1c)
-            ->where('loan_id_1c', $debtor->loan_id_1c)
-            ->where('answer', 1)
-            ->first();
+                ->where('customer_id_1c', $debtor->customer_id_1c)
+                ->where('loan_id_1c', $debtor->loan_id_1c)
+                ->where('answer', 1)
+                ->first();
 
         if (is_null($credit_vacation_data)) {
             $credit_vacation_data = false;
         }
 
         $third_people_agreement = DB::Table('armf.third_people_agreements')
-            ->where('customer_id_1c', $debtor->customer_id_1c)
-            ->where('loan_id_1c', $debtor->loan_id_1c)
-            ->whereNotNull('confirmed')
-            ->orderBy('id', 'desc')
-            ->first();
+                ->where('customer_id_1c', $debtor->customer_id_1c)
+                ->where('loan_id_1c', $debtor->loan_id_1c)
+                ->whereNotNull('confirmed')
+                ->orderBy('id', 'desc')
+                ->first();
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL,
-            config('admin.sales_arm_url') . '/api/repayments/offers/status?loan_id_1c=' . $debtor->loan_id_1c);
+        curl_setopt($ch, CURLOPT_URL, config('admin.sales_arm_url') . '/api/repayments/offers/status?loan_id_1c=' . $debtor->loan_id_1c);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $resultPeace = curl_exec($ch);
         curl_close($ch);
@@ -816,17 +783,17 @@ class DebtorsController extends BasicController
         }
 
         $sentRecurrentQueryToday = \App\DebtorRecurrentQuery::where('debtor_id', $debtor->id)
-            ->where('created_at', '>=', date('Y-m-d', time()) . ' 00:00:00')
-            ->where('created_at', '<=', date('Y-m-d', time()) . ' 23:59:59')
-            ->first();
+                ->where('created_at', '>=', date('Y-m-d', time()) . ' 00:00:00')
+                ->where('created_at', '<=', date('Y-m-d', time()) . ' 23:59:59')
+                ->first();
 
         $hasCardForRecurrentQuery = (isset($card) && $card->card_type == 1) ? true : false;
         $hasSentRecurrentQueryToday = ($sentRecurrentQueryToday) ? true : false;
 
         $recurrent_task = \App\MassRecurrentTask::where('created_at', '>=', date('Y-m-d 00:00:00', time()))
-            ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
-            ->where('str_podr', $userStrPodr)
-            ->first();
+                ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
+                ->where('str_podr', $userStrPodr)
+                ->first();
 
         $enableRecurrentButton = ($hasCardForRecurrentQuery && !$hasSentRecurrentQueryToday && !$recurrent_task && $debtor->str_podr == $userStrPodr) ? true : false;
 
@@ -835,8 +802,8 @@ class DebtorsController extends BasicController
         }
 
         $blockProlongation = \App\DebtorBlockProlongation::where('debtor_id', $debtor->id)->orderBy('id', 'desc')
-            ->where('block_till_date', '>=', date('Y-m-d', time()) . ' 00:00:00')
-            ->first();
+                ->where('block_till_date', '>=', date('Y-m-d', time()) . ' 00:00:00')
+                ->first();
 
         $armf_customer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
         if (!is_null($armf_customer)) {
@@ -851,8 +818,7 @@ class DebtorsController extends BasicController
         $arDataCcCard = false;
 
         if (str_contains($debtor->loan_id_1c, 'ККЗ')) {
-            $json_string_cc = file_get_contents('http://192.168.35.54:8020/api/v1/loans/' . $debtor->loan_id_1c . '/schedule/' . date('d.m.Y',
-                    time()));
+            $json_string_cc = file_get_contents('http://192.168.35.54:8020/api/v1/loans/' . $debtor->loan_id_1c . '/schedule/' . date('d.m.Y', time()));
             $arDataCcCard = json_decode($json_string_cc, true);
         }
 
@@ -893,11 +859,8 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    function getLoanIdFromArm($loan_id_1c, $customer_id_1c)
-    {
-        return DB::connection('arm')->table('loans')->select('loans.id')->where('loans.id_1c',
-            $loan_id_1c)->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')->leftJoin('customers', 'customers.id',
-            '=', 'claims.customer_id')->where('customers.id_1c', $customer_id_1c)->lists('id');
+    function getLoanIdFromArm($loan_id_1c, $customer_id_1c) {
+        return DB::connection('arm')->table('loans')->select('loans.id')->where('loans.id_1c', $loan_id_1c)->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')->where('customers.id_1c', $customer_id_1c)->lists('id');
     }
 
     /**
@@ -905,8 +868,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return type
      */
-    public function addevent(Request $req)
-    {
+    public function addevent(Request $req) {
         $savePlanned = false;
         $saveProlongationBlock = false;
         $data = $req->input();
@@ -920,8 +882,7 @@ class DebtorsController extends BasicController
             }
         }
 
-        $data['date'] = (mb_strlen($data['date']) > 0) ? date('Y-m-d H:i:s',
-            strtotime($data['date'])) : '0000-00-00 00:00:00';
+        $data['date'] = (mb_strlen($data['date']) > 0) ? date('Y-m-d H:i:s', strtotime($data['date'])) : '0000-00-00 00:00:00';
 
         $debtor = Debtor::find($data['debtor_id']);
 
@@ -936,8 +897,7 @@ class DebtorsController extends BasicController
         }
 
         if (isset($data['dateProlongationBlock']) && mb_strlen($data['dateProlongationBlock'])) {
-            $data['dateProlongationBlock'] = (mb_strlen($data['dateProlongationBlock']) > 0) ? date('Y-m-d H:i:s',
-                strtotime($data['dateProlongationBlock'])) : null;
+            $data['dateProlongationBlock'] = (mb_strlen($data['dateProlongationBlock']) > 0) ? date('Y-m-d H:i:s', strtotime($data['dateProlongationBlock'])) : null;
             $saveProlongationBlock = true;
         }
 
@@ -958,11 +918,11 @@ class DebtorsController extends BasicController
                 $debtorEvent->customer_id_1c = $debtor->customer_id_1c;
                 if ($debtor->debt_group_id != $data['debt_group_id'] && !$is_archive) {
                     Debtor::where('customer_id_1c', $debtor->customer_id_1c)
-                        ->where('is_debtor', 1)
-                        ->update([
-                            'debt_group_id' => $data['debt_group_id'],
-                            'refresh_date' => Carbon::now()->format('Y-m-d H:i:s')
-                        ]);
+                            ->where('is_debtor', 1)
+                            ->update([
+                                'debt_group_id' => $data['debt_group_id'],
+                                'refresh_date' => Carbon::now()->format('Y-m-d H:i:s')
+                    ]);
                     $debtor->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
                 }
                 if ($debtor->decommissioned == 0 && !$is_archive) {
@@ -982,8 +942,8 @@ class DebtorsController extends BasicController
 
             if ($req->hasFile('messenger_photo')) {
                 $passport = Passport::where('series', $debtor->passport_series)
-                    ->where('number', $debtor->passport_number)
-                    ->first();
+                        ->where('number', $debtor->passport_number)
+                        ->first();
 
                 $customer_replica = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
 
@@ -996,8 +956,7 @@ class DebtorsController extends BasicController
 
                 $path = implode('/', $arPath);
 
-                $path .= '/debts/' . date('Y-m-d',
-                        time()) . '/' . $debtorEvent->id . '.' . $req->messenger_photo->getClientOriginalExtension();
+                $path .= '/debts/' . date('Y-m-d', time()) . '/' . $debtorEvent->id . '.' . $req->messenger_photo->getClientOriginalExtension();
 
                 $cFile = curl_file_create($_FILES['messenger_photo']['tmp_name']);
 
@@ -1086,8 +1045,7 @@ class DebtorsController extends BasicController
             $pbEvent->loan_id_1c = $debtor->loan_id_1c;
             $pbEvent->debt_group_id = $debtor->debt_group_id;
             $pbEvent->event_result_id = 17;
-            $pbEvent->report = 'Достигнута договоренность о закрытии кредитного договора ' . date('d.m.Y',
-                    strtotime($data['dateProlongationBlock'])) . ' г.';
+            $pbEvent->report = 'Достигнута договоренность о закрытии кредитного договора ' . date('d.m.Y', strtotime($data['dateProlongationBlock'])) . ' г.';
             $pbEvent->debtor_id = $debtor->id;
             $pbEvent->debtor_id_1c = $debtor->debtor_id_1c;
             $pbEvent->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
@@ -1135,8 +1093,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return int
      */
-    public function eventComplete(Request $req)
-    {
+    public function eventComplete(Request $req) {
         $debtorEvent = DebtorEvent::find($req->get('eventDone'));
         if ($debtorEvent) {
             if ($debtorEvent->completed == 1) {
@@ -1158,8 +1115,7 @@ class DebtorsController extends BasicController
      * возвращает список колонок по должникам
      * @return type
      */
-    function getDebtorsTableColumns($forPersonalDepartment = false)
-    {
+    function getDebtorsTableColumns($forPersonalDepartment = false) {
         if ($forPersonalDepartment) {
             return [
                 'debtors.fixation_date' => 'debtors_fixation_date',
@@ -1214,8 +1170,7 @@ class DebtorsController extends BasicController
         ];
     }
 
-    function getDebtorsQuery($req, $forPersonalDepartment = false)
-    {
+    function getDebtorsQuery($req, $forPersonalDepartment = false) {
         $cols = [];
         $tCols = $this->getDebtorsTableColumns($forPersonalDepartment);
         foreach ($tCols as $k => $v) {
@@ -1223,7 +1178,7 @@ class DebtorsController extends BasicController
         }
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
         $usersDebtors = User::select('users.id_1c')
-            ->whereIn('id', $arResponsibleUserIds);
+                ->whereIn('id', $arResponsibleUserIds);
 
         $arUsersDebtors = $usersDebtors->get()->toArray();
         $arIn = [];
@@ -1273,28 +1228,25 @@ class DebtorsController extends BasicController
         }
 
         $debtors = Debtor::select($cols)
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.subdivisions', 'debtors.subdivisions.id', '=', 'debtors.loans.subdivision_id')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.customers', 'debtors.customers.id', '=', 'debtors.claims.customer_id')
-            ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.debtors.responsible_user_id_1c')
-            ->leftJoin('debtors.struct_subdivisions', 'debtors.struct_subdivisions.id_1c', '=',
-                'debtors.debtors.str_podr')
-            ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
-            ->groupBy('debtors.id');
+                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+                ->leftJoin('debtors.subdivisions', 'debtors.subdivisions.id', '=', 'debtors.loans.subdivision_id')
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.customers', 'debtors.customers.id', '=', 'debtors.claims.customer_id')
+                ->leftJoin('debtors.passports', function ($join) {
+                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+                })
+                ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.debtors.responsible_user_id_1c')
+                ->leftJoin('debtors.struct_subdivisions', 'debtors.struct_subdivisions.id_1c', '=', 'debtors.debtors.str_podr')
+                ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
+                ->groupBy('debtors.id');
 
         if (isset($input['search_field_passports@fact_address_region']) && mb_strlen($input['search_field_passports@fact_address_region'])) {
-            $debtors->where('debtors.passports.fact_address_region', 'like',
-                '%' . $input['search_field_passports@fact_address_region'] . '%');
+            $debtors->where('debtors.passports.fact_address_region', 'like', '%' . $input['search_field_passports@fact_address_region'] . '%');
         }
 
         if (isset($input['search_field_passports@address_region']) && mb_strlen($input['search_field_passports@address_region'])) {
-            $debtors->where('debtors.passports.address_region', 'like',
-                '%' . $input['search_field_passports@address_region'] . '%');
+            $debtors->where('debtors.passports.address_region', 'like', '%' . $input['search_field_passports@address_region'] . '%');
         }
 
 
@@ -1303,8 +1255,7 @@ class DebtorsController extends BasicController
                 if ($key == 'search_field_planned_departures@debtor_id') {
                     $authUser = User::find(Auth::id());
 
-                    $debtors->leftJoin('debtors.planned_departures', 'debtors.planned_departures.debtor_id', '=',
-                        'debtors.debtors.id');
+                    $debtors->leftJoin('debtors.planned_departures', 'debtors.planned_departures.debtor_id', '=', 'debtors.debtors.id');
                     $debtors->whereNotNull('debtors.planned_departures.debtor_id');
                     //$debtors->where('debtors.responsible_user_id_1c', $authUser->id_1c);
                     $debtors->whereIn('debtors.responsible_user_id_1c', $arIn);
@@ -1343,8 +1294,7 @@ class DebtorsController extends BasicController
                     continue;
                 }
                 if ($key == 'search_field_other_phones@phone' && isset($arrFields['search_field_other_phones@phone'])) {
-                    $debtors->leftJoin('debtors.debtors_other_phones', 'debtors.debtors_other_phones.debtor_id_1c', '=',
-                        'debtors.debtors.debtor_id_1c');
+                    $debtors->leftJoin('debtors.debtors_other_phones', 'debtors.debtors_other_phones.debtor_id_1c', '=', 'debtors.debtors.debtor_id_1c');
 
                     if ($arrField['condition'] == 'like') {
                         $arrField['value'] = '%' . $arrField['value'] . '%';
@@ -1417,82 +1367,79 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return type
      */
-    public function ajaxList(Request $req)
-    {
+    public function ajaxList(Request $req) {
         $debtors = $this->getDebtorsQuery($req);
 
         $user = auth()->user();
 
         $collection = Datatables::of($debtors)
-            ->editColumn('debtors_created_at', function ($item) {
-                return (!is_null($item->d_created_at)) ? date('d.m.Y', strtotime($item->d_created_at)) : '-';
-            })
-            ->editColumn('debtors_fixation_date', function ($item) {
-                return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
-                    strtotime($item->debtors_fixation_date)) : '-';
-            })
-            ->editColumn('debtors_od', function ($item) {
-                return number_format($item->debtors_od / 100, 2, '.', '');
-            })
-            ->editColumn('debtors_sum_indebt', function ($item) {
-                return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
-            })
-            ->editColumn('customers_telephone', function ($item) {
-                return \App\Services\PrivateDataService::formatPhone(auth()->user(), $item->customers_telephone);
-            })
-            ->addColumn('actions', function ($item) use ($user) {
-                $glyph = $item->uploaded == 1 ? 'ok' : 'remove';
-                $html = '';
-                if (mb_strlen($item->debtors_responsible_user_id_1c)) {
-                    $pos = strpos(Auth::user()->id_1c, $item->debtors_responsible_user_id_1c);
-                    if ($user->hasRole('debtors_remote')) {
+                ->editColumn('debtors_created_at', function ($item) {
+                    return (!is_null($item->d_created_at)) ? date('d.m.Y', strtotime($item->d_created_at)) : '-';
+                })
+                ->editColumn('debtors_fixation_date', function ($item) {
+                    return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y', strtotime($item->debtors_fixation_date)) : '-';
+                })
+                ->editColumn('debtors_od', function ($item) {
+                    return number_format($item->debtors_od / 100, 2, '.', '');
+                })
+                ->editColumn('debtors_sum_indebt', function ($item) {
+                    return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
+                })
+                ->editColumn('customers_telephone', function ($item) {
+                    return \App\Services\PrivateDataService::formatPhone(auth()->user(), $item->customers_telephone);
+                })
+                ->addColumn('actions', function ($item) use ($user) {
+                    $glyph = $item->uploaded == 1 ? 'ok' : 'remove';
+                    $html = '';
+                    if (mb_strlen($item->debtors_responsible_user_id_1c)) {
+                        $pos = strpos(Auth::user()->id_1c, $item->debtors_responsible_user_id_1c);
+                        if ($user->hasRole('debtors_remote')) {
+                            $pos = true;
+                        }
+                    } else {
                         $pos = true;
                     }
-                } else {
-                    $pos = true;
-                }
-                if (Auth::user()->hasRole('debtors_chief') || $pos !== false) {
-                    if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
-                        $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
-                        $arRegionTime = explode(':', $region_time);
-                        $weekday = date('N', time());
-                        $hour = $arRegionTime[0];
-                        if ($hour[0] == '0') {
-                            $hour = substr($hour, 1);
+                    if (Auth::user()->hasRole('debtors_chief') || $pos !== false) {
+                        if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
+                            $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
+                            $arRegionTime = explode(':', $region_time);
+                            $weekday = date('N', time());
+                            $hour = $arRegionTime[0];
+                            if ($hour[0] == '0') {
+                                $hour = substr($hour, 1);
+                            }
+                            if ($weekday == 6 || $weekday == 7) {
+                                $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
+                            } else {
+                                $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
+                            }
                         }
-                        if ($weekday == 6 || $weekday == 7) {
-                            $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
-                        } else {
-                            $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
+                        $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
+                        if (isset($dNoCall) && $dNoCall) {
+                            $arBtn['style'] = 'color: red;';
                         }
-                    }
-                    $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
-                    if (isset($dNoCall) && $dNoCall) {
-                        $arBtn['style'] = 'color: red;';
-                    }
 
-                    $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
-                }
-                if (Auth::user()->isAdmin()) {
-                    $html .= HtmlHelper::Buttton(url('ajax/debtors/changeloadstatus/' . $item->debtors_id),
-                        ['glyph' => $glyph, 'size' => 'xs', 'class' => 'btn btn-default loadFlag']);
-                }
-                return $html;
-            })
-            ->removeColumn('debtors_id')
-            ->removeColumn('debtor_id_1c')
-            ->removeColumn('uploaded')
-            ->removeColumn('debtors_debt_group')
-            ->removeColumn('debtors_responsible_user_id_1c')
-            ->removeColumn('debtor_customer_id_1c')
-            ->removeColumn('debtor_is_bigmoney')
-            ->removeColumn('debtor_is_pledge')
-            ->removeColumn('debtor_is_pos')
-            ->removeColumn('debtor_is_online')
-            ->removeColumn('debtors_od_after_closing')
-            ->removeColumn('passports_fact_timezone')
-            ->setTotalRecords(count($debtors))
-            ->make();
+                        $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
+                    }
+                    if (Auth::user()->isAdmin()) {
+                        $html .= HtmlHelper::Buttton(url('ajax/debtors/changeloadstatus/' . $item->debtors_id), ['glyph' => $glyph, 'size' => 'xs', 'class' => 'btn btn-default loadFlag']);
+                    }
+                    return $html;
+                })
+                ->removeColumn('debtors_id')
+                ->removeColumn('debtor_id_1c')
+                ->removeColumn('uploaded')
+                ->removeColumn('debtors_debt_group')
+                ->removeColumn('debtors_responsible_user_id_1c')
+                ->removeColumn('debtor_customer_id_1c')
+                ->removeColumn('debtor_is_bigmoney')
+                ->removeColumn('debtor_is_pledge')
+                ->removeColumn('debtor_is_pos')
+                ->removeColumn('debtor_is_online')
+                ->removeColumn('debtors_od_after_closing')
+                ->removeColumn('passports_fact_timezone')
+                ->setTotalRecords(count($debtors))
+                ->make();
         return $collection;
     }
 
@@ -1501,8 +1448,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return \Illuminate\Support\Collection
      */
-    public function ajaxEventsMissedCalls(Request $req)
-    {
+    public function ajaxEventsMissedCalls(Request $req) {
         $cols = [];
         $tCols = [
             'debtor_events.date' => 'de_date',
@@ -1518,19 +1464,17 @@ class DebtorsController extends BasicController
         }
         $currentUser = Auth::user();
         $arIn = (User::select('id')
-            ->where('banned', 0)
-            ->where('user_group_id', $currentUser->user_group_id)
-            ->get())->toArray();
+        ->where('banned', 0)
+        ->where('user_group_id', $currentUser->user_group_id)
+        ->get())->toArray();
 
         $date = (is_null($req->get('search_field_debtor_events@date'))) ?
-            Carbon::today() :
-            (new Carbon($req->get('search_field_debtor_events@date')));
+                Carbon::today() :
+                (new Carbon($req->get('search_field_debtor_events@date')));
 
-        $dateFrom = $req->get('search_field_debtor_events@date_from') == "" ? null
-            : $req->get('search_field_debtor_events@date_from');
+        $dateFrom = $req->get('search_field_debtor_events@date_from') == "" ? null : $req->get('search_field_debtor_events@date_from');
 
-        $dateTo = $req->get('search_field_debtor_events@date_to') == "" ? null
-            : $req->get('search_field_debtor_events@date_to');
+        $dateTo = $req->get('search_field_debtor_events@date_to') == "" ? null : $req->get('search_field_debtor_events@date_to');
 
         $factTimezone = $req->get('search_field_passports@fact_timezone');
 
@@ -1545,19 +1489,19 @@ class DebtorsController extends BasicController
 
         // получаем список запланированных мероприятий на сегодня
         $debtorEvents = DB::table('debtor_events')->select($cols)
-            ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
-            ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
-            ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
-            ->where('debtor_events.completed', 0)
-            ->where('debtor_events.event_type_id', 4)
-            ->groupBy('debtor_events.id');
+                ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
+                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.passports', function ($join) {
+                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+                })
+                ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
+                ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
+                ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
+                ->where('debtor_events.completed', 0)
+                ->where('debtor_events.event_type_id', 4)
+                ->groupBy('debtor_events.id');
 
         $input = $req->input();
         $noEmptyDate = false;
@@ -1585,27 +1529,25 @@ class DebtorsController extends BasicController
                 } else {
                     if ($k === 'search_field_debtor_events@date_from') {
                         $dateFrom = new Carbon($v);
-                        $debtorEvents->where('debtor_events.date', '>=',
-                            $dateFrom
-                                ->startOfDay()
-                                ->format('Y-m-d H:i:s')
+                        $debtorEvents->where('debtor_events.date', '>=', $dateFrom
+                                        ->startOfDay()
+                                        ->format('Y-m-d H:i:s')
                         );
                         continue;
                     }
 
                     if ($k === 'search_field_debtor_events@date_to') {
                         $dateTo = new Carbon($v);
-                        $debtorEvents->where('debtor_events.date', '<=',
-                            $dateTo
-                                ->endOfDay()
-                                ->format('Y-m-d H:i:s')
+                        $debtorEvents->where('debtor_events.date', '<=', $dateTo
+                                        ->endOfDay()
+                                        ->format('Y-m-d H:i:s')
                         );
                         continue;
                     }
                 }
 
                 if ($k === 'search_field_debt_groups@id' && mb_strlen($v)) {
-                    $debtorEvents->where('debtors.debt_group_id', (int)$v);
+                    $debtorEvents->where('debtors.debt_group_id', (int) $v);
                     continue;
                 }
 
@@ -1630,21 +1572,18 @@ class DebtorsController extends BasicController
             }
         }
         if (!is_null($groupId) && mb_strlen($groupId)) {
-            $debtorEvents->where('debtors.debt_group_id', (int)$groupId);
+            $debtorEvents->where('debtors.debt_group_id', (int) $groupId);
         }
 
         if (!is_null($factTimezone) && mb_strlen($factTimezone)) {
-            $debtorEvents->where('passports.fact_timezone', (int)$factTimezone);
+            $debtorEvents->where('passports.fact_timezone', (int) $factTimezone);
         }
 
         $debtorEvents->whereIn('debtors.debtor_events.user_id', $arIn);
         return collect($debtorEvents->get());
-
     }
 
-
-    public function ajaxEventsList(Request $req)
-    {
+    public function ajaxEventsList(Request $req) {
 
         $cols = [];
         $tCols = [
@@ -1663,14 +1602,12 @@ class DebtorsController extends BasicController
         $arIn = DebtorUsersRef::getUserRefs();
 
         $date = (is_null($req->get('search_field_debtor_events@date'))) ?
-            Carbon::today() :
-            (new Carbon($req->get('search_field_debtor_events@date')));
+                Carbon::today() :
+                (new Carbon($req->get('search_field_debtor_events@date')));
 
-        $dateFrom = $req->get('search_field_debtor_events@date_from') == "" ? null
-            : $req->get('search_field_debtor_events@date_from');
+        $dateFrom = $req->get('search_field_debtor_events@date_from') == "" ? null : $req->get('search_field_debtor_events@date_from');
 
-        $dateTo = $req->get('search_field_debtor_events@date_to') == "" ? null
-            : $req->get('search_field_debtor_events@date_to');
+        $dateTo = $req->get('search_field_debtor_events@date_to') == "" ? null : $req->get('search_field_debtor_events@date_to');
 
         $factTimezone = $req->get('search_field_passports@fact_timezone');
 
@@ -1687,18 +1624,18 @@ class DebtorsController extends BasicController
 
         // получаем список запланированных мероприятий на сегодня
         $debtorEvents = DB::table('debtor_events')->select($cols)
-            ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
-            ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
-            ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
-            ->where('debtor_events.completed', 0)
-            ->groupBy('debtor_events.id');
+                ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
+                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.passports', function ($join) {
+                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+                })
+                ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
+                ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
+                ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
+                ->where('debtor_events.completed', 0)
+                ->groupBy('debtor_events.id');
 
         $input = $req->input();
         $noEmptyDate = false;
@@ -1726,27 +1663,25 @@ class DebtorsController extends BasicController
                 } else {
                     if ($k === 'search_field_debtor_events@date_from') {
                         $dateFrom = new Carbon($v);
-                        $debtorEvents->where('debtor_events.date', '>=',
-                            $dateFrom
-                                ->startOfDay()
-                                ->format('Y-m-d H:i:s')
+                        $debtorEvents->where('debtor_events.date', '>=', $dateFrom
+                                        ->startOfDay()
+                                        ->format('Y-m-d H:i:s')
                         );
                         continue;
                     }
 
                     if ($k === 'search_field_debtor_events@date_to') {
                         $dateTo = new Carbon($v);
-                        $debtorEvents->where('debtor_events.date', '<=',
-                            $dateTo
-                                ->endOfDay()
-                                ->format('Y-m-d H:i:s')
+                        $debtorEvents->where('debtor_events.date', '<=', $dateTo
+                                        ->endOfDay()
+                                        ->format('Y-m-d H:i:s')
                         );
                         continue;
                     }
                 }
 
                 if ($k === 'search_field_debt_groups@id' && mb_strlen($v)) {
-                    $debtorEvents->where('debtors.debt_group_id', (int)$v);
+                    $debtorEvents->where('debtors.debt_group_id', (int) $v);
                     continue;
                 }
 
@@ -1773,11 +1708,11 @@ class DebtorsController extends BasicController
         }
 
         if (!is_null($groupId) && mb_strlen($groupId)) {
-            $debtorEvents->where('debtors.debt_group_id', (int)$groupId);
+            $debtorEvents->where('debtors.debt_group_id', (int) $groupId);
         }
 
         if (!is_null($factTimezone) && mb_strlen($factTimezone)) {
-            $debtorEvents->where('passports.fact_timezone', (int)$factTimezone);
+            $debtorEvents->where('passports.fact_timezone', (int) $factTimezone);
         }
 
         if ($currentUser->hasRole('missed_calls')) {
@@ -1804,47 +1739,47 @@ class DebtorsController extends BasicController
 
         // формирование коллекции для заполнения таблицы
         return Datatables::of($events)
-            ->editColumn('de_date', function ($item) {
-                return date('d.m.Y', strtotime($item->de_date));
-            })
-            ->editColumn('de_created_at', function ($item) {
-                return date('d.m.Y', strtotime($item->de_created_at));
-            })
-            ->editColumn('de_type_id', function ($item) {
-                if (is_null($item->de_type_id)) {
-                    return 'Неопределен';
-                }
-                $arDebtData = config('debtors');
-                return $arDebtData['event_types'][$item->de_type_id];
-            })
-            ->removeColumn('debtors_id')
-            ->removeColumn('passports_fact_timezone')
-            ->addColumn('actions', function ($item) {
-                $html = '';
-                if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
-                    $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
-                    $arRegionTime = explode(':', $region_time);
-                    $weekday = date('N', time());
-                    $hour = $arRegionTime[0];
-                    if ($hour[0] == '0') {
-                        $hour = substr($hour, 1);
-                    }
-                    if ($weekday == 6 || $weekday == 7) {
-                        $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
-                    } else {
-                        $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
-                    }
-                }
-                $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
-                if (isset($dNoCall) && $dNoCall) {
-                    $arBtn['style'] = 'color: red;';
-                }
+                        ->editColumn('de_date', function ($item) {
+                            return date('d.m.Y', strtotime($item->de_date));
+                        })
+                        ->editColumn('de_created_at', function ($item) {
+                            return date('d.m.Y', strtotime($item->de_created_at));
+                        })
+                        ->editColumn('de_type_id', function ($item) {
+                            if (is_null($item->de_type_id)) {
+                                return 'Неопределен';
+                            }
+                            $arDebtData = config('debtors');
+                            return $arDebtData['event_types'][$item->de_type_id];
+                        })
+                        ->removeColumn('debtors_id')
+                        ->removeColumn('passports_fact_timezone')
+                        ->addColumn('actions', function ($item) {
+                            $html = '';
+                            if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
+                                $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
+                                $arRegionTime = explode(':', $region_time);
+                                $weekday = date('N', time());
+                                $hour = $arRegionTime[0];
+                                if ($hour[0] == '0') {
+                                    $hour = substr($hour, 1);
+                                }
+                                if ($weekday == 6 || $weekday == 7) {
+                                    $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
+                                } else {
+                                    $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
+                                }
+                            }
+                            $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
+                            if (isset($dNoCall) && $dNoCall) {
+                                $arBtn['style'] = 'color: red;';
+                            }
 
-                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
-                return $html;
-            })
-            ->setTotalRecords(count($events))
-            ->make();
+                            $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
+                            return $html;
+                        })
+                        ->setTotalRecords(count($events))
+                        ->make();
     }
 
     /**
@@ -1852,8 +1787,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return type
      */
-    public function getDebtorEventData(Request $req)
-    {
+    public function getDebtorEventData(Request $req) {
         $debtorEvent = DebtorEvent::find($req->get('id'));
         $user = User::find($debtorEvent->user_id);
         $debtorEvent->user_fio = $user->name;
@@ -1866,8 +1800,7 @@ class DebtorsController extends BasicController
      * @param \Illuminate\Http\Request $req
      * @return \Illuminate\Http\Response
      */
-    public function updateDebtorEvent(Request $req)
-    {
+    public function updateDebtorEvent(Request $req) {
         $debtEvent = DebtorEvent::findOrNew($req->get('id', null));
         $input = $req->input();
         //ларавель вместо пустых кавычек в числовые поля подставляет 0, 
@@ -1928,8 +1861,7 @@ class DebtorsController extends BasicController
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroyDebtorEvent($id)
-    {
+    public function destroyDebtorEvent($id) {
         $debtEvent = DebtorEvent::find($id);
         if (!is_null($debtEvent)) {
             $debtEvent->delete();
@@ -1944,8 +1876,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return array
      */
-    public function ajaxColumnAutocomplete(Request $req)
-    {
+    public function ajaxColumnAutocomplete(Request $req) {
         $fieldName = str_replace('search_field_', '', $req->get('field'));
         $valFieldName = str_replace('search_field_', '', $req->get('valfield'));
         $valueColumn = 'id';
@@ -1960,7 +1891,7 @@ class DebtorsController extends BasicController
                 }
                 if (strpos($val, $term) !== false) {
                     $arDebtGroups[] = [
-                        'value' => (string)$id,
+                        'value' => (string) $id,
                         'label' => $val
                     ];
                 }
@@ -1978,11 +1909,9 @@ class DebtorsController extends BasicController
         $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
         $colName = substr($fieldName, strlen($tableName) + 1);
         if ($colName == 'fio' && $tableName == 'passports') {
-            return DB::table($tableName)->select(DB::raw("CONCAT(fio,' (',series,' ',number,')') as label, " . $valueColumn . " as value"))->where($colName,
-                'like', '%' . $term . '%')->get();
+            return DB::table($tableName)->select(DB::raw("CONCAT(fio,' (',series,' ',number,')') as label, " . $valueColumn . " as value"))->where($colName, 'like', '%' . $term . '%')->get();
         } else {
-            return DB::table($tableName)->select($colName . ' as label', $valueColumn . ' as value')->where($colName,
-                'like', '%' . $term . '%')->groupBy($colName)->get();
+            return DB::table($tableName)->select($colName . ' as label', $valueColumn . ' as value')->where($colName, 'like', '%' . $term . '%')->groupBy($colName)->get();
         }
     }
 
@@ -1991,13 +1920,12 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return \Illuminate\Http\JsonResponse|string
      */
-    public function sendSmsToDebtor(Request $req)
-    {
+    public function sendSmsToDebtor(Request $req) {
         $debtor = Debtor::where('debtor_id_1c', $req->get('debtor_id_1c'))->first();
         if (is_null($debtor)) {
             return response()->json([
-                'title' => 'Ошибка',
-                'msg' => 'Не удалось получить информацию по должнику'
+                        'title' => 'Ошибка',
+                        'msg' => 'Не удалось получить информацию по должнику'
             ]);
         }
 
@@ -2019,16 +1947,16 @@ class DebtorsController extends BasicController
                     'message' => $e->errorMessage,
                 ]);
                 return response()->json([
-                    'title' => 'Ошибка',
-                    'msg' => $e->errorMessage
+                            'title' => 'Ошибка',
+                            'msg' => $e->errorMessage
                 ]);
             }
         }
         $user = Auth::user();
         if (!$user->canSendSms()) {
             return response()->json([
-                'title' => 'Ошибка',
-                'msg' => 'Первышел лимит СМС пользователя'
+                        'title' => 'Ошибка',
+                        'msg' => 'Первышел лимит СМС пользователя'
             ]);
         }
 
@@ -2049,10 +1977,10 @@ class DebtorsController extends BasicController
                 $amount = $amount * 100;
                 $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
                 $smsLink = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount
-                    . '&loan_1c_id=' . $debtor->loan_id_1c
-                    . '&order_id=&customer_id=' . $debtor->customer_id_1c
-                    . '&phone=' . $phone
-                    . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
+                        . '&loan_1c_id=' . $debtor->loan_id_1c
+                        . '&order_id=&customer_id=' . $debtor->customer_id_1c
+                        . '&phone=' . $phone
+                        . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
 
                 $jsonTinkoffLink = file_get_contents($smsLink);
                 $arJson = json_decode($jsonTinkoffLink, true);
@@ -2061,8 +1989,8 @@ class DebtorsController extends BasicController
                     $smsLink = $arJson['url'];
                 } else {
                     return response()->json([
-                        'title' => 'Ошибка',
-                        'msg' => 'Не удалось сформировать ссылку'
+                                'title' => 'Ошибка',
+                                'msg' => 'Не удалось сформировать ссылку'
                     ]);
                 }
             }
@@ -2073,10 +2001,10 @@ class DebtorsController extends BasicController
                 $amount = $amount * 100;
                 $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
                 $smsLink = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount
-                    . '&loan_1c_id=' . $debtor->loan_id_1c
-                    . '&order_id=&customer_id=' . $debtor->customer_id_1c
-                    . '&phone=' . $phone
-                    . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
+                        . '&loan_1c_id=' . $debtor->loan_id_1c
+                        . '&order_id=&customer_id=' . $debtor->customer_id_1c
+                        . '&phone=' . $phone
+                        . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
 
                 $jsonTinkoffLink = file_get_contents($smsLink);
                 $arJson = json_decode($jsonTinkoffLink, true);
@@ -2085,8 +2013,8 @@ class DebtorsController extends BasicController
                     $smsLink = $arJson['url'];
                 } else {
                     return response()->json([
-                        'title' => 'Ошибка',
-                        'msg' => 'Не удалось сформировать сообщение'
+                                'title' => 'Ошибка',
+                                'msg' => 'Не удалось сформировать сообщение'
                     ]);
                 }
 
@@ -2095,7 +2023,7 @@ class DebtorsController extends BasicController
 
             if ($smsType && $smsType == 'props') {
                 $smsText = 'Направляем реквизиты для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344'
-                    . ' путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
+                        . ' путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
                 $smsLink = '';
             }
 
@@ -2126,15 +2054,15 @@ class DebtorsController extends BasicController
                 $debtorEvent->save();
 
                 return response()->json([
-                    'title' => 'Готово',
-                    'msg' => 'Сообщение отправленно'
+                            'title' => 'Готово',
+                            'msg' => 'Сообщение отправленно'
                 ]);
             }
         }
 
         return response()->json([
-            'title' => 'Ошибка',
-            'msg' => 'Не правильный номер'
+                    'title' => 'Ошибка',
+                    'msg' => 'Не правильный номер'
         ]);
     }
 
@@ -2143,8 +2071,7 @@ class DebtorsController extends BasicController
      * @param integer $id
      * @return type
      */
-    public function debtorHistory($id)
-    {
+    public function debtorHistory($id) {
         $debtor = Debtor::find($id);
         if (is_null($debtor)) {
             return $this->backWithErr(StrLib::ERR_NULL);
@@ -2186,8 +2113,7 @@ class DebtorsController extends BasicController
         return view('debtors.history', ['loans' => $loans, 'debtor_id' => $id]);
     }
 
-    public function getLoanSummary($loan_id)
-    {
+    public function getLoanSummary($loan_id) {
 //        config('database.default') = 'arm';
         Config::set('database.default', 'arm');
         $loan = Loan::where('id', $loan_id)->first();
@@ -2197,10 +2123,8 @@ class DebtorsController extends BasicController
         $customer = DB::connection('arm')->table('customers')->where('id', $claim->customer_id)->first();
         $loantype = DB::connection('arm')->table('loantypes')->where('id', $loan->loantype_id)->first();
         $liveCondition = DB::connection('arm')->table('live_conditions')->where('id', $about_client->zhusl)->first();
-        $maritalType = DB::connection('arm')->table('marital_types')->where('id',
-            $about_client->marital_type_id)->first();
-        $educationLevel = DB::connection('arm')->table('education_levels')->where('id',
-            $about_client->obrasovanie)->first();
+        $maritalType = DB::connection('arm')->table('marital_types')->where('id', $about_client->marital_type_id)->first();
+        $educationLevel = DB::connection('arm')->table('education_levels')->where('id', $about_client->obrasovanie)->first();
 //        if (is_null($loan) || is_null($loan->claim) || is_null($loan->claim->passport)) {
 //            return redirect('loans')->with('msg_err', StrLib::ERR_NULL);
 //        }
@@ -2257,26 +2181,25 @@ class DebtorsController extends BasicController
         return view('debtors.summary.summary', $viewData);
     }
 
-    public function getLastRepayment($loan_id_1c, $customer_id_1c)
-    {
+    public function getLastRepayment($loan_id_1c, $customer_id_1c) {
 
         $loans_id = DB::connection('arm')->table('loans')
-            ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-            ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
-            ->where('loans.id_1c', $loan_id_1c)
-            ->where('customers.id_1c', $customer_id_1c)
-            ->value('loans.id');
+                ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
+                ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
+                ->where('loans.id_1c', $loan_id_1c)
+                ->where('customers.id_1c', $customer_id_1c)
+                ->value('loans.id');
 
         if (is_null($loans_id)) {
             return false;
         }
 
         $repayment_arm = DB::connection('arm')->table('repayments')
-            ->select(['repayments.created_at as created_at', 'repayment_types.name as name'])
-            ->leftJoin('repayment_types', 'repayment_types.id', '=', 'repayments.repayment_type_id')
-            ->where('loan_id', $loan_id_1c)
-            ->orderBy('created_at', 'desc')
-            ->first();
+                ->select(['repayments.created_at as created_at', 'repayment_types.name as name'])
+                ->leftJoin('repayment_types', 'repayment_types.id', '=', 'repayments.repayment_type_id')
+                ->where('loan_id', $loan_id_1c)
+                ->orderBy('created_at', 'desc')
+                ->first();
 
         if (is_null($repayment_arm)) {
             return false;
@@ -2290,28 +2213,27 @@ class DebtorsController extends BasicController
      * @param string $debtor_id
      * @return pdf
      */
-    public function createPdf($doc_id, $debtor_id, $date, $factAddress = 1)
-    {
+    public function createPdf($doc_id, $debtor_id, $date, $factAddress = 1) {
 //        if (Auth::user()->id == 5) {
         $debtorData = Debtor::select(DB::raw('*, passports.id as d_passport_id, '
-            . 'loans.id_1c as d_loan_id_1c, loans.created_at as d_loan_created_at, loans.time as d_loan_time, '
-            . 'loans.tranche_number as d_loan_tranche_number, loans.first_loan_id_1c as d_loan_first_loan_id_1c, loans.first_loan_date as d_loan_first_loan_date, loans.in_cash as d_in_cash,'
-            . 'loantypes.name as d_loan_name, claims.created_at as d_claim_created_at, '
-            . 'users.login as spec_fio, users.phone as spec_phone, debtors.fine as d_fine, '
-            . 'debtors.pc as d_pc, debtors.exp_pc as d_exp_pc, passports.birth_date as birth_date, '
-            . 'loans.money as money, customers.id_1c as d_customer_id_1c, about_clients.customer_id as a_customer_id, '
-            . 'claims.id as r_claim_id, loans.id as r_loan_id'))
-            ->leftJoin('loans', 'loans.id_1c', '=', 'debtors.debtors.loan_id_1c')
-            ->leftJoin('customers', 'customers.id_1c', '=', 'debtors.debtors.customer_id_1c')
-            ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-            ->leftJoin('passports', function ($join) {
-                $join->on('passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->leftJoin('loantypes', 'loantypes.id', '=', 'debtors.loans.loantype_id')
-            ->leftJoin('about_clients', 'about_clients.id', '=', 'debtors.claims.about_client_id')
-            ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.responsible_user_id_1c')
-            ->where('debtors.id', $debtor_id);
+                                . 'loans.id_1c as d_loan_id_1c, loans.created_at as d_loan_created_at, loans.time as d_loan_time, '
+                                . 'loans.tranche_number as d_loan_tranche_number, loans.first_loan_id_1c as d_loan_first_loan_id_1c, loans.first_loan_date as d_loan_first_loan_date, loans.in_cash as d_in_cash,'
+                                . 'loantypes.name as d_loan_name, claims.created_at as d_claim_created_at, '
+                                . 'users.login as spec_fio, users.phone as spec_phone, debtors.fine as d_fine, '
+                                . 'debtors.pc as d_pc, debtors.exp_pc as d_exp_pc, passports.birth_date as birth_date, '
+                                . 'loans.money as money, customers.id_1c as d_customer_id_1c, about_clients.customer_id as a_customer_id, '
+                                . 'claims.id as r_claim_id, loans.id as r_loan_id'))
+                ->leftJoin('loans', 'loans.id_1c', '=', 'debtors.debtors.loan_id_1c')
+                ->leftJoin('customers', 'customers.id_1c', '=', 'debtors.debtors.customer_id_1c')
+                ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
+                ->leftJoin('passports', function ($join) {
+                    $join->on('passports.series', '=', 'debtors.debtors.passport_series');
+                    $join->on('passports.number', '=', 'debtors.debtors.passport_number');
+                })
+                ->leftJoin('loantypes', 'loantypes.id', '=', 'debtors.loans.loantype_id')
+                ->leftJoin('about_clients', 'about_clients.id', '=', 'debtors.claims.about_client_id')
+                ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.responsible_user_id_1c')
+                ->where('debtors.id', $debtor_id);
 
 //            \PC::debug([$objDebtorData->r_claim_id, $objDebtorData->r_loan_id]);
 //        } else {
@@ -2342,7 +2264,7 @@ class DebtorsController extends BasicController
 
             \PC::debug($objDebtorData);
 
-            $doc = \App\ContractForm::where('id', (int)$doc_id)->first();
+            $doc = \App\ContractForm::where('id', (int) $doc_id)->first();
 
             $html = $doc->template;
 
@@ -2351,8 +2273,7 @@ class DebtorsController extends BasicController
                 $date_personal = date('d.m.Y', strtotime($date));
             }
 //            if (Auth::user()->id == 5) {
-            $passport = json_decode(json_encode(Passport::where('series',
-                $objDebtorData->passport_series)->where('number', $objDebtorData->passport_number)->first()), true);
+            $passport = json_decode(json_encode(Passport::where('series', $objDebtorData->passport_series)->where('number', $objDebtorData->passport_number)->first()), true);
 //            } else {
 //                $passport = json_decode(json_encode(DB::connection('arm')->table('passports')->where('id', $objDebtorData->d_passport_id)->first()), true);
 //            }
@@ -2363,8 +2284,7 @@ class DebtorsController extends BasicController
                 $loan_percent = $objDebtorData->percent;
             }
 
-            $return_date = date('d.m.Y',
-                strtotime("+" . $objDebtorData->d_loan_time . " days", strtotime($objDebtorData->d_loan_created_at)));
+            $return_date = date('d.m.Y', strtotime("+" . $objDebtorData->d_loan_time . " days", strtotime($objDebtorData->d_loan_created_at)));
             $arSpecName = explode(' ', $objDebtorData->spec_fio);
 
             $spec_surname = '';
@@ -2517,21 +2437,21 @@ class DebtorsController extends BasicController
             $objDebtorData->this_loan_created_at = $objDebtorData->d_loan_created_at;
 
             // проверяем на наличие доп. соглашения и если есть - меняем даты
-            /*$repl_loan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c', $debtorTmp->loan_id_1c)->first();
-            if (!is_null($repl_loan)) {
-                $repl_repayment = DB::Table('armf.repayments')->select(DB::raw('*'))->where('loan_id', $repl_loan->id)->whereIn('repayment_type_id', [1, 7, 8, 9, 10, 17, 20])->orderBy('created_at', 'desc')->first();
-                if (!is_null($repl_repayment)) {
-                    if ($repl_loan->in_cash == 1) {
-                        $repayment_in_cash = true;
-                        $repayment_return = date('Y-m-d H:i:s', strtotime($repl_repayment->created_at . ' +1 day'));
-                    } else {
-                        $objDebtorData->d_loan_created_at = date('Y-m-d H:i:s', strtotime($repl_repayment->created_at . ' +1 day'));
-                        $repayment_return = $objDebtorData->d_loan_created_at;
-                    }
+            /* $repl_loan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c', $debtorTmp->loan_id_1c)->first();
+              if (!is_null($repl_loan)) {
+              $repl_repayment = DB::Table('armf.repayments')->select(DB::raw('*'))->where('loan_id', $repl_loan->id)->whereIn('repayment_type_id', [1, 7, 8, 9, 10, 17, 20])->orderBy('created_at', 'desc')->first();
+              if (!is_null($repl_repayment)) {
+              if ($repl_loan->in_cash == 1) {
+              $repayment_in_cash = true;
+              $repayment_return = date('Y-m-d H:i:s', strtotime($repl_repayment->created_at . ' +1 day'));
+              } else {
+              $objDebtorData->d_loan_created_at = date('Y-m-d H:i:s', strtotime($repl_repayment->created_at . ' +1 day'));
+              $repayment_return = $objDebtorData->d_loan_created_at;
+              }
 
-                    $return_date = date('d.m.Y', strtotime("+" . $repl_repayment->time - 1 . " days", strtotime($repayment_return)));
-                }
-            }*/
+              $return_date = date('d.m.Y', strtotime("+" . $repl_repayment->time - 1 . " days", strtotime($repayment_return)));
+              }
+              } */
 
             if (mb_strlen($date_personal)) {
                 $ar_req_date = explode(' ', StrUtils::dateToStr($date_personal));
@@ -2573,8 +2493,7 @@ class DebtorsController extends BasicController
                 'claim_created_at' => date('d.m.Y', strtotime($objDebtorData->d_claim_created_at)),
                 'return_date' => $return_date,
                 'sum_indebt' => $sum_indebt,
-                'return_sum' => number_format(($objDebtorData->money + $objDebtorData->money * ($loan_percent / 100) * $objDebtorData->d_loan_time),
-                    2, '.', ' '),
+                'return_sum' => number_format(($objDebtorData->money + $objDebtorData->money * ($loan_percent / 100) * $objDebtorData->d_loan_time), 2, '.', ' '),
                 'organizacia' => $objDebtorData->organizacia,
                 'adresorganiz' => $objDebtorData->adresorganiz,
                 'dolznost' => $objDebtorData->dolznost,
@@ -2583,10 +2502,8 @@ class DebtorsController extends BasicController
                 'fiorukovoditel' => $objDebtorData->fiorukovoditel,
                 'dohod' => number_format($objDebtorData->dohod, 0, '.', ' '),
                 'dopdohod' => number_format($objDebtorData->dopdohod, 0, '.', ' '),
-                'dohod_husband' => (!is_null($objDebtorData->dohod_husband)) ? number_format($objDebtorData->dohod_husband,
-                    0, '.', ' ') : 0,
-                'pension' => (!is_null($objDebtorData->pension)) ? number_format($objDebtorData->pension, 0, '.',
-                    ' ') : 0,
+                'dohod_husband' => (!is_null($objDebtorData->dohod_husband)) ? number_format($objDebtorData->dohod_husband, 0, '.', ' ') : 0,
+                'pension' => (!is_null($objDebtorData->pension)) ? number_format($objDebtorData->pension, 0, '.', ' ') : 0,
                 'live_condition' => \App\LiveCondition::getLiveConditionById($objDebtorData->zhusl),
                 'birth_city' => $passport['birth_city'],
                 'deti' => $objDebtorData->deti,
@@ -2645,29 +2562,28 @@ class DebtorsController extends BasicController
             }
 
             if (isset($repayment_in_cash) && $repayment_in_cash) {
-                $arParams['dop_string'] = 'Дополнительное соглашение от ' . date('d.m.Y',
-                        strtotime($repl_repayment->created_at)) . ', ';
+                $arParams['dop_string'] = 'Дополнительное соглашение от ' . date('d.m.Y', strtotime($repl_repayment->created_at)) . ', ';
             }
 
             //$lids = $this->getLoanIdFromArm($objDebtorData->loan_id_1c, $objDebtorData->customer_id_1c);
             //if(is_array($lids) && count($lids)>0){
 
-            /*$repl_tranche_data = DB::Table('armf.loans')->select(DB::raw('*'))
-                    ->where('loans.id_1c', $objDebtorData->loan_id_1c)
-                    ->where('loans.in_cash', 0)
-                    ->select(['loans.tranche_number', 'loans.first_loan_date', 'loans.first_loan_id_1c'])
-                    ->first();
-            if (!is_null($repl_tranche_data) && !empty($repl_tranche_data->first_loan_id_1c)) {
-                $arParams['loan_created_at'] = StrUtils::dateToStr($repl_tranche_data->first_loan_date);
-                $arParams['loan_id_1c'] = $repl_tranche_data->first_loan_id_1c;
-                if (!is_null($repl_repayment)) {
-                    $arParams['dop_string'] = 'Дополнительное соглашение от ' . $arParams['loan_created_at'] . ', ';
-                }
-                //$arParams['tranche_data'] = ' (транш № ' . str_pad($repl_tranche_data->tranche_number, 3, '0', STR_PAD_LEFT) . ' к договору №' . $repl_tranche_data->first_loan_id_1c . ' от ' . with(new Carbon($repl_tranche_data->first_loan_date))->format('d.m.Y') . ' г.)';
-                if (!is_null($repl_tranche_data->tranche_number) && mb_strlen($repl_tranche_data->tranche_number) > 0) {
-                    $arParams['tranche_data'] = ' (транш № ' . str_pad($repl_tranche_data->tranche_number, 3, '0', STR_PAD_LEFT) . ' от ' . StrUtils::dateToStr($objDebtorData->this_loan_created_at) . ')';
-                }
-            }*/
+            /* $repl_tranche_data = DB::Table('armf.loans')->select(DB::raw('*'))
+              ->where('loans.id_1c', $objDebtorData->loan_id_1c)
+              ->where('loans.in_cash', 0)
+              ->select(['loans.tranche_number', 'loans.first_loan_date', 'loans.first_loan_id_1c'])
+              ->first();
+              if (!is_null($repl_tranche_data) && !empty($repl_tranche_data->first_loan_id_1c)) {
+              $arParams['loan_created_at'] = StrUtils::dateToStr($repl_tranche_data->first_loan_date);
+              $arParams['loan_id_1c'] = $repl_tranche_data->first_loan_id_1c;
+              if (!is_null($repl_repayment)) {
+              $arParams['dop_string'] = 'Дополнительное соглашение от ' . $arParams['loan_created_at'] . ', ';
+              }
+              //$arParams['tranche_data'] = ' (транш № ' . str_pad($repl_tranche_data->tranche_number, 3, '0', STR_PAD_LEFT) . ' к договору №' . $repl_tranche_data->first_loan_id_1c . ' от ' . with(new Carbon($repl_tranche_data->first_loan_date))->format('d.m.Y') . ' г.)';
+              if (!is_null($repl_tranche_data->tranche_number) && mb_strlen($repl_tranche_data->tranche_number) > 0) {
+              $arParams['tranche_data'] = ' (транш № ' . str_pad($repl_tranche_data->tranche_number, 3, '0', STR_PAD_LEFT) . ' от ' . StrUtils::dateToStr($objDebtorData->this_loan_created_at) . ')';
+              }
+              } */
             //}
 
             $arParams['dop_string'] = '';
@@ -2824,9 +2740,7 @@ class DebtorsController extends BasicController
                     $pdfEvent->debt_group_id = $debtorTmp->debt_group_id;
                     $pdfEvent->overdue_reason_id = 0;
                     $pdfEvent->event_result_id = ($number_postfix == 'УВ') ? 9 : 27;
-                    $pdfEvent->report = 'Отправлено ' . $doctype . ' по договору ' . $loan->id_1c . ' от ' . date('d.m.Y',
-                            strtotime($objDebtorData->d_loan_created_at)) . ' г. Исх. № ' . $notice_number->id . '/' . $number_postfix . ' от ' . date('d.m.Y',
-                            strtotime($notice_number->created_at)) . ' по адресу ' . $address_type_txt . ': ' . $print_address;
+                    $pdfEvent->report = 'Отправлено ' . $doctype . ' по договору ' . $loan->id_1c . ' от ' . date('d.m.Y', strtotime($objDebtorData->d_loan_created_at)) . ' г. Исх. № ' . $notice_number->id . '/' . $number_postfix . ' от ' . date('d.m.Y', strtotime($notice_number->created_at)) . ' по адресу ' . $address_type_txt . ': ' . $print_address;
                     $pdfEvent->debtor_id = $debtorTmp->id;
                     $pdfEvent->user_id = $currentUser->id;
                     $pdfEvent->last_user_id = $currentUser->id;
@@ -2853,7 +2767,7 @@ class DebtorsController extends BasicController
                   $arParams['spec_phone'] = '‭+79034101149‬';
                   } */
 
-                /*if ($debtorTmp->id == 165897647) {
+                if ($debtorTmp->id == 155503421) {
                   $arParams['req_spec_position'] = 'Специалист';
                   $arParams['spec_fio'] = 'Бутузова Наталья Викторовна';
                   $arParams['spec_phone'] = '89069262562';
@@ -2863,10 +2777,10 @@ class DebtorsController extends BasicController
                   //$arParams['loan_id_1c'] = '00001198819-007';
                   //$arParams['loan_created_at'] = '14 февраля 2019 г.';
 
-                  $arParams['date_sent'] = '03.09.2022';
-                  $arParams['print_date'] = '03.09.2022';
-                  $arParams['notice_number'] = '816033';
-                  }*/
+                  $arParams['date_sent'] = '05.07.2022';
+                  $arParams['print_date'] = '05.07.2022';
+                  $arParams['notice_number'] = '791351';
+                  }
             }
 
             return \App\Utils\FileToPdfUtil::replaceKeys($doc->tplFileName, $arParams, 'debtors');
@@ -2878,8 +2792,7 @@ class DebtorsController extends BasicController
      * @param integer $id
      * @return type
      */
-    public function debtorLogs($id)
-    {
+    public function debtorLogs($id) {
         $debtor = Debtor::find($id);
         if (is_null($debtor)) {
             return $this->backWithErr(StrLib::ERR_NULL);
@@ -2900,8 +2813,7 @@ class DebtorsController extends BasicController
      * @param integer $id
      * @return type
      */
-    public function contacts($id)
-    {
+    public function contacts($id) {
         $debtor = Debtor::find($id);
         if (is_null($debtor)) {
             return $this->backWithErr(StrLib::ERR_NULL);
@@ -2918,16 +2830,14 @@ class DebtorsController extends BasicController
      * @param string $claim_id
      * @return string
      */
-    public function loadPhoto($claim_id)
-    {
+    public function loadPhoto($claim_id) {
         // получаем фотографии, связанные с анкетой заемщика
 //        $photos = Photo::select(DB::raw('*'))
 //                ->where('claim_id', $claim_id);
         $loan = Loan::where('claim_id', $claim_id)->first();
         if (!is_null($loan) && !is_null($loan->claim) && !is_null($loan->claim->customer)) {
             $customer = $loan->claim->customer;
-            $claim_id = DB::connection('arm')->table('loans')->whereIn('loans.id',
-                $this->getLoanIdFromArm($loan->id_1c, $customer->id_1c))->lists('claim_id');
+            $claim_id = DB::connection('arm')->table('loans')->whereIn('loans.id', $this->getLoanIdFromArm($loan->id_1c, $customer->id_1c))->lists('claim_id');
             $photos = DB::connection('arm')->table('photos')->whereIn('claim_id', $claim_id);
             $arDataPhotos = $photos->get();
             $arPhotos = [];
@@ -2985,8 +2895,7 @@ class DebtorsController extends BasicController
      * @param string $action
      * @return int
      */
-    public function changePlanDeparture($debtor_id, $action)
-    {
+    public function changePlanDeparture($debtor_id, $action) {
         if ($action == 'add') {
             PlannedDeparture::addPlanDeparture($debtor_id);
         }
@@ -3004,8 +2913,7 @@ class DebtorsController extends BasicController
      * @param string $action
      * @return int
      */
-    public function changePersonalData($debtor_id, $action)
-    {
+    public function changePersonalData($debtor_id, $action) {
         if (strpos($action, 'on_') === 0) {
             $fieldname = substr($action, 3);
             $val = 1;
@@ -3035,8 +2943,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return int
      */
-    public function changeRecommend(Request $req)
-    {
+    public function changeRecommend(Request $req) {
         $currentUser = auth()->user();
 
         $input = $req->input();
@@ -3081,8 +2988,7 @@ class DebtorsController extends BasicController
      * Карта планирования выездов к должникам
      * @return resource
      */
-    public function departureMap()
-    {
+    public function departureMap() {
         $cols = [
             'debtors.passports.address_region',
             'debtors.passports.address_district',
@@ -3114,7 +3020,7 @@ class DebtorsController extends BasicController
 
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
         $usersDebtors = User::select('users.id_1c')
-            ->whereIn('id', $arResponsibleUserIds);
+                ->whereIn('id', $arResponsibleUserIds);
 
         $arUsersDebtors = $usersDebtors->get()->toArray();
         $arIn = [];
@@ -3129,20 +3035,20 @@ class DebtorsController extends BasicController
         $debtor_vars = config('debtors');
 
         $debtorsGeo = Debtor::select(array(
-            'debtors.debtors.id as d_id',
-            'debtors.passports.address_region as region',
-            'debtors.passports.address_district as district',
-            'debtors.passports.address_city as city',
-            'debtors.passports.address_street as street',
-            'debtors.passports.address_house as house'
-        ))
-            ->leftJoin('debtors.debtors_geocodes', 'debtors.debtors_geocodes.debtor_id', '=', 'debtors.debtors.id')
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
-            ->whereIn('debtors.responsible_user_id_1c', $arIn)
-            ->whereNotNull('debtors.passports.address_region')
-            ->get();
+                    'debtors.debtors.id as d_id',
+                    'debtors.passports.address_region as region',
+                    'debtors.passports.address_district as district',
+                    'debtors.passports.address_city as city',
+                    'debtors.passports.address_street as street',
+                    'debtors.passports.address_house as house'
+                ))
+                ->leftJoin('debtors.debtors_geocodes', 'debtors.debtors_geocodes.debtor_id', '=', 'debtors.debtors.id')
+                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
+                ->whereIn('debtors.responsible_user_id_1c', $arIn)
+                ->whereNotNull('debtors.passports.address_region')
+                ->get();
 
         foreach ($debtorsGeo as $debtor) {
             if (!DebtorGeocode::geocodeExists($debtor->d_id)) {
@@ -3189,30 +3095,30 @@ class DebtorsController extends BasicController
         $today = with(new Carbon())->today();
 
         $debtors = Debtor::select($cols)
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
-            ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
-            ->leftJoin('debtors.debtors_geocodes', 'debtors.debtors_geocodes.debtor_id', '=', 'debtors.debtors.id')
-            ->leftJoin('debtors.planned_departures', 'debtors.planned_departures.debtor_id', '=', 'debtors.debtors.id')
-            ->leftJoin('debtors.debtor_events', 'debtors.debtor_events.debtor_id', '=', 'debtors.debtors.id')
-            ->whereIn('debtors.responsible_user_id_1c', $arIn)
-            ->whereNotNull('debtors.passports.address_region')
-            ->where('debtors.debtors_geocodes.geocode', '<>', 'n/a')
-            ->groupBy('debtors.id')
-            ->get()
-            ->toArray();
+                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
+                ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
+                ->leftJoin('debtors.debtors_geocodes', 'debtors.debtors_geocodes.debtor_id', '=', 'debtors.debtors.id')
+                ->leftJoin('debtors.planned_departures', 'debtors.planned_departures.debtor_id', '=', 'debtors.debtors.id')
+                ->leftJoin('debtors.debtor_events', 'debtors.debtor_events.debtor_id', '=', 'debtors.debtors.id')
+                ->whereIn('debtors.responsible_user_id_1c', $arIn)
+                ->whereNotNull('debtors.passports.address_region')
+                ->where('debtors.debtors_geocodes.geocode', '<>', 'n/a')
+                ->groupBy('debtors.id')
+                ->get()
+                ->toArray();
 
         foreach ($debtors as $k => $debtor) {
             $row = DebtorEvent::select('*')
-                ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
-                ->leftJoin('planned_departures', 'planned_departures.debtor_id', '=', 'debtors.id')
-                ->whereNotNull('planned_departures.debtor_id')
-                ->where('completed', 1)
-                ->whereIn('event_type_id', array(0, 1, 2, 3))
-                ->where('debtor_events.debtor_id', $debtor['debtor_id'])
-                ->groupBy('planned_departures.debtor_id')
-                ->first();
+                    ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
+                    ->leftJoin('planned_departures', 'planned_departures.debtor_id', '=', 'debtors.id')
+                    ->whereNotNull('planned_departures.debtor_id')
+                    ->where('completed', 1)
+                    ->whereIn('event_type_id', array(0, 1, 2, 3))
+                    ->where('debtor_events.debtor_id', $debtor['debtor_id'])
+                    ->groupBy('planned_departures.debtor_id')
+                    ->first();
             //$row = DebtorEvent::where('completed', 1)->whereIn('event_type_id', array(0, 1, 2, 3))->where('debtor_id', $debtor->id)->first();
 
             if (!is_null($row)) {
@@ -3232,8 +3138,7 @@ class DebtorsController extends BasicController
      * Печать анкет и уведомлений для запланированных к выезду должникам
      * @return resource
      */
-    public function departurePrint()
-    {
+    public function departurePrint() {
         $cols = [
             'debtors.passports.fio',
             'debtors.debtors.debtor_id_1c',
@@ -3247,7 +3152,7 @@ class DebtorsController extends BasicController
 
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
         $usersDebtors = User::select('users.id_1c')
-            ->whereIn('id', $arResponsibleUserIds);
+                ->whereIn('id', $arResponsibleUserIds);
 
         $arUsersDebtors = $usersDebtors->get()->toArray();
         $arIn = [];
@@ -3260,19 +3165,19 @@ class DebtorsController extends BasicController
         }
 
         $debtors = Debtor::select($cols)
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
-            ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
-            ->leftJoin('debtors.planned_departures', 'debtors.planned_departures.debtor_id', '=', 'debtors.debtors.id')
-            ->whereNotNull('debtors.planned_departures.debtor_id')
-            ->whereIn('debtors.responsible_user_id_1c', $arIn)
-            ->whereBetween('debtors.planned_departures.created_at', array(
-                $today->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
-                $today->setTime(23, 59, 59)->format('Y-m-d H:i:s')
-            ))
-            ->groupBy('debtors.id')
-            ->get();
+                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
+                ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
+                ->leftJoin('debtors.planned_departures', 'debtors.planned_departures.debtor_id', '=', 'debtors.debtors.id')
+                ->whereNotNull('debtors.planned_departures.debtor_id')
+                ->whereIn('debtors.responsible_user_id_1c', $arIn)
+                ->whereBetween('debtors.planned_departures.created_at', array(
+                    $today->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
+                    $today->setTime(23, 59, 59)->format('Y-m-d H:i:s')
+                ))
+                ->groupBy('debtors.id')
+                ->get();
 
         $arContractFormsIds = [
             'anketa' => \App\ContractForm::getContractIdByTextId('debtors_anketa'),
@@ -3286,16 +3191,13 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function uploadOrdersFrom1c(Request $req)
-    {
+    public function uploadOrdersFrom1c(Request $req) {
         $debtor = Debtor::find($req->get('debtor_id'));
         if (is_null($debtor)) {
             return 0;
         }
-        $debtors = Debtor::select(['passport_series', 'passport_number', 'customer_id_1c', 'loan_id_1c'])->where('id',
-            $req->get('debtor_id'))->get();
-        $json = \App\Utils\HelperUtil::SendPostByCurl(config('admin.sales_arm_url') . '/debtors/orders/upload',
-            ['data' => json_encode($debtors)]);
+        $debtors = Debtor::select(['passport_series', 'passport_number', 'customer_id_1c', 'loan_id_1c'])->where('id', $req->get('debtor_id'))->get();
+        $json = \App\Utils\HelperUtil::SendPostByCurl(config('admin.sales_arm_url') . '/debtors/orders/upload', ['data' => json_encode($debtors)]);
         $orders = json_decode($json);
         \PC::debug($orders, 'orders');
         \PC::debug($json, 'json');
@@ -3306,20 +3208,16 @@ class DebtorsController extends BasicController
             $item['number'] = $i;
             $item['created_at'] = with(new Carbon($o->created_at))->format('d.m.Y');
             $item['doc'] = $o->reason;
-            $item['outcome'] = (\App\OrderType::find($o->type)->plus) ? '' : number_format($o->money / 100, 2, '.',
-                    '') . ' руб.';
-            $item['income'] = (\App\OrderType::find($o->type)->plus) ? number_format($o->money / 100, 2, '.',
-                    '') . ' руб.' : '';
-            $item['purpose'] = (is_null($o->purpose) || !array_key_exists($o->purpose,
-                    Order::getPurposeNames())) ? '' : Order::getPurposeNames()[$o->purpose];
+            $item['outcome'] = (\App\OrderType::find($o->type)->plus) ? '' : number_format($o->money / 100, 2, '.', '') . ' руб.';
+            $item['income'] = (\App\OrderType::find($o->type)->plus) ? number_format($o->money / 100, 2, '.', '') . ' руб.' : '';
+            $item['purpose'] = (is_null($o->purpose) || !array_key_exists($o->purpose, Order::getPurposeNames())) ? '' : Order::getPurposeNames()[$o->purpose];
             $i++;
             $res[] = $item;
         }
         return json_encode($res);
     }
 
-    public function refreshTotalEventTable(Request $req)
-    {
+    public function refreshTotalEventTable(Request $req) {
         $id1c = $req->get('user_id_1c');
         if (is_null($id1c) || !mb_strlen($id1c)) {
             return view('elements.debtors.totalEventsTable', [
@@ -3340,8 +3238,7 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function refreshOverallTable(Request $req)
-    {
+    public function refreshOverallTable(Request $req) {
         $id1c = $req->get('user_id_1c');
         if (is_null($id1c) || !mb_strlen($id1c)) {
             return 0;
@@ -3364,8 +3261,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return string
      */
-    public function exportToExcel(Request $req)
-    {
+    public function exportToExcel(Request $req) {
         \PC::debug($req->input());
         $debtors = $this->getDebtorsQuery($req, true)->sortBy('passports_fio');
         $html = '<table>';
@@ -3452,26 +3348,23 @@ class DebtorsController extends BasicController
                     continue;
                 }
                 if ($k == 'debtors_od' || $k == 'debtors_sum_indebt') {
-                    if ($k == 'debtors_od' && isset($debtorArray['debtors_od_after_closing'])
-                        && !is_null($debtorArray['debtors_od_after_closing'])
-                        && $debtorArray['debtors_od_after_closing'] != 0
+                    if ($k == 'debtors_od' && isset($debtorArray['debtors_od_after_closing']) && !is_null($debtorArray['debtors_od_after_closing']) && $debtorArray['debtors_od_after_closing'] != 0
                     ) {
                         $v = $debtorArray['debtors_od_after_closing'];
                     }
                     $html .= '<td>' . StrUtils::kopToRub($v) . '</td>';
                 } else {
                     if (in_array($k, ['debtors_id', 'debtor_id_1c'])) {
-
+                        
                     } else {
                         if (in_array($k, ['debtors_fixation_date'])) {
                             $html .= '<td>' . with(new Carbon($v))->format('d.m.Y') . '</td>';
                         } else {
                             if ($k == 'debtors_debt_group') {
-                                $html .= '<td>' . ((array_key_exists($v,
-                                        $arDebtGroups)) ? $arDebtGroups[$v] : '') . '</td>';
+                                $html .= '<td>' . ((array_key_exists($v, $arDebtGroups)) ? $arDebtGroups[$v] : '') . '</td>';
                             } else {
                                 if ($k == 'debtor_with_schedule') {
-
+                                    
                                 } else {
                                     $html .= '<td>' . $v . '</td>';
                                 }
@@ -3491,8 +3384,8 @@ class DebtorsController extends BasicController
         header("Content-type: application/vnd.ms-excel");
         header("Content-Disposition: attachment; filename=$file");
         return response($html)
-            ->header("Content-type", "application/vnd.ms-excel")
-            ->header("Content-Disposition", "attachment; filename=$file");
+                        ->header("Content-type", "application/vnd.ms-excel")
+                        ->header("Content-Disposition", "attachment; filename=$file");
     }
 
     /**
@@ -3504,8 +3397,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return string
      */
-    public function exportEventsToExcel(Request $req)
-    {
+    public function exportEventsToExcel(Request $req) {
         $cols = [];
         $tCols = [
             'debtor_events.date' => 'de_date',
@@ -3524,8 +3416,8 @@ class DebtorsController extends BasicController
 
         $arIn = DebtorUsersRef::getUserRefs();
         $date = (is_null($req->get('search_field_debtor_events@date'))) ?
-            Carbon::today() :
-            (new Carbon($req->get('search_field_debtor_events@date')));
+                Carbon::today() :
+                (new Carbon($req->get('search_field_debtor_events@date')));
 
         $date_from = $req->get('search_field_debtor_events@date_from');
         $date_to = $req->get('search_field_debtor_events@date_to');
@@ -3546,19 +3438,19 @@ class DebtorsController extends BasicController
 
         // получаем список запланированных мероприятий на сегодня
         $debtorEvents = DB::table('debtor_events')->select($cols)
-            ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
-            ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
-            ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
-            //->whereBetween('debtor_events.date', array($date->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')))
-            ->where('debtor_events.completed', 0)
-            ->groupBy('debtor_events.id');
+                ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
+                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.passports', function ($join) {
+                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+                })
+                ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
+                ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
+                ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
+                //->whereBetween('debtor_events.date', array($date->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')))
+                ->where('debtor_events.completed', 0)
+                ->groupBy('debtor_events.id');
 
         if (!$date_from_fmt && !$date_to_fmt) {
             $debtorEvents->whereBetween('debtor_events.date', array(
@@ -3576,7 +3468,7 @@ class DebtorsController extends BasicController
         }
 
         if (!is_null($debt_group_id) && mb_strlen($debt_group_id)) {
-            $debtorEvents->where('debtors.debt_group_id', (int)$debt_group_id);
+            $debtorEvents->where('debtors.debt_group_id', (int) $debt_group_id);
         }
 
         if (!is_null($responsible_id_1c) && mb_strlen($responsible_id_1c)) {
@@ -3614,7 +3506,7 @@ class DebtorsController extends BasicController
         $totalEvents = $debtorEvents->get();
 
         foreach ($totalEvents as $debtorEvent) {
-            $debtorArray = (array)$debtorEvent;
+            $debtorArray = (array) $debtorEvent;
             $html .= '<tr>';
             foreach ($debtorArray as $k => $v) {
                 if (in_array($k, ['de_date', 'de_created_at'])) {
@@ -3641,12 +3533,11 @@ class DebtorsController extends BasicController
         header("Content-type: application/vnd.ms-excel");
         header("Content-Disposition: attachment; filename=$file");
         return response($html)
-            ->header("Content-type", "application/vnd.ms-excel")
-            ->header("Content-Disposition", "attachment; filename=$file");
+                        ->header("Content-type", "application/vnd.ms-excel")
+                        ->header("Content-Disposition", "attachment; filename=$file");
     }
 
-    public function exportForgottenToExcel(Request $req)
-    {
+    public function exportForgottenToExcel(Request $req) {
         $collectDebtors = $this->forgottenQuery($req);
 
         $excel = \Excel::create('Забытые должники');
@@ -3670,37 +3561,34 @@ class DebtorsController extends BasicController
 
         foreach ($collectDebtors as $item) {
             $debtor = Debtor::find($item['debtors_id']);
-            $nameDebtorGroup = DebtGroup::where('id',$debtor->debt_group_id)->first();
+            $nameDebtorGroup = DebtGroup::where('id', $debtor->debt_group_id)->first();
             $lineNumber++;
             $activeSheet->appendRow($lineNumber, [
-                Carbon::parse($item['debtors_fixation_date'])->format('d.m.Y'),
-                $item['passports_fio'],
-                $debtor->loan_id_1c,
-                $debtor->qty_delays,
-                $debtor->sum_indebt / 100,
-                $debtor->od / 100,
-                $debtor->base,
-                ($debtor->customer())->telephone,
-                $nameDebtorGroup ? $nameDebtorGroup->name : '',
-                $item['debtors_username'],
-                $item['debtor_str_podr']
+            Carbon::parse($item['debtors_fixation_date'])->format('d.m.Y'),
+            $item['passports_fio'],
+            $debtor->loan_id_1c,
+            $debtor->qty_delays,
+            $debtor->sum_indebt / 100,
+            $debtor->od / 100,
+            $debtor->base,
+            ($debtor->customer())->telephone,
+            $nameDebtorGroup ? $nameDebtorGroup->name : '',
+            $item['debtors_username'],
+            $item['debtor_str_podr']
             ]);
         }
         $excel->download();
     }
 
-    public function changeLoadStatus($debtor_id)
-    {
+    public function changeLoadStatus($debtor_id) {
         if (Debtor::changeLoadStatus($debtor_id)) {
             return 1;
         }
         return 0;
     }
 
-    public function uploadDataFromArmToDebtors()
-    {
-        $loantypes = DB::connection('arm')->table('loantypes')->where('created_at', '>',
-            \App\LoanType::max('created_at'))->get()->toArray();
+    public function uploadDataFromArmToDebtors() {
+        $loantypes = DB::connection('arm')->table('loantypes')->where('created_at', '>', \App\LoanType::max('created_at'))->get()->toArray();
         foreach ($loantypes as $item) {
             if (\App\LoanType::where('id_1c', $item['id_1c'])->count() == 0) {
                 $lt = new \App\LoanType();
@@ -3715,8 +3603,7 @@ class DebtorsController extends BasicController
      * Получает все платежи по должнику (текущему просроченному кредитнику)
      * @param type $debtor_id
      */
-    public function getAllPayments($debtor_id)
-    {
+    public function getAllPayments($debtor_id) {
         if (Auth::user()->id != 69) {
             return 0;
         }
@@ -3733,7 +3620,7 @@ class DebtorsController extends BasicController
         $need_post = true;
         $arForPostPayments = [
             "data" => [
-                [
+                    [
                     "loan_id_1c" => $debtor->loan_id_1c,
                     "customer_id_1c" => $debtor->customer_id_1c,
                     "start_date" => $loan->created_at->format('Y-m-d H:i:s'),
@@ -3754,8 +3641,7 @@ class DebtorsController extends BasicController
 
         if ($need_post) {
             $arForPostPayments["data"] = json_encode($arForPostPayments["data"]);
-            $p = Utils\HelperUtil::SendPostByCurl(config('admin.sales_arm_url') . '/debtors/orders/upload',
-                $arForPostPayments);
+            $p = Utils\HelperUtil::SendPostByCurl(config('admin.sales_arm_url') . '/debtors/orders/upload', $arForPostPayments);
             \PC::debug($p);
         }
 
@@ -3773,8 +3659,7 @@ class DebtorsController extends BasicController
      * Изменение количества SMS для специалистов
      * @param Request $req
      */
-    public function editSmsCount(Request $req)
-    {
+    public function editSmsCount(Request $req) {
         $input = $req->input();
 
         if (!empty($input)) {
@@ -3805,8 +3690,8 @@ class DebtorsController extends BasicController
 
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
         $usersDebtors = User::select('users.id_1c')
-            ->whereIn('id', $arResponsibleUserIds)
-            ->orderBy('name', 'asc');
+                ->whereIn('id', $arResponsibleUserIds)
+                ->orderBy('name', 'asc');
 
         $arUsersDebtors = $usersDebtors->get()->toArray();
         $arOutput = [];
@@ -3828,8 +3713,7 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function forgotten()
-    {
+    public function forgotten() {
         $user = User::find(Auth::id());
 
         $isChief = ($user->hasRole('debtors_chief')) ? true : false;
@@ -3838,8 +3722,7 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function recommends()
-    {
+    public function recommends() {
         $user = User::find(Auth::id());
 
         $isChief = ($user->hasRole('debtors_chief')) ? true : false;
@@ -3848,33 +3731,29 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function ajaxForgottenList(Request $req)
-    {
+    public function ajaxForgottenList(Request $req) {
         $debtors = $this->forgottenQuery($req);
 
         return Datatables::of($debtors)
-            ->editColumn('debtors_fixation_date', function ($item) {
-                return (!is_null($item['debtors_fixation_date'])) ? date('d.m.Y',
-                    strtotime($item['debtors_fixation_date'])) : '-';
-            })
-            ->addColumn('links', function ($item) {
-                $html = '';
-                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item['debtors_id']),
-                    ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
-                return $html;
-            }, 0)
-            ->removeColumn('debtors_id')
-            ->removeColumn('debtors_responsible_user_id_1c')
-            ->setTotalRecords(count($debtors))
-            ->make();
+                        ->editColumn('debtors_fixation_date', function ($item) {
+                            return (!is_null($item['debtors_fixation_date'])) ? date('d.m.Y', strtotime($item['debtors_fixation_date'])) : '-';
+                        })
+                        ->addColumn('links', function ($item) {
+                            $html = '';
+                            $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item['debtors_id']), ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
+                            return $html;
+                        }, 0)
+                        ->removeColumn('debtors_id')
+                        ->removeColumn('debtors_responsible_user_id_1c')
+                        ->setTotalRecords(count($debtors))
+                        ->make();
     }
 
     /**
      * Запрос для "забытых должников"
      * @param Request $req
      */
-    public function forgottenQuery(Request $req)
-    {
+    public function forgottenQuery(Request $req) {
         $input = $req->input();
 
         $user = Auth::user();
@@ -3897,15 +3776,13 @@ class DebtorsController extends BasicController
         }
 
         $debtors = Debtor::where('is_debtor', 1)->where('str_podr', $structSubdivision);
-        if (isset($input['search_field_users@id_1c'])
-            && !empty($input['search_field_users@id_1c'])
-            && $user->hasRole('debtors_chief')) {
+        if (isset($input['search_field_users@id_1c']) && !empty($input['search_field_users@id_1c']) && $user->hasRole('debtors_chief')) {
             $debtors->where('responsible_user_id_1c', $input['search_field_users@id_1c']);
         } else {
             if ($user->hasRole('debtors_chief')) {
                 $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
                 $usersDebtors = User::select('users.id_1c')
-                    ->whereIn('id', $arResponsibleUserIds);
+                        ->whereIn('id', $arResponsibleUserIds);
 
                 $arUsersDebtors = $usersDebtors->get()->toArray();
                 $arIn = [];
@@ -3923,22 +3800,20 @@ class DebtorsController extends BasicController
         foreach ($debtors as $debtor) {
             $arrDebtors = (Debtor::select('id')->where('customer_id_1c', $debtor->customer_id_1c)->get())->toArray();
             $event = DebtorEvent::whereIn('debtor_id', $arrDebtors)
-                ->whereIn('event_result_id', $arGoodResultIds)
-                ->orderBy('created_at', 'desc')
-                ->first();
-            if (!is_null($event)
-                && ($event->created_at->startOfDay()->lessThan($forgottenDate)
-                    || $event->created_at->startOfDay()->equalTo($forgottenDate))
+                    ->whereIn('event_result_id', $arGoodResultIds)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+            if (!is_null($event) && ($event->created_at->startOfDay()->lessThan($forgottenDate) || $event->created_at->startOfDay()->equalTo($forgottenDate))
             ) {
                 $itemCollect = [
-                    'debtors_fixation_date' => $debtor->fixation_date,
-                    'passports_fio' => ($debtor->customer())->getLastPassport()->fio,
-                    'debtors_id' => $debtor->id,
-                    'debtors_username' => (User::select('name')
-                        ->where('id_1c', $debtor->responsible_user_id_1c)
-                        ->first())->name,
-                    'debtor_str_podr' => $debtor->str_podr,
-                    'debtors_responsible_user_id_1c' => $debtor->responsible_user_id_1c,
+                'debtors_fixation_date' => $debtor->fixation_date,
+                'passports_fio' => ($debtor->customer())->getLastPassport()->fio,
+                'debtors_id' => $debtor->id,
+                'debtors_username' => (User::select('name')
+                ->where('id_1c', $debtor->responsible_user_id_1c)
+                ->first())->name,
+                'debtor_str_podr' => $debtor->str_podr,
+                'debtors_responsible_user_id_1c' => $debtor->responsible_user_id_1c,
                 ];
                 $collectDebtors->push($itemCollect);
             }
@@ -3951,8 +3826,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return collection
      */
-    public function ajaxRecommendsList(Request $req)
-    {
+    public function ajaxRecommendsList(Request $req) {
         $input = $req->input();
 
         $currentUser = User::find(Auth::id());
@@ -4001,19 +3875,18 @@ class DebtorsController extends BasicController
         }
 
         $debtors = Debtor::select($cols)
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.customers', 'debtors.customers.id', '=', 'debtors.claims.customer_id')
-            ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.debtors.responsible_user_id_1c')
-            ->leftJoin('debtors.struct_subdivisions', 'debtors.struct_subdivisions.id_1c', '=',
-                'debtors.debtors.str_podr')
-            ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
-            ->leftJoin('debtors.debtor_events', 'debtors.debtor_events.debtor_id', '=', 'debtors.debtors.id')
-            ->groupBy('debtors.id');
+                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.customers', 'debtors.customers.id', '=', 'debtors.claims.customer_id')
+                ->leftJoin('debtors.passports', function ($join) {
+                    $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                    $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+                })
+                ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.debtors.responsible_user_id_1c')
+                ->leftJoin('debtors.struct_subdivisions', 'debtors.struct_subdivisions.id_1c', '=', 'debtors.debtors.str_podr')
+                ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
+                ->leftJoin('debtors.debtor_events', 'debtors.debtor_events.debtor_id', '=', 'debtors.debtors.id')
+                ->groupBy('debtors.id');
 
         $debtors->where('debtors.base', '<>', 'Архив ЗД');
 
@@ -4029,7 +3902,7 @@ class DebtorsController extends BasicController
             if ($isChief) {
                 $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
                 $usersDebtors = User::select('users.id_1c')
-                    ->whereIn('id', $arResponsibleUserIds);
+                        ->whereIn('id', $arResponsibleUserIds);
 
                 $arUsersDebtors = $usersDebtors->get()->toArray();
                 $arIn = [];
@@ -4039,39 +3912,36 @@ class DebtorsController extends BasicController
                     }
                     $arIn[] = $tmpUser['id_1c'];
                 }
-
             } else {
                 $debtors->where('debtors.responsible_user_id_1c', $currentUser->id_1c);
             }
         }
 
         $collection = Datatables::of($debtors)
-            ->editColumn('debtors_fixation_date', function ($item) {
-                return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
-                    strtotime($item->debtors_fixation_date)) : '-';
-            })
-            ->editColumn('debtors_od', function ($item) {
-                return number_format($item->debtors_od / 100, 2, '.', '');
-            })
-            ->editColumn('debtors_sum_indebt', function ($item) {
-                return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
-            })
-            ->editColumn('debtors_rec_completed', function ($item) {
-                return ($item->debtors_rec_completed == 1) ? 'Да' : 'Нет';
-            })
-            ->addColumn('links', function ($item) {
-                $html = '';
-                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id),
-                    ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
-                return $html;
-            }, 0)
-            ->removeColumn('debtors_id')
-            ->removeColumn('debtor_id_1c')
-            ->removeColumn('uploaded')
-            ->removeColumn('debtors_debt_group')
-            ->removeColumn('debtors_responsible_user_id_1c')
-            ->setTotalRecords(1000)
-            ->make();
+                ->editColumn('debtors_fixation_date', function ($item) {
+                    return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y', strtotime($item->debtors_fixation_date)) : '-';
+                })
+                ->editColumn('debtors_od', function ($item) {
+                    return number_format($item->debtors_od / 100, 2, '.', '');
+                })
+                ->editColumn('debtors_sum_indebt', function ($item) {
+                    return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
+                })
+                ->editColumn('debtors_rec_completed', function ($item) {
+                    return ($item->debtors_rec_completed == 1) ? 'Да' : 'Нет';
+                })
+                ->addColumn('links', function ($item) {
+                    $html = '';
+                    $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
+                    return $html;
+                }, 0)
+                ->removeColumn('debtors_id')
+                ->removeColumn('debtor_id_1c')
+                ->removeColumn('uploaded')
+                ->removeColumn('debtors_debt_group')
+                ->removeColumn('debtors_responsible_user_id_1c')
+                ->setTotalRecords(1000)
+                ->make();
         $collection->getData();
         return $collection;
     }
@@ -4081,8 +3951,7 @@ class DebtorsController extends BasicController
      * @param Request $request
      * @return int
      */
-    public function uploadLoans(Request $request)
-    {
+    public function uploadLoans(Request $request) {
         $input = $request->input();
         if (!isset($input['debtor_id'])) {
             return 0;
@@ -4095,15 +3964,13 @@ class DebtorsController extends BasicController
 
         if (!\App\DebtorCardOpen::checkOpenCard($debtor->id)) {
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL,
-                config('admin.sales_arm_url') . '/debtors/loans/upload?passport_series=' . $debtor->passport_series . '&passport_number=' . $debtor->passport_number);
+            curl_setopt($ch, CURLOPT_URL, config('admin.sales_arm_url') . '/debtors/loans/upload?passport_series=' . $debtor->passport_series . '&passport_number=' . $debtor->passport_number);
             $answer_curl = curl_exec($ch);
             curl_close($ch);
         }
     }
 
-    public function updateLoan(Request $request)
-    {
+    public function updateLoan(Request $request) {
         $input = $request->input();
 
         $debtor = Debtor::find($input['debtor_id']);
@@ -4114,15 +3981,13 @@ class DebtorsController extends BasicController
             $update_history->save();
 
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL,
-                config('admin.sales_arm_url') . '/debtors/loans/upload?loan_id_1c=' . $input['loan_id_1c'] . '&customer_id_1c=' . $debtor->customer_id_1c);
+            curl_setopt($ch, CURLOPT_URL, config('admin.sales_arm_url') . '/debtors/loans/upload?loan_id_1c=' . $input['loan_id_1c'] . '&customer_id_1c=' . $debtor->customer_id_1c);
             $answer_curl = curl_exec($ch);
             curl_close($ch);
         }
     }
 
-    public function getMultiSum(MultiSumRequest $request)
-    {
+    public function getMultiSum(MultiSumRequest $request) {
         $customerId1c = $request['customer_id_1c'];
         $loanId1c = $request['loan_id_1c'];
         $date = $request['date'] ?? null;
@@ -4137,8 +4002,7 @@ class DebtorsController extends BasicController
      * Экспорт реестра отправленных писем и уведомлений
      * @param Request $req
      */
-    public function exportPostRegistry(Request $req)
-    {
+    public function exportPostRegistry(Request $req) {
         $currentUser = User::find(Auth::id());
 
         if (!$currentUser->hasRole('debtors_chief')) {
@@ -4156,7 +4020,7 @@ class DebtorsController extends BasicController
         $date = (!$date) ? date('Y-m-d', time()) : date('Y-m-d', strtotime($date));
 
         $notices = \App\NoticeNumbers::where('created_at', '>=', $date . ' 00:00:00')
-            ->where('created_at', '<=', $date . ' 23:59:59');
+                ->where('created_at', '<=', $date . ' 23:59:59');
 
         $number_postfix = '';
 
@@ -4166,12 +4030,12 @@ class DebtorsController extends BasicController
         }
         if ($mode == 'lv') {
             $notices->where('str_podr', '000000000007')
-                ->whereIn('user_id_1c', [
-                    'Ведущий специалист личного взыскания',
-                    'Медведев В.В.',
-                    'Кузнецов Д.С.',
-                    'Иванов Н.С.                                  '
-                ]);
+                    ->whereIn('user_id_1c', [
+                        'Ведущий специалист личного взыскания',
+                        'Медведев В.В.',
+                        'Кузнецов Д.С.',
+                        'Иванов Н.С.                                  '
+            ]);
             $number_postfix = 'ЛВ';
         }
 
@@ -4190,8 +4054,7 @@ class DebtorsController extends BasicController
 
             $debtor = \App\Debtor::where('debtor_id_1c', $notice->debtor_id_1c)->first();
             if (!is_null($debtor)) {
-                $passport = \App\Passport::where('series', $debtor->passport_series)->where('number',
-                    $debtor->passport_number)->first();
+                $passport = \App\Passport::where('series', $debtor->passport_series)->where('number', $debtor->passport_number)->first();
                 if (!is_null($passport)) {
                     $data[2] = $passport->fio;
                     if ($notice->is_ur_address) {
@@ -4220,12 +4083,11 @@ class DebtorsController extends BasicController
         header("Content-type: application/vnd.ms-excel");
         header("Content-Disposition: attachment; filename=$file");
         return response($html)
-            ->header("Content-type", "application/vnd.ms-excel")
-            ->header("Content-Disposition", "attachment; filename=$file");
+                        ->header("Content-type", "application/vnd.ms-excel")
+                        ->header("Content-Disposition", "attachment; filename=$file");
     }
 
-    public function addNewPeaceClaim(Request $req)
-    {
+    public function addNewPeaceClaim(Request $req) {
         $user = auth()->user();
 
         $repayment_type_id = $req->get('repayment_type_id', false);
@@ -4251,7 +4113,7 @@ class DebtorsController extends BasicController
             $input['amount'] = $input['amount'] * 100;
 
             if (isset($input['prepaid']) && $input['prepaid'] == 1) {
-
+                
             } else {
                 $input['prepaid'] = 0;
             }
@@ -4268,11 +4130,9 @@ class DebtorsController extends BasicController
 
             if ($arJson) {
                 if ($repayment_type_id == 14) {
-                    $report = 'Предварительное согласие по договору ' . $debtor->loan_id_1c . ' на мировое соглашение сроком на ' . $input['times'] . ' дней, сумма: ' . $input['amount'] / 100 . ' руб. Действует до ' . date('d.m.Y',
-                            strtotime($input['end_at']));
+                    $report = 'Предварительное согласие по договору ' . $debtor->loan_id_1c . ' на мировое соглашение сроком на ' . $input['times'] . ' дней, сумма: ' . $input['amount'] / 100 . ' руб. Действует до ' . date('d.m.Y', strtotime($input['end_at']));
                 } else {
-                    $report = 'Предварительное согласие по договору ' . $debtor->loan_id_1c . ' на приостановку процентов сроком на ' . $input['times'] . ' дней, сумма: ' . $input['amount'] / 100 . ' руб. Действует до ' . date('d.m.Y',
-                            strtotime($input['end_at']));
+                    $report = 'Предварительное согласие по договору ' . $debtor->loan_id_1c . ' на приостановку процентов сроком на ' . $input['times'] . ' дней, сумма: ' . $input['amount'] / 100 . ' руб. Действует до ' . date('d.m.Y', strtotime($input['end_at']));
                 }
 
                 $event = new DebtorEvent();
@@ -4295,8 +4155,7 @@ class DebtorsController extends BasicController
         return redirect()->back();
     }
 
-    public function setGroupPlanEvents(Request $req)
-    {
+    public function setGroupPlanEvents(Request $req) {
         $date_plan = $req->get('search_field_debtor_events@date_plan', false);
         $debt_group_id = $req->get('search_field_debt_groups@id', false);
         $user_id_1c = $req->get('search_field_users@id_1c', false);
@@ -4322,10 +4181,10 @@ class DebtorsController extends BasicController
         $planned_customers = [];
 
         $debtors = Debtor::where('responsible_user_id_1c', $user_id_1c)
-            ->where('debt_group_id', $debt_group_id)
-            ->where('base', '<>', 'Архив ЗД')
-            ->where('is_debtor', 1)
-            ->get();
+                ->where('debt_group_id', $debt_group_id)
+                ->where('base', '<>', 'Архив ЗД')
+                ->where('is_debtor', 1)
+                ->get();
 
         foreach ($debtors as $debtor) {
             if (in_array($debtor->customer_id_1c, $planned_customers)) {
@@ -4360,8 +4219,7 @@ class DebtorsController extends BasicController
         return redirect()->back();
     }
 
-    public function sentRecurrentQuery(Request $req)
-    {
+    public function sentRecurrentQuery(Request $req) {
         $user = auth()->user();
 
         $debtor_id = $req->get('debtor_id', false);
@@ -4439,8 +4297,7 @@ class DebtorsController extends BasicController
         return redirect()->back();
     }
 
-    public function massRecurrentTask(Request $req)
-    {
+    public function massRecurrentTask(Request $req) {
         $user = auth()->user();
 
         $is_leading_task = $req->get('type', false);
@@ -4472,10 +4329,10 @@ class DebtorsController extends BasicController
         $start_flag = $req->get('start', false);
 
         $recurrent_task = \App\MassRecurrentTask::where('created_at', '>=', date('Y-m-d 00:00:00', time()))
-            ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
-            ->where('str_podr', $str_podr)
-            //->orderBy('id', 'desc')
-            ->first();
+                ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
+                ->where('str_podr', $str_podr)
+                //->orderBy('id', 'desc')
+                ->first();
 
         $canStartToday = ($recurrent_task) ? false : true;
         //$canStartToday = true;
@@ -4485,34 +4342,34 @@ class DebtorsController extends BasicController
 
             if ($str_podr == '000000000006') {
                 $debtors->where('str_podr', '000000000006')
-                    ->where('qty_delays', '>=', 21)
-                    ->where('qty_delays', '<=', 135)
-                    ->whereIn('debt_group_id', [4, 5, 6]);
+                        ->where('qty_delays', '>=', 21)
+                        ->where('qty_delays', '<=', 135)
+                        ->whereIn('debt_group_id', [4, 5, 6]);
             }
 
             if ($str_podr == '000000000007') {
                 $debtors->where('str_podr', '000000000007')
-                    ->where('qty_delays', '>=', 60)
-                    ->where('qty_delays', '<=', 150)
-                    ->whereIn('debt_group_id', [5, 6]);
+                        ->where('qty_delays', '>=', 60)
+                        ->where('qty_delays', '<=', 150)
+                        ->whereIn('debt_group_id', [5, 6]);
             }
 
             if ($str_podr == '000000000007-1') {
                 $debtors->where('str_podr', '000000000007')
-                    ->where('responsible_user_id_1c', 'Ведущий специалист личного взыскания')
-                    ->where('qty_delays', '>=', 60)
-                    ->where('qty_delays', '<=', 150)
-                    ->whereIn('debt_group_id', [5, 6])
-                    ->whereIn('base', ['Б-3', 'Б-МС', 'Б-риски', 'Б-График']);
+                        ->where('responsible_user_id_1c', 'Ведущий специалист личного взыскания')
+                        ->where('qty_delays', '>=', 60)
+                        ->where('qty_delays', '<=', 150)
+                        ->whereIn('debt_group_id', [5, 6])
+                        ->whereIn('base', ['Б-3', 'Б-МС', 'Б-риски', 'Б-График']);
             }
 
             if ($str_podr == '000000000006-1') {
                 $debtors->where('str_podr', '000000000006')
-                    ->whereIn('responsible_user_id_1c', [
-                        'Осипова Е. А.                                ',
-                        'Петухова Е. И.                               '
-                    ])
-                    ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График']);
+                        ->whereIn('responsible_user_id_1c', [
+                            'Осипова Е. А.                                ',
+                            'Петухова Е. И.                               '
+                        ])
+                        ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График']);
             }
 
             $debtors = $debtors->get();
@@ -4553,8 +4410,7 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function massRecurrentQuery(Request $req)
-    {
+    public function massRecurrentQuery(Request $req) {
         ini_set('max_execution_time', 0);
         set_time_limit(0);
 
@@ -4571,43 +4427,43 @@ class DebtorsController extends BasicController
 
         if ($recurrent_type && $recurrent_type == 'olv_chief') {
             $debtors = Debtor::where('is_debtor', 1)
-                ->where('str_podr', '000000000007')
-                ->where('responsible_user_id_1c', 'Ведущий специалист личного взыскания')
-                ->where('qty_delays', '>=', 60)
-                ->where('qty_delays', '<=', 150)
-                ->whereIn('debt_group_id', [5, 6])
-                ->whereIn('base', ['Б-3', 'Б-МС', 'Б-риски', 'Б-График'])
-                ->get();
+                    ->where('str_podr', '000000000007')
+                    ->where('responsible_user_id_1c', 'Ведущий специалист личного взыскания')
+                    ->where('qty_delays', '>=', 60)
+                    ->where('qty_delays', '<=', 150)
+                    ->whereIn('debt_group_id', [5, 6])
+                    ->whereIn('base', ['Б-3', 'Б-МС', 'Б-риски', 'Б-График'])
+                    ->get();
         } else {
             if ($recurrent_type && $recurrent_type == 'ouv_chief') {
                 $debtors = Debtor::where('is_debtor', 1)
-                    ->where('str_podr', '000000000006')
-                    ->whereIn('responsible_user_id_1c', [
-                        'Осипова Е. А.                                ',
-                        'Петухова Е. И.                               '
-                    ])
-                    ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График'])
-                    ->get();
+                        ->where('str_podr', '000000000006')
+                        ->whereIn('responsible_user_id_1c', [
+                            'Осипова Е. А.                                ',
+                            'Петухова Е. И.                               '
+                        ])
+                        ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График'])
+                        ->get();
             } else {
                 if ($user->hasRole('debtors_remote')) {
                     $debtors = Debtor::where('is_debtor', 1)
-                        ->where('str_podr', '000000000006')
-                        ->where('qty_delays', '>=', 22)
-                        ->where('qty_delays', '<=', 69)
-                        ->where('base', '<>', 'ХПД')
-                        ->whereIn('debt_group_id', [4, 5, 6])
-                        ->get();
+                            ->where('str_podr', '000000000006')
+                            ->where('qty_delays', '>=', 22)
+                            ->where('qty_delays', '<=', 69)
+                            ->where('base', '<>', 'ХПД')
+                            ->whereIn('debt_group_id', [4, 5, 6])
+                            ->get();
                 } else {
                     if ($user->hasRole('debtors_personal')) {
                         $debtors = Debtor::where('is_debtor', 1)
-                            ->where('str_podr', '000000000007')
-                            ->where('qty_delays', '>=', 60)
-                            ->where('qty_delays', '<=', 150)
-                            ->where('base', '<>', 'ХПД')
-                            ->whereIn('debt_group_id', [5, 6])
-                            ->get();
+                                ->where('str_podr', '000000000007')
+                                ->where('qty_delays', '>=', 60)
+                                ->where('qty_delays', '<=', 150)
+                                ->where('base', '<>', 'ХПД')
+                                ->whereIn('debt_group_id', [5, 6])
+                                ->get();
                     } else {
-
+                        
                     }
                 }
             }
@@ -4640,8 +4496,7 @@ class DebtorsController extends BasicController
                 $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
                 if (curl_errno($ch)) {
-                    Log::error('DebtorsController.massRecurrentQuery cURL error: ',
-                        [curl_error($ch), $httpcode, $debtor]);
+                    Log::error('DebtorsController.massRecurrentQuery cURL error: ', [curl_error($ch), $httpcode, $debtor]);
                 }
 
                 $recurrent_item = new \App\MassRecurrent();
@@ -4659,8 +4514,7 @@ class DebtorsController extends BasicController
         $recurrent_task->save();
     }
 
-    public function getMassRecurrentStatus(Request $req)
-    {
+    public function getMassRecurrentStatus(Request $req) {
         $user = auth()->user();
 
         $recurrent_type = $req->get('recurrent_type', false);
@@ -4684,10 +4538,10 @@ class DebtorsController extends BasicController
         }
 
         $recurrent_task = \App\MassRecurrentTask::where('created_at', '>=', date('Y-m-d 00:00:00', time()))
-            ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
-            ->where('str_podr', $str_podr)
-            //->orderBy('id', 'desc')
-            ->first();
+                ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
+                ->where('str_podr', $str_podr)
+                //->orderBy('id', 'desc')
+                ->first();
 
         if ($recurrent_task && $recurrent_task->completed == 0) {
             $recurrents_count = \App\MassRecurrent::where('task_id', $recurrent_task->id)->count();
@@ -4703,8 +4557,7 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function getCalcDataForCreditCard(Request $request)
-    {
+    public function getCalcDataForCreditCard(Request $request) {
         $loan_id_1c = $request->get('loan_id_1c', false);
         $date = $request->get('debt_calc_date_cc', false);
 
@@ -4712,8 +4565,7 @@ class DebtorsController extends BasicController
             return '<center>Ошибка передачи параметров.</center>';
         }
 
-        $json_string = file_get_contents('http://192.168.35.54:8020/api/v1/loans/' . $loan_id_1c . '/schedule/' . date('d.m.Y',
-                strtotime($date)));
+        $json_string = file_get_contents('http://192.168.35.54:8020/api/v1/loans/' . $loan_id_1c . '/schedule/' . date('d.m.Y', strtotime($date)));
         $arData = json_decode($json_string, true);
 
         return view('debtors.calcDataCreditCard', [
@@ -4722,8 +4574,7 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function setSelfResponsible($debtor_id)
-    {
+    public function setSelfResponsible($debtor_id) {
         $debtor = Debtor::find($debtor_id);
 
         if (!is_null($debtor)) {
@@ -4744,8 +4595,138 @@ class DebtorsController extends BasicController
         return redirect()->back();
     }
 
-    public static function pledgeFormParams()
-    {
+    public function temporaryCronTasksHandling(Request $request) {
+        $action = $request->get('action', false);
+        $message = false;
+        
+        if ($action && $action == 'omicron') {
+            $omicron_tasks = \App\OmicronTask::where('id', '>', 930)->where('result_recieved', 0)->get();
+
+            foreach ($omicron_tasks as $task) {
+
+                $today = date('Y-m-d', strtotime($task->created_at));
+
+                if (is_null($task)) {
+                    exit();
+                }
+
+                if ($task->result_recieved == 1) {
+                    continue;
+                }
+
+                $postdata = [
+                    'username' => 'admin@pdengi.ru',
+                    'password' => md5('73218696'),
+                    'taskid' => $task->omicron_task_id
+                        //'taskid' => 23775828
+                ];
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, 'https://www.votbox.ru/api/autocall.check.api.php');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+
+                $result = curl_exec($ch);
+                curl_close($ch);
+
+                $object = simplexml_load_string($result);
+
+                if ((string) $object->data->task["taskstatusstr"] == 'Закончена') {
+                    $arEventData = [];
+
+                    $events = \App\DebtorEvent::where('date', '>=', $today . ' 00:00:00')
+                            ->where('date', '<=', $today . ' 23:59:59')
+                            //where('date', '>=', '2022-11-21 00:00:00')
+                            //->where('date', '<=', '2022-11-21 23:59:59')
+                            ->where('event_type_id', 22)
+                            ->where('completed', 0)
+                            ->get();
+
+                    foreach ($events as $event) {
+                        $debtor = \App\Debtor::where('debtor_id_1c', $event->debtor_id_1c)->first();
+                        if (!is_null($debtor)) {
+                            $customer = \App\Customer::where('id_1c', $debtor->customer_id_1c)->first();
+                            if (!is_null($customer)) {
+                                $arEventData[$customer->telephone] = [
+                                    'event_id' => $event->id,
+                                    'debtor_id_1c' => $debtor->debtor_id_1c
+                                ];
+                            }
+                        }
+                    }
+
+                    foreach ($object->data->item as $call) {
+                        $phone = (string) $call['phonenumber'];
+                        if ($phone[0] == '8') {
+                            $phone[0] = '7';
+                        }
+
+                        if (isset($arEventData[$phone])) {
+                            $now = date('Y-m-d H:i:s', time());
+
+                            $planned_event = \App\DebtorEvent::find($arEventData[$phone]['event_id']);
+                            $planned_event->completed = 1;
+                            $planned_event->refresh_date = $now;
+                            $planned_event->save();
+
+                            $debtor = \App\Debtor::where('debtor_id_1c', $arEventData[$phone]['debtor_id_1c'])->first();
+                            $resp_user = \App\User::where('id_1c', $debtor->responsible_user_id_1c)->first();
+
+                            if ((string) $call['jobstatus'] == '3') {
+                                $call_result = 24;
+                            } else {
+                                $call_result = 23;
+                            }
+
+                            $report = (string) $call['reldescr'];
+                            if ($report == 'Ошибка сети') {
+                                $report .= ' или абонент сбросил вызов';
+                            }
+
+                            $newEvent = new \App\DebtorEvent();
+                            $newEvent->event_type_id = 22;
+                            $newEvent->event_result_id = $call_result;
+                            $newEvent->debt_group_id = $debtor->debt_group_id;
+                            $newEvent->report = $report;
+                            $newEvent->debtor_id = $debtor->id;
+                            $newEvent->user_id = (!is_null($resp_user)) ? $resp_user->id : 1029;
+                            $newEvent->completed = 1;
+                            $newEvent->debtor_id_1c = $debtor->debtor_id_1c;
+                            $newEvent->user_id_1c = (!is_null($resp_user)) ? $resp_user->id_1c : 'Автоинформатор(Омикрон)';
+                            $newEvent->refresh_date = $now;
+                            $newEvent->save();
+                        }
+                    }
+
+                    $task->result_recieved = 1;
+                    $task->save();
+                }
+            }
+            
+            $message = 'Задачи Автоинформатора обновлены.';
+        }
+        
+        if ($action && $action == 'od_closing') {
+            Debtor::where('closed_at', '<=', date('Y-m-d 00:00:00', time()))->update([
+                'od_after_closing' => 0
+            ]);
+            
+            $message = 'Реестр по закрытиям исправлен.';
+        }
+        
+        if ($action && $action == 'base_b0') {
+            Debtor::where('str_podr', '000000000006')->where('base', 'Б-0')->update([
+                'base' => 'Б-1'
+            ]);
+            
+            $message = 'Базы исправлены с Б-0 на Б-1.';
+        }
+
+        return view('debtors.temporaryCronTasksHandling', compact('message'));
+    }
+
+    public static function pledgeFormParams() {
         $arr = [
             'type_pledge' => [
                 0 => 'Не выбрано',

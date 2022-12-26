@@ -804,6 +804,8 @@ Route::post('debtors/infinity/closingModals', ['uses' => 'InfinityController@clo
 
 Route::get('debtors/setSelfResponsible/{debtor_id}', ['uses' => 'DebtorsController@setSelfResponsible']);
 
+Route::get('/debtors/temporary/cron/handle', ['uses' => 'DebtorsController@temporaryCronTasksHandling']);
+
 //ДОЛЖНИКИ ОТЧЕТЫ
 Route::get('debtors/reports/plancalend', ['uses' => 'DebtorsReportsController@planCalend']);
 Route::get('debtors/reports/ovz', ['uses' => 'DebtorsReportsController@ovz']);
