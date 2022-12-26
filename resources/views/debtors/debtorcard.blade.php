@@ -1245,10 +1245,7 @@ $(document).on('click', '#showSmsInfo', function() {
     $('#smsLinkContent').hide();
     $('#smsConntent').show();
 });
-$(document).on('click', '#showSmsProps', function() {
-    $('#smsConntent').hide();
-    $('#smsPropsContent').show();
-});
+
 $(document).on('change', '#enableThirdPeople', function() {
     if ($(this).is(':checked')) {
         $('#phoneThirdPeople').prop('disabled', false);
@@ -1256,6 +1253,7 @@ $(document).on('change', '#enableThirdPeople', function() {
         $('#phoneThirdPeople').prop('disabled', true);
     }
 });
+
 $(document).on('change', 'input[name="paymentLinkSumType"]', function() {
     if ($(this).val() == 2) {
         $('#paymentLinkSum').prop('disabled', false);
@@ -1296,11 +1294,27 @@ $(document).on('click', '#sendSMSLink', function() {
     });
 
 });
+
+$(document).on('click', '#showSmsProps', function() {
+    $('#smsConntent').hide();
+    $('#smsPropsContent').show();
+});
+$('#phoneThirdPeopleProps').mask('+7 (999) 999-9999');
+$(document).on('change', '#enableThirdPeopleProps', function() {
+    if ($(this).is(':checked')) {
+        $('#phoneThirdPeopleProps').prop('disabled', false);
+    } else {
+        $('#phoneThirdPeopleProps').prop('disabled', true);
+    }
+});
 $(document).on('click', '#sendSMSProps', function() {
     $.app.blockScreen(true);
 
-    var sms_phone = $('input[name="sms_phone_number"]').val();
-
+    if ($('#enableThirdPeopleProps').is(':checked')) {
+        var sms_phone = $('#phoneThirdPeopleProps').val();
+    } else {
+        var sms_phone = $('input[name="sms_phone_number"]').val();
+    }
     $.post($.app.url + '/ajax/debtors/sendsmstodebtor', {
         phone: sms_phone,
         sms_type: 'props',
@@ -1315,6 +1329,7 @@ $(document).on('click', '#sendSMSProps', function() {
         }, 1000);
     });
 });
+
 $(document).on('click', '#getMessengerText', function() {
     $(this).prop('disabled', true);
     $(this).text('Формирование ссылки...');
