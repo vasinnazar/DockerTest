@@ -131,6 +131,13 @@ class DebtorEventService
                     $totalDays[$intk] = 0;
                 }
             }
+            $amountOfAgreement = DebtorEvent::select(DB::raw('ifnull(sum(amount),0) as amount'))
+                ->whereIn('user_id', $usersId)
+                ->whereBetween('date', $intv)
+                ->where('completed', 0)
+                ->first();
+            $amount[$intk] = $amountOfAgreement->amount;
+
         }
         foreach ($tableData as $tdk => $tdv) {
             foreach ($cols as $col) {
@@ -147,6 +154,7 @@ class DebtorEventService
         $res['total_types'] = $totalTypes;
         $res['total_days'] = $totalDays;
         $res['total'] = $total;
+        $res['totalDayAmount'] = $amount;
         return $res;
     }
 }
