@@ -237,7 +237,7 @@ class DebtorsController extends BasicController
             ->get();
 
         $data = json_decode(json_encode($debtorcard), true);
-
+        
         if (count($data) > 1) {
             foreach ($data as $k => $tmp_data) {
                 if ($tmp_data['customer_id'] == $customer->id) {
@@ -1654,6 +1654,7 @@ class DebtorsController extends BasicController
             'debtor_events.id' => 'de_id',
             'debtor_events.date' => 'de_date',
             'debtor_events.event_type_id' => 'de_type_id',
+            'debtor_events.amount' => 'de_amount',
             'debtors.passports.fio' => 'passports_fio',
             'debtor_events.created_at' => 'de_created_at',
             'users.login' => 'de_username',
