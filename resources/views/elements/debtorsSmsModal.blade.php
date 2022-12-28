@@ -164,6 +164,13 @@
                             <h4>Отправка ссылки на реквизиты</h4>
                             <div class="form-group">
                                 <div class="col-xs-4">
+                                    <input type="checkbox" name="enableThirdPeopleProps" id="enableThirdPeopleProps">
+                                    Тел. третьего лица
+                                </div>
+                                <div class="col-xs-8">
+                                    <input type="text" name="phoneThirdPeopleProps" id="phoneThirdPeopleProps" class="form-control" disabled>
+                                </div>
+                                <div class="col-xs-4">
                                     Ссылка
                                 </div>
                                 <div class="col-xs-8">
