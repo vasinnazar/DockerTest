@@ -4765,6 +4765,138 @@ class DebtorsController extends BasicController
 
         return redirect()->back();
     }
+    
+    public function temporaryCronTasksHandling(Request $request) {
+        $action = $request->get('action', false);
+        $message = false;
+        
+        if ($action && $action == 'omicron') {
+            $omicron_tasks = \App\OmicronTask::where('id', '>', 930)->where('result_recieved', 0)->get();
+
+            foreach ($omicron_tasks as $task) {
+
+                $today = date('Y-m-d', strtotime($task->created_at));
+
+                if (is_null($task)) {
+                    exit();
+                }
+
+                if ($task->result_recieved == 1) {
+                    continue;
+                }
+
+                $postdata = [
+                    'username' => 'admin@pdengi.ru',
+                    'password' => md5('73218696'),
+                    'taskid' => $task->omicron_task_id
+                        //'taskid' => 23775828
+                ];
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, 'https://www.votbox.ru/api/autocall.check.api.php');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+
+                $result = curl_exec($ch);
+                curl_close($ch);
+
+                $object = simplexml_load_string($result);
+
+                if ((string) $object->data->task["taskstatusstr"] == 'Закончена') {
+                    $arEventData = [];
+
+                    $events = \App\DebtorEvent::where('date', '>=', $today . ' 00:00:00')
+                            ->where('date', '<=', $today . ' 23:59:59')
+                            //where('date', '>=', '2022-11-21 00:00:00')
+                            //->where('date', '<=', '2022-11-21 23:59:59')
+                            ->where('event_type_id', 22)
+                            ->where('completed', 0)
+                            ->get();
+
+                    foreach ($events as $event) {
+                        $debtor = \App\Debtor::where('debtor_id_1c', $event->debtor_id_1c)->first();
+                        if (!is_null($debtor)) {
+                            $customer = \App\Customer::where('id_1c', $debtor->customer_id_1c)->first();
+                            if (!is_null($customer)) {
+                                $arEventData[$customer->telephone] = [
+                                    'event_id' => $event->id,
+                                    'debtor_id_1c' => $debtor->debtor_id_1c
+                                ];
+                            }
+                        }
+                    }
+
+                    foreach ($object->data->item as $call) {
+                        $phone = (string) $call['phonenumber'];
+                        if ($phone[0] == '8') {
+                            $phone[0] = '7';
+                        }
+
+                        if (isset($arEventData[$phone])) {
+                            $now = date('Y-m-d H:i:s', time());
+
+                            $planned_event = \App\DebtorEvent::find($arEventData[$phone]['event_id']);
+                            $planned_event->completed = 1;
+                            $planned_event->refresh_date = $now;
+                            $planned_event->save();
+
+                            $debtor = \App\Debtor::where('debtor_id_1c', $arEventData[$phone]['debtor_id_1c'])->first();
+                            $resp_user = \App\User::where('id_1c', $debtor->responsible_user_id_1c)->first();
+
+                            if ((string) $call['jobstatus'] == '3') {
+                                $call_result = 24;
+                            } else {
+                                $call_result = 23;
+                            }
+
+                            $report = (string) $call['reldescr'];
+                            if ($report == 'Ошибка сети') {
+                                $report .= ' или абонент сбросил вызов';
+                            }
+
+                            $newEvent = new \App\DebtorEvent();
+                            $newEvent->event_type_id = 22;
+                            $newEvent->event_result_id = $call_result;
+                            $newEvent->debt_group_id = $debtor->debt_group_id;
+                            $newEvent->report = $report;
+                            $newEvent->debtor_id = $debtor->id;
+                            $newEvent->user_id = (!is_null($resp_user)) ? $resp_user->id : 1029;
+                            $newEvent->completed = 1;
+                            $newEvent->debtor_id_1c = $debtor->debtor_id_1c;
+                            $newEvent->user_id_1c = (!is_null($resp_user)) ? $resp_user->id_1c : 'Автоинформатор(Омикрон)';
+                            $newEvent->refresh_date = $now;
+                            $newEvent->save();
+                        }
+                    }
+
+                    $task->result_recieved = 1;
+                    $task->save();
+                }
+            }
+            
+            $message = 'Задачи Автоинформатора обновлены.';
+        }
+        
+        if ($action && $action == 'od_closing') {
+            Debtor::where('closed_at', '<=', date('Y-m-d 00:00:00', time()))->update([
+                'od_after_closing' => 0
+            ]);
+            
+            $message = 'Реестр по закрытиям исправлен.';
+        }
+        
+        if ($action && $action == 'base_b0') {
+            Debtor::where('str_podr', '000000000006')->where('base', 'Б-0')->update([
+                'base' => 'Б-1'
+            ]);
+            
+            $message = 'Базы исправлены с Б-0 на Б-1.';
+        }
+
+        return view('debtors.temporaryCronTasksHandling', compact('message'));
+    }
+
 
     public static function pledgeFormParams()
     {
