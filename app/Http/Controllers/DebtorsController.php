@@ -4894,7 +4894,7 @@ class DebtorsController extends BasicController
             $message = 'Базы исправлены с Б-0 на Б-1.';
         }
 
-        return view('debtors.temporaryCronTasksHandling', compact('message'));
+        return view('debtors.temporaryCronTaskHandling', compact('message'));
     }
 
 
