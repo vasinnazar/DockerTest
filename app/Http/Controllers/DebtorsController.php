@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?php
 
 namespace App\Http\Controllers;
@@ -9920,4 +9919,3 @@ class DebtorsController extends BasicController
     }
 
 }
->>>>>>> fix_3270_agreement
