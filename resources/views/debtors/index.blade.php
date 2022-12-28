@@ -102,6 +102,7 @@
                         <tr>
                             <th>Дата план</th>
                             <th>Тип мероприятия</th>
+                            <th>Платеж</th>
                             <th>Контрагент</th>
                             <th>Дата факт</th>
                             <th>Ответственный</th>
@@ -257,7 +258,7 @@
 @include('elements.debtors.debtorsSiteLoginReportModal')
 @stop
 @section('scripts')
-<script src="{{asset('js/debtors/debtorsController.js?6')}}"></script>
+<script src="{{asset('js/debtors/debtorsController.js?7')}}"></script>
 <script>
                         $(document).ready(function () {
                         $.debtorsCtrl.init();

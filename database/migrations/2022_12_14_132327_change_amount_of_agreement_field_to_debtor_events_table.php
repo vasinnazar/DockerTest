@@ -25,7 +25,7 @@ class ChangeAmountOfAgreementFieldToDebtorEventsTable extends Migration
     public function down()
     {
         Schema::table('debtor_events', function (Blueprint $table) {
-            $table->dropColumn('amount');
+            $table->dropColumn('integer');
         });
     }
 }
