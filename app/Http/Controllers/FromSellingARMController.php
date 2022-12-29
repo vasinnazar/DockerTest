@@ -79,8 +79,19 @@ class FromSellingARMController extends Controller {
         $debtor = Debtor::where('customer_id_1c', $customer_id_1c)->where('is_debtor', 1)->first();
 
         if (!is_null($debtor)) {
-
+            
             if ($debtor->str_podr == '000000000006' || $debtor->str_podr == '000000000007') {
+                
+                $now = date('Y-m-d', time());
+                
+                $siteLogTodayExists = DebtorsSiteLoginLog::where('customer_id_1c', $customer_id_1c)
+                        ->whereBetween('created_at', [$now . ' 00:00:00', $now . ' 23:59:59'])
+                        ->first();
+                
+                if (!is_null($siteLogTodayExists)) {
+                    return 0;
+                }
+                
                 $debtorItems = Debtor::where('customer_id_1c', $customer_id_1c)->where('is_debtor', 1);
                 $user = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
                 
