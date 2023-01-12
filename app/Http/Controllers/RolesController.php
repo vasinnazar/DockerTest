@@ -10,6 +10,7 @@ use App\Permission;
 use App\Utils\StrLib;
 use App\Spylog\Spylog;
 use App\User;
+use Illuminate\Support\Facades\DB;
 
 class RolesController extends BasicController {
 
@@ -83,5 +84,9 @@ class RolesController extends BasicController {
         }
         $user->roles()->sync($req->get('role', []));
         return 1;
+    }
+    public function getUsersByRoles(int $roleId){
+        $arrIdsUsers =  DB::table('role_user')->where('role_id', $roleId)->lists('user_id');
+        return User::whereIn('id',$arrIdsUsers)->where('banned',0)->whereNotNull('user_group_id')->get();
     }
 }
