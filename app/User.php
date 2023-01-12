@@ -29,7 +29,7 @@ class User extends Model implements AuthenticatableContract,AuthorizableContract
      *
      * @var array
      */
-    protected $fillable = ['name', 'login', 'password', 'subdivision_change', 'subdivision_id', 'doc', 'begin_time', 'end_time', 'banned', 'ban_at', 'id_1c', 'last_login', 'phone', 'sms_limit', 'sms_sent', 'position', 'region_id', 'user_group_id','infinity_extension', 'birth_date'];
+    protected $fillable = ['name', 'login','verbox_login', 'password', 'subdivision_change', 'subdivision_id', 'doc', 'begin_time', 'end_time', 'banned', 'ban_at', 'id_1c', 'last_login', 'phone', 'sms_limit', 'sms_sent', 'position', 'region_id', 'user_group_id','infinity_extension', 'birth_date'];
 
     /**
      * The attributes excluded from the model's JSON form.
