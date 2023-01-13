@@ -2,7 +2,16 @@
 
 namespace App;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+
+/**
+ * Class DebtorEvent
+ * @package App
+ *
+ * @mixin Builder
+ * @mixin \Illuminate\Database\Query\Builder
+ */
 
 class Role extends Model
 {

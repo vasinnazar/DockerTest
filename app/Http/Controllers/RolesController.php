@@ -97,7 +97,11 @@ class RolesController extends BasicController
 
     public function getUsersByRoles(int $roleId)
     {
-        $idsUsers = Role::find($roleId)->users->pluck('id')->toArray();
+        $role = Role::find($roleId);
+        if (!$role) {
+            return response('', 404);
+        }
+        $idsUsers = $role->users->pluck('id')->toArray();
         return User::whereIn('id', $idsUsers)->where('banned', 0)->whereNotNull('user_group_id')->get();
     }
 }
