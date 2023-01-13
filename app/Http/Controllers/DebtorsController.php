@@ -1446,7 +1446,7 @@ class DebtorsController extends BasicController
                 $html = '';
                 if (mb_strlen($item->debtors_responsible_user_id_1c)) {
                     $pos = strpos(Auth::user()->id_1c, $item->debtors_responsible_user_id_1c);
-                    if ($user->hasRole('debtors_remote')) {
+                    if ($user->hasRole('debtors_remote') || $user->hasRole('debtors_personal')) {
                         $pos = true;
                     }
                 } else {
@@ -1825,7 +1825,7 @@ class DebtorsController extends BasicController
                 return $arDebtData['event_types'][$item->de_type_id];
             })
             ->editColumn('de_amount', function ($item) {
-                if (is_null($item->de_amount)) {
+                if (!isset($item->de_amount) || is_null($item->de_amount)) {
                     return 'Н/Д';
                 }
                 return number_format($item->de_amount / 100, '2', '.', '');

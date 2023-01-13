@@ -1036,7 +1036,7 @@
                                                     </select>
                                                 </div>
                                             </div>
-                                            @if ($debtroles['is_chief'])
+                                            @if ($debtroles['is_chief'] || auth()->user()->user_group_id == '1536')
                                                 <div class='form-group' id='chief_event_field'>
                                                     <label class='col-xs-12 col-sm-4 text-right'>От имени:</label>
                                                     <div class='col-xs-12 col-sm-8 form-inline'>
