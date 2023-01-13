@@ -981,3 +981,5 @@ Route::post('subdivision/stock/settings/update', ['uses' => 'SubdivisionStockSet
 //роуты для отправки еmail
 Route::get('/debtors/emails/list/{user_id}',['uses'=>'EmailController@index']);
 Route::post('/debtors/email/send',['as'=>'email.send','uses' => 'EmailController@sendEmail']);
+
+Route::get('/api/roles/{role_id}/users',['uses'=>'RolesController@getUsersByRoles']);

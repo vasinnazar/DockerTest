@@ -2,9 +2,19 @@
 
 namespace App;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class Role extends Model {
+/**
+ * Class DebtorEvent
+ * @package App
+ *
+ * @mixin Builder
+ * @mixin \Illuminate\Database\Query\Builder
+ */
+
+class Role extends Model
+{
 
     const ADMIN = 'admin';
     const SPEC = 'spec';
@@ -15,18 +25,21 @@ class Role extends Model {
     const DEBTORS_CHIEF = 14;
 
     protected $table = 'roles';
-    protected $fillable = ['name','description'];
+    protected $fillable = ['name', 'description'];
 
-    public function permissions() {
+    public function permissions()
+    {
         return $this->belongsToMany('App\Permission');
     }
 
-    public function users() {
+    public function users()
+    {
         return $this->belongsToMany('App\User');
     }
-    
-    public function hasPermission($name){
-        return ($this->permissions()->where('name',$name)->count()>0);
+
+    public function hasPermission($name)
+    {
+        return ($this->permissions()->where('name', $name)->count() > 0);
     }
 
 }

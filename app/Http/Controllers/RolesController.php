@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\RoleUser;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -10,18 +11,21 @@ use App\Permission;
 use App\Utils\StrLib;
 use App\Spylog\Spylog;
 use App\User;
+use Illuminate\Support\Facades\DB;
 
-class RolesController extends BasicController {
+class RolesController extends BasicController
+{
 
     /**
      * Главная страница
      *
      * @return \Illuminate\Http\Response
      */
-    public function index() {
+    public function index()
+    {
         $roles = Role::all();
         $permissions = Permission::all();
-        return view('adminpanel/roles/index', ['roles' => $roles,'permissions'=>$permissions]);
+        return view('adminpanel/roles/index', ['roles' => $roles, 'permissions' => $permissions]);
     }
 
     /**
@@ -29,34 +33,39 @@ class RolesController extends BasicController {
      *
      * @return \Illuminate\Http\Response
      */
-    public function create() {
+    public function create()
+    {
         $permissions = Permission::all();
-        return view('adminpanel/roles/edit', ['role' => new Role(), 'title' => 'Создание', 'permissions' => $permissions]);
+        return view('adminpanel/roles/edit',
+            ['role' => new Role(), 'title' => 'Создание', 'permissions' => $permissions]);
     }
 
     /**
      * Открыть форму редактирования роли
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id) {
-        $role = Role::find((int) $id);
+    public function edit($id)
+    {
+        $role = Role::find((int)$id);
         if (is_null($role)) {
             return $this->backWithErr(StrLib::ERR_NULL);
         }
-        $permissions= Permission::all();
-        return view('adminpanel/roles/edit', ['role' => $role, 'title' => 'Редактирование', 'permissions' => $permissions]);
+        $permissions = Permission::all();
+        return view('adminpanel/roles/edit',
+            ['role' => $role, 'title' => 'Редактирование', 'permissions' => $permissions]);
     }
 
     /**
      * Обновить роль
      *
-     * @param  \Illuminate\Http\Request  $req
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $req
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $req) {
+    public function update(Request $req)
+    {
         $role = Role::findOrNew($req->get('id'));
         $old_model = $role->toArray();
         $role->fill($req->input());
@@ -65,7 +74,7 @@ class RolesController extends BasicController {
         } else {
             Spylog::logModelAction(Spylog::ACTION_CREATE, Spylog::TABLE_ROLES, $role);
         }
-        $role->permissions()->sync($req->get('permission',[]));
+        $role->permissions()->sync($req->get('permission', []));
         if ($role->save()) {
             return redirect('/adminpanel/roles/index')->with('msg_suc', StrLib::SUC);
         } else {
@@ -73,7 +82,8 @@ class RolesController extends BasicController {
         }
     }
 
-    public function grant(Request $req) {
+    public function grant(Request $req)
+    {
         if (!$req->has('user_id')) {
             return 0;
         }
@@ -83,5 +93,15 @@ class RolesController extends BasicController {
         }
         $user->roles()->sync($req->get('role', []));
         return 1;
+    }
+
+    public function getUsersByRoles(int $roleId)
+    {
+        $role = Role::find($roleId);
+        if (!$role) {
+            return response('', 404);
+        }
+        $idsUsers = $role->users->pluck('id')->toArray();
+        return User::whereIn('id', $idsUsers)->where('banned', 0)->whereNotNull('user_group_id')->get();
     }
 }
