@@ -753,7 +753,8 @@ class DebtorsNoticesController extends Controller {
         ]);
     }
 
-    public function startCourtTask(Request $request) {
+    public function startCourtTask(Request $request)
+    {
         $input = $request->input();
 
         $user = auth()->user();
@@ -773,8 +774,12 @@ class DebtorsNoticesController extends Controller {
         $courtTask->completed = 0;
         $courtTask->save();
 
-        $fixation_date_from = date('Y-m-d 00:00:00', strtotime($input['fixation_date_from']));
-        $fixation_date_to = date('Y-m-d 23:59:59', strtotime($input['fixation_date_to']));
+        $fixationDateFrom = date('Y-m-d 00:00:00', strtotime($input['fixation_date_from']));
+        $fixationDateTo = date('Y-m-d 23:59:59', strtotime($input['fixation_date_to']));
+        $qtyDelaysFrom = !empty($input['qty_delays_from']) ? $input['qty_delays_from'] : 95;
+        $qtyDelaysTo = !empty($input['qty_delays_to']) ?
+            $input['qty_delays_to'] : Debtor::where('is_debtor', 1)->max('qty_delays');
+
 
         $respUsers = [];
         foreach ($input['responsible_users_ids'] as $uid) {
@@ -783,11 +788,11 @@ class DebtorsNoticesController extends Controller {
         }
 
         $debtors = Debtor::where('is_debtor', 1)
-                ->whereBetween('fixation_date', [$fixation_date_from, $fixation_date_to])
-                ->whereIn('responsible_user_id_1c', $respUsers)
-                ->whereIn('debt_group_id', $input['debt_group_ids'])
-                ->where('qty_delays', '>=', 95)
-                ->get();
+            ->whereBetween('fixation_date', [$fixationDateFrom, $fixationDateTo])
+            ->whereBetween('qty_delays', [$qtyDelaysFrom, $qtyDelaysTo])
+            ->whereIn('responsible_user_id_1c', $respUsers)
+            ->whereIn('debt_group_id', $input['debt_group_ids'])
+            ->get();
 
         $massDir = storage_path() . '/app/public/courtPdfTasks/' . $courtTask->id . '/';
 
