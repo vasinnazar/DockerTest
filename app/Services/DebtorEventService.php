@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Debtor;
 use App\DebtorEvent;
+use App\DebtorEventPromisePay;
 use App\DebtorUsersRef;
 use App\Exceptions\DebtorException;
 use App\User;
@@ -131,12 +132,12 @@ class DebtorEventService
                     $totalDays[$intk] = 0;
                 }
             }
-            $amountOfAgreement = DebtorEvent::select(DB::raw('ifnull(sum(amount),0) as amount'))
-                ->whereIn('user_id', $usersId)
-                ->whereBetween('date', $intv)
-                ->where('completed', 0)
-                ->first();
-            $amount[$intk] = $amountOfAgreement->amount;
+            
+            $amountOfAgreement = DebtorEventPromisePay::whereIn('user_id', $usersId)
+                ->whereBetween('promise_date', $intv)
+                ->sum('amount');
+            
+            $amount[$intk] = (is_null($amountOfAgreement)) ? 0 : $amountOfAgreement;
 
         }
         foreach ($tableData as $tdk => $tdv) {
