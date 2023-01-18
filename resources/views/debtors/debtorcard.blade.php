@@ -541,6 +541,7 @@
                             <th>Дата план</th>
                             <th>Дата факт</th>
                             <th>Тип мероприятия</th>
+                            <th>Сумма договоренности</th>
                             <th>Результат</th>
                             <th style="width: 350px;">Отчет</th>
                             <th>Ответственный</th>
@@ -581,18 +582,21 @@
                                 @endif
                             </td>
                             <td>
+                                @if ($event['event_type_id'] == 26)
+                                @if (!is_null($event['promise_amount']) && !is_null($event['promise_date']))
+                                <b>{{ $event['promise_amount'] }} руб.</b>
+                                <br>
+                                <span style="font-size: 80%; font-style: italic;">до {{ date('d.m.Y', strtotime($event['promise_date'])) }}</span>
+                                @endif
+                                @endif
+                            </td>
+                            <td>
                                 @if(array_key_exists($event['event_result_id'],$debtdata['event_results']))
                                 {{$debtdata['event_results'][$event['event_result_id']]}}
                                 @endif
                             </td>
                             <td>
                                 {{$event['report']}}
-                                @if ($event['event_type_id'] == 26)
-                                @if (!is_null($event['promise_amount']) && !is_null($event['promise_date']))
-                                <br>
-                                <b>Договоренность: {{ $event['promise_amount'] }} руб. до {{ date('d.m.Y', strtotime($event['promise_date'])) }}</b>
-                                @endif
-                                @endif
                             </td>
                             <td>{{$event['login']}}</td>
                             <td>
@@ -1107,7 +1111,7 @@
 @endif
 @stop
 @section('scripts')
-<script src="{{asset('js/debtors/debtorsController.js?6')}}"></script>
+<script src="{{asset('js/debtors/debtorsController.js?7')}}"></script>
 <script src="{{asset('js/libs/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js')}}"></script>
 <script src="{{asset('js/libs/clipboard/clipboard.min.js')}}"></script>
 <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>
