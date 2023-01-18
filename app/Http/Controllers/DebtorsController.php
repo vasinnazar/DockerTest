@@ -991,6 +991,9 @@ class DebtorsController extends BasicController
                 $promisePay->amount = $data['promise_pay_amount'] * 100;
                 $promisePay->promise_date = $datePlanned;
                 $promisePay->save();
+                
+                $debtorEvent->completed = 0;
+                $debtorEvent->save();
             }
 
             if ($req->hasFile('messenger_photo')) {
@@ -1523,6 +1526,7 @@ class DebtorsController extends BasicController
             'debtor_events.id' => 'de_id',
             'debtor_events.date' => 'de_date',
             'debtor_events.event_type_id' => 'de_type_id',
+            'debtors_events_promise_pays.amount' => 'de_amount',
             'debtors.passports.fio' => 'passports_fio',
             'debtor_events.created_at' => 'de_created_at',
             'users.login' => 'de_username',
@@ -1572,6 +1576,7 @@ class DebtorsController extends BasicController
             ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
             ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
             ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
+            ->leftJoin('debtors_events_promise_pays', 'debtors_events_promise_pays.event_id', '=', 'debtor_events.id')
             ->where('debtor_events.event_type_id', 4)
             ->where('debtor_events.completed', 0)
             ->groupBy('debtor_events.id');
