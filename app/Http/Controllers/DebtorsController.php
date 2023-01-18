@@ -18,6 +18,7 @@ use App\Order;
 use App\Passport;
 use App\Permission;
 use App\PlannedDeparture;
+use App\DebtorEventPromisePay;
 use App\Repayment;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
@@ -283,9 +284,10 @@ class DebtorsController extends BasicController
         }
 
         // получаем данные по мероприятиям на клиента
-        $debtorevents = DebtorEvent::select(DB::raw('*, debtor_events.id as id, debtor_events.created_at as de_created_at'))
+        $debtorevents = DebtorEvent::select(DB::raw('*, debtor_events.id as id, debtor_events.created_at as de_created_at, debtors_events_promise_pays.promise_date as promise_date, debtors_events_promise_pays.amount as promise_amount'))
             ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
             ->leftJoin('customers', 'customers.id_1c', '=', 'debtor_events.customer_id_1c')
+            ->leftJoin('debtors_events_promise_pays', 'debtors_events_promise_pays.event_id', '=', 'debtor_events.id')
             //->where('debtor_id_1c', $debtor->debtor_id_1c)
             ->whereIn('debtor_id_1c', $ar_debtor_ids)
             //->where('customer_id_1c', $debtor->customer_id_1c)
@@ -980,6 +982,16 @@ class DebtorsController extends BasicController
             }
 
             $debtorEvent->save();
+            
+            if ($savePlanned && $data['event_type_id_plan'] == 26) {
+                $promisePay = new DebtorEventPromisePay();
+                $promisePay->debtor_id = $debtor->id;
+                $promisePay->event_id = $debtorEvent->id;
+                $promisePay->user_id = $debtorEvent->user_id;
+                $promisePay->amount = $data['promise_pay_amount'] * 100;
+                $promisePay->promise_date = $datePlanned;
+                $promisePay->save();
+            }
 
             if ($req->hasFile('messenger_photo')) {
                 $passport = Passport::where('series', $debtor->passport_series)
@@ -1045,8 +1057,8 @@ class DebtorsController extends BasicController
                 }
             }
         }
-
-        if ($savePlanned) {
+        
+        if ($savePlanned && $data['event_type_id_plan'] != 26) {
             $planEvent = new DebtorEvent();
             $planEvent->date = $datePlanned;
             $planEvent->event_type_id = $data['event_type_id_plan'];
@@ -1069,6 +1081,8 @@ class DebtorsController extends BasicController
 
             //$planEvent->id_1c = 'М' . StrUtils::addChars(strval($planEvent->id), 9, '0', false);
             //$planEvent->save();
+        } else {
+            
         }
 
         if ($saveProlongationBlock) {
@@ -1654,7 +1668,7 @@ class DebtorsController extends BasicController
             'debtor_events.id' => 'de_id',
             'debtor_events.date' => 'de_date',
             'debtor_events.event_type_id' => 'de_type_id',
-            'debtor_events.amount' => 'de_amount',
+            'debtors_events_promise_pays.amount' => 'de_amount',
             'debtors.passports.fio' => 'passports_fio',
             'debtor_events.created_at' => 'de_created_at',
             'users.login' => 'de_username',
@@ -1702,6 +1716,7 @@ class DebtorsController extends BasicController
             ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
             ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
             ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
+            ->leftJoin('debtors_events_promise_pays', 'debtors_events_promise_pays.event_id', '=', 'debtor_events.id')
             ->where('debtor_events.completed', 0)
             ->groupBy('debtor_events.id');
 
