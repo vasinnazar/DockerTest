@@ -80,9 +80,9 @@
         $.debtorsCtrl.eventsTableCtrl = new TableController('debtorevents', [
             {data: '0', name: 'de_date'},
             {data: '1', name: 'de_type_id'},
-            {data: '2', name: 'de_amount'},
-            {data: '3', name: 'passports_fio'},
-            {data: '4', name: 'de_created_at'},
+            {data: '2', name: 'passports_fio'},
+            {data: '3', name: 'de_created_at'},
+            {data: '4', name: 'de_amount'},
             {data: '5', name: 'de_username'},
             {data: '6', name: 'actions', searchable: false, orderable: false},
         ], {
