@@ -175,6 +175,8 @@ class Kernel extends ConsoleKernel {
                         'od_after_closing' => 0
                     ]);
         })->dailyAt('07:00');
+
+        $schedule->command('settlement agreements')->dailyAt('7:40');
     }
 
 }

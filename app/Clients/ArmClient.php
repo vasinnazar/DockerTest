@@ -3,6 +3,7 @@
 namespace App\Clients;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 
 class ArmClient
 {
@@ -39,5 +40,39 @@ class ArmClient
             $this->url . '/api/v1/users?id_1c=' . $userId1C
         );
         return json_decode($response->getBody()->getContents(), true);
+    }
+
+    /**
+     * @param string $loanId1c
+     * @return \Illuminate\Support\Collection
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function getOrdersByLoanId1c(string $loanId1c)
+    {
+        $response = $this->client->request(
+            'GET',
+            $this->url . '/api/v1/loans?loan_id_1c=' . $loanId1c
+        );
+
+        $loanArm = collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
+        if (!empty($loanArm->first())) {
+            $responseOrders = $this->client->request(
+                'GET',
+                $this->url . '/api/v1/loans/' . $loanArm->first()->id . '/orders'
+            );
+            return collect(\GuzzleHttp\json_decode($responseOrders->getBody()->getContents()));
+        }
+
+        return collect();
+    }
+
+
+    public function sendSettlementAgreements($options)
+    {
+        $response = $this->client->post(
+            $this->url . '/api/repayments/offers',
+            [RequestOptions::JSON => $options]
+        );
+        return json_decode($response->getBody()->getContents());
     }
 }
