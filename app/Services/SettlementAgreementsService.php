@@ -20,7 +20,7 @@ class SettlementAgreementsService
      * Автоматическое мировое соглашение для должников стадии УПР
      * @return void
      */
-    public function autoSettlementAgreements()
+    public function autoSettlementAgreementsForUPR()
     {
         $debtors = Debtor::where('is_debtor', 1)
             ->where('str_podr', '000000000006')
@@ -43,7 +43,7 @@ class SettlementAgreementsService
                 $amount = ($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3;
 
                 if (empty($filteredOrders)) {
-                    $this->armClient->sendSettlementAgreements([
+                    $this->armClient->sendOffer([
                         'repayment_type_id' => 14,
                         'times' => 60,
                         'amount' => (int)$amount,
@@ -58,7 +58,7 @@ class SettlementAgreementsService
         }
     }
 
-    public function sendPeaceClaims(Debtor $debtor)
+    public function sendSettlementAgreementsForUDR(Debtor $debtor)
     {
         if ($debtor->sum_indebt >= 500000 && $debtor->sum_indebt <= 1000000) {
             $options[] = [
@@ -151,7 +151,7 @@ class SettlementAgreementsService
 
         if (isset($options)) {
             foreach ($options as $option) {
-                $this->armClient->sendSettlementAgreements($option);
+                $this->armClient->sendOffer($option);
             }
         }
     }

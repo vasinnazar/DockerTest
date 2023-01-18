@@ -67,7 +67,7 @@ class ArmClient
     }
 
 
-    public function sendSettlementAgreements($options)
+    public function sendOffer($options)
     {
         $response = $this->client->post(
             $this->url . '/api/repayments/offers',

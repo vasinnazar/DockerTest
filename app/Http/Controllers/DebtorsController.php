@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Clients\ArmClient;
 use App\DebtGroup;
 use App\Debtor;
 use App\DebtorEvent;
@@ -4243,62 +4244,50 @@ class DebtorsController extends BasicController
             ->header("Content-Disposition", "attachment; filename=$file");
     }
 
-    public function addNewPeaceClaim(Request $req)
+    public function addNewRepaymentOfferSettlementAgreement(Request $req, ArmClient $armClient)
     {
         $user = auth()->user();
 
-        $repayment_type_id = $req->get('repayment_type_id', false);
-        $debtor_id = $req->get('debtor_id', false);
+        $repaymentTypeId = $req->get('repayment_type_id', false);
+        $debtorId = $req->get('debtor_id', false);
+        $debtor = Debtor::find($debtorId);
 
-        if (!$debtor_id) {
-            return redirect()->back();
-        }
+        if ($debtor && $repaymentTypeId) {
 
-        $debtor = Debtor::find($debtor_id);
-        if (!$debtor) {
-            return redirect()->back();
-        }
-
-        if ($repayment_type_id) {
             $input = $req->input();
 
-            $input['start_at'] = date('Y-m-d', time());
-            if ($repayment_type_id == 14) {
+            $input['start_at'] = Carbon::now()->format('Y-m-d');
+            if ($repaymentTypeId == 14) {
                 $input['times'] = $input['times'] * 30;
             }
 
             $input['amount'] = $input['amount'] * 100;
 
-            if (isset($input['prepaid']) && $input['prepaid'] == 1) {
-
-            } else {
+            if (!isset($input['prepaid']) && !$input['prepaid'] == 1) {
                 $input['prepaid'] = 0;
             }
 
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, config('admin.sales_arm_url') . '/api/repayments/offers');
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $input);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $result = curl_exec($ch);
-            curl_close($ch);
+            $result = $armClient->sendOffer($input);
 
-            $arJson = json_decode($result, true);
-
-            if ($arJson) {
-                if ($repayment_type_id == 14) {
-                    $report = 'Предварительное согласие по договору ' . $debtor->loan_id_1c . ' на мировое соглашение сроком на ' . $input['times'] . ' дней, сумма: ' . $input['amount'] / 100 . ' руб. Действует до ' . date('d.m.Y',
-                            strtotime($input['end_at']));
+            if ($result) {
+                if ($repaymentTypeId == 14) {
+                    $report = 'Предварительное согласие по договору ' .
+                        $debtor->loan_id_1c . ' на мировое соглашение сроком на ' .
+                        $input['times'] . ' дней, сумма: ' .
+                        $input['amount'] / 100 . ' руб. Действует до ' .
+                        Carbon::parse($input['end_at'])->format('d.m.Y');
                 } else {
-                    $report = 'Предварительное согласие по договору ' . $debtor->loan_id_1c . ' на приостановку процентов сроком на ' . $input['times'] . ' дней, сумма: ' . $input['amount'] / 100 . ' руб. Действует до ' . date('d.m.Y',
-                            strtotime($input['end_at']));
+                    $report = 'Предварительное согласие по договору ' .
+                        $debtor->loan_id_1c . ' на приостановку процентов сроком на ' .
+                        $input['times'] . ' дней, сумма: ' .
+                        $input['amount'] / 100 . ' руб. Действует до ' .
+                        Carbon::parse($input['end_at'])->format('d.m.Y');
                 }
 
                 $event = new DebtorEvent();
-
                 $event->event_type_id = 9;
                 $event->debt_group_id = $debtor->debt_group_id;
-                $event->event_result_id = ($repayment_type_id == 14) ? 19 : 18;
+                $event->event_result_id = ($repaymentTypeId == 14) ? 19 : 18;
                 $event->report = $report;
                 $event->debtor_id = $debtor->id;
                 $event->user_id = $user->id;
@@ -4306,7 +4295,7 @@ class DebtorsController extends BasicController
                 $event->last_user_id = $user->id;
                 $event->debtor_id_1c = $debtor->debtor_id_1c;
                 $event->user_id_1c = $user->id_1c;
-                $event->refresh_date = date('Y-m-d H:i:s', time());
+                $event->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
                 $event->save();
             }
         }

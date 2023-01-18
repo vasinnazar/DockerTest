@@ -20,7 +20,7 @@ class SettlementAgreements extends Command
      *
      * @var string
      */
-    protected $description = 'автоматические мировые соглашения';
+    protected $description = 'автоматические мировые соглашения для УПР';
 
     private $agreementsService;
 
@@ -42,7 +42,7 @@ class SettlementAgreements extends Command
      */
     public function handle(): int
     {
-        $this->agreementsService->autoSettlementAgreements();
+        $this->agreementsService->autoSettlementAgreementsForUPR();
         return 0;
     }
 

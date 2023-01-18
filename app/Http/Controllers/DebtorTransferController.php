@@ -376,7 +376,7 @@ class DebtorTransferController extends BasicController {
                     $armf_orders_sum = $armf_orders / 100;
 
                     if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
-                        $agreementsService->sendPeaceClaims($debtor);
+                        $agreementsService->sendSettlementAgreementsForUDR($debtor);
                     }
                 }
             }
@@ -389,21 +389,6 @@ class DebtorTransferController extends BasicController {
                 $arStopBase = [];
                 if ($unclosed->base == 'Архив ЗД' || $unclosed->base == 'З-ДС') {
                     continue;
-                }
-                /* if ($base == 'З-ДС' || $base == 'Б-КДС') {
-                  continue;
-                  } */
-
-                /* if (($unclosed->base == 'Б-График' || $unclosed->base == 'З-График') && $unclosed->qty_delays <= 90) {
-                  continue;
-                  }
-
-                  if (($unclosed->base == 'КБ-График' || $unclosed->base == 'КЗ-График') && $unclosed->qty_delays <= 90) {
-                  continue;
-                  } */
-
-                if ($base == 'КБ-График' && ($unclosed->base == 'Б-0' || $unclosed->base == 'Б-1')) {
-                    //$unclosed->base = 'Б-1';
                 }
 
                 $i++;
@@ -470,7 +455,7 @@ class DebtorTransferController extends BasicController {
                         $armf_orders_sum = $armf_orders / 100;
 
                         if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
-                            $agreementsService->sendPeaceClaims($debtor);
+                            $agreementsService->sendSettlementAgreementsForUDR($debtor);
                         }
                     }
                 }
