@@ -992,6 +992,7 @@ class DebtorsController extends BasicController
                 $promisePay->promise_date = $datePlanned;
                 $promisePay->save();
                 
+                $debtorEvent->date = $datePlanned;
                 $debtorEvent->completed = 0;
                 $debtorEvent->save();
             }

@@ -1445,11 +1445,11 @@ $(document).on('click', '.recommend-ctrl', function() {
         });
     }
 });
-$(document).on('change', 'input[name="event_type_id_plan"]', function() {
+$(document).on('change', 'select[name="event_type_id_plan"]', function() {
     if ($(this).val() == 26) {
-        $('input[name="promise_pay_amount"]').prop('disabled', false);
+        $('input[name="promise_pay_amount"]').attr('disabled', false);
     } else {
-        $('input[name="promise_pay_amount"]').prop('disabled', true);
+        $('input[name="promise_pay_amount"]').attr('disabled', true);
     }
     
 });
