@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Clients\ArmClient;
 use App\Debtor;
+use App\DebtorBlockProlongation;
 use Carbon\Carbon;
 
 class SettlementAgreementsService
@@ -31,24 +32,28 @@ class SettlementAgreementsService
 
         foreach ($debtors as $debtor) {
 
-            $ordersDebtor = $this->armClient->getOrdersByLoanId1c($debtor->loan_id_1c);
-            $filteredOrders = $ordersDebtor->filter(function ($item) {
-                return $item->type->plus === 1 && $item->money > 50000;
-            });
+            $debtorProlangation = DebtorBlockProlongation::where('loan_id_1c', $debtor->loan_id_1c)->first();
+            if (is_null($debtorProlangation)) {
 
-            $amount = ($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3;
+                $ordersDebtor = $this->armClient->getOrdersByLoanId1c($debtor->loan_id_1c);
+                $filteredOrders = $ordersDebtor->filter(function ($item) {
+                    return $item->type->plus === 1 && $item->money > 50000;
+                });
 
-            if (empty($filteredOrders)) {
-                $this->armClient->sendSettlementAgreements([
-                    'repayment_type_id' => 14,
-                    'times' => 60,
-                    'amount' => (int)$amount,
-                    'start_at' => Carbon::now()->format('Y-m-d'),
-                    'end_at' => Carbon::now()->addDay(14)->format('Y-m-d'),
-                    'loan_id_1c' => $debtor->loan_id_1c,
-                    'prepaid' => 0,
-                    'multiple' => 1
-                ]);
+                $amount = ($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3;
+
+                if (empty($filteredOrders)) {
+                    $this->armClient->sendSettlementAgreements([
+                        'repayment_type_id' => 14,
+                        'times' => 60,
+                        'amount' => (int)$amount,
+                        'start_at' => Carbon::now()->format('Y-m-d'),
+                        'end_at' => Carbon::now()->addDay(14)->format('Y-m-d'),
+                        'loan_id_1c' => $debtor->loan_id_1c,
+                        'prepaid' => 0,
+                        'multiple' => 1
+                    ]);
+                }
             }
         }
     }
