@@ -584,7 +584,7 @@
                             <td>
                                 @if ($event['event_type_id'] == 26)
                                 @if (!is_null($event['promise_amount']) && !is_null($event['promise_date']))
-                                <b>{{ $event['promise_amount'] }} руб.</b>
+                                <b>{{ number_format($event['promise_amount'] / 100, 2, '.', '') }} руб.</b>
                                 <br>
                                 <span style="font-size: 80%; font-style: italic;">до {{ date('d.m.Y', strtotime($event['promise_date'])) }}</span>
                                 @endif
