@@ -7,9 +7,11 @@ use App\Debtor;
 use App\DebtorBlockProlongation;
 use Carbon\Carbon;
 
-class SettlementAgreementsService
+class RepaymentOfferService
 {
+
     private $armClient;
+    const CLOSE_OFFER = 4;
 
     public function __construct(ArmClient $client)
     {
@@ -152,6 +154,24 @@ class SettlementAgreementsService
         if (isset($options)) {
             foreach ($options as $option) {
                 $this->armClient->sendOffer($option);
+            }
+        }
+    }
+
+    public function createRepaymentOffer($options)
+    {
+        return $this->armClient->sendOffer($options);
+    }
+
+    public function closeOfferIfExist(Debtor $debtor)
+    {
+        $offers = $this->armClient->getOffers($debtor->loan_id_1c);
+
+        if($offers->count()) {
+            foreach ($offers as $offer) {
+                $this->armClient->updateOffer($offer->id, [
+                    'status' => RepaymentOfferService::CLOSE_OFFER,
+                ]);
             }
         }
     }

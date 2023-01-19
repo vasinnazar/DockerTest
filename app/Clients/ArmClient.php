@@ -66,7 +66,14 @@ class ArmClient
         return collect();
     }
 
-
+    public function getOffers(string $loanId1c)
+    {
+        $response = $this->client->request(
+            'GET',
+            $this->url . '/api/repayments/offers?loan_id_1c=' . $loanId1c
+            );
+        return collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
+    }
     public function sendOffer($options)
     {
         $response = $this->client->post(
@@ -75,4 +82,16 @@ class ArmClient
         );
         return json_decode($response->getBody()->getContents());
     }
+    public function updateOffer(int $id, $options)
+    {
+        $response = $this->client->post(
+            $this->url . '/api/repayments/offers/' . $id,
+            [RequestOptions::JSON => $options]
+        );
+        return json_decode($response->getBody()->getContents());
+    }
+
+
+
+
 }

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\SettlementAgreementsService;
+use App\Services\RepaymentOfferService;
 use Illuminate\Console\Command;
 
 class SettlementAgreements extends Command
@@ -22,17 +22,17 @@ class SettlementAgreements extends Command
      */
     protected $description = 'автоматические мировые соглашения для УПР';
 
-    private $agreementsService;
+    private $repaymentOfferService;
 
     /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct(SettlementAgreementsService $agreementsService)
+    public function __construct(RepaymentOfferService $repaymentOfferService)
     {
         parent::__construct();
-        $this->agreementsService = $agreementsService;
+        $this->repaymentOfferService = $repaymentOfferService;
     }
 
     /**
@@ -42,7 +42,7 @@ class SettlementAgreements extends Command
      */
     public function handle(): int
     {
-        $this->agreementsService->autoSettlementAgreementsForUPR();
+        $this->repaymentOfferService->autoSettlementAgreementsForUPR();
         return 0;
     }
 

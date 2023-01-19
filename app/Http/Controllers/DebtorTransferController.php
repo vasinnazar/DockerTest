@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\SettlementAgreementsService;
+use App\Services\RepaymentOfferService;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -281,7 +281,7 @@ class DebtorTransferController extends BasicController {
      * @param Request $req
      * @return int
      */
-    public function changeResponsibleUser(SettlementAgreementsService $agreementsService , Request $req) {
+    public function changeResponsibleUser(RepaymentOfferService $repaymentOfferService , Request $req) {
         $input = $req->input();
 
         $user = User::find($input['new_user_id']);
@@ -327,6 +327,10 @@ class DebtorTransferController extends BasicController {
             $arr_history[$i]['debtor_id_1c'] = $debtor->debtor_id_1c;
             $arr_history[$i]['auto_transfer'] = 0;
 
+            if($debtor->str_podr == '000000000007' && $str_podr == '000000000006')
+            {
+                $repaymentOfferService->closeOfferIfExist($debtor);
+            }
 
             $debtor_ids[] = $debtor->id_1c;
 
@@ -376,7 +380,7 @@ class DebtorTransferController extends BasicController {
                     $armf_orders_sum = $armf_orders / 100;
 
                     if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
-                        $agreementsService->sendSettlementAgreementsForUDR($debtor);
+                        $repaymentOfferService->sendSettlementAgreementsForUDR($debtor);
                     }
                 }
             }
@@ -455,7 +459,7 @@ class DebtorTransferController extends BasicController {
                         $armf_orders_sum = $armf_orders / 100;
 
                         if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
-                            $agreementsService->sendSettlementAgreementsForUDR($debtor);
+                            $repaymentOfferService->sendSettlementAgreementsForUDR($debtor);
                         }
                     }
                 }

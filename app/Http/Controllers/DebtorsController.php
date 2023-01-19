@@ -22,6 +22,7 @@ use App\PlannedDeparture;
 use App\Repayment;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
+use App\Services\RepaymentOfferService;
 use App\Services\TimezoneService;
 use App\StrUtils;
 use App\User;
@@ -31,6 +32,7 @@ use App\Utils\PermLib;
 use App\Utils\StrLib;
 use Carbon\Carbon;
 use http\Env\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -907,7 +909,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return type
      */
-    public function addevent(Request $req)
+    public function addevent(Request $req, ArmClient $armClient)
     {
         $savePlanned = false;
         $saveProlongationBlock = false;
@@ -1105,8 +1107,7 @@ class DebtorsController extends BasicController
 
             $dbp->save();
 
-            $jsonPeaceClaims = file_get_contents('http://192.168.35.89/api/repayments/offers?loan_id_1c=' . $debtor->loan_id_1c);
-            $arPeaceClaims = json_decode($jsonPeaceClaims, true);
+            $arPeaceClaims = $armClient->getOffers($debtor->loan_id_1c);
 
             $nowTime = time();
 
@@ -1116,16 +1117,7 @@ class DebtorsController extends BasicController
                         'freeze_start_at' => date('Y-m-d', time()),
                         'freeze_end_at' => date('Y-m-d', strtotime('+1 day', strtotime($data['dateProlongationBlock'])))
                     ];
-
-                    $ch = curl_init('http://192.168.35.89/api/repayments/offers/' . $peaceClaim['id']);
-
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_POST, 1);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-
-                    $offer = curl_exec($ch);
-
-                    curl_close($ch);
+                    $armClient->updateOffer($peaceClaim->id,$postData);
                 }
             }
         }
@@ -4244,7 +4236,12 @@ class DebtorsController extends BasicController
             ->header("Content-Disposition", "attachment; filename=$file");
     }
 
-    public function addNewRepaymentOfferSettlementAgreement(Request $req, ArmClient $armClient)
+    /**
+     * @param Request $req
+     * @param RepaymentOfferService $service
+     * @return RedirectResponse
+     */
+    public function addNewRepaymentOffer(Request $req, RepaymentOfferService $service)
     {
         $user = auth()->user();
 
@@ -4267,7 +4264,9 @@ class DebtorsController extends BasicController
                 $input['prepaid'] = 0;
             }
 
-            $result = $armClient->sendOffer($input);
+            $service->closeOfferIfExist($debtor);
+
+            $result = $service->createRepaymentOffer($input);
 
             if ($result) {
                 if ($repaymentTypeId == 14) {
