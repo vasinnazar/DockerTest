@@ -982,20 +982,6 @@ class DebtorsController extends BasicController
             }
 
             $debtorEvent->save();
-            
-            if ($savePlanned && $data['event_type_id_plan'] == 26) {
-                $promisePay = new DebtorEventPromisePay();
-                $promisePay->debtor_id = $debtor->id;
-                $promisePay->event_id = $debtorEvent->id;
-                $promisePay->user_id = $debtorEvent->user_id;
-                $promisePay->amount = $data['promise_pay_amount'] * 100;
-                $promisePay->promise_date = $datePlanned;
-                $promisePay->save();
-                
-                $debtorEvent->date = $datePlanned;
-                $debtorEvent->completed = 0;
-                $debtorEvent->save();
-            }
 
             if ($req->hasFile('messenger_photo')) {
                 $passport = Passport::where('series', $debtor->passport_series)
@@ -1062,7 +1048,7 @@ class DebtorsController extends BasicController
             }
         }
         
-        if ($savePlanned && $data['event_type_id_plan'] != 26) {
+        if ($savePlanned && $data['event_type_id_plan']) {
             $planEvent = new DebtorEvent();
             $planEvent->date = $datePlanned;
             $planEvent->event_type_id = $data['event_type_id_plan'];
@@ -1082,6 +1068,16 @@ class DebtorsController extends BasicController
 //            $planEvent->id_1c = DebtorEvent::getNextNumber();
             $planEvent->completed = 0;
             $planEvent->save();
+            
+            if ($data['event_type_id_plan'] == 26) {
+                $promisePay = new DebtorEventPromisePay();
+                $promisePay->debtor_id = $debtor->id;
+                $promisePay->event_id = $planEvent->id;
+                $promisePay->user_id = $planEvent->user_id;
+                $promisePay->amount = $data['promise_pay_amount'] * 100;
+                $promisePay->promise_date = $datePlanned;
+                $promisePay->save();
+            }
 
             //$planEvent->id_1c = 'М' . StrUtils::addChars(strval($planEvent->id), 9, '0', false);
             //$planEvent->save();
