@@ -22,7 +22,7 @@ class RepaymentOfferService
      * Автоматическое мировое соглашение для должников стадии УПР
      * @return void
      */
-    public function autoSettlementAgreementsForUPR()
+    public function autoPeaceForUPR()
     {
         $debtors = Debtor::where('is_debtor', 1)
             ->where('str_podr', '000000000006')
@@ -37,130 +37,43 @@ class RepaymentOfferService
             $debtorProlangation = DebtorBlockProlongation::where('loan_id_1c', $debtor->loan_id_1c)->first();
             if (is_null($debtorProlangation)) {
 
-                $ordersDebtor = $this->armClient->getOrdersByLoanId1c($debtor->loan_id_1c);
-                $filteredOrders = $ordersDebtor->filter(function ($item) {
-                    return $item->type->plus === 1 && $item->money > 50000;
-                });
+                $loansDebtor = $this->armClient->getLoanById1c($debtor->loan_id_1c);
+                if (!empty($loansDebtor->first())) {
 
-                $amount = ($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3;
+                    $ordersDebtor = $this->armClient->getOrdersById($loansDebtor->first()->id);
+                    $filteredOrders = $ordersDebtor->filter(function ($item) {
+                        return $item->type->plus === 1 && $item->money > 50000;
+                    });
 
-                if (empty($filteredOrders)) {
-                    $this->armClient->sendOffer([
-                        'repayment_type_id' => 14,
-                        'times' => 60,
-                        'amount' => (int)$amount,
-                        'start_at' => Carbon::now()->format('Y-m-d'),
-                        'end_at' => Carbon::now()->addDay(14)->format('Y-m-d'),
-                        'loan_id_1c' => $debtor->loan_id_1c,
-                        'prepaid' => 0,
-                        'multiple' => 1
-                    ]);
+                    $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
+
+                    if (empty($filteredOrders)) {
+                        $this->armClient->sendRepaymentOffer(14, 60, $amount, $debtor->loan_id_1c,
+                            Carbon::now()->addDay(14));
+                    }
                 }
             }
         }
     }
 
-    public function sendSettlementAgreementsForUDR(Debtor $debtor)
+    public function sendPeaceForUDR(Debtor $debtor)
     {
         if ($debtor->sum_indebt >= 500000 && $debtor->sum_indebt <= 1000000) {
-            $options[] = [
-                'repayment_type_id' => 14,
-                'times' => 90,
-                'amount' => 200000,
-                'start_at' => Carbon::now()->format('Y-m-d'),
-                'end_at' => Carbon::now()->addDay(60)->format('Y-m-d'),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-            $options[] = [
-                'repayment_type_id' => 14,
-                'times' => 60,
-                'amount' => 300000,
-                'start_at' => Carbon::now()->format('Y-m-d'),
-                'end_at' => Carbon::now()->addDay(60)->format('Y-m-d'),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
+            $this->armClient->sendRepaymentOffer(14, 90, 200000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(14, 60, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
         }
 
         if ($debtor->sum_indebt >= 1000100 && $debtor->sum_indebt <= 2000000) {
-            $options[] = [
-                'repayment_type_id' => 14,
-                'times' => 150,
-                'amount' => 200000,
-                'start_at' => Carbon::now()->format('Y-m-d'),
-                'end_at' => Carbon::now()->addDay(60)->format('Y-m-d'),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-            $options[] = [
-                'repayment_type_id' => 14,
-                'times' => 150,
-                'amount' => 300000,
-                'start_at' => Carbon::now()->format('Y-m-d'),
-                'end_at' => Carbon::now()->addDay(60)->format('Y-m-d'),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-            $options[] = [
-                'repayment_type_id' => 14,
-                'times' => 90,
-                'amount' => 500000,
-                'start_at' => Carbon::now()->format('Y-m-d'),
-                'end_at' => Carbon::now()->addDay(60)->format('Y-m-d'),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
+            $this->armClient->sendRepaymentOffer(14, 150, 200000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(14, 150, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(14, 90, 500000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
         }
 
         if ($debtor->sum_indebt > 2000000) {
-            $options[] = [
-                'repayment_type_id' => 14,
-                'times' => 300,
-                'amount' => 300000,
-                'start_at' => Carbon::now()->format('Y-m-d'),
-                'end_at' => Carbon::now()->addDay(60)->format('Y-m-d'),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-            $options[] = [
-                'repayment_type_id' => 14,
-                'times' => 300,
-                'amount' => 500000,
-                'start_at' => Carbon::now()->format('Y-m-d'),
-                'end_at' => Carbon::now()->addDay(60)->format('Y-m-d'),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-            $options[] = [
-                'repayment_type_id' => 14,
-                'times' => 300,
-                'amount' => 700000,
-                'start_at' => Carbon::now()->format('Y-m-d'),
-                'end_at' => Carbon::now()->addDay(60)->format('Y-m-d'),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
+            $this->armClient->sendRepaymentOffer(14, 300, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(14, 300, 500000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(14, 300, 700000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
         }
-
-        if (isset($options)) {
-            foreach ($options as $option) {
-                $this->armClient->sendOffer($option);
-            }
-        }
-    }
-
-    public function createRepaymentOffer($options)
-    {
-        return $this->armClient->sendOffer($options);
     }
 
     public function closeOfferIfExist(Debtor $debtor)

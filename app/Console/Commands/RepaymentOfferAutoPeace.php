@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Services\RepaymentOfferService;
 use Illuminate\Console\Command;
 
-class SettlementAgreements extends Command
+class RepaymentOfferAutoPeace extends Command
 {
 
     /**
@@ -13,7 +13,7 @@ class SettlementAgreements extends Command
      *
      * @var string
      */
-    protected $signature = 'settlement agreements';
+    protected $signature = 'repayment-offers : auto-peace';
 
     /**
      * The console command description.
@@ -42,7 +42,7 @@ class SettlementAgreements extends Command
      */
     public function handle(): int
     {
-        $this->repaymentOfferService->autoSettlementAgreementsForUPR();
+        $this->repaymentOfferService->autoPeaceForUPR();
         return 0;
     }
 

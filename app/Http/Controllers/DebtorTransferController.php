@@ -380,7 +380,7 @@ class DebtorTransferController extends BasicController {
                     $armf_orders_sum = $armf_orders / 100;
 
                     if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
-                        $repaymentOfferService->sendSettlementAgreementsForUDR($debtor);
+                        $repaymentOfferService->sendPeaceForUDR($debtor);
                     }
                 }
             }
@@ -459,7 +459,7 @@ class DebtorTransferController extends BasicController {
                         $armf_orders_sum = $armf_orders / 100;
 
                         if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
-                            $repaymentOfferService->sendSettlementAgreementsForUDR($debtor);
+                            $repaymentOfferService->sendPeaceForUDR($debtor);
                         }
                     }
                 }

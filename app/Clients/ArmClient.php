@@ -2,6 +2,7 @@
 
 namespace App\Clients;
 
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
 
@@ -42,43 +43,62 @@ class ArmClient
         return json_decode($response->getBody()->getContents(), true);
     }
 
-    /**
-     * @param string $loanId1c
-     * @return \Illuminate\Support\Collection
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    public function getOrdersByLoanId1c(string $loanId1c)
+    public function getLoanById1c(string $loanId1c)
     {
         $response = $this->client->request(
             'GET',
             $this->url . '/api/v1/loans?loan_id_1c=' . $loanId1c
         );
 
-        $loanArm = collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
-        if (!empty($loanArm->first())) {
-            $responseOrders = $this->client->request(
-                'GET',
-                $this->url . '/api/v1/loans/' . $loanArm->first()->id . '/orders'
-            );
-            return collect(\GuzzleHttp\json_decode($responseOrders->getBody()->getContents()));
-        }
+        return collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
+    }
 
-        return collect();
+    /**
+     * @param string $loanId1c
+     * @return \Illuminate\Support\Collection
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function getOrdersById(int $id)
+    {
+        $response = $this->client->request(
+            'GET',
+            $this->url . '/api/v1/loans/' . $id . '/orders'
+        );
+        return collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
     }
 
     public function getOffers(string $loanId1c)
     {
-        $response = $this->client->request(
-            'GET',
+        $response = $this->client->get(
             $this->url . '/api/repayments/offers?loan_id_1c=' . $loanId1c
             );
         return collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
     }
-    public function sendOffer($options)
-    {
+
+    public function sendRepaymentOffer(
+        string $repaymentTypeId,
+        int $times,
+        int $amount,
+        string $loanId1c,
+        Carbon $endAt,
+        Carbon $startAt = null,
+        bool $prepaid = false,
+        bool $multiple = true
+    ) {
         $response = $this->client->post(
             $this->url . '/api/repayments/offers',
-            [RequestOptions::JSON => $options]
+            [
+                RequestOptions::JSON => [
+                    'repayment_type_id' => $repaymentTypeId,
+                    'times' => $times,
+                    'amount' => $amount,
+                    'start_at' => $startAt ? $startAt->format('Y-m-d') : Carbon::now()->format('Y-m-d'),
+                    'end_at' => $endAt->format('Y-m-d'),
+                    'loan_id_1c' => $loanId1c,
+                    'prepaid' => $prepaid,
+                    'multiple' => $multiple
+                ]
+            ]
         );
         return json_decode($response->getBody()->getContents());
     }

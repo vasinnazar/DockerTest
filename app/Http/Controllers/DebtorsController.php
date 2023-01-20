@@ -4238,10 +4238,11 @@ class DebtorsController extends BasicController
 
     /**
      * @param Request $req
+     * @param ArmClient $armClient
      * @param RepaymentOfferService $service
      * @return RedirectResponse
      */
-    public function addNewRepaymentOffer(Request $req, RepaymentOfferService $service)
+    public function addNewRepaymentOffer(Request $req, RepaymentOfferService $service, ArmClient $armClient)
     {
         $user = auth()->user();
 
@@ -4253,7 +4254,6 @@ class DebtorsController extends BasicController
 
             $input = $req->input();
 
-            $input['start_at'] = Carbon::now()->format('Y-m-d');
             if ($repaymentTypeId == 14) {
                 $input['times'] = $input['times'] * 30;
             }
@@ -4266,7 +4266,15 @@ class DebtorsController extends BasicController
 
             $service->closeOfferIfExist($debtor);
 
-            $result = $service->createRepaymentOffer($input);
+            $result = $armClient->sendRepaymentOffer(
+                $repaymentTypeId,
+                $input['times'],
+                $input['amount'],
+                $debtor->loan_id_1c,
+                $input['end_at'],
+                null,
+                $input['prepaid']
+            );
 
             if ($result) {
                 if ($repaymentTypeId == 14) {
