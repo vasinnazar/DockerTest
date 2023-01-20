@@ -33,7 +33,6 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     protected $fillable = [
         'name',
         'login',
-        'verbox_login',
         'password',
         'subdivision_change',
         'subdivision_id',
