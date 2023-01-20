@@ -36,20 +36,13 @@ class ArmClient
      */
     public function getUserById1c(string $userId1C)
     {
-        $response = $this->client->request(
-            'GET',
-            $this->url . '/api/v1/users?id_1c=' . $userId1C
-        );
+        $response = $this->client->get($this->url . '/api/v1/users?id_1c=' . $userId1C);
         return json_decode($response->getBody()->getContents(), true);
     }
 
     public function getLoanById1c(string $loanId1c)
     {
-        $response = $this->client->request(
-            'GET',
-            $this->url . '/api/v1/loans?loan_id_1c=' . $loanId1c
-        );
-
+        $response = $this->client->get($this->url . '/api/v1/loans?loan_id_1c=' . $loanId1c);
         return collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
     }
 
@@ -60,10 +53,7 @@ class ArmClient
      */
     public function getOrdersById(int $id)
     {
-        $response = $this->client->request(
-            'GET',
-            $this->url . '/api/v1/loans/' . $id . '/orders'
-        );
+        $response = $this->client->get($this->url . '/api/v1/loans/' . $id . '/orders');
         return collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
     }
 
@@ -71,7 +61,7 @@ class ArmClient
     {
         $response = $this->client->get(
             $this->url . '/api/repayments/offers?loan_id_1c=' . $loanId1c
-            );
+        );
         return collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
     }
 
@@ -102,6 +92,7 @@ class ArmClient
         );
         return json_decode($response->getBody()->getContents());
     }
+
     public function updateOffer(int $id, $options)
     {
         $response = $this->client->post(
@@ -110,8 +101,6 @@ class ArmClient
         );
         return json_decode($response->getBody()->getContents());
     }
-
-
 
 
 }
