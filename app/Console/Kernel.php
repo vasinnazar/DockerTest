@@ -176,7 +176,7 @@ class Kernel extends ConsoleKernel {
                     ]);
         })->dailyAt('07:00');
 
-        $schedule->command('repayment-offers : auto-peace')->dailyAt('7:40');
+        $schedule->command('repayment-offers:auto-peace')->dailyAt('7:40');
     }
 
 }

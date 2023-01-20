@@ -907,9 +907,10 @@ class DebtorsController extends BasicController
     /**
      * Добавляет мероприятие в БД и возвращает на исходную страницу
      * @param Request $req
+     * @param ArmClient $armClient
      * @return type
      */
-    public function addevent(Request $req, ArmClient $armClient)
+    public function addevent(Request $req, ArmClient $armClient, RepaymentOfferService $service)
     {
         $savePlanned = false;
         $saveProlongationBlock = false;
@@ -1110,7 +1111,10 @@ class DebtorsController extends BasicController
             $arPeaceClaims = $armClient->getOffers($debtor->loan_id_1c);
 
             $nowTime = time();
-
+            if($debtor->debt_group_id == '000000000006')
+            {
+                $service->closeOfferIfExist($debtor);
+            }
             foreach ($arPeaceClaims as $peaceClaim) {
                 if ($nowTime < strtotime($peaceClaim['end_at'])) {
                     $postData = [

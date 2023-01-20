@@ -13,7 +13,7 @@ class RepaymentOfferAutoPeace extends Command
      *
      * @var string
      */
-    protected $signature = 'repayment-offers : auto-peace';
+    protected $signature = 'repayment-offers:auto-peace';
 
     /**
      * The console command description.
