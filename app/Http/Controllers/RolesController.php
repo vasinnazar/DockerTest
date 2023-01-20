@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\RoleUser;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -95,13 +94,4 @@ class RolesController extends BasicController
         return 1;
     }
 
-    public function getUsersByRoles(int $roleId)
-    {
-        $role = Role::find($roleId);
-        if (!$role) {
-            return response('', 404);
-        }
-        $idsUsers = $role->users->pluck('id')->toArray();
-        return User::whereIn('id', $idsUsers)->where('banned', 0)->whereNotNull('user_group_id')->get();
-    }
 }
