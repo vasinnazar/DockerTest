@@ -52,12 +52,6 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="control-label col-sm-2">Verbox логин</label>
-                    <div class="col-sm-10">
-                        {!! Form::text('verbox_login',null,['class'=>'form-control input-sm']) !!}
-                    </div>
-                </div>
-                <div class="form-group">
                     <label class="control-label col-sm-2">Должность</label>
                     <div class="col-sm-10">
                         {!! Form::text('position',null,['class'=>'form-control input-sm']) !!}
