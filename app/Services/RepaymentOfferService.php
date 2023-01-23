@@ -11,7 +11,8 @@ class RepaymentOfferService
 {
 
     private $armClient;
-    const CLOSE_OFFER = 4;
+    const REPAYMENT_TYPE_PEACE = 14;
+    const STATUS_CLOSE_OFFER = 4;
 
     public function __construct(ArmClient $client)
     {
@@ -38,7 +39,7 @@ class RepaymentOfferService
             if (is_null($debtorProlangation)) {
 
                 $loansDebtor = $this->armClient->getLoanById1c($debtor->loan_id_1c);
-                if (!empty($loansDebtor->first())) {
+                if (!$loansDebtor->isEmpty()) {
 
                     $ordersDebtor = $this->armClient->getOrdersById($loansDebtor->first()->id);
                     $filteredOrders = $ordersDebtor->filter(function ($item) {
@@ -47,8 +48,9 @@ class RepaymentOfferService
 
                     $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
 
-                    if (empty($filteredOrders)) {
-                        $this->armClient->sendRepaymentOffer(14, 60, $amount, $debtor->loan_id_1c,
+                    if ($filteredOrders->isEmpty()) {
+                        $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE, 60,
+                            $amount, $debtor->loan_id_1c,
                             Carbon::now()->addDay(14));
                     }
                 }
@@ -59,20 +61,28 @@ class RepaymentOfferService
     public function sendPeaceForUDR(Debtor $debtor)
     {
         if ($debtor->sum_indebt >= 500000 && $debtor->sum_indebt <= 1000000) {
-            $this->armClient->sendRepaymentOffer(14, 90, 200000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
-            $this->armClient->sendRepaymentOffer(14, 60, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
+                90, 200000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
+                60, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
         }
 
         if ($debtor->sum_indebt >= 1000100 && $debtor->sum_indebt <= 2000000) {
-            $this->armClient->sendRepaymentOffer(14, 150, 200000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
-            $this->armClient->sendRepaymentOffer(14, 150, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
-            $this->armClient->sendRepaymentOffer(14, 90, 500000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
+                150, 200000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
+                150, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
+                90, 500000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
         }
 
         if ($debtor->sum_indebt > 2000000) {
-            $this->armClient->sendRepaymentOffer(14, 300, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
-            $this->armClient->sendRepaymentOffer(14, 300, 500000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
-            $this->armClient->sendRepaymentOffer(14, 300, 700000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
+                300, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
+                300, 500000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
+                300, 700000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
         }
     }
 
@@ -80,10 +90,10 @@ class RepaymentOfferService
     {
         $offers = $this->armClient->getOffers($debtor->loan_id_1c);
 
-        if($offers->count()) {
+        if(!$offers->isEmpty()) {
             foreach ($offers as $offer) {
                 $this->armClient->updateOffer($offer->id, [
-                    'status' => RepaymentOfferService::CLOSE_OFFER,
+                    'status' => self::STATUS_CLOSE_OFFER,
                 ]);
             }
         }

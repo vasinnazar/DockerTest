@@ -59,9 +59,7 @@ class ArmClient
 
     public function getOffers(string $loanId1c)
     {
-        $response = $this->client->get(
-            $this->url . '/api/repayments/offers?loan_id_1c=' . $loanId1c
-        );
+        $response = $this->client->get($this->url . '/api/repayments/offers?loan_id_1c=' . $loanId1c);
         return collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
     }
 
