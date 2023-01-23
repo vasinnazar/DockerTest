@@ -36,53 +36,91 @@ class RepaymentOfferService
         foreach ($debtors as $debtor) {
 
             $debtorProlangation = DebtorBlockProlongation::where('loan_id_1c', $debtor->loan_id_1c)->first();
-            if (is_null($debtorProlangation)) {
-
-                $loansDebtor = $this->armClient->getLoanById1c($debtor->loan_id_1c);
-                if (!$loansDebtor->isEmpty()) {
-
-                    $ordersDebtor = $this->armClient->getOrdersById($loansDebtor->first()->id);
-                    $filteredOrders = $ordersDebtor->filter(function ($item) {
-                        return $item->type->plus === 1 && $item->money > 50000;
-                    });
-
-                    $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
-
-                    if ($filteredOrders->isEmpty()) {
-                        $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE, 60,
-                            $amount, $debtor->loan_id_1c,
-                            Carbon::now()->addDay(14));
-                    }
-                }
+            if(!$debtorProlangation) {
+                continue;
             }
+            $loansDebtor = $this->armClient->getLoanById1c($debtor->loan_id_1c);
+            if($loansDebtor->isEmpty()) {
+                continue;
+            }
+            $ordersDebtor = $this->armClient->getOrdersById($loansDebtor->first()->id);
+            $filteredOrders = $ordersDebtor->filter(function ($item) {
+                return $item->type->plus === 1 && $item->money > 50000;
+            });
+            if(!$filteredOrders->isEmpty()) {
+                continue;
+            }
+            $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
+            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE, 60,$amount, $debtor->loan_id_1c,Carbon::now()->addDay(14));
+
         }
     }
 
     public function sendPeaceForUDR(Debtor $debtor)
     {
         if ($debtor->sum_indebt >= 500000 && $debtor->sum_indebt <= 1000000) {
-            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
-                90, 200000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
-            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
-                60, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(
+                self::REPAYMENT_TYPE_PEACE,
+                90,
+                200000,
+                $debtor->loan_id_1c,
+                Carbon::now()->addDay(60)
+            );
+            $this->armClient->sendRepaymentOffer(
+                self::REPAYMENT_TYPE_PEACE,
+                60,
+                300000,
+                $debtor->loan_id_1c,
+                Carbon::now()->addDay(60)
+            );
         }
 
         if ($debtor->sum_indebt >= 1000100 && $debtor->sum_indebt <= 2000000) {
-            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
-                150, 200000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
-            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
-                150, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
-            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
-                90, 500000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(
+                self::REPAYMENT_TYPE_PEACE,
+                150,
+                200000,
+                $debtor->loan_id_1c,
+                Carbon::now()->addDay(60)
+            );
+            $this->armClient->sendRepaymentOffer(
+                self::REPAYMENT_TYPE_PEACE,
+                150,
+                300000,
+                $debtor->loan_id_1c,
+                Carbon::now()->addDay(60)
+            );
+            $this->armClient->sendRepaymentOffer(
+                self::REPAYMENT_TYPE_PEACE,
+                90,
+                500000,
+                $debtor->loan_id_1c,
+                Carbon::now()->addDay(60)
+            );
         }
 
         if ($debtor->sum_indebt > 2000000) {
-            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
-                300, 300000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
-            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
-                300, 500000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
-            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE,
-                300, 700000, $debtor->loan_id_1c, Carbon::now()->addDay(60));
+            $this->armClient->sendRepaymentOffer(
+                self::REPAYMENT_TYPE_PEACE,
+                300,
+                300000,
+                $debtor->loan_id_1c,
+                Carbon::now()->addDay(60)
+            );
+            $this->armClient->sendRepaymentOffer(
+                self::REPAYMENT_TYPE_PEACE,
+                300,
+                500000,
+                $debtor->loan_id_1c,
+                Carbon::now()->addDay(60)
+            );
+            $this->armClient->sendRepaymentOffer(
+                self::REPAYMENT_TYPE_PEACE,
+                300,
+                700000,
+                $debtor->loan_id_1c,
+                Carbon::now()->addDay(60)
+            );
         }
     }
 
