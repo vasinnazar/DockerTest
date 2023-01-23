@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StartCourtTaskRequest;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -753,7 +755,7 @@ class DebtorsNoticesController extends Controller {
         ]);
     }
 
-    public function startCourtTask(Request $request)
+    public function startCourtTask(StartCourtTaskRequest $request)
     {
         $input = $request->input();
 
@@ -765,21 +767,21 @@ class DebtorsNoticesController extends Controller {
         }
 
         if (!$str_podr) {
-            return redirect()->back();
+            return redirect()->back()->with('msg_err','Только для специалистов личного взыскания');
         }
 
-        $courtTask = new CourtOrderTasks();
-        $courtTask->struct_subdivision = $str_podr;
-        $courtTask->in_progress = 1;
-        $courtTask->completed = 0;
-        $courtTask->save();
+        $fixationDateFrom = !empty($input['fixation_date_from']) ?
+            Carbon::parse($input['fixation_date_from'])->endOfDay()->format('Y-m-d 23:59:59') : null;
+        $fixationDateTo = !empty($input['fixation_date_to']) ?
+            Carbon::parse($input['fixation_date_to'])->endOfDay()->format('Y-m-d 23:59:59') : null;
 
-        $fixationDateFrom = date('Y-m-d 00:00:00', strtotime($input['fixation_date_from']));
-        $fixationDateTo = date('Y-m-d 23:59:59', strtotime($input['fixation_date_to']));
-        $qtyDelaysFrom = !empty($input['qty_delays_from']) ? $input['qty_delays_from'] : 95;
+        $qtyDelaysFrom = !empty($input['qty_delays_from']) ? $input['qty_delays_from'] : null;
         $qtyDelaysTo = !empty($input['qty_delays_to']) ?
-            $input['qty_delays_to'] : Debtor::where('is_debtor', 1)->max('qty_delays');
+            $input['qty_delays_to'] : null;
 
+        if (is_null($fixationDateFrom) && is_null($fixationDateTo) && is_null($qtyDelaysFrom) && is_null($qtyDelaysTo)) {
+            return redirect()->back()->with('msg_err', 'Отсутсвуют параметры для поиска');
+        }
 
         $respUsers = [];
         foreach ($input['responsible_users_ids'] as $uid) {
@@ -788,11 +790,17 @@ class DebtorsNoticesController extends Controller {
         }
 
         $debtors = Debtor::where('is_debtor', 1)
-            ->whereBetween('fixation_date', [$fixationDateFrom, $fixationDateTo])
-            ->whereBetween('qty_delays', [$qtyDelaysFrom, $qtyDelaysTo])
             ->whereIn('responsible_user_id_1c', $respUsers)
             ->whereIn('debt_group_id', $input['debt_group_ids'])
+            ->byQty($qtyDelaysFrom,$qtyDelaysTo)
+            ->byFixation($fixationDateFrom,$fixationDateTo)
             ->get();
+
+        $courtTask = new CourtOrderTasks();
+        $courtTask->struct_subdivision = $str_podr;
+        $courtTask->in_progress = 1;
+        $courtTask->completed = 0;
+        $courtTask->save();
 
         $massDir = storage_path() . '/app/public/courtPdfTasks/' . $courtTask->id . '/';
 

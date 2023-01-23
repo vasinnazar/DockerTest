@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Config;
@@ -485,5 +486,20 @@ class Debtor extends Model
         return
             (($this->debt_group_id == DebtGroup::DIFFICULT || $this->debt_group_id == DebtGroup::HOPLESS)
                 && $this->qty_delays >= 95 && is_null($this->courtOrder));
+    }
+
+    public function scopeByQty($query, int $qtyStart = null, int $qtyEnd = null)
+    {
+        $query = $qtyStart ? $query->where('qty_delays', '>=', $qtyStart) : $query;
+        $query = $qtyEnd ? $query->where('qty_delays', '<=', $qtyEnd) : $query;
+        return $query;
+    }
+
+    public function scopeByFixation($query, Carbon $dateStart = null, Carbon $dateEnd = null)
+    {
+        $query = $dateStart ? $query->where('fixation_date', '>=', $dateStart) : $query;
+        $query = $dateEnd ? $query->where('fixation_date', '<=', $dateEnd) : $query;
+        return $query;
+
     }
 }
