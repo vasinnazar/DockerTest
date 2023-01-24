@@ -977,6 +977,8 @@ class DebtorsController extends BasicController
             if (isset($data['search_field_users@id']) && $data['search_field_users@id'] != '') {
                 $debtorEvent->user_id_1c = $user_chief_from->id_1c;
                 $debtorEvent->user_id = $user_chief_from->id;
+            } else if (auth()->user()->hasRole('debtors_remote') && $debtor->responsible_user_id_1c != Auth::user()->id_1c) {
+                $debtorEvent->user_id_1c = $debtor->responsible_user_id_1c;
             } else {
                 $debtorEvent->user_id_1c = Auth::user()->id_1c;
             }
@@ -1460,7 +1462,7 @@ class DebtorsController extends BasicController
                 $html = '';
                 if (mb_strlen($item->debtors_responsible_user_id_1c)) {
                     $pos = strpos(Auth::user()->id_1c, $item->debtors_responsible_user_id_1c);
-                    if ($user->hasRole('debtors_remote') || $user->hasRole('debtors_personal')) {
+                    if ($user->hasRole('debtors_remote') || ($user->hasRole('debtors_personal') && !$user->hasRole('cant_edit_all_debtors'))) {
                         $pos = true;
                     }
                 } else {
