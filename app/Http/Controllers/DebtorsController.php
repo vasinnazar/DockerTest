@@ -1058,6 +1058,12 @@ class DebtorsController extends BasicController
             if (isset($data['search_field_users@id']) && $data['search_field_users@id'] != '') {
                 $planEvent->user_id_1c = $user_chief_from->id_1c;
                 $planEvent->user_id = $user_chief_from->id;
+            } else if (auth()->user()->hasRole('debtors_remote') && $debtor->responsible_user_id_1c != Auth::user()->id_1c) {
+                $planEvent->user_id_1c = $debtor->responsible_user_id_1c;
+                $u = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
+                if (!is_null($u)) {
+                    $planEvent->user_id = $u->id;
+                }
             } else {
                 $planEvent->user_id = $data['user_id'];
                 $planEvent->user_id_1c = Auth::user()->id_1c;
