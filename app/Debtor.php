@@ -318,13 +318,17 @@ class Debtor extends Model
 
     static function getSearchFields()
     {
-        $currentUser = auth()->user();
-        $by_address = ($currentUser->hasRole('debtors_personal')) ? 'address_city' : 'fact_address_city';
+        $by_address = (auth()->user()->isDebtorsPersonal()) ? 'address_city' : 'fact_address_city';
         return [
             [
                 'name' => 'debtors@fixation_date',
                 'input_type' => 'date',
                 'label' => 'Дата закрепления'
+            ],
+            [
+                'name' => 'debtors_events_promise_pays@promise_date',
+                'input_type' => 'date',
+                'label' => 'Дата договоренности'
             ],
             [
                 'name' => 'passports@fio',

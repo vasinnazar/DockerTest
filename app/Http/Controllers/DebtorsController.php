@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Clients\ArmClient;
 use App\DebtGroup;
 use App\Debtor;
 use App\DebtorEvent;
@@ -22,6 +23,7 @@ use App\DebtorEventPromisePay;
 use App\Repayment;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
+use App\Services\ReportService;
 use App\Services\TimezoneService;
 use App\StrUtils;
 use App\User;
@@ -1178,6 +1180,7 @@ class DebtorsController extends BasicController
         if ($forPersonalDepartment) {
             return [
                 'debtors.fixation_date' => 'debtors_fixation_date',
+                'debtors.debtors_events_promise_pays.promise_date' => 'debtors_promise_date',
                 'debtors.passports.fio' => 'passports_fio',
                 'debtors.debtors.customer_id_1c' => 'debtor_customer_id_1c',
                 'debtors.loan_id_1c' => 'debtors_loan_id_1c',
@@ -1237,25 +1240,19 @@ class DebtorsController extends BasicController
             $cols[] = $k . ' as ' . $v;
         }
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
-        $usersDebtors = User::select('users.id_1c')
-            ->whereIn('id', $arResponsibleUserIds);
+        $usersId1c = User::where('banned', 0)
+            ->whereIn('id', $arResponsibleUserIds)
+            ->get()
+            ->pluck('id_1c')
+            ->toArray();
 
-        $arUsersDebtors = $usersDebtors->get()->toArray();
-        $arIn = [];
-        foreach ($arUsersDebtors as $tmpUser) {
-            $arIn[] = $tmpUser['id_1c'];
-        }
 
         $input = $req->input();
-
-        $currentUser = User::find(Auth::id());
-
-        $debtor_vars = config('debtors');
-
-        $by_address = ($currentUser->hasRole('debtors_personal')) ? 'address_city' : 'fact_address_city';
+        $by_address = (auth()->user()->isDebtorsPersonal()) ? 'address_city' : 'fact_address_city';
 
         $filterFields = [
             'search_field_debtors@fixation_date',
+            'search_field_debtors_events_promise_pays@promise_date',
             'search_field_passports@id',
             'search_field_debtors@loan_id_1c',
             'search_field_debtors@qty_delays_from',
@@ -1300,6 +1297,8 @@ class DebtorsController extends BasicController
             ->leftJoin('debtors.struct_subdivisions', 'debtors.struct_subdivisions.id_1c', '=',
                 'debtors.debtors.str_podr')
             ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
+            ->leftJoin('debtors.debtors_events_promise_pays',
+                'debtors.debtors_events_promise_pays.debtor_id', '=', 'debtors.id')
             ->groupBy('debtors.id');
 
         if (isset($input['search_field_passports@fact_address_region']) && mb_strlen($input['search_field_passports@fact_address_region'])) {
@@ -1316,13 +1315,11 @@ class DebtorsController extends BasicController
         if ($boolSearchAll) {
             foreach ($arrFields as $key => $arrField) {
                 if ($key == 'search_field_planned_departures@debtor_id') {
-                    $authUser = User::find(Auth::id());
 
                     $debtors->leftJoin('debtors.planned_departures', 'debtors.planned_departures.debtor_id', '=',
                         'debtors.debtors.id');
                     $debtors->whereNotNull('debtors.planned_departures.debtor_id');
-                    //$debtors->where('debtors.responsible_user_id_1c', $authUser->id_1c);
-                    $debtors->whereIn('debtors.responsible_user_id_1c', $arIn);
+                    $debtors->whereIn('debtors.responsible_user_id_1c', $usersId1c);
                     continue;
                 }
                 if ($key == 'search_field_debtors@qty_delays_from') {
@@ -1347,12 +1344,19 @@ class DebtorsController extends BasicController
                         continue;
                     }
                 }
+                if ($key == 'search_field_debtors_events_promise_pays@promise_date') {
+                    if ($arrField['condition'] == '=') {
+                        logger(1);
+                        $sDate = new Carbon($arrField['value']);
+                        $debtors->whereBetween('debtors.debtors_events_promise_pays.promise_date', array(
+                            $sDate->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
+                            $sDate->setTime(23, 59, 59)->format('Y-m-d H:i:s')
+                        ));
+                        continue;
+                    }
+                }
                 if ($key == 'search_field_customers@telephone') {
                     if (isset($arrFields['search_field_customers@telephone'])) {
-                        //$debtors->leftJoin('debtors.debtors_other_phones', 'debtors.debtors_other_phones.debtor_id_1c', '=', 'debtors.debtors.debtor_id_1c');
-//                        $debtors->leftJoin(DB::raw('(SELECT debtors.debtors_other_phones.debtor_id_1c as dop_di1c, debtors.debtors_other_phones.phone as phone FROM debtors.debtors_other_phones WHERE phone = \'' . $arrField['value'] . '\') as dop'), function($join) use ($arrField) {
-//                            $join->on('dop.dop_di1c', '=', 'debtors.debtors.debtor_id_1c');
-//                        });
                         $debtors->where('debtors.customers.telephone', $arrField['condition'], $arrField['value']);
                     }
                     continue;
@@ -1386,12 +1390,12 @@ class DebtorsController extends BasicController
                 }
             }
             if ((count($arrFields) == 1 && array_key_exists('search_field_passports@fact_address_city', $arrFields))) {
-                $debtors->whereIn('debtors.responsible_user_id_1c', $arIn);
+                $debtors->whereIn('debtors.responsible_user_id_1c', $usersId1c);
             }
         } else {
             // если по какой-то причине массив с ответственными будет пустым - выводим всех
-            if (count($arIn)) {
-                $debtors->whereIn('debtors.responsible_user_id_1c', $arIn);
+            if (count($usersId1c)) {
+                $debtors->whereIn('debtors.responsible_user_id_1c', $usersId1c);
             }
         }
 
@@ -3400,135 +3404,15 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return string
      */
-    public function exportToExcel(Request $req)
+    public function exportToExcel(Request $req, ReportService $service)
     {
-        \PC::debug($req->input());
         $debtors = $this->getDebtorsQuery($req, true)->sortBy('passports_fio');
-        $html = '<table>';
-        $colHeaders = [
-            'debtors_fixation_date' => 'Дата закрепления',
-            'passports_fio' => 'ФИО должника',
-            'debtor_customer_id_1c' => 'Код контрагента',
-            'debtors_loan_id_1c' => 'Номер договора',
-            'debtors_qty_delays' => 'Срок просрочки',
-            'debtors_sum_indebt' => 'Сумма задолженности',
-            'debtors_od' => 'Сумма ОД',
-            'debtors_base' => 'База',
-            'debtor_with_schedule' => 'Тип договора',
-            'debtor_is_online' => 'Онлайн',
-            'customers_telephone' => 'Телефон',
-            'debtors_debt_group_id' => 'Группа долга',
-            'debtors_username' => 'ФИО специалиста',
-            'debtor_str_podr' => 'Стр. подр.',
-            'debtor_address' => 'Юр. адрес',
-            'debtor_fact_address' => 'Факт. адрес',
-            'sp1' => '',
-            'sp2' => '',
-            'sp3' => '',
-            'sp4' => '',
-            'sp5' => '',
-            'sp6' => '',
-            'sp7' => '',
-            'passports_fact_timezone' => 'Разница времени'
-        ];
-        $html .= '<thead>';
-        $html .= '<tr>';
-        foreach ($colHeaders as $k => $v) {
-            $html .= '<th>' . $v . '</th>';
+
+        if ($req->get('search_field_debtors_events_promise_pays@promise_date') == '') {
+            $service->reportToExcelDebtors($debtors);
+            return;
         }
-        $html .= '</tr>';
-        $html .= '</thead>';
-        $html .= '<tbody>';
-
-        $arDebtGroups = \App\DebtGroup::getDebtGroups();
-        foreach ($debtors as $debtor) {
-            $debtorArray = $debtor->toArray();
-            $html .= '<tr>';
-            $col_num = 1;
-            foreach ($debtorArray as $k => $v) {
-                if ($col_num == 9) {
-                    if ($debtorArray['debtor_is_pos'] == 1) {
-                        $html .= '<td>Товарный</td>';
-                    } else {
-                        if ($debtorArray['debtor_is_bigmoney'] == 1) {
-                            $html .= '<td>Б. деньги</td>';
-                        } else {
-                            if ($debtorArray['debtor_is_pledge'] == 1) {
-                                $html .= '<td>Залоговый</td>';
-                            } else {
-                                $html .= '<td></td>';
-                            }
-                        }
-                    }
-                    if ($debtorArray['debtor_is_online'] == 1) {
-                        $html .= '<td>Да</td>';
-                    } else {
-                        $html .= '<td>Нет</td>';
-                    }
-                    if ($k == 'customers_telephone') {
-                        $html .= '<td>' . $v . '</td>';
-                        $col_num++;
-                        continue;
-                    }
-                }
-                if ($k == 'customers_telephone') {
-                    continue;
-                }
-                if ($k == 'passport_id') {
-                    $passport = Passport::find($v);
-                    if (is_null($passport)) {
-                        continue;
-                    }
-                    $debtor_address = Passport::getFullAddress($passport);
-                    $debtor_fact_address = Passport::getFullAddress($passport, true);
-
-                    $html .= '<td>' . $debtor_address . '</td>';
-                    $html .= '<td>' . $debtor_fact_address . '</td>';
-                    $col_num++;
-                    continue;
-                }
-                if ($k == 'debtors_od' || $k == 'debtors_sum_indebt') {
-                    if ($k == 'debtors_od' && isset($debtorArray['debtors_od_after_closing'])
-                        && !is_null($debtorArray['debtors_od_after_closing'])
-                        && $debtorArray['debtors_od_after_closing'] != 0
-                    ) {
-                        $v = $debtorArray['debtors_od_after_closing'];
-                    }
-                    $html .= '<td>' . StrUtils::kopToRub($v) . '</td>';
-                } else {
-                    if (in_array($k, ['debtors_id', 'debtor_id_1c'])) {
-
-                    } else {
-                        if (in_array($k, ['debtors_fixation_date'])) {
-                            $html .= '<td>' . with(new Carbon($v))->format('d.m.Y') . '</td>';
-                        } else {
-                            if ($k == 'debtors_debt_group') {
-                                $html .= '<td>' . ((array_key_exists($v,
-                                        $arDebtGroups)) ? $arDebtGroups[$v] : '') . '</td>';
-                            } else {
-                                if ($k == 'debtor_with_schedule') {
-
-                                } else {
-                                    $html .= '<td>' . $v . '</td>';
-                                }
-                            }
-                        }
-                    }
-                }
-
-                $col_num++;
-            }
-            $html .= '</tr>';
-        }
-        $html .= '</tbody>';
-        $html .= '</table>';
-
-        $file = "report.xls";
-        header("Content-type: application/vnd.ms-excel");
-        header("Content-Disposition: attachment; filename=$file");
-        return response($html)
-            ->header("Content-type", "application/vnd.ms-excel")
-            ->header("Content-Disposition", "attachment; filename=$file");
+        $service->reportOnAgreementWithDebtorstoEcxel($debtors);
     }
 
     /**
