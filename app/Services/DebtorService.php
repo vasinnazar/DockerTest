@@ -33,7 +33,7 @@ class DebtorService
         }
 
         if (!$structSubdivision) {
-            return $this->backWithErr('Вы не привязаны к структурным подразделениям взыскания.');
+            return redirect()->backWithErr('Вы не привязаны к структурным подразделениям взыскания.');
         }
 
         $debtors = Debtor::where('is_debtor', 1)->where('str_podr', $structSubdivision);
@@ -83,7 +83,7 @@ class DebtorService
         }
         return $collectDebtors;
     }
-    function getTableColumns($forPersonalDepartment = false)
+    private function getTableColumns($forPersonalDepartment = false)
     {
         if ($forPersonalDepartment) {
             return [
@@ -139,7 +139,7 @@ class DebtorService
             'debtors.passports.fact_timezone' => 'passports_fact_timezone'
         ];
     }
-    function getDebtors($req, $forPersonalDepartment = false)
+    public function getDebtors($req, $forPersonalDepartment = false)
     {
         $cols = [];
         $tCols = $this->getTableColumns($forPersonalDepartment);
