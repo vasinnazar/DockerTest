@@ -56,11 +56,16 @@ class DebtorService
         $debtors = $debtors->groupBy('id')->get();
         $collectDebtors = collect();
         foreach ($debtors as $debtor) {
-            $arrDebtors = (Debtor::select('id')->where('customer_id_1c', $debtor->customer_id_1c)->get())->toArray();
+            $arrDebtors = Debtor::where('customer_id_1c', $debtor->customer_id_1c)
+                ->get()
+                ->pluck('id')
+                ->toArray();
+
             $event = DebtorEvent::whereIn('debtor_id', $arrDebtors)
                 ->whereIn('event_result_id', $arGoodResultIds)
                 ->latest()
                 ->first();
+
             if (!is_null($event)
                 && ($event->created_at->startOfDay()->lessThan($forgottenDate)
                     || $event->created_at->startOfDay()->equalTo($forgottenDate))
