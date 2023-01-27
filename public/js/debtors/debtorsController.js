@@ -733,13 +733,13 @@
         });
     };
     $.debtorsCtrl.debtorsToExcel = function () {
-        window.open($.app.url + '/debtors/export/excel?' + $('#debtorsFilter form').serialize());
+        window.open($.app.url + '/debtors/export?' + $('#debtorsFilter form').serialize());
     };
     $.debtorsCtrl.debtorsEventsToExcel = function () {
-        window.open($.app.url + '/debtors/exportEvents/excel?' + $('#debtorsEventsFilter form').serialize());
+        window.open($.app.url + '/debtors/export/events?' + $('#debtorsEventsFilter form').serialize());
     };
     $.debtorsCtrl.forgottenToExcel = function () {
-        window.open($.app.url + '/debtors/exportForgotten/excel?' + $('#forgottenDebtorFilter form').serialize());
+        window.open($.app.url + '/debtors/export/forgotten?' + $('#forgottenDebtorFilter form').serialize());
     };
 
     $.debtorsCtrl.emailMessagesList = function (user_id){

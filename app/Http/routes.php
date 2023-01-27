@@ -749,9 +749,9 @@ Route::post('debtors/peaceclaim/new', ['uses' => 'DebtorsController@addNewPeaceC
 Route::get('/ajax/debtors/total-planned',['uses'=>'DebtorsController@totalNumberPlaned']);
 Route::post('ajax/debtors/calc/creditcard', ['uses' => 'DebtorsController@getCalcDataForCreditCard']);
 
-Route::get('debtors/export/excel', ['uses' => 'DebtorsController@exportToExcel']);
-Route::get('/debtors/exportEvents/excel', ['uses' => 'DebtorsController@exportEventsToExcel']);
-Route::get('/debtors/exportForgotten/excel', ['uses' => 'DebtorsController@exportForgottenToExcel']);
+Route::get('/debtors/export', 'DebtorExportController@exportInExcelDebtors');
+Route::get('/debtors/export/events','DebtorExportController@exportEvents');
+Route::get('/debtors/export/forgotten', 'DebtorExportController@exportForgotten');
 Route::get('debtors/export/postregistry', ['uses' => 'DebtorsController@exportPostRegistry']);
 Route::get('debtors/omicron/gettask', ['uses' => 'CronController@getOmicronTask']);
 
