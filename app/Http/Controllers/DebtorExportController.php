@@ -6,6 +6,7 @@ use App\Clients\ArmClient;
 use App\DebtGroup;
 use App\Debtor;
 use App\DebtorEventPromisePay;
+use App\DebtorsEventType;
 use App\DebtorUsersRef;
 use App\Passport;
 use App\Services\DebtorService;
@@ -323,56 +324,35 @@ class DebtorExportController extends Controller
                 $debtorEvents->whereIn('debtors.debtor_events.user_id', $arIn);
             }
         }
-
-        $html = '<table>';
-        $firstRow = true;
-        $colHeaders = [
-            'de_date' => 'Дата план',
-            'de_type_id' => 'Тип мероприятия',
-            'passports_fio' => 'ФИО должника',
-            'de_created_at' => 'Дата факт',
-            'de_username' => 'Ответственный',
-        ];
-        $html .= '<thead>';
-        $html .= '<tr>';
-        foreach ($colHeaders as $k => $v) {
-            $html .= '<th>' . $v . '</th>';
-        }
-        $html .= '</tr>';
-        $html .= '</thead>';
-        $html .= '<tbody>';
-
         $totalEvents = $debtorEvents->get();
 
-        foreach ($totalEvents as $debtorEvent) {
-            $debtorArray = (array)$debtorEvent;
-            $html .= '<tr>';
-            foreach ($debtorArray as $k => $v) {
-                if (in_array($k, ['de_date', 'de_created_at'])) {
-                    $html .= '<td>' . with(new Carbon($v))->format('d.m.Y') . '</td>';
-                } else {
-                    if ($k == 'debtors_id') {
-                        continue;
-                    } else {
-                        if ($k == 'de_type_id') {
-                            $event_types = \App\DebtorsEventType::get()->toArray();
-                            $html .= '<td>' . $event_types[$v]['name'] . '</td>';
-                        } else {
-                            $html .= '<td>' . $v . '</td>';
-                        }
-                    }
-                }
-            }
-            $html .= '</tr>';
-        }
-        $html .= '</tbody>';
-        $html .= '</table>';
+        $headlines = [
+            'Дата план',
+            'Тип мероприятия',
+            'ФИО должника',
+            'Дата факт',
+            'Ответственный',
+        ];
 
-        $file = "report_events.xls";
-        header("Content-type: application/vnd.ms-excel");
-        header("Content-Disposition: attachment; filename=$file");
-        return response($html)
-            ->header("Content-type", "application/vnd.ms-excel")
-            ->header("Content-Disposition", "attachment; filename=$file");
+        $excel = \Excel::create('report');
+        $excel->sheet('Лист 1');
+
+        $activeSheet = $excel->getActiveSheet();
+
+        $activeSheet->appendRow(1, $headlines);
+        $row = 2;
+        foreach ($totalEvents as $event) {
+            $params = [
+                Carbon::parse($event->de_date)->format('d.m.Y'),
+                (DebtorsEventType::where('id',$event->de_type_id)->first())->name,
+                $event->passports_fio,
+                Carbon::parse($event->de_created_at)->format('d.m.Y'),
+                $event->de_username,
+            ];
+            $activeSheet->appendRow($row, $params);
+            $row++;
+        }
+        $excel->download();
+        exit();
     }
 }
