@@ -200,7 +200,7 @@ class ReportService
             'Структурное подразделение'
         ]);
 
-        foreach ($collectDebtors as $item) {
+        foreach ($debtors as $item) {
             $debtor = Debtor::find($item['debtors_id']);
             $nameDebtorGroup = DebtGroup::where('id',$debtor->debt_group_id)->first();
             $lineNumber++;
