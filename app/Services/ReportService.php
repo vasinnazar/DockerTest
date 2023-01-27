@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Clients\ArmClient;
+use App\DebtGroup;
+use App\Debtor;
 use App\DebtorEventPromisePay;
 use App\Passport;
 use App\StrUtils;
@@ -93,7 +95,7 @@ class ReportService
         $excel->download();
     }
 
-    public function reportOnAgreementWithDebtorstoEcxel($debtors)
+    public function reportOnAgreementWithDebtorsToEcxel($debtors)
     {
         $headlines = [
             'Дата закрепления',
@@ -115,7 +117,7 @@ class ReportService
 
 
         $excel = \Excel::create('report');
-        $sheet = $excel->sheet('page1');
+        $excel->sheet('Лист 1');
 
         $activeSheet = $excel->getActiveSheet();
 
@@ -141,7 +143,6 @@ class ReportService
 
             if (!$loan->isEmpty()) {
                 $ordersDebtor = $this->armClient->getOrdersById($loan->first()->id);
-
                 $filteredOrders = $ordersDebtor->filter(function ($item) use ($arrangement) {
                     return $item->type->plus === 1
                         && Carbon::parse($arrangement->promise_date)
@@ -149,9 +150,7 @@ class ReportService
                             ->lessThan(Carbon::parse($item->created_at)->endOfDay());
                 });
 
-                foreach ($filteredOrders as $order) {
-                    $sumFactDebtor += $order->money;
-                }
+                $sumFactDebtor = $filteredOrders->sum('money');
             }
 
             $params = [
@@ -175,6 +174,49 @@ class ReportService
 
             $activeSheet->appendRow($row, $params);
             $row++;
+        }
+        $excel->download();
+    }
+
+    public function reportOnForgottenDebtorsToExcel($debtors)
+    {
+
+        $excel = \Excel::create('Забытые должники');
+        $excel->sheet('Лист 1');
+        $activeSheet = $excel->getActiveSheet();
+
+        $lineNumber = 1;
+        $activeSheet->appendRow($lineNumber, [
+            'Дата закрепления',
+            'ФИО',
+            'Договор',
+            'Дней просрочки',
+            'Задолженность',
+            'Осн. долг',
+            'База',
+            'Телефон',
+            'Группа долга',
+            'Ответственный',
+            'Структурное подразделение'
+        ]);
+
+        foreach ($collectDebtors as $item) {
+            $debtor = Debtor::find($item['debtors_id']);
+            $nameDebtorGroup = DebtGroup::where('id',$debtor->debt_group_id)->first();
+            $lineNumber++;
+            $activeSheet->appendRow($lineNumber, [
+                Carbon::parse($item['debtors_fixation_date'])->format('d.m.Y'),
+                $item['passports_fio'],
+                $debtor->loan_id_1c,
+                $debtor->qty_delays,
+                $debtor->sum_indebt / 100,
+                $debtor->od / 100,
+                $debtor->base,
+                ($debtor->customer())->telephone,
+                $nameDebtorGroup ? $nameDebtorGroup->name : '',
+                $item['debtors_username'],
+                $item['debtor_str_podr']
+            ]);
         }
         $excel->download();
     }

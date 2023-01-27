@@ -3412,7 +3412,7 @@ class DebtorsController extends BasicController
             $service->reportToExcelDebtors($debtors);
             return;
         }
-        $service->reportOnAgreementWithDebtorstoEcxel($debtors);
+        $service->reportOnAgreementWithDebtorsToEcxel($debtors);
     }
 
     /**
@@ -3565,48 +3565,10 @@ class DebtorsController extends BasicController
             ->header("Content-Disposition", "attachment; filename=$file");
     }
 
-    public function exportForgottenToExcel(Request $req)
+    public function exportForgottenToExcel(Request $req, ReportService $service)
     {
         $collectDebtors = $this->forgottenQuery($req);
-
-        $excel = \Excel::create('Забытые должники');
-        $excel->sheet('Лист 1');
-        $activeSheet = $excel->getActiveSheet();
-
-        $lineNumber = 1;
-        $activeSheet->appendRow($lineNumber, [
-            'Дата закрепления',
-            'ФИО',
-            'Договор',
-            'Дней просрочки',
-            'Задолженность',
-            'Осн. долг',
-            'База',
-            'Телефон',
-            'Группа долга',
-            'Ответственный',
-            'Структурное подразделение'
-        ]);
-
-        foreach ($collectDebtors as $item) {
-            $debtor = Debtor::find($item['debtors_id']);
-            $nameDebtorGroup = DebtGroup::where('id',$debtor->debt_group_id)->first();
-            $lineNumber++;
-            $activeSheet->appendRow($lineNumber, [
-                Carbon::parse($item['debtors_fixation_date'])->format('d.m.Y'),
-                $item['passports_fio'],
-                $debtor->loan_id_1c,
-                $debtor->qty_delays,
-                $debtor->sum_indebt / 100,
-                $debtor->od / 100,
-                $debtor->base,
-                ($debtor->customer())->telephone,
-                $nameDebtorGroup ? $nameDebtorGroup->name : '',
-                $item['debtors_username'],
-                $item['debtor_str_podr']
-            ]);
-        }
-        $excel->download();
+        $service->reportOnForgottenDebtorsToExcel($collectDebtors);
     }
 
     public function changeLoadStatus($debtor_id)
