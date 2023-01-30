@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\RepaymentOfferService;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -280,7 +281,7 @@ class DebtorTransferController extends BasicController {
      * @param Request $req
      * @return int
      */
-    public function changeResponsibleUser(Request $req) {
+    public function changeResponsibleUser(RepaymentOfferService $repaymentOfferService , Request $req) {
         $input = $req->input();
 
         $user = User::find($input['new_user_id']);
@@ -326,6 +327,10 @@ class DebtorTransferController extends BasicController {
             $arr_history[$i]['debtor_id_1c'] = $debtor->debtor_id_1c;
             $arr_history[$i]['auto_transfer'] = 0;
 
+            if($debtor->str_podr == '000000000007' && $str_podr == '000000000006')
+            {
+                $repaymentOfferService->closeOfferIfExist($debtor);
+            }
 
             $debtor_ids[] = $debtor->id_1c;
 
@@ -375,7 +380,7 @@ class DebtorTransferController extends BasicController {
                     $armf_orders_sum = $armf_orders / 100;
 
                     if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
-                        $this->_sendPeaceClaims($debtor);
+                        $repaymentOfferService->sendPeaceForUDR($debtor);
                     }
                 }
             }
@@ -388,21 +393,6 @@ class DebtorTransferController extends BasicController {
                 $arStopBase = [];
                 if ($unclosed->base == 'Архив ЗД' || $unclosed->base == 'З-ДС') {
                     continue;
-                }
-                /* if ($base == 'З-ДС' || $base == 'Б-КДС') {
-                  continue;
-                  } */
-
-                /* if (($unclosed->base == 'Б-График' || $unclosed->base == 'З-График') && $unclosed->qty_delays <= 90) {
-                  continue;
-                  }
-
-                  if (($unclosed->base == 'КБ-График' || $unclosed->base == 'КЗ-График') && $unclosed->qty_delays <= 90) {
-                  continue;
-                  } */
-
-                if ($base == 'КБ-График' && ($unclosed->base == 'Б-0' || $unclosed->base == 'Б-1')) {
-                    //$unclosed->base = 'Б-1';
                 }
 
                 $i++;
@@ -469,7 +459,7 @@ class DebtorTransferController extends BasicController {
                         $armf_orders_sum = $armf_orders / 100;
 
                         if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
-                            $this->_sendPeaceClaims($unclosed);
+                            $repaymentOfferService->sendPeaceForUDR($debtor);
                         }
                     }
                 }
@@ -503,33 +493,6 @@ class DebtorTransferController extends BasicController {
 
         $responseXml = MySoap::sendExchangeArm($str_xml);
 
-        /*
-          // блок, передающий данные в 1С
-          $str_debtor_ids = $user->id_1c . ':' . implode(';', $debtor_ids);
-          $filename = 'transfer_' . $user->id . '_' . date('dmYHis', time()) . '.txt';
-          file_put_contents(storage_path() . '/app/debtors/transfer/' . $filename, $str_debtor_ids);
-
-          $arToSend = [
-          'type' => 'ChangeRespInDebt',
-          'struct_podr_id' => $str_podr,
-          'responsible_user_id_1c' => $user->id_1c,
-          'base' => $base,
-          'data' => $items
-          ];
-
-          $str_xml = MySoap::createXML($arToSend);
-          file_put_contents(storage_path() . '/app/debtors/transfer/xmlsent_' . $user->id . '_' . date('dmYHis', time()) . '.xml', $str_xml);
-
-          $responseXml = MySoap::sendExchangeArm($str_xml);
-          $responseType = '';
-          if ($responseXml) {
-          if ($responseXml->result != 1) {
-          $responseType = 'Error';
-          }
-          $response = $responseXml->asXML();
-          }
-          file_put_contents(storage_path() . '/app/debtors/transfer/response' . $responseType . '_' . $user->id . '_' . date('dmYHis', time()) . '.xml', $response);
-         */
         return 1;
     }
 
@@ -630,109 +593,6 @@ class DebtorTransferController extends BasicController {
                 $history_row->auto_transfer = $elem['auto_transfer'];
 
                 $history_row->save();
-            }
-        }
-    }
-
-    public function _sendPeaceClaims($debtor) {
-        if ($debtor->sum_indebt >= 500000 && $debtor->sum_indebt <= 1000000) {
-            $arPeaceClaim[] = [
-                'repayment_type_id' => 14,
-                'times' => 90,
-                'amount' => 200000,
-                'start_at' => date('Y-m-d', time()),
-                'end_at' => date('Y-m-d', strtotime('+60 day')),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-            $arPeaceClaim[] = [
-                'repayment_type_id' => 14,
-                'times' => 60,
-                'amount' => 300000,
-                'start_at' => date('Y-m-d', time()),
-                'end_at' => date('Y-m-d', strtotime('+60 day')),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-        }
-
-        if ($debtor->sum_indebt >= 1000100 && $debtor->sum_indebt <= 2000000) {
-            $arPeaceClaim[] = [
-                'repayment_type_id' => 14,
-                'times' => 150,
-                'amount' => 200000,
-                'start_at' => date('Y-m-d', time()),
-                'end_at' => date('Y-m-d', strtotime('+60 day')),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-            $arPeaceClaim[] = [
-                'repayment_type_id' => 14,
-                'times' => 150,
-                'amount' => 300000,
-                'start_at' => date('Y-m-d', time()),
-                'end_at' => date('Y-m-d', strtotime('+60 day')),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-            $arPeaceClaim[] = [
-                'repayment_type_id' => 14,
-                'times' => 90,
-                'amount' => 500000,
-                'start_at' => date('Y-m-d', time()),
-                'end_at' => date('Y-m-d', strtotime('+60 day')),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-        }
-
-        if ($debtor->sum_indebt > 2000000) {
-            $arPeaceClaim[] = [
-                'repayment_type_id' => 14,
-                'times' => 300,
-                'amount' => 300000,
-                'start_at' => date('Y-m-d', time()),
-                'end_at' => date('Y-m-d', strtotime('+60 day')),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-            $arPeaceClaim[] = [
-                'repayment_type_id' => 14,
-                'times' => 300,
-                'amount' => 500000,
-                'start_at' => date('Y-m-d', time()),
-                'end_at' => date('Y-m-d', strtotime('+60 day')),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-            $arPeaceClaim[] = [
-                'repayment_type_id' => 14,
-                'times' => 300,
-                'amount' => 700000,
-                'start_at' => date('Y-m-d', time()),
-                'end_at' => date('Y-m-d', strtotime('+60 day')),
-                'loan_id_1c' => $debtor->loan_id_1c,
-                'prepaid' => 0,
-                'multiple' => 1
-            ];
-        }
-
-        if (isset($arPeaceClaim)) {
-            foreach ($arPeaceClaim as $arPeaceClaimPartData) {
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, config('admin.sales_arm_url') . '/api/repayments/offers');
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $arPeaceClaimPartData);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                $result = curl_exec($ch);
-                curl_close($ch);
             }
         }
     }
