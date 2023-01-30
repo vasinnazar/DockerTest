@@ -51,7 +51,16 @@ class RepaymentOfferService
                 continue;
             }
             $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
-            $this->armClient->sendRepaymentOffer(self::REPAYMENT_TYPE_PEACE, 60,$amount, $debtor->loan_id_1c,Carbon::now()->addDay(14));
+            $this->armClient->sendRepaymentOffer(
+                self::REPAYMENT_TYPE_PEACE,
+                60,
+                $amount,
+                $debtor->loan_id_1c,
+                Carbon::now()->addDay(14),
+                Carbon::now(),
+                0,
+                0
+            );
 
         }
     }

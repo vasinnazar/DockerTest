@@ -3653,7 +3653,8 @@ class DebtorsController extends BasicController
                 $debtor->loan_id_1c,
                 Carbon::parse($input['end_at']),
                 null,
-                isset($input['prepaid']) ? $input['prepaid'] : false
+                isset($input['prepaid']) ? $input['prepaid'] : false,
+                0
             );
 
             if ($result) {
