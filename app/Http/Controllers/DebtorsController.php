@@ -1134,7 +1134,7 @@ class DebtorsController extends BasicController
             $arPeaceClaims = $armClient->getOffers($debtor->loan_id_1c);
 
             $nowTime = time();
-            if($debtor->debt_group_id == '000000000006')
+            if($debtor->debt_group_id == '000000000007')
             {
                 $service->closeOfferIfExist($debtor);
             }
