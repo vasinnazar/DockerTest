@@ -1139,7 +1139,7 @@ class DebtorsController extends BasicController
                 $service->closeOfferIfExist($debtor);
             }
             foreach ($arPeaceClaims as $peaceClaim) {
-                if ($nowTime < strtotime($peaceClaim['end_at'])) {
+                if ($nowTime < strtotime($peaceClaim->end_at)) {
                     $postData = [
                         'freeze_start_at' => date('Y-m-d', time()),
                         'freeze_end_at' => date('Y-m-d', strtotime('+1 day', strtotime($data['dateProlongationBlock'])))
