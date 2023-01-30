@@ -107,12 +107,20 @@ class DebtorExportController extends Controller
 
         $activeSheet->appendRow(1, $headlines);
         $row = 2;
+
         $arDebtGroups = \App\DebtGroup::getDebtGroups();
+
         foreach ($debtors as $debtor) {
 
             $isOnline = $debtor->debtor_is_online ? 'Да' : 'Нет';
             $passport = Passport::find($debtor->passport_id);
             $typeClaim = '';
+            try{
+                $debtGroup = $arDebtGroups[$debtor->debtors_debt_group];
+            }catch (\Exception $xception){
+                $debtGroup = '';
+            }
+
 
             if ($debtor->debtor_is_bigmoney) {
                 $typeClaim = 'Б.деньги';
@@ -134,7 +142,8 @@ class DebtorExportController extends Controller
                 $debtor->debtors_base,
                 $typeClaim,
                 $isOnline,
-                $arDebtGroups[$debtor->debtors_debt_group],
+                $debtor->customers_telephone,
+                $debtGroup,
                 $debtor->debtors_username,
                 $debtor->debtor_str_podr,
                 Passport::getFullAddress($passport),
