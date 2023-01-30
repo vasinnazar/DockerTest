@@ -72,85 +72,83 @@ class DebtorExportController extends Controller
     public function exportInExcelDebtors(Request $req, DebtorService $service)
     {
         $debtors = $service->getDebtors($req, true)->sortBy('passports_fio');
-
-        if ($req->get('search_field_debtors_events_promise_pays@promise_date') == '') {
-
-            $headlines = [
-                'Дата закрепления',
-                'ФИО должника',
-                'Код контрагента',
-                'Номер договора',
-                'Срок просрочки',
-                'Сумма задолженности',
-                'Сумма ОД',
-                'База',
-                'Тип договора',
-                'Онлайн',
-                'Телефон',
-                'Группа долга',
-                'ФИО специалиста',
-                'Стр. подр.',
-                'Юр. адрес',
-                'Факт. адрес',
-                'Большие деньги',
-                'Залоговый займ',
-                'Товарный займ',
-                'Разница времени',
-            ];
-
-            $excel = \Excel::create('report');
-            $excel->sheet('page1');
-
-            $activeSheet = $excel->getActiveSheet();
-
-            $activeSheet->appendRow(1, $headlines);
-            $row = 2;
-            $arDebtGroups = \App\DebtGroup::getDebtGroups();
-            foreach ($debtors as $debtor) {
-
-                $isOnline = $debtor->debtor_is_online ? 'Да' : 'Нет';
-                $passport = Passport::find($debtor->passport_id);
-                $typeClaim = '';
-
-                if ($debtor->debtor_is_bigmoney) {
-                    $typeClaim = 'Б.деньги';
-                }
-                if ($debtor->debtor_is_pledge) {
-                    $typeClaim = 'Залоговый';
-                }
-                if ($debtor->debtor_is_pos) {
-                    $typeClaim = 'Товарный';
-                }
-                $params = [
-                    Carbon::parse($debtor->debtors_fixation_date)->format('d.m.Y'),
-                    $debtor->passports_fio,
-                    $debtor->debtor_customer_id_1c,
-                    $debtor->debtors_loan_id_1c,
-                    $debtor->debtors_qty_delays,
-                    StrUtils::kopToRub($debtor->debtors_sum_indebt),
-                    StrUtils::kopToRub($debtor->debtors_od),
-                    $debtor->debtors_base,
-                    $typeClaim,
-                    $isOnline,
-                    $arDebtGroups[$debtor->debtors_debt_group],
-                    $debtor->debtors_username,
-                    $debtor->debtor_str_podr,
-                    Passport::getFullAddress($passport),
-                    Passport::getFullAddress($passport, true),
-                    $debtor->debtor_is_bigmoney,
-                    $debtor->debtor_is_pledge,
-                    $debtor->debtor_is_pos,
-                    $debtor->passports_fact_timezone,
-                ];
-                $activeSheet->appendRow($row, $params);
-                $row++;
-            }
-            $excel->download();
+        if ($req->get('search_field_debtors_events_promise_pays@promise_date') !== '') {
+            $this->exportOnAgreement($debtors);
             exit();
         }
 
-        $this->exportOnAgreement($debtors);
+        $headlines = [
+            'Дата закрепления',
+            'ФИО должника',
+            'Код контрагента',
+            'Номер договора',
+            'Срок просрочки',
+            'Сумма задолженности',
+            'Сумма ОД',
+            'База',
+            'Тип договора',
+            'Онлайн',
+            'Телефон',
+            'Группа долга',
+            'ФИО специалиста',
+            'Стр. подр.',
+            'Юр. адрес',
+            'Факт. адрес',
+            'Большие деньги',
+            'Залоговый займ',
+            'Товарный займ',
+            'Разница времени',
+        ];
 
+        $excel = \Excel::create('report');
+        $excel->sheet('page1');
+
+        $activeSheet = $excel->getActiveSheet();
+
+        $activeSheet->appendRow(1, $headlines);
+        $row = 2;
+        $arDebtGroups = \App\DebtGroup::getDebtGroups();
+        foreach ($debtors as $debtor) {
+
+            $isOnline = $debtor->debtor_is_online ? 'Да' : 'Нет';
+            $passport = Passport::find($debtor->passport_id);
+            $typeClaim = '';
+
+            if ($debtor->debtor_is_bigmoney) {
+                $typeClaim = 'Б.деньги';
+            }
+            if ($debtor->debtor_is_pledge) {
+                $typeClaim = 'Залоговый';
+            }
+            if ($debtor->debtor_is_pos) {
+                $typeClaim = 'Товарный';
+            }
+            $params = [
+                Carbon::parse($debtor->debtors_fixation_date)->format('d.m.Y'),
+                $debtor->passports_fio,
+                $debtor->debtor_customer_id_1c,
+                $debtor->debtors_loan_id_1c,
+                $debtor->debtors_qty_delays,
+                StrUtils::kopToRub($debtor->debtors_sum_indebt),
+                StrUtils::kopToRub($debtor->debtors_od),
+                $debtor->debtors_base,
+                $typeClaim,
+                $isOnline,
+                $arDebtGroups[$debtor->debtors_debt_group],
+                $debtor->debtors_username,
+                $debtor->debtor_str_podr,
+                Passport::getFullAddress($passport),
+                Passport::getFullAddress($passport, true),
+                $debtor->debtor_is_bigmoney,
+                $debtor->debtor_is_pledge,
+                $debtor->debtor_is_pos,
+                $debtor->passports_fact_timezone,
+            ];
+            $activeSheet->appendRow($row, $params);
+            $row++;
+        }
+        $excel->download();
+        exit();
     }
 
     public function exportOnAgreement($debtors)
