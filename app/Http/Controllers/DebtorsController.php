@@ -23,8 +23,8 @@ use App\DebtorEventPromisePay;
 use App\Repayment;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
+use App\Services\RepaymentOfferService;
 use App\Services\DebtorService;
-use App\Services\ReportService;
 use App\Services\TimezoneService;
 use App\StrUtils;
 use App\User;
@@ -34,6 +34,7 @@ use App\Utils\PermLib;
 use App\Utils\StrLib;
 use Carbon\Carbon;
 use http\Env\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -909,9 +910,10 @@ class DebtorsController extends BasicController
     /**
      * Добавляет мероприятие в БД и возвращает на исходную страницу
      * @param Request $req
+     * @param ArmClient $armClient
      * @return type
      */
-    public function addevent(Request $req)
+    public function addevent(Request $req, ArmClient $armClient, RepaymentOfferService $service)
     {
         $savePlanned = false;
         $saveProlongationBlock = false;
@@ -980,6 +982,8 @@ class DebtorsController extends BasicController
             if (isset($data['search_field_users@id']) && $data['search_field_users@id'] != '') {
                 $debtorEvent->user_id_1c = $user_chief_from->id_1c;
                 $debtorEvent->user_id = $user_chief_from->id;
+            } else if (auth()->user()->hasRole('debtors_remote') && $debtor->responsible_user_id_1c != Auth::user()->id_1c) {
+                $debtorEvent->user_id_1c = $debtor->responsible_user_id_1c;
             } else {
                 $debtorEvent->user_id_1c = Auth::user()->id_1c;
             }
@@ -1059,6 +1063,12 @@ class DebtorsController extends BasicController
             if (isset($data['search_field_users@id']) && $data['search_field_users@id'] != '') {
                 $planEvent->user_id_1c = $user_chief_from->id_1c;
                 $planEvent->user_id = $user_chief_from->id;
+            } else if (auth()->user()->hasRole('debtors_remote') && $debtor->responsible_user_id_1c != Auth::user()->id_1c) {
+                $planEvent->user_id_1c = $debtor->responsible_user_id_1c;
+                $u = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
+                if (!is_null($u)) {
+                    $planEvent->user_id = $u->id;
+                }
             } else {
                 $planEvent->user_id = $data['user_id'];
                 $planEvent->user_id_1c = Auth::user()->id_1c;
@@ -1121,27 +1131,20 @@ class DebtorsController extends BasicController
 
             $dbp->save();
 
-            $jsonPeaceClaims = file_get_contents('http://192.168.35.89/api/repayments/offers?loan_id_1c=' . $debtor->loan_id_1c);
-            $arPeaceClaims = json_decode($jsonPeaceClaims, true);
+            $arPeaceClaims = $armClient->getOffers($debtor->loan_id_1c);
 
             $nowTime = time();
-
+            if($debtor->debt_group_id == '000000000006')
+            {
+                $service->closeOfferIfExist($debtor);
+            }
             foreach ($arPeaceClaims as $peaceClaim) {
                 if ($nowTime < strtotime($peaceClaim['end_at'])) {
                     $postData = [
                         'freeze_start_at' => date('Y-m-d', time()),
                         'freeze_end_at' => date('Y-m-d', strtotime('+1 day', strtotime($data['dateProlongationBlock'])))
                     ];
-
-                    $ch = curl_init('http://192.168.35.89/api/repayments/offers/' . $peaceClaim['id']);
-
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_POST, 1);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-
-                    $offer = curl_exec($ch);
-
-                    curl_close($ch);
+                    $armClient->updateOffer($peaceClaim->id,$postData);
                 }
             }
         }
@@ -1204,7 +1207,7 @@ class DebtorsController extends BasicController
                 $html = '';
                 if (mb_strlen($item->debtors_responsible_user_id_1c)) {
                     $pos = strpos(Auth::user()->id_1c, $item->debtors_responsible_user_id_1c);
-                    if ($user->hasRole('debtors_remote') || $user->hasRole('debtors_personal')) {
+                    if ($user->hasRole('debtors_remote') || ($user->hasRole('debtors_personal') && !$user->hasRole('cant_edit_all_debtors'))) {
                         $pos = true;
                     }
                 } else {
@@ -3607,62 +3610,65 @@ class DebtorsController extends BasicController
             ->header("Content-Disposition", "attachment; filename=$file");
     }
 
-    public function addNewPeaceClaim(Request $req)
+    /**
+     * @param Request $req
+     * @param ArmClient $armClient
+     * @param RepaymentOfferService $service
+     * @return RedirectResponse
+     */
+    public function addNewRepaymentOffer(Request $req, RepaymentOfferService $service, ArmClient $armClient)
     {
         $user = auth()->user();
 
-        $repayment_type_id = $req->get('repayment_type_id', false);
-        $debtor_id = $req->get('debtor_id', false);
+        $repaymentTypeId = $req->get('repayment_type_id', false);
+        $debtorId = $req->get('debtor_id', false);
+        $debtor = Debtor::find($debtorId);
 
-        if (!$debtor_id) {
-            return redirect()->back();
-        }
+        if ($debtor && $repaymentTypeId) {
 
-        $debtor = Debtor::find($debtor_id);
-        if (!$debtor) {
-            return redirect()->back();
-        }
-
-        if ($repayment_type_id) {
             $input = $req->input();
 
-            $input['start_at'] = date('Y-m-d', time());
-            if ($repayment_type_id == 14) {
+            if ($repaymentTypeId == 14) {
                 $input['times'] = $input['times'] * 30;
             }
 
             $input['amount'] = $input['amount'] * 100;
 
-            if (isset($input['prepaid']) && $input['prepaid'] == 1) {
-
-            } else {
+            if (!isset($input['prepaid']) && !$input['prepaid'] == 1) {
                 $input['prepaid'] = 0;
             }
 
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, config('admin.sales_arm_url') . '/api/repayments/offers');
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $input);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $result = curl_exec($ch);
-            curl_close($ch);
+            $service->closeOfferIfExist($debtor);
 
-            $arJson = json_decode($result, true);
+            $result = $armClient->sendRepaymentOffer(
+                $repaymentTypeId,
+                $input['times'],
+                $input['amount'],
+                $debtor->loan_id_1c,
+                $input['end_at'],
+                null,
+                $input['prepaid']
+            );
 
-            if ($arJson) {
-                if ($repayment_type_id == 14) {
-                    $report = 'Предварительное согласие по договору ' . $debtor->loan_id_1c . ' на мировое соглашение сроком на ' . $input['times'] . ' дней, сумма: ' . $input['amount'] / 100 . ' руб. Действует до ' . date('d.m.Y',
-                            strtotime($input['end_at']));
+            if ($result) {
+                if ($repaymentTypeId == 14) {
+                    $report = 'Предварительное согласие по договору ' .
+                        $debtor->loan_id_1c . ' на мировое соглашение сроком на ' .
+                        $input['times'] . ' дней, сумма: ' .
+                        $input['amount'] / 100 . ' руб. Действует до ' .
+                        Carbon::parse($input['end_at'])->format('d.m.Y');
                 } else {
-                    $report = 'Предварительное согласие по договору ' . $debtor->loan_id_1c . ' на приостановку процентов сроком на ' . $input['times'] . ' дней, сумма: ' . $input['amount'] / 100 . ' руб. Действует до ' . date('d.m.Y',
-                            strtotime($input['end_at']));
+                    $report = 'Предварительное согласие по договору ' .
+                        $debtor->loan_id_1c . ' на приостановку процентов сроком на ' .
+                        $input['times'] . ' дней, сумма: ' .
+                        $input['amount'] / 100 . ' руб. Действует до ' .
+                        Carbon::parse($input['end_at'])->format('d.m.Y');
                 }
 
                 $event = new DebtorEvent();
-
                 $event->event_type_id = 9;
                 $event->debt_group_id = $debtor->debt_group_id;
-                $event->event_result_id = ($repayment_type_id == 14) ? 19 : 18;
+                $event->event_result_id = ($repaymentTypeId == 14) ? 19 : 18;
                 $event->report = $report;
                 $event->debtor_id = $debtor->id;
                 $event->user_id = $user->id;
@@ -3670,7 +3676,7 @@ class DebtorsController extends BasicController
                 $event->last_user_id = $user->id;
                 $event->debtor_id_1c = $debtor->debtor_id_1c;
                 $event->user_id_1c = $user->id_1c;
-                $event->refresh_date = date('Y-m-d H:i:s', time());
+                $event->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
                 $event->save();
             }
         }

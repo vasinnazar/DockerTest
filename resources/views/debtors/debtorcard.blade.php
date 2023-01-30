@@ -885,7 +885,7 @@
                 </table>
             </div>
         </div>
-        @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $debtroles['is_chief'])
+        @if(isset($debtor) && (!auth()->user()->hasRole('cant_edit_all_debtors') || auth()->user()->id_1c == $debtor->responsible_user_id_1c) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $debtroles['is_chief'])
 
                 <div class="col-xs-12 col-sm-6 col-lg-8">
                     <form action="/debtors/addevent" id="event-form" enctype="multipart/form-data" method="POST">

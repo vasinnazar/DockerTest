@@ -6,8 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Config;
-use Log;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
+
+
+/**
+ * Class Debtor
+ * @package App
+ *
+ * @mixin Builder
+ * @mixin \Illuminate\Database\Query\Builder
+ */
 
 class Debtor extends Model
 {

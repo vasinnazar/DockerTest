@@ -745,7 +745,7 @@ Route::get('ajax/addressdoubles/list', ['uses' => 'AddressDoublesController@ajax
 Route::post('ajax/debtors/oldevents/upload', ['uses' => 'DebtorsController@uploadOldDebtorEvents']);
 Route::post('ajax/debtors/orders/upload', ['uses' => 'DebtorsController@uploadOrdersFrom1c']);
 Route::get('debtors/report/countcustomers', ['uses' => 'DebtorsReportsController@countDebtCustomersForRespUser']);
-Route::post('debtors/peaceclaim/new', ['uses' => 'DebtorsController@addNewPeaceClaim']);
+Route::post('debtors/peaceclaim/new', ['uses' => 'DebtorsController@addNewRepaymentOffer']);
 Route::get('/ajax/debtors/total-planned',['uses'=>'DebtorsController@totalNumberPlaned']);
 Route::post('ajax/debtors/calc/creditcard', ['uses' => 'DebtorsController@getCalcDataForCreditCard']);
 
