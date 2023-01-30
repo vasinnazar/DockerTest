@@ -3638,7 +3638,9 @@ class DebtorsController extends BasicController
                 $input['prepaid'] = 0;
             }
 
-            $service->closeOfferIfExist($debtor);
+            if($debtor->str_podr == '000000000006') {
+                $service->closeOfferIfExist($debtor);
+            }
 
             $result = $armClient->sendRepaymentOffer(
                 $repaymentTypeId,
