@@ -327,7 +327,7 @@ class DebtorTransferController extends BasicController {
             $arr_history[$i]['debtor_id_1c'] = $debtor->debtor_id_1c;
             $arr_history[$i]['auto_transfer'] = 0;
 
-            if($debtor->str_podr == '000000000007' && $str_podr == '000000000006')
+            if($debtor->str_podr == '000000000006' && $str_podr == '000000000007')
             {
                 $repaymentOfferService->closeOfferIfExist($debtor);
             }
