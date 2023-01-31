@@ -37,22 +37,23 @@ class RepaymentOfferService
         foreach ($debtors as $debtor) {
 
             $debtorProlangation = DebtorBlockProlongation::where('loan_id_1c', $debtor->loan_id_1c)->first();
-            if(!is_null($debtorProlangation)) {
+            if (!is_null($debtorProlangation)) {
                 continue;
             }
             $loansDebtor = $this->armClient->getLoanById1c($debtor->loan_id_1c);
-            if($loansDebtor->isEmpty()) {
+            if ($loansDebtor->isEmpty()) {
                 continue;
             }
             $ordersDebtor = $this->armClient->getOrdersById($loansDebtor->first()->id);
             $filteredOrders = $ordersDebtor->filter(function ($item) {
                 return $item->type->plus === 1 && $item->money > 50000;
             });
-            if(!$filteredOrders->isEmpty()) {
+            if (!$filteredOrders->isEmpty()) {
                 continue;
             }
             $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
-            Log::info('RepaymentOffer Auto Peace SEND:',['debtorID'=>$debtor->id,'loanId1c'=>$debtor->loan_id_1c]);
+            Log::info('Repayment Offer Auto Peace SEND:',
+                ['debtorID' => $debtor->id, 'loanId1c' => $debtor->loan_id_1c]);
             $this->armClient->sendRepaymentOffer(
                 self::REPAYMENT_TYPE_PEACE,
                 60,
