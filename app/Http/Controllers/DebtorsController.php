@@ -1890,7 +1890,11 @@ class DebtorsController extends BasicController
                 $data['created_at'] = Carbon::now()->format('Y-m-d H:i:s');
                 $data['event_type_id'] = 12;
                 $data['overdue_reason_id'] = 0;
-                $data['event_result_id'] = 22;
+                if ($smsType && ($smsType == 'link' || $smsType == 'msg' || $smsType == 'props')) {
+                    $data['event_result_id'] = 17;
+                } else {
+                    $data['event_result_id'] = 22;
+                }
                 $data['debt_group_id'] = $req->get('debt_group_id');
                 $data['report'] = $phone . ' SMS: ' . $smsText;
                 $data['completed'] = 1;

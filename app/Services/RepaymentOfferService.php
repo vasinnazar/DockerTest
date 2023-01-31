@@ -64,6 +64,7 @@ class RepaymentOfferService
                 0,
                 0
             );
+            Log::info('Repayment-offers:auto-peace', ['Номер договора' => $debtor->loan_id_1c]);
 
         }
     }
@@ -140,7 +141,7 @@ class RepaymentOfferService
     {
         $offers = $this->armClient->getOffers($debtor->loan_id_1c);
 
-        if(!$offers->isEmpty()) {
+        if (!$offers->isEmpty()) {
             foreach ($offers as $offer) {
                 $this->armClient->updateOffer($offer->id, [
                     'status' => self::STATUS_CLOSE_OFFER,
