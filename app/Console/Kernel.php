@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\RepaymentOfferAutoPeace;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Log;
@@ -19,7 +20,8 @@ class Kernel extends ConsoleKernel {
      */
     protected $commands = [
         'App\Console\Commands\Inspire',
-        'App\Console\Commands\MysqlBackup'
+        'App\Console\Commands\MysqlBackup',
+        RepaymentOfferAutoPeace::class,
     ];
 
     /**
@@ -176,7 +178,7 @@ class Kernel extends ConsoleKernel {
                     ]);
         })->dailyAt('07:00');
 
-        $schedule->command('repayment-offers:auto-peace')->dailyAt('7:40');
+        $schedule->command('repayment-offers:auto-peace');
     }
 
 }

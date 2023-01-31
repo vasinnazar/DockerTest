@@ -6,6 +6,8 @@ use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorBlockProlongation;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Monolog\Logger;
 
 class RepaymentOfferService
 {
@@ -36,18 +38,18 @@ class RepaymentOfferService
         foreach ($debtors as $debtor) {
 
             $debtorProlangation = DebtorBlockProlongation::where('loan_id_1c', $debtor->loan_id_1c)->first();
-            if(!$debtorProlangation) {
+            if (!$debtorProlangation) {
                 continue;
             }
             $loansDebtor = $this->armClient->getLoanById1c($debtor->loan_id_1c);
-            if($loansDebtor->isEmpty()) {
+            if ($loansDebtor->isEmpty()) {
                 continue;
             }
             $ordersDebtor = $this->armClient->getOrdersById($loansDebtor->first()->id);
             $filteredOrders = $ordersDebtor->filter(function ($item) {
                 return $item->type->plus === 1 && $item->money > 50000;
             });
-            if(!$filteredOrders->isEmpty()) {
+            if (!$filteredOrders->isEmpty()) {
                 continue;
             }
             $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
@@ -61,6 +63,7 @@ class RepaymentOfferService
                 0,
                 0
             );
+            Log::info('Repayment-offers:auto-peace', ['Номер договора' => $debtor->loan_id_1c]);
 
         }
     }
@@ -137,7 +140,7 @@ class RepaymentOfferService
     {
         $offers = $this->armClient->getOffers($debtor->loan_id_1c);
 
-        if(!$offers->isEmpty()) {
+        if (!$offers->isEmpty()) {
             foreach ($offers as $offer) {
                 $this->armClient->updateOffer($offer->id, [
                     'status' => self::STATUS_CLOSE_OFFER,
