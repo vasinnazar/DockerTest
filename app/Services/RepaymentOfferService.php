@@ -6,6 +6,7 @@ use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorBlockProlongation;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class RepaymentOfferService
 {
@@ -36,7 +37,7 @@ class RepaymentOfferService
         foreach ($debtors as $debtor) {
 
             $debtorProlangation = DebtorBlockProlongation::where('loan_id_1c', $debtor->loan_id_1c)->first();
-            if(!$debtorProlangation) {
+            if(!is_null($debtorProlangation)) {
                 continue;
             }
             $loansDebtor = $this->armClient->getLoanById1c($debtor->loan_id_1c);
@@ -51,6 +52,7 @@ class RepaymentOfferService
                 continue;
             }
             $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
+            Log::info('RepaymentOffer Auto Peace SEND:',['debtorID'=>$debtor->id,'loanId1c'=>$debtor->loan_id_1c]);
             $this->armClient->sendRepaymentOffer(
                 self::REPAYMENT_TYPE_PEACE,
                 60,
