@@ -29,13 +29,19 @@ class RepaymentOfferService
         $debtors = Debtor::where('is_debtor', 1)
             ->where('str_podr', '000000000006')
             ->whereIn('debt_group_id', [2, 4, 5])
-            ->where('qty_delays', 37)
+            ->where('qty_delays', 36)
             ->where('od', '>=', 500000)
             ->where('base', 'Б-1')
             ->get();
 
         foreach ($debtors as $debtor) {
-
+            $repaymentOffers = $this->armClient->getOffers($debtor->loan_id_1c);
+            $repaymentOffersFiltered = $repaymentOffers->filter(function ($item){
+                return Carbon::create($item->end_at)->lessThan(Carbon::now()) && $item->status == 1;
+            });
+            if (!$repaymentOffersFiltered->isEmpty()) {
+                continue;
+            }
             $debtorProlangation = DebtorBlockProlongation::where('loan_id_1c', $debtor->loan_id_1c)->first();
             if (!is_null($debtorProlangation)) {
                 continue;
@@ -52,6 +58,7 @@ class RepaymentOfferService
                 continue;
             }
             $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
+
             Log::info('Repayment Offer Auto Peace SEND:',
                 ['debtorID' => $debtor->id, 'loanId1c' => $debtor->loan_id_1c]);
             $this->armClient->sendRepaymentOffer(
@@ -62,10 +69,8 @@ class RepaymentOfferService
                 Carbon::now()->addDay(14),
                 Carbon::now(),
                 0,
-                0
+                1
             );
-            Log::info('Repayment-offers:auto-peace', ['Номер договора' => $debtor->loan_id_1c]);
-
         }
     }
 

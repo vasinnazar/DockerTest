@@ -93,7 +93,7 @@ class PdfService
             Carbon::now()->format('d.m.Y'), $html);
         $html = str_replace('{{#exp_percent}}', ($arraySumDebtor->exp_pc / 100), $html);
         $html = str_replace('{{#qty_delays}}', $debtor->qty_delays, $html);
-        $html = str_replace('{{#duty}}', $duty, $html);
+        $html = str_replace('{{#duty}}', number_format($duty,2), $html);
         $html = str_replace('{{#all_amount}} ', $duty + ($arraySumDebtor->money / 100), $html);
         $html = str_replace('{{#fine}} ', $arraySumDebtor->fine / 100, $html);
 
