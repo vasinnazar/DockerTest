@@ -36,7 +36,10 @@ class RepaymentOfferService
 
         foreach ($debtors as $debtor) {
             $repaymentOffers = $this->armClient->getOffers($debtor->loan_id_1c);
-            if (!$repaymentOffers->isEmpty()) {
+            $repaymentOffersFiltered = $repaymentOffers->filter(function ($item){
+                return Carbon::create($item->end_at)->lessThan(Carbon::now()) && $item->status == 1;
+            });
+            if (!$repaymentOffersFiltered->isEmpty()) {
                 continue;
             }
             $debtorProlangation = DebtorBlockProlongation::where('loan_id_1c', $debtor->loan_id_1c)->first();
