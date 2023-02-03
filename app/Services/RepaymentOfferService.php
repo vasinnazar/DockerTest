@@ -6,6 +6,7 @@ use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorBlockProlongation;
 use App\DebtorEvent;
+use App\DebtorsEventType;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -83,9 +84,9 @@ class RepaymentOfferService
                 $user = User::where('banned', 0)->where('id_1c', $debtor->responsible_user_id_1c)->first();
                 $event = new DebtorEvent();
                 $event->customer_id_1c = $debtor->customer_id_1c;
-                $event->event_type_id = 9;
+                $event->event_type_id = DebtorsEventType::TYPE_INFORMATION;
                 $event->debt_group_id = $debtor->debt_group_id;
-                $event->event_result_id = 17;
+                $event->event_result_id = DebtorsEventType::RESULT_TYPE_CONSENT_TO_PEACE;
                 $event->report = '(Автоматическое) Предварительное согласие по договору ' .
                     $debtor->loan_id_1c . ' на мировое соглашение сроком на ' .
                     60 . ' дней, сумма: ' .
