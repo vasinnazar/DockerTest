@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorBlockProlongation;
+use App\DebtorEvent;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -62,7 +64,7 @@ class RepaymentOfferService
 
             Log::info('Repayment Offer Auto Peace SEND:',
                 ['debtorID' => $debtor->id, 'loanId1c' => $debtor->loan_id_1c]);
-            $this->armClient->sendRepaymentOffer(
+            $result = $this->armClient->sendRepaymentOffer(
                 self::REPAYMENT_TYPE_PEACE,
                 60,
                 $amount,
@@ -72,6 +74,35 @@ class RepaymentOfferService
                 0,
                 1
             );
+
+            if (!$result) {
+                continue;
+            }
+
+            try {
+                $user = User::where('banned', 0)->where('id_1c', $debtor->responsible_user_id_1c)->first();
+                $event = new DebtorEvent();
+                $event->customer_id_1c = $debtor->customer_id_1c;
+                $event->event_type_id = 9;
+                $event->debt_group_id = $debtor->debt_group_id;
+                $event->event_result_id = 17;
+                $event->report = '(Автоматическое) Предварительное согласие по договору ' .
+                    $debtor->loan_id_1c . ' на мировое соглашение сроком на ' .
+                    60 . ' дней, сумма: ' .
+                    $amount / 100 . ' руб. Действует до ' .
+                    Carbon::now()->addDay(14)->format('d.m.Y');
+                $event->debtor_id = $debtor->id;
+                $event->user_id = $user->id;
+                $event->completed = 1;
+                $event->last_user_id = $user->id;
+                $event->debtor_id_1c = $debtor->debtor_id_1c;
+                $event->user_id_1c = $user->id_1c;
+                $event->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
+                $event->save();
+            } catch (\Exception $e) {
+                Log::error('Create event auto-peace', ['debtorId' => $debtor->id, 'messages' => $e->getMessage()]);
+            }
+
         }
     }
 
