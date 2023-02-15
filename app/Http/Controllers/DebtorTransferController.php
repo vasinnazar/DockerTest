@@ -290,7 +290,7 @@ class DebtorTransferController extends BasicController {
         }
         $base = $req->get('base', null);
 
-        if ($user->id == 1901 || $user->id == 1135 || $user->id == 2486 || $user->id == 2860 || $user->id == 951 || $user->id == 3654) {
+        if ($user->id == 1901 || $user->id == 1135 || $user->id == 2486 || $user->id == 2860 || $user->id == 951 || $user->id == 3654 || $user->id == 4204) {
             $str_podr = '0000000000001';
         } else if ($user->hasRole('debtors_remote')) {
             $str_podr = '000000000006';
