@@ -4,8 +4,11 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class StructSubdivision extends Model
-{
-    protected $table = 'struct_subdivisions';
-    
+class UploadSqlFile extends Model {
+
+    protected $fillable = [
+        'filetype','filename','in_process','completed'
+    ];
+    protected $table = 'upload_sql_files';
+
 }
