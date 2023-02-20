@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\UploadSqlFile;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 
 class FilesUpdateClient extends Command
@@ -37,6 +38,10 @@ class FilesUpdateClient extends Command
                 return str_replace('debtors/', '', $item);
             }
         });
+
+        if ($newFiles->isEmpty()) {
+            return;
+        }
 
         foreach ($newFiles as $newFile) {
             if (str_contains($newFile, 'about_clients')) {

@@ -11,6 +11,7 @@ class UpdateDebtors extends Migration
         Schema::create('update_debtors', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->text('sql_command');
+            $table->integer('file_id');
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
         });

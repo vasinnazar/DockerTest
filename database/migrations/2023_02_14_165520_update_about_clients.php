@@ -35,6 +35,7 @@ class UpdateAboutClients extends Migration
             $table->string('fact_address_building')->nullable();
             $table->string('fact_address_apartment')->nullable();
             $table->string('fact_address_city1')->nullable();
+            $table->integer('file_id');
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
         });
