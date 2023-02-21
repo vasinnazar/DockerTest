@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 
-class FilesUpdateClient extends Command
+class DebtorSyncFilesDownload extends Command
 {
 
     /**
@@ -16,7 +16,7 @@ class FilesUpdateClient extends Command
      *
      * @var string
      */
-    protected $signature = 'update-client:get-files';
+    protected $signature = 'debtor-sync:download';
 
     /**
      * The console command description.

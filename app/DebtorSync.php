@@ -4,9 +4,9 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UpdateDebtors extends Model
+class DebtorSync extends Model
 {
-    protected $table = 'update_debtors';
+    protected $table = 'debtor_sync_sql';
 
     protected $fillable = [
         'sql_command',

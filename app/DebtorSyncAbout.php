@@ -4,9 +4,9 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UpdateAboutClient extends Model
+class DebtorSyncAbout extends Model
 {
-    protected $table = 'update_about_clients';
+    protected $table = 'debtor_sync_about';
 
     protected $fillable = [
         'debtor_id_1c',

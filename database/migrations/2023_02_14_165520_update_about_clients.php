@@ -8,7 +8,7 @@ class UpdateAboutClients extends Migration
 {
     public function up()
     {
-        Schema::create('update_about_clients', function (Blueprint $table) {
+        Schema::create('debtor_sync_about', function (Blueprint $table) {
             $table->increments('id');
             $table->string('debtor_id_1c');
             $table->string('customer_id_1c');
@@ -36,6 +36,7 @@ class UpdateAboutClients extends Migration
             $table->string('fact_address_apartment')->nullable();
             $table->string('fact_address_city1')->nullable();
             $table->integer('file_id');
+            $table->boolean('in_process')->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
         });
@@ -43,6 +44,6 @@ class UpdateAboutClients extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('update_about_clients');
+        Schema::dropIfExists('debtor_sync_about');
     }
 }

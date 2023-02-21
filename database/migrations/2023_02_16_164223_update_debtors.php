@@ -8,10 +8,11 @@ class UpdateDebtors extends Migration
 {
     public function up()
     {
-        Schema::create('update_debtors', function (Blueprint $table) {
+        Schema::create('debtor_sync_sql', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->text('sql_command');
             $table->integer('file_id');
+            $table->boolean('in_process')->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
         });
@@ -19,6 +20,6 @@ class UpdateDebtors extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('update_debtors');
+        Schema::dropIfExists('debtor_sync_sql');
     }
 }

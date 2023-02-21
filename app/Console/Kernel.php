@@ -2,12 +2,12 @@
 
 namespace App\Console;
 
-use App\Console\Commands\AddQueueUpdateClient;
-use App\Console\Commands\AddQueueUpdateDebtor;
+use App\Console\Commands\DebtorSyncAboutProcess;
+use App\Console\Commands\DebtorSyncFilesDownload;
+use App\Console\Commands\DebtorSyncSqlProcess;
 use App\Console\Commands\RepaymentOfferAutoPeace;
-use App\Console\Commands\FilesUpdateClient;
-use App\Console\Commands\UploadFilesUpdate;
-use App\UpdateDebtors;
+use App\Console\Commands\DebtorSyncFilesImport;
+use App\DebtorSync;
 use App\UploadSqlFile;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -28,10 +28,10 @@ class Kernel extends ConsoleKernel {
         'App\Console\Commands\Inspire',
         'App\Console\Commands\MysqlBackup',
         RepaymentOfferAutoPeace::class,
-        FilesUpdateClient::class,
-        UploadFilesUpdate::class,
-        AddQueueUpdateClient::class,
-        AddQueueUpdateDebtor::class
+        DebtorSyncFilesImport::class,
+        DebtorSyncAboutProcess::class,
+        DebtorSyncSqlProcess::class,
+        DebtorSyncFilesDownload::class,
     ];
 
     /**
@@ -41,11 +41,11 @@ class Kernel extends ConsoleKernel {
      * @return void
      */
     protected function schedule(Schedule $schedule) {
-        $schedule->command('repayment-offers:auto-peace');
-        $schedule->command('update-client:get-files');
-        $schedule->command('update-client:upload-files');
-        $schedule->command('update-client:update-clients-queue');
-        $schedule->command('update-client:update-debtors-queue');
+//        $schedule->command('repayment-offers:auto-peace');
+        $schedule->command('debtor-sync:download')->dailyAt('17:13');
+        $schedule->command('debtor-sync:import')->everyMinute();
+        $schedule->command('debtor-sync:execute-sql')->everyMinute();
+        $schedule->command('debtor-sync:execute-about')->everyMinute();
 
     }
 
