@@ -26,8 +26,8 @@ class DebtorSyncSqlImportJob extends Job implements SelfHandling, ShouldQueue
     public function handle()
     {
         try {
-            $debtorSync = DebtorSync::find(str_replace('﻿','',$this->debtorSyncId));
-            DB::unprepared($debtorSync->sql_command);
+            $debtorSync = DebtorSync::find($this->debtorSyncId);
+            DB::unprepared(preg_replace( '/[\x{200B}-\x{200D}\x{FEFF}]/u' , '' ,$debtorSync->sql_command));
 
         } catch (\Exception $e) {
             Log::error('Error insert or update debtors : ', [$e->getMessage()]);
@@ -36,12 +36,9 @@ class DebtorSyncSqlImportJob extends Job implements SelfHandling, ShouldQueue
         $debtorSync->deleted_at = Carbon::now();
         $debtorSync->save();
 
-        $process = DebtorSync::whereNull('deleted_at')->where('file_id', $debtorSync->file_id)->get();
-        if ($process->isEmpty()) {
-            UploadSqlFile::find($debtorSync->file_id)->update(['completed' => 1, 'in_process' => 0]);
+        $processCount = DebtorSync::whereNull('deleted_at')->where('file_id', $debtorSync->file_id)->count();
+        if ($processCount == 0) {
+            UploadSqlFile::where('id',$debtorSync->file_id)->update(['completed' => 1, 'in_process' => 0]);
         }
-
-
-
     }
 }

@@ -42,10 +42,10 @@ class Kernel extends ConsoleKernel {
      */
     protected function schedule(Schedule $schedule) {
 //        $schedule->command('repayment-offers:auto-peace');
-        $schedule->command('debtor-sync:download')->dailyAt('17:13');
-        $schedule->command('debtor-sync:import')->everyMinute();
-        $schedule->command('debtor-sync:execute-sql')->everyMinute();
-        $schedule->command('debtor-sync:execute-about')->everyMinute();
+        $schedule->command('debtor-sync:download')->withoutOverlapping();
+        $schedule->command('debtor-sync:import')->withoutOverlapping();
+        $schedule->command('debtor-sync:execute-sql')->withoutOverlapping();
+        $schedule->command('debtor-sync:execute-about')->withoutOverlapping();
 
     }
 

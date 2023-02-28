@@ -33,9 +33,17 @@ class DebtorSyncFilesDownload extends Command
     public function handle()
     {
         $files = Storage::disk('local')->files('/debtors');
-        $newFiles = collect($files)->map(function ($item) {
-            if (str_contains($item, Carbon::now()->format('dmY'))) {
+        $oldFiles = UploadSqlFile::where('filename', 'like', '%27022023%')->get()->pluck('filename')->toArray();
+
+        $files = collect($files)->map(function ($item) {
+            if (str_contains($item, '27022023')) {
                 return str_replace('debtors/', '', $item);
+            }
+        });
+
+        $newFiles = $files->filter(function ($item) use ($oldFiles) {
+            if (!in_array($item, $oldFiles, true)) {
+                return $item;
             }
         });
 

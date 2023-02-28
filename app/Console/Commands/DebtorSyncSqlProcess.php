@@ -14,7 +14,7 @@ class DebtorSyncSqlProcess extends Command
      *
      * @var string
      */
-    protected $description = 'Display an inspiring quote';
+    protected $description = 'Добавление заданий в очередь из временной таблицы';
 
     /**
      * Execute the console command.
@@ -27,16 +27,15 @@ class DebtorSyncSqlProcess extends Command
 //            return 0;
 //        }
 
-        $debtorsSync = DebtorSync::whereNull('deleted_at')->whereNull('in_process')->limit(300)->get();
+        $debtorsSyncIds = DebtorSync::whereNull('deleted_at')->whereNull('in_process')->get()->pluck('id');
 
-        if ($debtorsSync->isEmpty()) {
+        if ($debtorsSyncIds->isEmpty()) {
             return 0;
         }
 
-        foreach ($debtorsSync as $debtorSync) {
-            $debtorSync->in_process = 1;
-            $debtorSync->save();
-            dispatch((new DebtorSyncSqlImportJob($debtorSync->id))->onQueue('update_debtors'));
+        foreach ($debtorsSyncIds as $debtorSyncId) {
+            DebtorSync::where('id', $debtorSyncId)->update(['in_process' => 1]);
+            dispatch((new DebtorSyncSqlImportJob($debtorSyncId))->onQueue('debtor-sync-sql'));
         }
 
     }

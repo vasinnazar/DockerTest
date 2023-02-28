@@ -24,7 +24,7 @@ class DebtorSyncFilesImport extends Command
      *
      * @var string
      */
-    protected $description = 'загрузка данных в таблицу dto_1c_updates';
+    protected $description = 'загрузка данных во временные таблицы';
 
     /**
      * Execute the console command.

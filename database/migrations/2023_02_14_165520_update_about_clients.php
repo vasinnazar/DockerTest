@@ -39,6 +39,7 @@ class UpdateAboutClients extends Migration
             $table->boolean('in_process')->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
+            $table->index(['deleted_at', 'file_id']);
         });
     }
 

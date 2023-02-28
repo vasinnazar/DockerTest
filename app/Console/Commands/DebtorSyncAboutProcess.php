@@ -15,7 +15,7 @@ class DebtorSyncAboutProcess extends Command
      *
      * @var string
      */
-    protected $description = 'Display an inspiring quote';
+    protected $description = 'Добавление заданий в очередь из временной таблицы';
 
     /**
      * Execute the console command.
@@ -27,15 +27,15 @@ class DebtorSyncAboutProcess extends Command
 //        if (Queue::size('update_clients') >= env('QUEUE_MAX_SIZE', 300)) {
 //            return 0;
 //        }
-        $aboutsSync = DebtorSyncAbout::whereNull('deleted_at')->whereNull('in_process')->limit(300)->get();
-        if ($aboutsSync->isEmpty()) {
+        $aboutsSyncIds = DebtorSyncAbout::whereNull('deleted_at')->whereNull('in_process')->get()->pluck('id');
+
+        if ($aboutsSyncIds->isEmpty()) {
             return 0;
         }
-        Log::info('Update clients :', ['customers' => $aboutsSync->pluck('id')->toArray()]);
-        foreach ($aboutsSync as $aboutSync) {
-            $aboutSync->in_process = 1;
-            $aboutSync->save();
-            dispatch((new DebtorSyncAboutImportJob($aboutSync->id))->onQueue('update_clients'));
+
+        foreach ($aboutsSyncIds as $aboutSyncId) {
+            DebtorSyncAbout::where('id', $aboutSyncId)->update(['in_process' => 1]);
+            dispatch((new DebtorSyncAboutImportJob($aboutSyncId))->onQueue('debtor-sync-about'));
         }
 
     }
