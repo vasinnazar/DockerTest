@@ -5,19 +5,20 @@ namespace App\Console;
 use App\Console\Commands\DebtorSyncAboutProcess;
 use App\Console\Commands\DebtorSyncFilesDownload;
 use App\Console\Commands\DebtorSyncSqlProcess;
+use App\Console\Commands\Inspire;
+use App\Console\Commands\MysqlBackup;
 use App\Console\Commands\RepaymentOfferAutoPeace;
 use App\Console\Commands\DebtorSyncFilesImport;
-use App\DebtorSync;
-use App\UploadSqlFile;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use Log;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
-use DB;
+use Illuminate\Support\Facades\DB;
 
-class Kernel extends ConsoleKernel {
+class Kernel extends ConsoleKernel
+{
 
     /**
      * The Artisan commands provided by your application.
@@ -25,8 +26,8 @@ class Kernel extends ConsoleKernel {
      * @var array
      */
     protected $commands = [
-        'App\Console\Commands\Inspire',
-        'App\Console\Commands\MysqlBackup',
+        Inspire::class,
+        MysqlBackup::class,
         RepaymentOfferAutoPeace::class,
         DebtorSyncFilesImport::class,
         DebtorSyncAboutProcess::class,
@@ -37,10 +38,11 @@ class Kernel extends ConsoleKernel {
     /**
      * Define the application's command schedule.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * @param \Illuminate\Console\Scheduling\Schedule $schedule
      * @return void
      */
-    protected function schedule(Schedule $schedule) {
+    protected function schedule(Schedule $schedule)
+    {
 //        $schedule->command('repayment-offers:auto-peace');
         $schedule->command('debtor-sync:download')->withoutOverlapping();
         $schedule->command('debtor-sync:import')->withoutOverlapping();
