@@ -3,7 +3,6 @@
 use App\Jobs\DebtorSyncSqlImportJob;
 use App\DebtorSync;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Queue;
 
 class DebtorSyncSqlProcess extends Command
 {
@@ -23,10 +22,6 @@ class DebtorSyncSqlProcess extends Command
      */
     public function handle()
     {
-//        if (Queue::size('update_debtors') >= env('QUEUE_MAX_SIZE', 300)) {
-//            return 0;
-//        }
-
         $debtorsSyncIds = DebtorSync::whereNull('deleted_at')->whereNull('in_process')->get()->pluck('id');
 
         if ($debtorsSyncIds->isEmpty()) {

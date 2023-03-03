@@ -2,60 +2,55 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB,
-    App\Spylog\Spylog,
-    Auth,
-    Log,
-    Illuminate\Http\Request,
-    Validator,
-    Carbon\Carbon,
-    Illuminate\Support\Facades\Redirect,
-    Illuminate\Support\Facades\Session,
-    App\User,
-    Illuminate\Support\Facades\Hash,
-    App\Passport,
-    App\Subdivision,
-    App\Claim,
-    App\about_client,
-    App\AdSource,
-    App\EducationLevel,
-    App\LiveCondition,
-    App\MaritalType,
-    App\Card,
-    App\DailyCashReport,
-    App\StrUtils,
-    Illuminate\Support\Facades\Storage,
-    App\Customer,
-    App\Utils\DebtorsInfoUploader,
-    App\DebtorEvent,
-    App\Debtor;
+use App\UploadSqlFile;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use App\Spylog\Spylog;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
+use App\User;
+use Illuminate\Support\Facades\Hash;
+use App\Passport;
+use App\Subdivision;
+use App\Claim;
+use App\about_client;
+use App\AdSource;
+use App\EducationLevel;
+use App\LiveCondition;
+use App\MaritalType;
+use App\Card;
+use App\DailyCashReport;
+use App\StrUtils;
+use Illuminate\Support\Facades\Storage;
+use App\Customer;
+use App\Utils\DebtorsInfoUploader;
+use App\DebtorEvent;
+use App\Debtor;
 use App\SmsInbox;
 use App\Loan;
 use App\Order;
-use App\OrderType;
 
 /**
  * обработчик запросов из 1С
  */
-class From1cController extends Controller {
-
-    public function __construct() {
-        
-    }
+class From1cController extends Controller
+{
 
     /**
      * добавляет пользователя по запросу из 1С
-     * @param Request $request
-     * @return type
      */
-    public function addUserFrom1c(Request $request) {
+    public function addUserFrom1c(Request $request): array
+    {
         Log::info('From1cController.addUserFrom1c', $request->all());
         $validator = Validator::make($request->all(), [
-                    'login' => 'required',
+            'login' => 'required',
 //                    'password' => 'required',
-                    'subdivision_id_1c' => 'required',
-                    'id_1c' => 'required',
-                    'doc' => 'required']);
+            'subdivision_id_1c' => 'required',
+            'id_1c' => 'required',
+            'doc' => 'required'
+        ]);
         if ($validator->fails()) {
             Log::error('Не прошло валидацию', $request->all());
             return ['res' => 0, 'msg_err' => $request->all()];
@@ -65,7 +60,8 @@ class From1cController extends Controller {
             Log::error('Не найдено подразделение', $request->all());
             return ['res' => 0, 'msg_err' => $request->all()];
         }
-        $user = User::where('id_1c', 'like', StrUtils::stripWhitespaces($request->get('id_1c')) . '%')->orWhere('login', StrUtils::stripWhitespaces($request->get('id_1c')))->first();
+        $user = User::where('id_1c', 'like', StrUtils::stripWhitespaces($request->get('id_1c')) . '%')
+            ->orWhere('login', StrUtils::stripWhitespaces($request->get('id_1c')))->first();
         if (!is_null($user)) {
             try {
                 $user->update([
@@ -83,18 +79,17 @@ class From1cController extends Controller {
         } else {
             try {
                 $user = User::create([
-                            'name' => $request->get('login'),
-                            'login' => $request->get('login'),
-                            'password' => Hash::make($request->get('password')),
-                            'subdivision_id' => $subdiv->id,
-                            'doc' => $request->get('doc'),
-                            'id_1c' => $request->get('id_1c'),
-                            'last_login' => Carbon::now()->format('Y-m-d H:i:s'),
-                            'begin_time' => '08:00:00',
-                            'end_time' => '22:00:00'
+                    'name' => $request->get('login'),
+                    'login' => $request->get('login'),
+                    'password' => Hash::make($request->get('password')),
+                    'subdivision_id' => $subdiv->id,
+                    'doc' => $request->get('doc'),
+                    'id_1c' => $request->get('id_1c'),
+                    'last_login' => Carbon::now()->format('Y-m-d H:i:s'),
+                    'begin_time' => '08:00:00',
+                    'end_time' => '22:00:00'
                 ]);
-//                $user->roles()->sync(\App\Role::where('name', \App\Role::SPEC)->lists('id'));
-//                with(new AdminPanelController())->createCustomer($user->id);
+
             } catch (Exception $exc) {
                 Log::error('Не смог добавить пользователя', $request->all());
                 return ['res' => 0, 'msg_err' => $request->all()];
@@ -115,29 +110,30 @@ class From1cController extends Controller {
      * @param Request $request
      * @return type
      */
-    public function updateClaim(Request $request) {
+    public function updateClaim(Request $request)
+    {
         Log::info('From1cController.updateClaim request', $request->all());
         $validator = Validator::make($request->all(), [
-                    'fio' => 'required',
-                    'series' => 'required',
-                    'number' => 'required',
-                    'birth_city' => 'required',
-                    'issued' => 'required',
-                    'subdivision_code' => 'required',
-                    'issued_date' => 'required',
-                    'id' => 'required',
-                    'address_region' => 'required',
-                    'address_street' => 'required',
-                    'address_house' => 'required',
-                    'fact_address_region' => 'required',
-                    'fact_address_street' => 'required',
-                    'fact_address_house' => 'required',
+            'fio' => 'required',
+            'series' => 'required',
+            'number' => 'required',
+            'birth_city' => 'required',
+            'issued' => 'required',
+            'subdivision_code' => 'required',
+            'issued_date' => 'required',
+            'id' => 'required',
+            'address_region' => 'required',
+            'address_street' => 'required',
+            'address_house' => 'required',
+            'fact_address_region' => 'required',
+            'fact_address_street' => 'required',
+            'fact_address_house' => 'required',
         ]);
         $spylog = new Spylog();
         $input = $request->all();
         foreach ($input as $i) {
             if ($i == '') {
-                $i = NULL;
+                $i = null;
             }
         }
         $claim = Claim::where('id_1c', $request->id)->withTrashed()->first();
@@ -146,26 +142,20 @@ class From1cController extends Controller {
         }
         Log::info('From1cController.claim', ['claim' => $claim]);
         if (is_null($claim)) {
-//            if (array_key_exists('status', $input) && (Claim::isPERENOS($input['status']) || $input['status'] == Claim::STATUS_ACCEPTED)) {
             $claim = new Claim();
             if (!array_key_exists('status', $input)) {
                 $claim->status = Claim::STATUS_ONCHECK;
             }
-//            } else {
-//                Log::error('From1cController.updateClaim Не найдена заявка', $request->all());
-//                return ['res' => 1, 'msg_err' => 'Заявка без статуса. Не была сохранена'];
-//            }
+
         }
         $input['summa'] = $input['summa'];
-//        $input['date'] = date("Y-m-d H:i:s");
         $spylog->addModelChangeData('claims', $claim, $input);
         $claim->fill($input);
-//        if (array_key_exists('summa', $input)) {
-//            
-//        }
-//        return;
+
         //меняем запятую в спец проценте на точку (из 1с приходит через запятую)
-        $claim->special_percent = (array_key_exists('special_percent', $input) && !is_null($input['special_percent'])) ? str_replace(',', '.', $input['special_percent']) : null;
+        $claim->special_percent = (array_key_exists('special_percent',
+                $input) && !is_null($input['special_percent'])) ? str_replace(',', '.',
+            $input['special_percent']) : null;
         if (array_key_exists('subdivision_id_1c', $input)) {
             $subdiv = Subdivision::where('name_id', $input['subdivision_id_1c'])->first();
             if (is_null($subdiv)) {
@@ -179,9 +169,11 @@ class From1cController extends Controller {
         }
         if (array_key_exists('user_id_1c', $input)) {
             if (!is_null($claim->subdivision) && $claim->subdivision->is_terminal && !is_null($claim->user_id)) {
-                
+
             } else {
-                $user = User::where('id_1c', 'like', \App\StrUtils::stripWhitespaces($input['user_id_1c']) . '%')->orWhere('login', \App\StrUtils::stripWhitespaces($input['user_id_1c']))->first();
+                $user = User::where('id_1c', 'like',
+                    \App\StrUtils::stripWhitespaces($input['user_id_1c']) . '%')->orWhere('login',
+                    \App\StrUtils::stripWhitespaces($input['user_id_1c']))->first();
                 if (!is_null($user)) {
                     $user_id = $user->id;
                     $claim->user_id = $user_id;
@@ -237,14 +229,20 @@ class From1cController extends Controller {
             if (isset($passport) && !is_null($passport)) {
                 if (!is_null($claim->id_teleport) && $passport->id != $claim->passport_id) {
                     Log::info('FROM 1c Controller PASSPORT REMOVER', ['passport' => $passport, 'claim' => $claim]);
-                    $otherClaimsOnClaimPassportNum = Claim::where('passport_id', $claim->passport_id)->where('id', '<>', $claim->id)->where('created_at', '<', $claim->created_at->format('Y-m-d'))->count();
+                    $otherClaimsOnClaimPassportNum = Claim::where('passport_id', $claim->passport_id)->where('id', '<>',
+                        $claim->id)->where('created_at', '<', $claim->created_at->format('Y-m-d'))->count();
                     $ordersOnClaimPassportNum = \App\Order::where('passport_id', $claim->passport_id)->count();
                     $isTempCustomer = ($otherClaimsOnClaimPassportNum == 0 && $ordersOnClaimPassportNum == 0 && is_null($claim->passport->subdivision_code));
-                    Log::info('From1cController PASSPORTREMOVER2 ', ['otherclaims' => $otherClaimsOnClaimPassportNum, 'orders' => $ordersOnClaimPassportNum, 'tempcustomer' => $isTempCustomer]);
+                    Log::info('From1cController PASSPORTREMOVER2 ', [
+                        'otherclaims' => $otherClaimsOnClaimPassportNum,
+                        'orders' => $ordersOnClaimPassportNum,
+                        'tempcustomer' => $isTempCustomer
+                    ]);
                     if (!is_null($claim->passport) && ($claim->passport->series == 'TELE' || $isTempCustomer)) {
                         $passportToRemove = Passport::find($claim->passport_id);
                         $customerToRemove = Customer::find($claim->customer_id);
-                        Log::info('From1cController PASSPORT TO REMOVE', ['customer' => $customerToRemove, 'passport' => $passportToRemove]);
+                        Log::info('From1cController PASSPORT TO REMOVE',
+                            ['customer' => $customerToRemove, 'passport' => $passportToRemove]);
                         $claim->customer_id = $passport->customer->id;
                         $claim->passport_id = $passport->id;
                         $customer = $passport->customer;
@@ -277,7 +275,8 @@ class From1cController extends Controller {
             return ['res' => 0, 'msg_err' => $request->all()];
         }
 
-        if (array_key_exists('card_number', $input) && array_key_exists('secret_word', $input) && $input['card_number'] != "0") {
+        if (array_key_exists('card_number', $input) && array_key_exists('secret_word',
+                $input) && $input['card_number'] != "0") {
             Card::createCard($input['card_number'], $input['secret_word'], $customer->id);
         }
 
@@ -303,9 +302,7 @@ class From1cController extends Controller {
         if (array_key_exists('number', $input) && empty($input['number'])) {
             $oldPassportNumber = $passport->number;
         }
-//        if(array_key_exists('fact_address_city',$input) && strrpos($input['fact_address_city'], 'г') ==  strlen($input['fact_address_city'])){
-//            $input[]
-//        }
+
         $passport->fill($input);
         if (isset($oldPassportSeries)) {
             $passport->series = $oldPassportSeries;
@@ -328,31 +325,47 @@ class From1cController extends Controller {
             return ['res' => 0, 'msg_err' => $request->all()];
         }
         $spylog->addModelChangeData('about_clients', $about_client, $input);
-        $checkboxes = ['drugs', 'alco', 'stupid', 'badspeak', 'pressure', 'dirty',
-            'smell', 'badbehaviour', 'soldier', 'watch', 'other', 'pensioner',
-            'postclient', 'armia', 'poruchitelstvo', 'zarplatcard'];
+        $checkboxes = [
+            'drugs',
+            'alco',
+            'stupid',
+            'badspeak',
+            'pressure',
+            'dirty',
+            'smell',
+            'badbehaviour',
+            'soldier',
+            'watch',
+            'other',
+            'pensioner',
+            'postclient',
+            'armia',
+            'poruchitelstvo',
+            'zarplatcard'
+        ];
         foreach ($checkboxes as $cb) {
             if (!array_key_exists($cb, $input)) {
                 $input[$cb] = 0;
             }
         }
-        if (is_null($input['adsource']) || is_null(AdSource::find((int) $input['adsource']))) {
+        if (is_null($input['adsource']) || is_null(AdSource::find((int)$input['adsource']))) {
             Log::error('From1cController.updateClaim Неверный adsource', ['adsource' => $input['adsource']]);
 //            $input['adsource'] = NULL;
             $input['adsource'] = 1;
         }
-        if (is_null($input['zhusl']) || is_null(LiveCondition::find((int) $input['zhusl']))) {
+        if (is_null($input['zhusl']) || is_null(LiveCondition::find((int)$input['zhusl']))) {
             Log::error('From1cController.updateClaim Неверный источник zhusl', ['zhusl' => $input['zhusl']]);
 //            $input['zhusl'] = NULL;
             $input['zhusl'] = 1;
         }
-        if (is_null($input['obrasovanie']) || is_null(EducationLevel::find((int) $input['obrasovanie']))) {
+        if (is_null($input['obrasovanie']) || is_null(EducationLevel::find((int)$input['obrasovanie']))) {
             Log::error('From1cController.updateClaim Неверный obrasovanie', ['obrasovanie' => $input['obrasovanie']]);
 //            $input['obrasovanie'] = NULL;
             $input['obrasovanie'] = 1;
         }
-        if (is_null($input['marital_type_id']) || is_null(MaritalType::find((int) $input['marital_type_id']))) {
-            Log::error('From1cController.updateClaim Неверный marital_type_id', ['marital_type_id' => $input['marital_type_id']]);
+        if (is_null($input['marital_type_id']) || is_null(MaritalType::find((int)$input['marital_type_id']))) {
+            Log::error('From1cController.updateClaim Неверный marital_type_id',
+                ['marital_type_id' => $input['marital_type_id']]);
 //            $input['marital_type_id'] = NULL;
             $input['marital_type_id'] = 1;
         }
@@ -375,8 +388,11 @@ class From1cController extends Controller {
         if ($claim->status == Claim::STATUS_ONCHECK && !is_null($claim->subdivision) && $claim->subdivision->name == 'Teleport') {
             if (!array_key_exists('status', $input)) {
                 $claim->status = 2;
-            } else if (array_key_exists('status', $input) && !in_array($input['status'], [Claim::STATUS_ACCEPTED, Claim::STATUS_DECLINED])) {
-                $claim->status = 2;
+            } else {
+                if (array_key_exists('status', $input) && !in_array($input['status'],
+                        [Claim::STATUS_ACCEPTED, Claim::STATUS_DECLINED])) {
+                    $claim->status = 2;
+                }
             }
         }
         if (!$claim->save()) {
@@ -394,27 +410,31 @@ class From1cController extends Controller {
         //поэтому заявка задваивается и остаются пустые контрагент паспорт и заявка
         //если при сохранении такие находятся, то они удаляются
         if (!is_null($claim->id_teleport)) {
-            $teleportEmptyClaim = Claim::where('id_teleport', $claim->id_teleport)->whereNull('id_1c')->where('id', '<', $claim->id)->first();
+            $teleportEmptyClaim = Claim::where('id_teleport', $claim->id_teleport)->whereNull('id_1c')->where('id', '<',
+                $claim->id)->first();
             Log::info('From1cController removing empty teleport claim', ['claim' => $claim]);
             if (!is_null($teleportEmptyClaim)) {
                 if (!is_null($teleportEmptyClaim->passport) && $teleportEmptyClaim->passport->address_reg_date == '1800-01-01' && empty($teleportEmptyClaim->issued)) {
                     try {
                         $teleportEmptyClaim->passport->delete();
                     } catch (\Exception $ex) {
-                        Log::error('From1cController removing empty teleport passport', ['claim' => $teleportEmptyClaim, 'ex' => $ex]);
+                        Log::error('From1cController removing empty teleport passport',
+                            ['claim' => $teleportEmptyClaim, 'ex' => $ex]);
                     }
                 }
                 if (!is_null($teleportEmptyClaim->customer) && is_null($teleportEmptyClaim->customer->id_1c) && $teleportEmptyClaim->customer->id != $claim->customer->id) {
                     try {
                         $teleportEmptyClaim->customer->delete();
                     } catch (\Exception $ex) {
-                        Log::error('From1cController removing empty teleport customer', ['claim' => $teleportEmptyClaim, 'ex' => $ex]);
+                        Log::error('From1cController removing empty teleport customer',
+                            ['claim' => $teleportEmptyClaim, 'ex' => $ex]);
                     }
                 }
                 try {
                     $teleportEmptyClaim->delete();
                 } catch (\Exception $ex) {
-                    Log::error('From1cController removing empty teleport claim', ['claim' => $teleportEmptyClaim, 'ex' => $ex]);
+                    Log::error('From1cController removing empty teleport claim',
+                        ['claim' => $teleportEmptyClaim, 'ex' => $ex]);
                 }
             }
         }
@@ -425,21 +445,22 @@ class From1cController extends Controller {
                 try {
                     $passportToRemove->delete();
                 } catch (\Exception $ex) {
-                    
+
                 }
 
                 if (isset($customerToRemove) && !is_null($customerToRemove)) {
                     try {
                         $customerToRemove->delete();
                     } catch (\Exception $ex) {
-                        
+
                     }
                 }
             }
         }
 
         DB::commit();
-        if (isset($claim->id_teleport) && !is_null($claim->id_teleport) && array_key_exists('status_teleport', $input)) {
+        if (isset($claim->id_teleport) && !is_null($claim->id_teleport) && array_key_exists('status_teleport',
+                $input)) {
             try {
                 TeleportController::sendStatusToTeleport($claim, $input['status_teleport']);
             } catch (\Exception $ex) {
@@ -455,7 +476,8 @@ class From1cController extends Controller {
      * @param Request $req
      * @return type
      */
-    public function addSEBNumber(Request $req) {
+    public function addSEBNumber(Request $req)
+    {
         if ($req->has('id') && $req->has('seb_phone')) {
             $claim = Claim::where('id_1c', $req->id)->first();
             if (!is_null($claim)) {
@@ -475,7 +497,8 @@ class From1cController extends Controller {
         }
     }
 
-    public function dailyCashReportUpdate(Request $req) {
+    public function dailyCashReportUpdate(Request $req)
+    {
 //        Log::info('From1cController.dailyCashReportUpdate', $req->all());
         if (!$req->has('id_1c') || !$req->has('subdivision_id_1c') || !$req->has('user_id_1c') || !$req->has('created_at')) {
             Log::error('From1cController.dailyCashReportUpdate 1', $req->all());
@@ -491,7 +514,8 @@ class From1cController extends Controller {
         $subdiv = Subdivision::where('name_id', $req->subdivision_id_1c)->first();
         $user = User::where('id_1c', $req->user_id_1c)->first();
         if (is_null($subdiv) || is_null($user)) {
-            Log::error('From1cController.dailyCashReportUpdate 2', ['req' => $req->all(), 'user' => $user, 'sub' => $subdiv]);
+            Log::error('From1cController.dailyCashReportUpdate 2',
+                ['req' => $req->all(), 'user' => $user, 'sub' => $subdiv]);
             return 0;
         }
         $report->subdivision_id = $subdiv->id;
@@ -526,10 +550,13 @@ class From1cController extends Controller {
         foreach ($items as $item) {
             $json[$i] = [
                 'fio' => $item->getAttribute('fio'),
-                'action' => ((array_key_exists($item->getAttribute('action'), $actions)) ? $actions[$item->getAttribute('action')] : ''),
-                'doctype' => ((array_key_exists($item->getAttribute('doctype'), $doctypes)) ? $doctypes[$item->getAttribute('doctype')] : ''),
+                'action' => ((array_key_exists($item->getAttribute('action'),
+                    $actions)) ? $actions[$item->getAttribute('action')] : ''),
+                'doctype' => ((array_key_exists($item->getAttribute('doctype'),
+                    $doctypes)) ? $doctypes[$item->getAttribute('doctype')] : ''),
                 'doc' => $item->getAttribute('doc'),
-                'money' => ($item->getAttribute('money') != '' && strpos($item->getAttribute('money'), '.') === FALSE) ? ($item->getAttribute('money') . '.00') : $item->getAttribute('money'),
+                'money' => ($item->getAttribute('money') != '' && strpos($item->getAttribute('money'),
+                        '.') === false) ? ($item->getAttribute('money') . '.00') : $item->getAttribute('money'),
                 'comment' => $item->getAttribute('comment')
             ];
             $i++;
@@ -543,7 +570,8 @@ class From1cController extends Controller {
             }
             return 1;
         } else {
-            Log::error('From1cController.dailyCashReportUpdate 4', ['req' => $req->all(), 'user' => $user, 'sub' => $subdiv, 'xml' => $xml, 'report' => $report]);
+            Log::error('From1cController.dailyCashReportUpdate 4',
+                ['req' => $req->all(), 'user' => $user, 'sub' => $subdiv, 'xml' => $xml, 'report' => $report]);
             return 0;
         }
     }
@@ -553,11 +581,12 @@ class From1cController extends Controller {
      * @param Request $req
      * @return type
      */
-    public function getOrdersAndDocs(Request $req) {
+    public function getOrdersAndDocs(Request $req)
+    {
         $validator = Validator::make($req->all(), [
-                    'date_start' => 'required',
-                    'passport_series' => 'required',
-                    'passport_number' => 'required'
+            'date_start' => 'required',
+            'passport_series' => 'required',
+            'passport_number' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -568,11 +597,11 @@ class From1cController extends Controller {
         $date_end = ($req->has('date_end')) ? (Carbon::createFromFormat('dmY', $req->date_end)) : Carbon::now();
         $passport = Passport::where('series', $req->passport_series)->where('number', $req->passport_number)->first();
         $where = (!is_null($passport)) ? ('passport_id=' . $passport->id . ' OR ') : '';
-        $where.= '(passport_data like "%' . $req->passport_series . '%" AND passport_data like "%' . $req->passport_number . '%")';
+        $where .= '(passport_data like "%' . $req->passport_series . '%" AND passport_data like "%' . $req->passport_number . '%")';
         $orders = \App\Order::where('created_at', '>', $date_start->format('Y-m-d'))
-                ->where('created_at', '<', $date_end->format('Y-m-d'))
-                ->whereRaw($where)
-                ->get();
+            ->where('created_at', '<', $date_end->format('Y-m-d'))
+            ->whereRaw($where)
+            ->get();
         $xml = new \SimpleXMLElement('<root/>');
         $docsNode = $xml->addChild('docs');
         $ordersNode = $xml->addChild('orders');
@@ -589,7 +618,8 @@ class From1cController extends Controller {
             $oNode->addChild('passport_series', $order->user->id_1c);
             $oNode->addChild('passport_number', $order->user->id_1c);
 //            $oNode->addChild('loan_id_1c', (!is_null($loan)) ? $loan->id_1c : '');
-            $oNode->addChild('customer_id_1c', (!is_null($passport) && !is_null($passport->customer)) ? $passport->customer->id_1c : '');
+            $oNode->addChild('customer_id_1c',
+                (!is_null($passport) && !is_null($passport->customer)) ? $passport->customer->id_1c : '');
             $oNode->addChild('passport', $order->passport_data);
         }
         if ($req->has('with_docs') && isset($loan) && !is_null($loan)) {
@@ -598,14 +628,22 @@ class From1cController extends Controller {
                 $str = 'doc';
                 if ($rep->repaymentType->isDopnik()) {
                     $str = 'dopnik';
-                } else if ($rep->repaymentType->isPeace()) {
-                    $str = 'peace';
-                } else if ($rep->repaymentType->isClaim()) {
-                    $str = 'claim';
-                } else if ($rep->repaymentType->isSUZ()) {
-                    $str = 'suz';
-                } else if ($rep->repaymentType->isClosing()) {
-                    $str = 'closing';
+                } else {
+                    if ($rep->repaymentType->isPeace()) {
+                        $str = 'peace';
+                    } else {
+                        if ($rep->repaymentType->isClaim()) {
+                            $str = 'claim';
+                        } else {
+                            if ($rep->repaymentType->isSUZ()) {
+                                $str = 'suz';
+                            } else {
+                                if ($rep->repaymentType->isClosing()) {
+                                    $str = 'closing';
+                                }
+                            }
+                        }
+                    }
                 }
                 $docNode = $docsNode->addChild($str);
                 $docNode->addChild('id_1c', $rep->id_1c);
@@ -617,15 +655,12 @@ class From1cController extends Controller {
         return response($xml->asXML(), '200', ['Content-Type', 'text/xml']);
     }
 
-    public function getClaimsForScorista() {
-        
-    }
-
     /**
      * Обновляет статус переданной заявки
      * @param Request $req
      */
-    public function updateClaimStatus(Request $req) {
+    public function updateClaimStatus(Request $req)
+    {
         if ($req->has('status') && $req->has('claim_id_1c')) {
             $claim = Claim::where('id_1c', $req->get('claim_id_1c'))->first();
             if (!is_null($claim)) {
@@ -644,7 +679,8 @@ class From1cController extends Controller {
      * @param Request $req
      * @return int
      */
-    public function getPromocode(Request $req) {
+    public function getPromocode(Request $req)
+    {
         if (!$req->has('loan_id_1c') || !$req->has('customer_id_1c')) {
 //            return MySoap::createXML(['result' => 0, 'error' => StrLib::ERR_NO_PARAMS]);
             return 0;
@@ -671,7 +707,8 @@ class From1cController extends Controller {
      * @param Request $req
      * @return int
      */
-    public function uploadSqlFile(Request $req) {
+    public function uploadSqlFile(Request $req)
+    {
         if (!$req->has('filename')) {
             return 0;
         }
@@ -689,23 +726,26 @@ class From1cController extends Controller {
         return 1;
     }
 
-    public function uploadCsvFile(Request $req){
-        Log::info('From1cController uploadCsv',['req'=>$req->all()]);
+    public function uploadCsvFile(Request $req)
+    {
+        Log::info('From1cController uploadCsv', ['req' => $req->all()]);
         $input = $req->input();
-        if(!array_key_exists('filename', $input)){
+        if (!array_key_exists('filename', $input)) {
             return 0;
         }
         $filenames = explode(',', $input['filename']);
         $uploader = new DebtorsInfoUploader();
         $res = $uploader->uploadByFilenames($filenames);
-        Log::info('From1cController uploader res',['res'=>$res,'filenames'=>$filenames,'req'=>$req->all(),'input'=>$input]);
+        Log::info('From1cController uploader res',
+            ['res' => $res, 'filenames' => $filenames, 'req' => $req->all(), 'input' => $input]);
         return 1;
     }
-    
+
     /**
      * Загружает данные по должникам для обновления
      */
-    public function updateClientInfo(Request $req) {
+    public function updateClientInfo(Request $req)
+    {
         if (!$req->has('filename')) {
             return 0;
         }
@@ -713,38 +753,38 @@ class From1cController extends Controller {
         if (!Storage::disk('ftp')->has($path)) {
             return 0;
         }
-        
+
         $input = $req->input();
-        
-        $uploader = new DebtorsInfoUploader();
-        $res = $uploader->updateClientInfo($input['filename']);
-        
-        return $res;
-    }
-    
-    public function clearOtherPhones() {
-        $uploader = new DebtorsInfoUploader();
-        $res = $uploader->clearOtherPhones();
-        return $res;
+
+        return (new DebtorsInfoUploader())->updateClientInfo($input['filename']);
+
     }
 
-    public function uploadDebtorsWithEmptyCustomers(Request $req) {
+    public function clearOtherPhones()
+    {
+        return (new DebtorsInfoUploader())->clearOtherPhones();
+    }
+
+    public function uploadDebtorsWithEmptyCustomers(Request $req)
+    {
         return $this->_uploadDebtorsWithEmptyCustomers(json_decode($req->get('debtors', json_encode([])), true));
         return 1;
     }
 
-    function _uploadDebtorsWithEmptyCustomers($debtors) {
+    function _uploadDebtorsWithEmptyCustomers($debtors)
+    {
         Log::info('DebtorsUpload', ['debtors' => $debtors]);
         $res = [];
         foreach ($debtors as $debtor) {
-            if (Passport::where('series', $debtor['passport_series'])->where('number', $debtor['passport_number'])->count() == 0) {
+            if (Passport::where('series', $debtor['passport_series'])->where('number',
+                    $debtor['passport_number'])->count() == 0) {
                 Customer::getFrom1c($debtor['passport_series'], $debtor['passport_number']);
             }
             $loansNum = \App\Loan::where('loans.id_1c', $debtor['loan_id_1c'])
-                    ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-                    ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
-                    ->where('customers.id_1c', $debtor['customer_id_1c'])
-                    ->count();
+                ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
+                ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
+                ->where('customers.id_1c', $debtor['customer_id_1c'])
+                ->count();
             if ($loansNum > 0) {
                 continue;
             }
@@ -760,7 +800,8 @@ class From1cController extends Controller {
      * Назначает id_1c для мероприятий до выгрузки в 1С
      * @return int
      */
-    public function setId1cForEvents() {
+    public function setId1cForEvents()
+    {
         $events = DebtorEvent::whereNull('id_1c')->get();
         foreach ($events as $event) {
             $event->id_1c = 'М' . StrUtils::addChars(strval($event->id), 9, '0', false);
@@ -770,16 +811,17 @@ class From1cController extends Controller {
         return 1;
     }
 
-    public function getStoragePath($ftp = false) {
+    public function getStoragePath($ftp = false)
+    {
         if ($ftp) {
             return 'ftps://'
-                    . config('filesystems.disks')['ftp']['username']
-                    . ':'
-                    . config('filesystems.disks')['ftp']['password']
-                    . '@'
-                    . config('filesystems.disks')['ftp']['host']
-                    . config('filesystems.disks')['ftp']['root']
-                    . '/debtors/';
+                . config('filesystems.disks')['ftp']['username']
+                . ':'
+                . config('filesystems.disks')['ftp']['password']
+                . '@'
+                . config('filesystems.disks')['ftp']['host']
+                . config('filesystems.disks')['ftp']['root']
+                . '/debtors/';
         } else {
             return storage_path() . '/app/debtors/';
         }
@@ -789,14 +831,15 @@ class From1cController extends Controller {
      * Меняет ответственного, в случае, если должник уже в ведении СУЗ
      * refresh_date меняем, чтобы эти должники не ушли в 1С
      */
-    public function changeResponsibleUserInDebtor() {
+    public function changeResponsibleUserInDebtor()
+    {
         $filename = 'otherRespUserDebtors_' . date('dmY', time()) . '.txt';
         if (!Storage::disk('local')->put('debtors/' . $filename, Storage::disk('ftp')->get('debtors/' . $filename))) {
             Log::info('Не удалось скопировать файл с FTP: changeResponsibleUserInDebtor');
         }
 
         if (($handle = fopen($this->getStoragePath() . $filename, 'r')) !== false) {
-            while (($data = fgetcsv($handle, 0, ";")) !== FALSE) {
+            while (($data = fgetcsv($handle, 0, ";")) !== false) {
                 foreach ($data as $debtor_id_1c) {
                     $debtor = Debtor::where('debtor_id_1c', $debtor_id_1c)->first();
                     if (is_null($debtor)) {
@@ -817,12 +860,15 @@ class From1cController extends Controller {
      * @param Request $req
      * @return type
      */
-    public function getSmsWithNoLoan(Request $req) {
-        logger('From1c', ['req' => $req->all(), 'start_date' => $req->get('start_date'), 'end_date' => $req->get('end_date')]);
+    public function getSmsWithNoLoan(Request $req)
+    {
+        logger('From1c',
+            ['req' => $req->all(), 'start_date' => $req->get('start_date'), 'end_date' => $req->get('end_date')]);
         $startDate = new Carbon($req->get('start_date', Carbon::today()->format('Y-m-d H:i:s')));
         $endDate = new Carbon($req->get('end_date', Carbon::tomorrow()->format('Y-m-d H:i:s')));
         logger('From1c 2', ['sd' => $startDate, 'ed' => $endDate]);
-        $smslist = SmsInbox::whereBetween('created_at', [$startDate->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])->get();
+        $smslist = SmsInbox::whereBetween('created_at',
+            [$startDate->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])->get();
 //        $smslist = SmsInbox::get();
         $res = [];
         foreach ($smslist as $sms) {
@@ -830,18 +876,23 @@ class From1cController extends Controller {
                 continue;
             }
             $unclosed_loans = Loan::leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-                    ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
-                    ->where('customers.telephone', $sms->phone)
-                    ->where('loans.closed', 0)
-                    ->count();
+                ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
+                ->where('customers.telephone', $sms->phone)
+                ->where('loans.closed', 0)
+                ->count();
             if ($unclosed_loans == 0) {
-                $res['item' . count($res)] = ['phone' => $sms->phone, 'message' => $sms->message, 'received' => $sms->created_at->format('Y-m-d H:i:s')];
+                $res['item' . count($res)] = [
+                    'phone' => $sms->phone,
+                    'message' => $sms->message,
+                    'received' => $sms->created_at->format('Y-m-d H:i:s')
+                ];
             }
         }
         return \App\MySoap::createXML(['items' => $res]);
     }
 
-    public function updateOrder(Request $req) {
+    public function updateOrder(Request $req)
+    {
         Log::info('From1cController.updateOrder', ['req' => $req->all()]);
         $input = $req->input();
         $data = $req;
@@ -855,7 +906,8 @@ class From1cController extends Controller {
             if (is_null($order->user_id)) {
                 $order->user_id = Spylog::USERS_ID_1C;
             }
-            $order->passport_id = Passport::where('series', $data->passport_series)->where('number', $data->passport_number)->value('id');
+            $order->passport_id = Passport::where('series', $data->passport_series)->where('number',
+                $data->passport_number)->value('id');
             if (is_null($order->passport_id)) {
                 $customer = Customer::where('id_1c', $data->customer_id_1c)->first();
                 if (!is_null($customer)) {
@@ -886,17 +938,48 @@ class From1cController extends Controller {
         }
     }
 
-    public function readAsp(Request $req) {
-        logger('From1cController',[$req->all()]);
+    public function readAsp(Request $req)
+    {
+        logger('From1cController', [$req->all()]);
         $customer = Customer::where('id_1c', $req->get('customer_id_1c'))->first();
         if (is_null($customer)) {
             return \App\MySoap::createXML(['result' => 0, 'error' => 'Нет контрагента']);
         }
         return \App\MySoap::createXML([
-            'result' => 1, 
-            'asp_key' => $customer->asp_key, 
-            'date' => (is_null($customer->asp_approved_at)) ? '00010101' : with(new Carbon($customer->asp_approved_at))->format('Ymd')
+            'result' => 1,
+            'asp_key' => $customer->asp_key,
+            'date' => (is_null($customer->asp_approved_at)) ?
+                '00010101' :
+                with(new Carbon($customer->asp_approved_at))->format('Ymd')
         ]);
     }
 
+    public function addRecordToUploadSqlFilesType1(Request $request)
+    {
+        if (!$request->has('filename')) {
+            return 0;
+        }
+
+        $uploadSqlFile = new UploadSqlFile();
+
+        $uploadSqlFile->filetype = 1;
+        $uploadSqlFile->filename = $request->get('filename');
+        $uploadSqlFile->save();
+
+        return 1;
+    }
+
+    public function addRecordToUploadSqlFilesType2(Request $request)
+    {
+        if (!$request->has('filename')) {
+            return 0;
+        }
+        $uploadSqlFile = new UploadSqlFile();
+
+        $uploadSqlFile->filetype = 2;
+        $uploadSqlFile->filename = $request->get('filename');
+        $uploadSqlFile->save();
+
+        return 1;
+    }
 }

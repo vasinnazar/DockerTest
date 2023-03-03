@@ -16,6 +16,7 @@ class UpdateDebtors extends Migration
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
             $table->index(['deleted_at', 'file_id']);
+            $table->index(['deleted_at', 'in_process']);
         });
     }
 

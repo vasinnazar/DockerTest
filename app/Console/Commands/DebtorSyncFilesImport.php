@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\UploadSqlFile;
-use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -33,16 +32,18 @@ class DebtorSyncFilesImport extends Command
      */
     public function handle()
     {
-        $files = UploadSqlFile::where('completed', 0)->where('in_process',0)->orderBy('id', 'asc')->get();
+        $files = UploadSqlFile::where('completed', 0)->where('in_process', 0)->get();
         if ($files->isEmpty()) {
             return;
         }
         foreach ($files as $file) {
 
             $path = storage_path() . '/app/debtors/' . $file->filename;
-            if (!(Storage::disk('local')->has('debtors/' . $file->filename))) {
+            if (!(Storage::disk('ftp')->has('/debtors/test_csv/' . $file->filename))) {
                 continue;
             }
+            Storage::disk('local')
+                ->put('debtors/' . $file->filename, Storage::disk('ftp')->get('/debtors/test_csv/' . $file->filename));
             try {
 
                 if ($file->filetype == 2) {
@@ -72,7 +73,7 @@ class DebtorSyncFilesImport extends Command
                 continue;
             }
 
-//            Storage::disk('local')->delete('debtors/' . $file->filename);
+            Storage::disk('local')->delete('debtors/' . $file->filename);
             $file->in_process = 1;
             $file->save();
         }

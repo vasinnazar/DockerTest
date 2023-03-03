@@ -4,14 +4,11 @@ namespace App\Jobs;
 
 use App\Customer;
 use App\DebtorsOtherPhones;
-use App\Passport;
 use App\DebtorSyncAbout;
 use App\UploadSqlFile;
 use Carbon\Carbon;
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
