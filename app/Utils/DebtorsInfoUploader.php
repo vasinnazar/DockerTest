@@ -65,7 +65,19 @@ class DebtorsInfoUploader {
      */
     public function uploadByFilenames($filenames) {
         set_time_limit(0);
-        $namesOrder = ['customers', 'passport', 'zayavka', 'uradress', 'factadress', 'cred', 'dopnik', 'mirovoe', 'zayavlenie_penya', 'rassrochka', 'sverka'];
+        $namesOrder = [
+            'customers',
+            'passport',
+            'zayavka',
+            'uradress',
+            'factadress',
+            'cred',
+            'dopnik',
+            'mirovoe',
+            'zayavlenie_penya',
+            'rassrochka',
+            'sverka'
+        ];
 //        $namesOrder = ['cred'];
         foreach ($namesOrder as $name) {
             $fname = ($name == 'customers') ? 'zayavka' : $name;

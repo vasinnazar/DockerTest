@@ -2,16 +2,22 @@
 
 namespace App\Console;
 
+use App\Console\Commands\DebtorSyncAboutProcess;
+use App\Console\Commands\DebtorSyncSqlProcess;
+use App\Console\Commands\Inspire;
+use App\Console\Commands\MysqlBackup;
 use App\Console\Commands\RepaymentOfferAutoPeace;
+use App\Console\Commands\DebtorSyncFilesImport;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use Log;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
-use DB;
+use Illuminate\Support\Facades\DB;
 
-class Kernel extends ConsoleKernel {
+class Kernel extends ConsoleKernel
+{
 
     /**
      * The Artisan commands provided by your application.
@@ -19,22 +25,23 @@ class Kernel extends ConsoleKernel {
      * @var array
      */
     protected $commands = [
-        'App\Console\Commands\Inspire',
-        'App\Console\Commands\MysqlBackup',
+        Inspire::class,
+        MysqlBackup::class,
         RepaymentOfferAutoPeace::class,
+        DebtorSyncFilesImport::class,
+        DebtorSyncAboutProcess::class,
+        DebtorSyncSqlProcess::class,
     ];
 
     /**
      * Define the application's command schedule.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * @param \Illuminate\Console\Scheduling\Schedule $schedule
      * @return void
      */
-    protected function schedule(Schedule $schedule) {
-        /**
-         * каждую минуту
-         */
-        $schedule->call(function() {
+    protected function schedule(Schedule $schedule)
+    {
+        $schedule->call(function () {
             //в должниках проверять ордера и добавлять сообщение об оплате
             if (config('app.version_type') == 'debtors') {
 //                \App\Debtor::checkForPaymentInArm();
@@ -64,7 +71,7 @@ class Kernel extends ConsoleKernel {
                 }
             }
         })->everyMinute();
-        $schedule->call(function() {
+        $schedule->call(function () {
             if (config('app.version_type') != 'debtors') {
                 // подгружать ордера с киви и банка чтобы они появлялись в реплике арма для должников
                 $now = Carbon::now();
@@ -77,7 +84,7 @@ class Kernel extends ConsoleKernel {
         /**
          * каждый день в полночь
          */
-        $schedule->call(function() {
+        $schedule->call(function () {
             if (config('app.version_type') != 'debtors') {
                 /**
                  * выводить сообщение о сверке карт
@@ -95,7 +102,7 @@ class Kernel extends ConsoleKernel {
             Log::info("Hello from cron. Changing owner...");
             \App\Utils\HelperUtil::startShellProcess('chown -R apache:apache /var/www/armff.ru/storage/logs/laravel-' . Carbon::today()->format('Y-m-d') . '.log');
         })->daily();
-        $schedule->call(function() {
+        $schedule->call(function () {
             if (config('app.version_type') != 'debtors') {
                 /**
                  * Сделать бэкап базы
@@ -103,10 +110,10 @@ class Kernel extends ConsoleKernel {
 //                \App\Utils\MysqlBackupUtil::createBackup();
             }
         })->dailyAt('01:00');
-        $schedule->call(function() {
+        $schedule->call(function () {
             \App\Utils\MysqlBackupUtil::clearDumpsFolder();
         })->dailyAt('02:00');
-        $schedule->call(function() {
+        $schedule->call(function () {
             if (config('app.version_type') == 'debtors') {
                 /**
                  * Сделать бэкап базы
@@ -115,7 +122,7 @@ class Kernel extends ConsoleKernel {
 //                \App\Utils\MysqlBackupUtil::createBackup(null, 'debtors');
             }
         })->dailyAt('23:00');
-        $schedule->call(function() {
+        $schedule->call(function () {
 
 //            if (Carbon::now()->day == 5) {
 //                //каждый месяц запускаем отправку в телепорт заявок с нулевыми статусами
@@ -124,7 +131,7 @@ class Kernel extends ConsoleKernel {
 //                \App\Claim::resendTeleportClaimsWithNullStatus($start_date, $end_date);
 //            }
         })->dailyAt('08:40');
-        $schedule->call(function() {
+        $schedule->call(function () {
             if (config('app.version_type') != 'debtors') {
                 //загружает номенклатуры, склады и статьи затрат
                 \App\Nomenclature::uploadFrom1c();
@@ -132,13 +139,13 @@ class Kernel extends ConsoleKernel {
                 \App\Expenditure::uploadFrom1c();
             }
         })->dailyAt('07:00');
-        
-        $schedule->call(function(){
+
+        $schedule->call(function () {
             $crCon = new \App\Http\Controllers\CronController();
             $crCon->checkSqlFileForUpdate();
         })->everyMinute();
-        
-        $schedule->call(function() {
+
+        $schedule->call(function () {
             if (config('app.version_type') == 'debtors') {
                 //делает загрузку данных по пустым контрагентам по выгруженным с ночи файлам
                 $uploader = new \App\Utils\DebtorsInfoUploader();
@@ -160,25 +167,29 @@ class Kernel extends ConsoleKernel {
                     DB::statement("UPDATE debtors.debtor_events as d1 SET user_id=(SELECT id FROM debtors.users WHERE id_1c=d1.user_id_1c), updated_at='" . $now . "' where user_id is null limit 10000;");
                     DB::statement("UPDATE debtors.debtor_events as d1 SET debtor_id=(SELECT id FROM debtors.debtors WHERE debtor_id_1c=d1.debtor_id_1c), updated_at='" . $now . "' where debtor_id is null limit 10000;");
                 } catch (\Exception $ex) {
-                    
+
                 }
             }
         })->dailyAt('08:00');
-        
-        $schedule->call(function(){
+
+        $schedule->call(function () {
             $c = new \App\Http\Controllers\CronController();
             $c->getOmicronTask();
         })->everyThirtyMinutes();
 
-        $schedule->call(function(){
+        $schedule->call(function () {
             \Illuminate\Support\Facades\DB::table('debtors.debtors')
-                    ->where('closed_at', '<=', date('Y-m-d', time()) . ' 00:00:00')
-                    ->update([
-                        'od_after_closing' => 0
-                    ]);
+                ->where('closed_at', '<=', date('Y-m-d', time()) . ' 00:00:00')
+                ->update([
+                    'od_after_closing' => 0
+                ]);
         })->dailyAt('07:00');
 
         $schedule->command('repayment-offers:auto-peace');
+        $schedule->command('debtor-sync:import')->withoutOverlapping();
+        $schedule->command('debtor-sync:execute-sql')->withoutOverlapping();
+        $schedule->command('debtor-sync:execute-about')->withoutOverlapping();
+
     }
 
 }
