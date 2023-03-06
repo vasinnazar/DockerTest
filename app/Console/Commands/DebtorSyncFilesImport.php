@@ -39,11 +39,11 @@ class DebtorSyncFilesImport extends Command
         foreach ($files as $file) {
 
             $path = storage_path() . '/app/debtors/' . $file->filename;
-            if (!(Storage::disk('ftp')->has('/debtors/test_csv/' . $file->filename))) {
+            if (!(Storage::disk('ftp')->has('/debtors/' . $file->filename))) {
                 continue;
             }
             Storage::disk('local')
-                ->put('debtors/' . $file->filename, Storage::disk('ftp')->get('/debtors/test_csv/' . $file->filename));
+                ->put('debtors/' . $file->filename, Storage::disk('ftp')->get('/debtors/' . $file->filename));
             try {
 
                 if ($file->filetype == 2) {
