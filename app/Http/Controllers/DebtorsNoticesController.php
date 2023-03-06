@@ -78,8 +78,8 @@ class DebtorsNoticesController extends Controller {
 
     public function startTask(Request $request) {
         $input = $request->input();
-
         $user = auth()->user();
+
         if ($user->hasRole('debtors_remote')) {
             $str_podr = '000000000006';
         } else if ($user->hasRole('debtors_personal')) {
@@ -98,20 +98,29 @@ class DebtorsNoticesController extends Controller {
         $noticesTask->completed = 0;
         $noticesTask->save();
 
-        $fixation_date_from = date('Y-m-d 00:00:00', strtotime($input['fixation_date_from']));
-        $fixation_date_to = date('Y-m-d 23:59:59', strtotime($input['fixation_date_to']));
+        $fixationDateFrom = !empty($input['fixation_date_from']) ?
+            Carbon::parse($input['fixation_date_from'])->startOfDay() : null;
+        $fixationDateTo = !empty($input['fixation_date_to']) ?
+            Carbon::parse($input['fixation_date_to'])->endOfDay() : null;
 
-        $respUsers = [];
-        foreach ($input['responsible_users_ids'] as $uid) {
-            $respUser = User::find($uid);
-            $respUsers[] = $respUser->id_1c;
+        $respUsers = User::whereIn('id',[$input['responsible_users_ids']])->get()->pluck('id_1c')->toArray();
+
+        $bases = null;
+        if (!empty($input['debt_base_ids'])) {
+            foreach ($input['debt_base_ids'] as $debt_base_id) {
+                $bases[] = config('debtors.debt_bases')[$debt_base_id];
+            }
         }
 
         $debtors = Debtor::where('is_debtor', 1)
-                ->whereBetween('fixation_date', [$fixation_date_from, $fixation_date_to])
-                ->whereIn('responsible_user_id_1c', $respUsers)
-                ->whereIn('debt_group_id', $input['debt_group_ids'])
-                ->get();
+            ->byFixation($fixationDateFrom, $fixationDateTo)
+            ->whereIn('responsible_user_id_1c', $respUsers)
+            ->whereIn('debt_group_id', $input['debt_group_ids']);
+
+        if(!is_null($bases)) {
+            $debtors->whereIn('base', $bases);
+        }
+        $debtors = $debtors->get();
 
         $massDir = storage_path() . '/app/public/postPdfTasks/' . $noticesTask->id . '/';
 
@@ -701,7 +710,7 @@ class DebtorsNoticesController extends Controller {
             $path .= '/' . $task_id . '.xls';
             $ext = 'attachment; filename="' . $task_id . '.xls"';
         } else {
-            
+
         }
 
         $file = File::get($path);
@@ -771,9 +780,9 @@ class DebtorsNoticesController extends Controller {
         }
 
         $fixationDateFrom = !empty($input['fixation_date_from']) ?
-            Carbon::parse($input['fixation_date_from'])->endOfDay()->format('Y-m-d 23:59:59') : null;
+            Carbon::parse($input['fixation_date_from'])->startOfDay(): null;
         $fixationDateTo = !empty($input['fixation_date_to']) ?
-            Carbon::parse($input['fixation_date_to'])->endOfDay()->format('Y-m-d 23:59:59') : null;
+            Carbon::parse($input['fixation_date_to'])->endOfDay() : null;
 
         $qtyDelaysFrom = !empty($input['qty_delays_from']) ? $input['qty_delays_from'] : null;
         $qtyDelaysTo = !empty($input['qty_delays_to']) ?
@@ -842,7 +851,7 @@ class DebtorsNoticesController extends Controller {
             'ADDITIONAL_INFO',
             'LETTER_COMMENT'
         ]);
-        
+
         $path = storage_path() . '/app/public/courtPdfTasks/' . $task_id;
 
         foreach ($debtors as $debtor) {
@@ -854,9 +863,9 @@ class DebtorsNoticesController extends Controller {
 
             $html = $this->pdfService->getCourtOrder($debtor);
             PdfUtil::savePdfFromPrintServer($html, $path . '/' . $debtor->id . '.pdf');
-            
+
             $i++;
-            
+
             $passport = Passport::where('series', $debtor->passport_series)
                     ->where('number', $debtor->passport_number)
                     ->first();
@@ -876,12 +885,12 @@ class DebtorsNoticesController extends Controller {
                 '',
                 ''
             ]);
-            
+
             sleep(5);
         }
 
         $excel->store('xls', $path);
-        
+
         $arDir = scandir($path);
 
         $zip = new \ZipArchive();
@@ -901,7 +910,7 @@ class DebtorsNoticesController extends Controller {
             $zip->close();
         }
     }
-    
+
     public function getCourtFile($type, $task_id) {
         $path = storage_path('app/public/courtPdfTasks/') . $task_id;
 
@@ -912,7 +921,7 @@ class DebtorsNoticesController extends Controller {
             $path .= '/' . $task_id . '.xls';
             $ext = 'attachment; filename="' . $task_id . '.xls"';
         } else {
-            
+
         }
 
         $file = File::get($path);

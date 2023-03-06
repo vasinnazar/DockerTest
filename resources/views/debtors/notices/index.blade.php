@@ -107,6 +107,19 @@
                                 </td>
                             </tr>
                             <tr>
+                                <td>База: </td>
+                                <td></td>
+                                <td>
+                                    <select name="debt_base_ids[]" multiple="multiple">
+                                        <option value="9">Б-3</option>
+                                        <option value="19">Б-риски</option>
+                                        <option value="29">Б-график</option>
+                                        <option value="30">КБ-график</option>
+                                        <option value="18">Б-МС</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>Ответственный: </td>
                                 <td></td>
                                 <td>
