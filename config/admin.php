@@ -54,7 +54,7 @@ return array (
         'absolute_url' => true
     ],
     'buh_base_1c' => [
-        'url' => '192.168.1.23:8080/ARMDolzniki/ws/Mole/?wsdl',
+        'url' => '192.168.35.38:8080/ARMDolzniki/ws/Mole/?wsdl',
         'login' => 'KAadmin',
         'password' => 'dune25',
         'absolute_url' => true
