@@ -1,13 +1,15 @@
 <?php
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 
 //use Log;
 
-Route::filter('admin_only', function() {
+Route::middleware('admin_only', function() {
 //    if (substr(Request::server('REMOTE_ADDR'), 0, 10) == '192.168.1.' || Request::server('REMOTE_ADDR') == '127.0.0.1') {
     if (is_null(Auth::user()) || !Auth::user()->isAdmin()) {
         return redirect('home')->with('msg', 'Недостаточно прав доступа!')->with('class', 'alert-danger');
@@ -16,19 +18,19 @@ Route::filter('admin_only', function() {
 //        return redirect('home')->with('msg', 'Доступ запрещен!')->with('class', 'alert-danger');
 //    }
 });
-Route::filter('office_only', function() {
+Route::middleware('office_only', function() {
     if (!config('app.dev')) {
         if (is_null(Auth::user()) || is_null(Auth::user()->subdivision) || !in_array(Auth::user()->subdivision->name_id, ['000000012', 'НСК00014'])) {
             return redirect('home')->with('msg', 'Недостаточно прав доступа!')->with('class', 'alert-danger');
         }
     }
 });
-Route::filter('infinity_only', function() {
+Route::middleware('infinity_only', function() {
     if (!(Request::server('REMOTE_ADDR') == '192.168.1.50' || Request::server('REMOTE_ADDR') == '192.168.1.60')) {
         return '';
     }
 });
-Route::filter('auth_only', function() {
+Route::middleware('auth_only', function() {
     if (is_null(Auth::user())) {
         return redirect('auth/login');
     }
@@ -98,7 +100,7 @@ Route::get('images/{path}', [function($path) {
         return $response;
     }]);
 
-Route::filter('localCallOnly', function() {
+Route::middleware('localCallOnly', function() {
 //    if (Request::server('REMOTE_ADDR') != '192.168.1.34') {
     if (Request::server('REMOTE_ADDR') == '192.168.1.167' || Request::server('REMOTE_ADDR') == '192.168.1.47' || Request::server('REMOTE_ADDR') == '192.168.34.206') {
 //    if (Request::server('REMOTE_ADDR') == '192.168.1.167' || Request::server('REMOTE_ADDR') == '192.168.1.47') {
@@ -122,7 +124,7 @@ Route::controllers([
     'password' => 'Auth\PasswordController',
 ]);
 
-Route::filter('csrf', function() {
+Route::middleware('csrf', function() {
     $token = Request::ajax() ? Request::header('X-CSRF-Token') : Input::get('_token');
     if (Session::token() != $token)
         throw new Illuminate\Session\TokenMismatchException;
@@ -291,7 +293,7 @@ Route::get('phpinfo', ['uses' => 'RnkoController@phpinfo']);
 
 
 //смена подразделения
-Route::filter('change_subdiv_once', function() {
+Route::middleware('change_subdiv_once', function() {
     $now = Carbon::now();
     $scdb = Auth::user()->subdivision_change;
     $sc = new Carbon($scdb);

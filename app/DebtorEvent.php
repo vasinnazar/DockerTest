@@ -91,14 +91,14 @@ class DebtorEvent extends Model
         \PC::debug($uploaded, 'uploaded');
     }
 
-    public function update(array $attributes = array())
+    public function update(array $attributes = array(),array $options = array())
     {
         if (!is_null(Auth::user())) {
             $this->last_user_id = Auth::user()->id;
         } else {
             $this->last_user_id = null;
         }
-        parent::update($attributes);
+        parent::update($attributes,$options);
     }
 
     public function save(array $options = array())
