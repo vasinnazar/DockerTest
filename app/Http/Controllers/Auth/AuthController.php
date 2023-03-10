@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 use App\Spylog\Spylog;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\MySoap;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
-class AuthController extends Controller {
+class AuthController extends Controller
+{
     /*
       |--------------------------------------------------------------------------
       | Registration & Login Controller
@@ -21,21 +22,26 @@ class AuthController extends Controller {
       | a simple trait to add these behaviors. Why don't you explore it?
       |
      */
-
-use AuthenticatesAndRegistersUsers;
+    use  AuthenticatesUsers;
 
     /**
      * Create a new authentication controller instance.
      *
-     * @param  \Illuminate\Contracts\Auth\Guard  $auth
-     * @param  \Illuminate\Contracts\Auth\Registrar  $registrar
+     * @param \Illuminate\Contracts\Auth\Guard $auth
      * @return void
      */
-    public function __construct() {
-        $this->middleware('guest', ['except' => 'getLogout']);
+    public function __construct()
+    {
+//        $this->middleware('guest', ['except' => 'getLogout']);
     }
 
-    public function postLogin(Request $request) {
+    public function login(Request $request)
+    {
+        return view('auth.login');
+    }
+
+    public function postLogin(Request $request)
+    {
         if (Auth::attempt($request->only('login', 'password'))) {
             $user = Auth::user();
 
@@ -60,48 +66,53 @@ use AuthenticatesAndRegistersUsers;
 //            }
             if ($user->banned || (!is_null($user->ban_at) && $user->ban_at != '0000-00-00' && $now->gte(new Carbon($user->ban_at)))) {
                 Auth::logout();
-                return redirect('/auth/login')->with('msg', 'Доступ запрещён. Обратитесь в техническую поддержку. ' . $msg)->with('class', 'alert-danger');
+                return redirect('/auth/login')->with('msg',
+                    'Доступ запрещён. Обратитесь в техническую поддержку. ' . $msg)->with('class', 'alert-danger');
             }
             $begin = new Carbon($user->begin_time);
             $end = new Carbon($user->end_time);
-            if ((Carbon::now()->gte($end) || Carbon::now()->lte($begin)) && !Auth::user()->id==1) {
+            if ((Carbon::now()->gte($end) || Carbon::now()->lte($begin)) && !Auth::user()->id == 1) {
                 Auth::logout();
                 return redirect('/auth/login')->with('msg', 'Доступ временно запрещён')->with('class', 'alert-danger');
             }
             $user->last_login = Carbon::now();
             $user->save();
-            
+
             //если спец уже сегодня сохранял учет рабочего времени и выходил, и в нем заполнена дата выхода - стирать дату выхода, 
             //чтобы в отчете по учету рабочего времени не показывало что он вышел и не зашел
-            $worktime = \App\WorkTime::where('user_id',$user->id)->where('created_at','>=', Carbon::today()->format('Y-m-d H:i:s'))->first();
-            if(!is_null($worktime) && !empty($worktime->date_end)){
+            $worktime = \App\WorkTime::where('user_id', $user->id)->where('created_at', '>=',
+                Carbon::today()->format('Y-m-d H:i:s'))->first();
+            if (!is_null($worktime) && !empty($worktime->date_end)) {
                 $worktime->date_end = null;
                 $worktime->save();
             }
-            
+
             Spylog::log(Spylog::ACTION_LOGIN, 'users', $user->id, $_SERVER['REMOTE_ADDR']);
             if (config('app.version_type') == 'debtors') {
                 return redirect('debtors/index')
-                                ->with('msg', 'Добро пожаловать, ' . Auth::user()->name)
-                                ->with('class', 'alert-success');
+                    ->with('msg', 'Добро пожаловать, ' . Auth::user()->name)
+                    ->with('class', 'alert-success');
             } else {
-				if(Auth::user()->hasPermission(\App\Permission::makeName(\App\Utils\PermLib::ACTION_SELECT,\App\Utils\PermLib::SUBJ_CANDIDATE_LIST))){
-					return redirect('candidate/index');
-				}
+                if (Auth::user()->hasPermission(\App\Permission::makeName(\App\Utils\PermLib::ACTION_SELECT,
+                    \App\Utils\PermLib::SUBJ_CANDIDATE_LIST))) {
+                    return redirect('candidate/index');
+                }
                 return redirect('home')
-                                ->with('msg', 'Добро пожаловать, ' . Auth::user()->name)
-                                ->with('class', 'alert-success');
+                    ->with('msg', 'Добро пожаловать, ' . Auth::user()->name)
+                    ->with('class', 'alert-success');
             }
         }
         return redirect()->back()->with('msg', 'Ошибка при вводе почты\\пароля')->with('class', 'alert-danger');
     }
 
-    public function getLogout() {
+    public function getLogout()
+    {
+
         if (!is_null(Auth::user())) {
             Spylog::log(Spylog::ACTION_LOGOUT, 'users', Auth::user()->id, $_SERVER['REMOTE_ADDR']);
         }
         Auth::logout();
-        return redirect('/auth/login');
+        return redirect('auth/login');
     }
 
 }

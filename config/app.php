@@ -4,6 +4,7 @@ return [
     'dev'=>0,
     'centos'=>1,
     'version_type'=>'debtors',
+    'name' => 'Debtors',
     /*
       |--------------------------------------------------------------------------
       | Application Debug Mode
@@ -137,7 +138,8 @@ return [
         Barryvdh\Debugbar\ServiceProvider::class,
         Maatwebsite\Excel\ExcelServiceProvider::class,
         \Yajra\Datatables\DatatablesServiceProvider::class,
-        Collective\Html\HtmlServiceProvider::class
+        Collective\Html\HtmlServiceProvider::class,
+        App\Providers\BroadcastServiceProvider::class
         
     ],
     /*

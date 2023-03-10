@@ -119,10 +119,9 @@ Route::middleware('localCallOnly', function() {
 });
 
 
-Route::controllers([
-    'auth' => 'Auth\AuthController',
-    'password' => 'Auth\PasswordController',
-]);
+Route::get('auth/login',['uses' => 'Auth\AuthController@login']);
+Route::post('auth/login',['uses' => 'Auth\AuthController@postLogin']);
+Route::get('auth/logout',['uses' => 'Auth\AuthController@logout']);
 
 Route::middleware('csrf', function() {
     $token = Request::ajax() ? Request::header('X-CSRF-Token') : Input::get('_token');
@@ -166,8 +165,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('claims/updatefrom1c/{claim_id}', ['uses' => 'ClaimController@updateFrom1c']);
     Route::get('claims/setedit/{claim_id}', ['uses' => 'ClaimController@setStatusToEdit']);
 });
-Route::get('ajax/tinkoff/cardlist', ['uses' => 'TinkoffController@getCardList']);
-Route::post('ajax/tinkoff/card/add', ['uses' => 'TinkoffController@addCard']);
+//Route::get('ajax/tinkoff/cardlist', ['uses' => 'TinkoffController@getCardList']);
+//Route::post('ajax/tinkoff/card/add', ['uses' => 'TinkoffController@addCard']);
 
 Route::post('claims/1c/update', ['as' => 'claims.update1c', 'uses' => 'ClaimController@updateFrom1c']);
 Route::post('test', ['as' => 'test', 'uses' => 'TestController@test']);
@@ -654,9 +653,9 @@ Route::post('adminpanel/terminals/command/add', ['as' => 'adminpanel.terminals.c
 Route::get('adminpanel/terminals/report', ['before' => 'admin_only', 'uses' => 'TerminalAdminController@getReport']);
 
 //отчеты по терминалам для отвечающих за них специалистов
-Route::get('reports/terminals/specreport', ['uses' => 'TerminalOrdersController@index']);
+/*Route::get('reports/terminals/specreport', ['uses' => 'TerminalOrdersController@index']);
 Route::get('reports/terminals/actions', ['uses' => 'TerminalOrdersController@getActionsList']);
-Route::get('ajax/terminals/orders/list', ['uses' => 'TerminalOrdersController@getOrdersList']);
+Route::get('ajax/terminals/orders/list', ['uses' => 'TerminalOrdersController@getOrdersList']);*/
 
 //данные о задолженности
 Route::get('debt', ['as' => 'debt', 'uses' => 'DebtController@getDebtByPhone']);
@@ -895,47 +894,47 @@ Route::get('reports/remreqs',['uses'=>'ReportsController@getRemoveRequestsReport
 Route::get('reports/remreqs/user',['uses'=>'ReportsController@getRemoveRequestsForUser']);
 
 //КЛАДР
-Route::get('kladr/list',['uses'=>'KladrController@getSuggestions']);
+//Route::get('kladr/list',['uses'=>'KladrController@getSuggestions']);
 
 //ТИКЕТЫ
-Route::post('tickets/update', ['uses' => 'TicketsController@update']);
-Route::post('ajax/tickets/update', ['uses' => 'TicketsController@ajaxUpdate']);
-Route::get('tickets/index', ['uses' => 'TicketsController@index']);
-Route::get('tickets/show', ['uses' => 'TicketsController@show']);
-Route::get('ajax/tickets/list', ['uses' => 'TicketsController@ajaxList']);
-Route::get('ajax/tickets/recall/list', ['uses' => 'TicketsController@getRecallList']);
+//Route::post('tickets/update', ['uses' => 'TicketsController@update']);
+//Route::post('ajax/tickets/update', ['uses' => 'TicketsController@ajaxUpdate']);
+//Route::get('tickets/index', ['uses' => 'TicketsController@index']);
+//Route::get('tickets/show', ['uses' => 'TicketsController@show']);
+//Route::get('ajax/tickets/list', ['uses' => 'TicketsController@ajaxList']);
+//Route::get('ajax/tickets/recall/list', ['uses' => 'TicketsController@getRecallList']);
 
 //КЦ
-Route::get('kc/customer/summary/{id}', ['uses' => 'CustomerSummaryController@summary']);
-Route::get('ajax/kc/sfp/summary', ['uses' => 'KcDashboardController@sfp']);
-Route::get('kc/teleport/index', ['uses' => 'KcDashboardController@teleportIndex']);
-Route::get('kc/claims', ['uses' => 'KcDashboardController@claims']);
-Route::get('ajax/kc/claims/list', ['uses' => 'KcDashboardController@ajaxClaimsList']);
-Route::get('ajax/kc/plan', ['uses' => 'KcDashboardController@getPlan']);
-Route::get('ajax/kc/pcsave', ['uses' => 'KcDashboardController@getPcSaveData']);
-Route::post('kc/debtors/events/add', ['uses' => 'CustomerSummaryController@addDebtorEvent']);
-Route::get('ajax/teleportmeetings/subdivision', ['uses' => 'TeleportMeetingsController@getSubdivisionData']);
-Route::post('teleportmeetings/update', ['uses' => 'TeleportMeetingsController@update']);
-Route::post('ajax/kc/sendsmssecret', ['uses' => 'KcDashboardController@sendSmsSecret']);
-Route::get('kc/claims/teleport/cancel', ['uses' => 'KcDashboardController@setTeleportCancel']);
-Route::get('kc/phonecalls/plan', ['uses' => 'KcDashboardController@phonecallsPlan']);
-Route::post('kc/claims/comment/add', ['uses' => 'KcDashboardController@addClaimComment']);
-Route::post('ajax/plannedcalls/store', ['uses' => 'PlannedCallController@ajaxStore']);
-Route::get('plannedcalls/index', ['uses' => 'PlannedCallController@index']);
-Route::get('ajax/planned_calls/list', ['uses' => 'PlannedCallController@getList']);
-Route::get('planned_calls/edit', ['uses' => 'PlannedCallController@editItem']);
-Route::post('planned_calls/update', ['uses' => 'PlannedCallController@updateItem']);
-Route::get('planned_calls/remove', ['uses' => 'PlannedCallController@removeItem']);
+//Route::get('kc/customer/summary/{id}', ['uses' => 'CustomerSummaryController@summary']);
+//Route::get('ajax/kc/sfp/summary', ['uses' => 'KcDashboardController@sfp']);
+//Route::get('kc/teleport/index', ['uses' => 'KcDashboardController@teleportIndex']);
+//Route::get('kc/claims', ['uses' => 'KcDashboardController@claims']);
+//Route::get('ajax/kc/claims/list', ['uses' => 'KcDashboardController@ajaxClaimsList']);
+//Route::get('ajax/kc/plan', ['uses' => 'KcDashboardController@getPlan']);
+//Route::get('ajax/kc/pcsave', ['uses' => 'KcDashboardController@getPcSaveData']);
+//Route::post('kc/debtors/events/add', ['uses' => 'CustomerSummaryController@addDebtorEvent']);
+//Route::get('ajax/teleportmeetings/subdivision', ['uses' => 'TeleportMeetingsController@getSubdivisionData']);
+//Route::post('teleportmeetings/update', ['uses' => 'TeleportMeetingsController@update']);
+//Route::post('ajax/kc/sendsmssecret', ['uses' => 'KcDashboardController@sendSmsSecret']);
+//Route::get('kc/claims/teleport/cancel', ['uses' => 'KcDashboardController@setTeleportCancel']);
+//Route::get('kc/phonecalls/plan', ['uses' => 'KcDashboardController@phonecallsPlan']);
+//Route::post('kc/claims/comment/add', ['uses' => 'KcDashboardController@addClaimComment']);
+//Route::post('ajax/plannedcalls/store', ['uses' => 'PlannedCallController@ajaxStore']);
+//Route::get('plannedcalls/index', ['uses' => 'PlannedCallController@index']);
+//Route::get('ajax/planned_calls/list', ['uses' => 'PlannedCallController@getList']);
+//Route::get('planned_calls/edit', ['uses' => 'PlannedCallController@editItem']);
+//Route::post('planned_calls/update', ['uses' => 'PlannedCallController@updateItem']);
+//Route::get('planned_calls/remove', ['uses' => 'PlannedCallController@removeItem']);
 
 //СЭБ
-Route::get('seb/claims/get/new', ['uses' => 'SebDashboardController@getNewClaim']);
-Route::get('seb/claims/finish', ['uses' => 'SebDashboardController@setSebFinished']);
+//Route::get('seb/claims/get/new', ['uses' => 'SebDashboardController@getNewClaim']);
+//Route::get('seb/claims/finish', ['uses' => 'SebDashboardController@setSebFinished']);
 
 //СОХРАНЕНИЯ ПРОЦЕНТНОЙ СТАВКИ
-Route::post('pcsaves/update', ['uses' => 'PcsavesController@update']);
-Route::get('pcsaves/index', ['uses' => 'PcsavesController@index']);
-Route::get('pcsaves/remove', ['uses' => 'PcsavesController@remove']);
-Route::get('ajax/pcsaves/list', ['uses' => 'PcsavesController@ajaxList']);
+//Route::post('pcsaves/update', ['uses' => 'PcsavesController@update']);
+//Route::get('pcsaves/index', ['uses' => 'PcsavesController@index']);
+//Route::get('pcsaves/remove', ['uses' => 'PcsavesController@remove']);
+//Route::get('ajax/pcsaves/list', ['uses' => 'PcsavesController@ajaxList']);
 
 //ИНФИНИТИ
 Route::get('ajax/infinity', ['uses' => 'InfinityController@main']);
@@ -948,37 +947,37 @@ Route::get('infinity/is_debtor_time/{telephone}', ['uses' => 'InfinityController
 Route::get('infinity/is_debtor_operator/{telephone}', ['uses' => 'InfinityController@getUserInfinityIdByDebtorPhone']);
 
 //ВХОДЯЩИЕ СМС
-Route::get('smsinbox/index', ['uses' => 'SmsInboxController@index']);
-Route::get('smsinbox/badsmslist', ['uses' => 'SmsInboxController@badSmsList']);
-Route::get('ajax/smsinbox/list', ['uses' => 'SmsInboxController@ajaxList']);
-Route::get('ajax/smssent/list', ['uses' => 'SmsSentController@getSmsSentList']);
-
-//ИСХОДЯЩИЕ СМС
-Route::get('smssent/index', ['uses' => 'SmsSentController@index']);
-Route::get('ajax/smssent/list', ['uses' => 'SmsSentController@getSmsSentList']);
-Route::get('ajax/smssent/list/all', ['uses' => 'SmsSentController@ajaxList']);
+//Route::get('smsinbox/index', ['uses' => 'SmsInboxController@index']);
+//Route::get('smsinbox/badsmslist', ['uses' => 'SmsInboxController@badSmsList']);
+//Route::get('ajax/smsinbox/list', ['uses' => 'SmsInboxController@ajaxList']);
+//Route::get('ajax/smssent/list', ['uses' => 'SmsSentController@getSmsSentList']);
+//
+////ИСХОДЯЩИЕ СМС
+//Route::get('smssent/index', ['uses' => 'SmsSentController@index']);
+//Route::get('ajax/smssent/list', ['uses' => 'SmsSentController@getSmsSentList']);
+//Route::get('ajax/smssent/list/all', ['uses' => 'SmsSentController@ajaxList']);
 
 //АПИ ФИНТЕРРА ДЛЯ МОБИЛЬНОГО ПРИЛОЖЕНИЯ
-Route::get('api/customer/data', ['uses' => 'ApiFinterraController@getCustomerId1c']);
-Route::get('api/cabinet/data', ['uses' => 'ApiFinterraController@getCabinetData']);
-Route::get('api/claim/create', ['uses' => 'ApiFinterraController@createClaim']);
-Route::post('api/claim/create', ['uses' => 'ApiFinterraController@createClaim']);
-Route::get('api/loan/create', ['uses' => 'ApiFinterraController@createLoanForCustomer']);
-Route::get('api/payture/update', ['uses' => 'ApiFinterraController@updatePayturePayment']);
-Route::get('api/sms/send', ['uses' => 'ApiFinterraController@sendSms']);
-Route::get('api/history/data', ['uses' => 'ApiFinterraController@getHistoryByCustomerId1c']);
-Route::get('api/debtor/onsite', ['uses' => 'ApiFinterraController@isDebtorOnSite']);
+//Route::get('api/customer/data', ['uses' => 'ApiFinterraController@getCustomerId1c']);
+//Route::get('api/cabinet/data', ['uses' => 'ApiFinterraController@getCabinetData']);
+//Route::get('api/claim/create', ['uses' => 'ApiFinterraController@createClaim']);
+//Route::post('api/claim/create', ['uses' => 'ApiFinterraController@createClaim']);
+//Route::get('api/loan/create', ['uses' => 'ApiFinterraController@createLoanForCustomer']);
+//Route::get('api/payture/update', ['uses' => 'ApiFinterraController@updatePayturePayment']);
+//Route::get('api/sms/send', ['uses' => 'ApiFinterraController@sendSms']);
+//Route::get('api/history/data', ['uses' => 'ApiFinterraController@getHistoryByCustomerId1c']);
+//Route::get('api/debtor/onsite', ['uses' => 'ApiFinterraController@isDebtorOnSite']);
 
 //ПРОВЕРКА ТЕЛЕФОНА
-Route::post('ajax/telephone/check/pin', ['uses' => 'TelephoneCheckController@checkPin']);
-Route::post('ajax/telephone/check/send/pin', ['uses' => 'TelephoneCheckController@sendPin']);
+//Route::post('ajax/telephone/check/pin', ['uses' => 'TelephoneCheckController@checkPin']);
+//Route::post('ajax/telephone/check/send/pin', ['uses' => 'TelephoneCheckController@sendPin']);
 
 //НАСТРОЙКИ СКИДОК И АКЦИЙ ДЛЯ ПОДРАЗДЕЛЕНИЙ
-Route::get('subdivision/stock/settings/index', ['uses' => 'SubdivisionStockSettingsController@index']);
-Route::get('subdivision/stock/settings/logs', ['uses' => 'SubdivisionStockSettingsController@viewLogs']);
-Route::get('subdivision/stock/settings/log', ['uses' => 'SubdivisionStockSettingsController@viewLog']);
-Route::get('subdivision/stock/settings/edit', ['uses' => 'SubdivisionStockSettingsController@edit']);
-Route::post('subdivision/stock/settings/update', ['uses' => 'SubdivisionStockSettingsController@update']);
+//Route::get('subdivision/stock/settings/index', ['uses' => 'SubdivisionStockSettingsController@index']);
+//Route::get('subdivision/stock/settings/logs', ['uses' => 'SubdivisionStockSettingsController@viewLogs']);
+//Route::get('subdivision/stock/settings/log', ['uses' => 'SubdivisionStockSettingsController@viewLog']);
+//Route::get('subdivision/stock/settings/edit', ['uses' => 'SubdivisionStockSettingsController@edit']);
+//Route::post('subdivision/stock/settings/update', ['uses' => 'SubdivisionStockSettingsController@update']);
 
 //роуты для отправки еmail
 Route::get('/debtors/emails/list/{user_id}',['uses'=>'EmailController@index']);
