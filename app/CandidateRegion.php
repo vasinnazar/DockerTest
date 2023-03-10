@@ -4,16 +4,16 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CandidateRegion extends BasicModel {
+class CandidateRegion extends Model
+{
 
     protected $table = 'candidate_regions';
     protected $fillable = ['name', 'visible'];
-    
 
-	public static function getCandidateRegions() {
-		$regions= CandidateRegion::lists('name', 'id', 'visible');
-				
-        return $regions->toArray();
+
+    public static function getCandidateRegions()
+    {
+        return CandidateRegion::pluck('name', 'id', 'visible')->toArray();
     }
 
 }

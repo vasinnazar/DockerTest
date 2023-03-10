@@ -64,11 +64,11 @@ class CandidateController extends BasicController {
         $regions = CandidateRegion::getCandidateRegions();
 
         $role = DB::table('roles')->select('id')->where('name', 'DepHR_headman')->first();
-        $role_user = DB::table('role_user')->where('role_id', $role->id)->lists('user_id');
-		$headman = DB::table('candidate_list')->groupBy('headman')->lists('headman');
+        $role_user = DB::table('role_user')->where('role_id', $role->id)->pluck('user_id')->toArray();
+		$headman = DB::table('candidate_list')->groupBy('headman')->pluck('headman')->toArray();
 		$userList = array_merge($role_user, $headman);
 		
-		$user = DB::table('users')->whereIn('id', $userList)->orderBy('name', 'asc')->lists('name', 'id');
+		$user = DB::table('users')->whereIn('id', $userList)->orderBy('name', 'asc')->pluck('name', 'id');
 		
 		//$userList = DB::table('candidate_list')->leftJoin('users', 'users.id', '=', 'candidate_list.headman')->groupBy('candidate_list.headman')->lists('users.name' as 'name', 'candidate_list.headman' as 'id');
 		

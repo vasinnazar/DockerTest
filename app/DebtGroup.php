@@ -21,6 +21,6 @@ class DebtGroup extends Model
      */
     public static function getDebtGroups()
     {
-        return DebtGroup::lists('name', 'id')->toArray();
+        return DebtGroup::pluck('name', 'id')->toArray();
     }
 }
