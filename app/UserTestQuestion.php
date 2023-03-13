@@ -25,7 +25,7 @@ class UserTestQuestion extends Model {
      * @return boolean
      */
     public function userAnsweredRight($user, $session_id) {
-        $rightAnswers = UserTestAnswer::where('question_id', $this->id)->where('is_right', '1')->lists('id')->toArray();
+        $rightAnswers = UserTestAnswer::where('question_id', $this->id)->where('is_right', '1')->pluck('id')->toArray();
         $userAnswers = UserTestUserAnswer::where('user_id', $user->id)
                 ->where('session_id', $session_id)
                 ->where('question_id', $this->id)
@@ -47,7 +47,7 @@ class UserTestQuestion extends Model {
         return UserTestUserAnswer::where('user_id',$user->id)->where('question_id',$this->id)->max('session_id')+1;
     }
     public function getSessionsList($user){
-        return UserTestUserAnswer::where('user_id',$user->id)->where('question_id',$this->id)->distinct()->lists('session_id');
+        return UserTestUserAnswer::where('user_id',$user->id)->where('question_id',$this->id)->distinct()->pluck('session_id');
     }
 
 }

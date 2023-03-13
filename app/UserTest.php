@@ -34,7 +34,7 @@ class UserTest extends Model {
     }
 
     public function getQuestionsIdList() {
-        return UserTestQuestion::where('user_test_id', $this->id)->lists('id');
+        return UserTestQuestion::where('user_test_id', $this->id)->pluck('id');
     }
 
     /**
@@ -54,7 +54,7 @@ class UserTest extends Model {
      * @return type
      */
     public function getCompletionPercent($user, $session_id = null) {
-        $answered = count(UserTestUserAnswer::whereIn('question_id', UserTestQuestion::where('user_test_id', $this->id)->lists('id')->toArray())
+        $answered = count(UserTestUserAnswer::whereIn('question_id', UserTestQuestion::where('user_test_id', $this->id)->pluck('id')->toArray())
                         ->where('user_id', $user->id)
                         ->where('session_id', $session_id)
                         ->groupBy('question_id')
@@ -71,13 +71,13 @@ class UserTest extends Model {
      * @return type
      */
     public function getAnsweredQuestions($user, $session_id = null, $id_list = false) {
-        $questionsList = UserTestQuestion::where('user_test_id', $this->id)->lists('id');
+        $questionsList = UserTestQuestion::where('user_test_id', $this->id)->pluck('id');
         $userAnswers = UserTestUserAnswer::whereIn('question_id', $questionsList)
                 ->where('user_id', $user->id);
         if (!is_null($session_id)) {
             $userAnswers->where('session_id', $session_id);
         }
-        return ($id_list) ? $userAnswers->lists('question_id') : $userAnswers->get();
+        return ($id_list) ? $userAnswers->pluck('question_id') : $userAnswers->get();
     }
 
     /**
@@ -88,14 +88,14 @@ class UserTest extends Model {
      * @return type
      */
     public function getNotAnsweredQuestions($user, $session_id = null, $id_list = false) {
-        $questionsList = UserTestQuestion::where('user_test_id', $this->id)->lists('id');
+        $questionsList = UserTestQuestion::where('user_test_id', $this->id)->lispluckts('id');
         $userAnswers = UserTestUserAnswer::whereIn('question_id', $questionsList)
                 ->where('user_id', $user->id);
         if (!is_null($session_id)) {
             $userAnswers->where('session_id', $session_id);
         }
-        $notAnswered = UserTestQuestion::whereNotIn('id', $userAnswers->lists('question_id'))->where('user_test_id', $this->id);
-        return ($id_list) ? $notAnswered->lists('id') : $notAnswered->get();
+        $notAnswered = UserTestQuestion::whereNotIn('id', $userAnswers->pluck('question_id'))->where('user_test_id', $this->id);
+        return ($id_list) ? $notAnswered->pluck('id') : $notAnswered->get();
     }
 
     /**
@@ -146,7 +146,7 @@ class UserTest extends Model {
      * @return type
      */
     public function getSessionsList($user) {
-        return UserTestUserAnswer::where('user_id', $user->id)->whereIn('question_id', UserTestQuestion::where('user_test_id', $this->id)->lists('id')->toArray())->distinct()->lists('session_id');
+        return UserTestUserAnswer::where('user_id', $user->id)->whereIn('question_id', UserTestQuestion::where('user_test_id', $this->id)->pluck('id')->toArray())->distinct()->lists('session_id');
     }
 
 }

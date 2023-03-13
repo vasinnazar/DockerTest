@@ -162,8 +162,7 @@ class DebtorsController extends BasicController
 
     public function uploadOldDebtorEvents()
     {
-        //$debtorsList = $this->getDebtorsQuery()->lists('debtor_id_1c');
-        $debtorsList = Debtor::lists('debtor_id_1c');
+        $debtorsList = Debtor::pluck('debtor_id_1c');
         DebtorEvent::uploadFromOldEvents($debtorsList);
         return 1;
     }
@@ -290,7 +289,7 @@ class DebtorsController extends BasicController
                 ->orderBy('created_at', 'asc');
             $datapayments = $debtorpayments->get();
 
-            $arTypes = \App\OrderType::lists('name', 'id');
+            $arTypes = \App\OrderType::pluck('name', 'id');
 
             if (!is_null($loan_id_replica) && !empty($loan_id_replica)) {
                 $loan_replica = DB::Table('armf.loans')->select(DB::raw('*'))->where('id', $loan_id_replica)->first();
@@ -810,7 +809,7 @@ class DebtorsController extends BasicController
     {
         return DB::connection('arm')->table('loans')->select('loans.id')->where('loans.id_1c',
             $loan_id_1c)->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')->leftJoin('customers', 'customers.id',
-            '=', 'claims.customer_id')->where('customers.id_1c', $customer_id_1c)->lists('id');
+            '=', 'claims.customer_id')->where('customers.id_1c', $customer_id_1c)->pluck('id');
     }
 
     /**
@@ -2614,7 +2613,7 @@ class DebtorsController extends BasicController
         if (!is_null($loan) && !is_null($loan->claim) && !is_null($loan->claim->customer)) {
             $customer = $loan->claim->customer;
             $claim_id = DB::connection('arm')->table('loans')->whereIn('loans.id',
-                $this->getLoanIdFromArm($loan->id_1c, $customer->id_1c))->lists('claim_id');
+                $this->getLoanIdFromArm($loan->id_1c, $customer->id_1c))->pluck('claim_id');
             $photos = DB::connection('arm')->table('photos')->whereIn('claim_id', $claim_id);
             $arDataPhotos = $photos->get();
             $arPhotos = [];

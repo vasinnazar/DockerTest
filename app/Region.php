@@ -16,7 +16,7 @@ class Region extends BasicModel {
 	public static function getRegions() {
         //$regions = Region::get();
 		
-		$regions= Region::lists('name', 'id');		
+		$regions= Region::pluck('name', 'id');
 				
         return $regions->toArray();
     }

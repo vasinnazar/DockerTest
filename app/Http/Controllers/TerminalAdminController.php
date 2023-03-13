@@ -186,7 +186,7 @@ class TerminalAdminController extends Controller {
         } else {
             $terminal = new Terminal();
         }
-        return view('adminpanel.terminal_edit')->with('item', $terminal)->with('users', User::orderBy('name', 'asc')->lists('name', 'id'));
+        return view('adminpanel.terminal_edit')->with('item', $terminal)->with('users', User::orderBy('name', 'asc')->pluck('name', 'id'));
     }
 
     public function remove(Request $req) {

@@ -18,7 +18,7 @@
             <div class='form-group'>
                 <ul id='permissionsList' class='list-group'>
                     <?php
-                    $checked = $role->permissions->lists('id')->all();
+                    $checked = $role->permissions->pluck('id')->all();
                     foreach ($permissions as $perm) {
                         $opts = [];
                         if (in_array($perm->id, $checked)) {

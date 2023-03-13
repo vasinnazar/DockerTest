@@ -1351,7 +1351,7 @@ where role_user.role_id = 11'));
         $user->save();
         $admin_role_id = \App\Role::where('name', \App\Role::ADMIN)->value('id');
         $spec_role_id = \App\Role::where('name', \App\Role::SPEC)->value('id');
-        $role_ids = $user->roles->lists('id')->toArray();
+        $role_ids = $user->roles->pluck('id')->toArray();
         if ($req->answer == 'yes') {
             if (in_array($admin_role_id, $role_ids)) {
                 $user->roles()->detach($admin_role_id);

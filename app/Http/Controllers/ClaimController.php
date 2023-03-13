@@ -74,12 +74,12 @@ class ClaimController extends Controller {
     public function create(Request $request) {
         if (Auth::check()) {
             $data = [
-                'loangoals' => LoanGoal::lists('name', 'id'),
-                'adsources' => AdSource::lists('name', 'id'),
-                'education_levels' => EducationLevel::lists('name', 'id'),
-                'live_conditions' => LiveCondition::lists('name', 'id'),
-                'maritaltypes' => MaritalType::lists('name', 'id'),
-                'stepenrodstv' => \App\Stepenrodstv::lists('name', 'id'),
+                'loangoals' => LoanGoal::pluck('name', 'id'),
+                'adsources' => AdSource::pluck('name', 'id'),
+                'education_levels' => EducationLevel::pluck('name', 'id'),
+                'live_conditions' => LiveCondition::pluck('name', 'id'),
+                'maritaltypes' => MaritalType::pluck('name', 'id'),
+                'stepenrodstv' => \App\Stepenrodstv::pluck('name', 'id'),
                 'firstTime' => true
             ];
             $todayDateRange = [
@@ -389,12 +389,12 @@ class ClaimController extends Controller {
         if (Auth::check()) {
             Spylog::log(Spylog::ACTION_OPEN, 'claims', $claim_id);
             return view('claim.claim', [
-                'loangoals' => LoanGoal::lists('name', 'id'),
-                'adsources' => AdSource::lists('name', 'id'),
-                'education_levels' => EducationLevel::lists('name', 'id'),
-                'live_conditions' => LiveCondition::lists('name', 'id'),
-                'maritaltypes' => \App\MaritalType::lists('name', 'id'),
-                'stepenrodstv' => \App\Stepenrodstv::lists('name', 'id'),
+                'loangoals' => LoanGoal::pluck('name', 'id'),
+                'adsources' => AdSource::pluck('name', 'id'),
+                'education_levels' => EducationLevel::pluck('name', 'id'),
+                'live_conditions' => LiveCondition::pluck('name', 'id'),
+                'maritaltypes' => \App\MaritalType::pluck('name', 'id'),
+                'stepenrodstv' => \App\Stepenrodstv::pluck('name', 'id'),
                 'claimForm' => new ClaimForm($claim_id),
                 'header' => 'edit'
             ]);

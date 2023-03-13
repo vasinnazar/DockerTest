@@ -31,7 +31,7 @@ class ReportsController extends BasicController {
         if(!Auth::user()->hasPermission(Permission::makeName(PermLib::ACTION_OPEN, PermLib::SUBJ_NO_SUBDIVS_REPORT))){
             return $this->backWithErr(\App\Utils\StrLib::ERR_NOT_ADMIN);
         }
-        $workTimes = WorkTime::whereBetween('date_start', [Carbon::today(), Carbon::tomorrow()])->lists('subdivision_id');
+        $workTimes = WorkTime::whereBetween('date_start', [Carbon::today(), Carbon::tomorrow()])->pluck('subdivision_id');
         $subdivs = Subdivision::whereNotIn('id', $workTimes)->where('closed',0)->where('is_terminal',0)->whereNotNull('address')->whereNotIn('name',['QIWI','Teleport'])->get();
         return view('reports.absent_subdivisions', ['subdivisions' => $subdivs, 'total'=>count($subdivs)]);
     }

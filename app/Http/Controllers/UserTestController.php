@@ -159,7 +159,7 @@ class UserTestController extends BasicController {
                 ->where('user_tests_users_answers.created_at', '>=', '2017-07-17')
                 ->orderBy('regions.name', 'asc')
                 ->orderBy('users.name', 'asc')
-                ->lists('user_id')
+                ->pluck('user_id')
                 ->toArray();
         $data = ['answers' => [], 'test' => $test, 'questions' => $questions];
         $users = [];
@@ -209,7 +209,7 @@ class UserTestController extends BasicController {
                 ->where('user_tests_users_answers.created_at', '>=', $start_date)
                 ->where('user_tests_users_answers.created_at', '<', $end_date)
                 ->distinct()
-                ->lists('user_id')
+                ->pluck('user_id')
                 ->toArray();
         \PC::debug(count($answered_users_id), 'answered users');
         $users = \App\User::whereNotIn('users.id', $answered_users_id)

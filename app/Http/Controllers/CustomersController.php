@@ -251,7 +251,7 @@ class CustomersController extends Controller {
         if (is_null($customer)) {
             return redirect()->back()->with('msg_err', StrLib::ERR_NULL);
         }
-        if (!Order::whereIn('passport_id', Passport::where('customer_id', $id)->lists('id'))->delete()) {
+        if (!Order::whereIn('passport_id', Passport::where('customer_id', $id)->pluck('id'))->delete()) {
             DB::rollback();
         }
         if ($customer->delete()) {

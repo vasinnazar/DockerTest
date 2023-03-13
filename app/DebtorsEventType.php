@@ -17,6 +17,6 @@ class DebtorsEventType extends Model
      * @return array
      */
     public static function getEventTypes() {
-        return DebtorsEventType::lists('name', 'id')->toArray();
+        return DebtorsEventType::pluck('name', 'id')->toArray();
     }
 }

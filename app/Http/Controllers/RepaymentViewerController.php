@@ -58,7 +58,7 @@ class RepaymentViewerController extends BasicController {
         if ($req->has('loan_id_1c')) {
             $items->where('loans.id_1c', $req->loan_id_1c);
         }
-        return view('repayments.table')->with('items', $items->paginate(25))->with('repayment_types',  \App\RepaymentType::lists('text_id'));
+        return view('repayments.table')->with('items', $items->paginate(25))->with('repayment_types',  \App\RepaymentType::pluck('text_id'));
     }
 
     public function editItem(Request $req) {

@@ -44,7 +44,7 @@ class IssueClaim extends Model {
      * @return boolean
      */
     static function isOrderTypeForIssueClaim($orderTypeId) {
-        return in_array($orderTypeId, OrderType::whereIn('text_id', IssueClaim::getIssueOrderTypesTextIds())->lists('id')->toArray());
+        return in_array($orderTypeId, OrderType::whereIn('text_id', IssueClaim::getIssueOrderTypesTextIds())->pluck('id')->toArray());
     }
     /**
      * Сохранить заявку и в арм и в 1с

@@ -119,7 +119,7 @@
     
     <div class="form-group col-xs-12">
         <?php
-        $checked = $loanType->conditions->lists('id')->all();
+        $checked = $loanType->conditions->pluck('id')->all();
         foreach ($conditions as $cond) {
             $opts = [];
             if (in_array($cond->id, $checked)) {

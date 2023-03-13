@@ -33,7 +33,7 @@ class AdvanceReport extends Model {
      * @return type
      */
     static function getNomenclatureList() {
-        return Nomenclature::lists('name', 'id_1c');
+        return Nomenclature::pluck('name', 'id_1c');
     }
 
     /**
@@ -63,7 +63,7 @@ class AdvanceReport extends Model {
         }
         $issue_text_ids = array_merge(IssueClaim::getIssueOrderTypesTextIds(), [OrderType::PODOTCHET]);
         \PC::debug($issue_text_ids);
-        $orderTypes = OrderType::whereIn('text_id', $issue_text_ids)->lists('id')->toArray();
+        $orderTypes = OrderType::whereIn('text_id', $issue_text_ids)->pluck('id')->toArray();
         $orders = Order::whereIn('type', $orderTypes)
                 ->where('subdivision_id', $subdiv->id)
                 ->whereNotIn('number', $orders_id_1c_list)

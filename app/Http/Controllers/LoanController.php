@@ -346,7 +346,7 @@ class LoanController extends Controller {
         return view('loans.edit')
                         ->with('lastCard', Card::where('customer_id', $loan->claim->customer_id)->orderBy('created_at', 'desc')->first())
                         ->with('loan', $loan)
-                        ->with('loantypes', \App\LoanType::lists('name', 'id'));
+                        ->with('loantypes', \App\LoanType::pluck('name', 'id'));
     }
 
     public function update(Request $request) {

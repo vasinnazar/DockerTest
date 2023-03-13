@@ -39,7 +39,7 @@ use App\OrderType,
                             @endforeach
                         </select>
                         @else
-                        {!! Form::select('type',OrderType::lists('name', 'id'),null,['class'=>'form-control']) !!}
+                        {!! Form::select('type',OrderType::pluck('name', 'id'),null,['class'=>'form-control']) !!}
                         @endif
                     </div>
                     <div class='form-group col-xs-12'>

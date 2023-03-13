@@ -116,7 +116,7 @@ class EmploymentDocsController extends BasicController {
         $user = Auth::user();
         if ($req->has('employment_agree')) {
 
-            $contractsList = ContractForm::where('text_id', 'employment_doc')->where('description', '<>', 'EmploymentContract1')->lists('id');
+            $contractsList = ContractForm::where('text_id', 'employment_doc')->where('description', '<>', 'EmploymentContract1')->pluck('id');
             $allPrinted = true;
 //            foreach ($contractsList as $cid) {
 //                if (!$this->hasSpylogForContract($cid)) {
