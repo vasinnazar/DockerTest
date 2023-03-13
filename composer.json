@@ -8,7 +8,7 @@
   "license": "MIT",
   "type": "project",
   "require": {
-    "laravel/framework": "5.5.*",
+    "laravel/framework": "5.6.*",
     "illuminate/html": "5.*",
     "h4cc/wkhtmltopdf-amd64": "0.12.x",
     "h4cc/wkhtmltoimage-amd64": "0.12.x",
@@ -29,13 +29,14 @@
     "ext-json": "*",
     "ext-pdo": "*",
     "barryvdh/laravel-debugbar": "*",
-    "laravelcollective/html": "^5.2.0"
+    "laravelcollective/html": "^5.2.0",
+    "fideloper/proxy" : "~4.0"
   },
   "require-dev": {
     "symfony/dom-crawler": "~3.1",
     "symfony/css-selector": "~3.1",
-    "phpunit/phpunit": "~6.0",
-    "phpspec/phpspec": "~2.1",
+    "phpunit/phpunit": "~7.0",
+    "phpspec/phpspec": "^7.3",
     "filp/whoops" : "~2.0"
   },
   "autoload": {
