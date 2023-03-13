@@ -41,7 +41,7 @@ class Customer extends Model {
         $closedNum = Loan::leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
                 ->leftJoin('passports', 'passports.id', '=', 'claims.passport_id')
                 ->where('loans.closed', '1')
-                ->whereIn('claims.passport_id', Passport::where('customer_id', $this->id)->lists('id'))
+                ->whereIn('claims.passport_id', Passport::where('customer_id', $this->id)->pluck('id'))
                 ->count();
         return ($closedNum >= config('options.regular_client_loansnum'));
     }

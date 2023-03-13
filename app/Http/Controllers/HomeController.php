@@ -241,7 +241,7 @@ class HomeController extends Controller {
             ->where('loans.deleted_at', null);
         if (!$request->has('fio') && !$request->has('telephone') && !$request->has('series') && !$request->has('number') && !$request->has('subdivision_id')) {
             if (Auth::user()->isCC() || (Auth::user()->isAdmin() && $request->has('onlyTerminals') && $request->onlyTerminals == 1)) {
-                $terminal_subdivs = \App\Subdivision::where('is_terminal', "1")->lists('id');
+                $terminal_subdivs = \App\Subdivision::where('is_terminal', "1")->pluck('id');
                 $claims->whereIn('claims.subdivision_id', $terminal_subdivs);
             } else {
                 if (Auth::user()->id == 5) {

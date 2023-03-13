@@ -35,7 +35,7 @@ class ContractVersionsController extends BasicController {
         }
         $contract = \App\ContractForm::find($req->contract_id);
         $versions = ContractVersion::where('contract_form_id', $req->contract_id)->get();
-        return view('contracteditor.versions_editor', ['versions' => $versions, 'contract' => $contract, 'contractslist'=>  ContractForm::orderBy('updated_at','desc')->lists('name','id')]);
+        return view('contracteditor.versions_editor', ['versions' => $versions, 'contract' => $contract, 'contractslist'=>  ContractForm::orderBy('updated_at','desc')->pluck('name','id')]);
     }
 /**
  * Добавляет версию к форме договора

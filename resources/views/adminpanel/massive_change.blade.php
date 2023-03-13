@@ -24,7 +24,7 @@
         {!! Form::hidden('change_type','1') !!}
         <div class='form-group'>
             <label class='control-label'>Роль</label>
-            {!! Form::select('role_id',\App\Role::lists('name','id'),null,['class'=>'form-control']) !!}
+            {!! Form::select('role_id',\App\Role::pluck('name','id'),null,['class'=>'form-control']) !!}
         </div>
         <div class='form-group'>
             <button class='btn btn-primary'>Выполнить</button>

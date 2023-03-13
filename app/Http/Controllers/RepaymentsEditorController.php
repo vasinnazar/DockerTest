@@ -19,7 +19,7 @@ class RepaymentsEditorController extends Controller {
 
     public function editor($id = null) {
         $rType = RepaymentType::findOrNew($id);
-        return view('adminpanel.repaymentTypeEditor', ['repaymentType' => $rType, 'contractForms' => ContractForm::where('text_id', config('options.repayment'))->lists('name', 'id')]);
+        return view('adminpanel.repaymentTypeEditor', ['repaymentType' => $rType, 'contractForms' => ContractForm::where('text_id', config('options.repayment'))->pluck('name', 'id')]);
     }
 
     public function update() {

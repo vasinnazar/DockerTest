@@ -852,7 +852,7 @@ class Loan extends Model {
                 ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
                 ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
                 ->where('customers.id_1c', $customer_id_1c)
-                ->lists('loans.id');
+                ->pluck('loans.id');
         return Loan::whereIn('id', $loan_id)->first();
     }
 

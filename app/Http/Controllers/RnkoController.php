@@ -525,13 +525,13 @@ class RnkoController extends BasicController {
                 ->leftJoin('cards', 'cards.id', '=', 'loans.card_id')
                 ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
                 ->leftJoin('passports', 'passports.id', '=', 'claims.passport_id')
-                ->whereNotIn('cards.card_number', Rnko::lists('card_number'))
+                ->whereNotIn('cards.card_number', Rnko::pluck('card_number'))
                 ->get();
         $cards_count = count($cards);
 
         $users = User::where('last_login', '>=', Carbon::now()->subDays(5)->format('Y-m-d'))
                 ->where('subdivision_id', '<>', '113')
-                ->whereNotIn('id', Rnko::groupBy('user_id')->lists('user_id'))
+                ->whereNotIn('id', Rnko::groupBy('user_id')->pluck('user_id'))
                 ->get();
         $u_count = count($users);
         $xml_per_user = round($cards_count / $u_count);

@@ -37,7 +37,7 @@ class QuizDepartmentController extends BasicController {
 
     function getDirectorsList($withAll = true) {
         $res = ($withAll) ? ['all' => 'Все'] : [];
-        $list = json_decode(\App\Region::groupBy('director')->lists('director', 'director'), true);
+        $list = json_decode(\App\Region::groupBy('director')->pluck('director', 'director'), true);
         $list[] = 'Попова Татьяна Анатольевна';
         return array_merge($res, $list);
     }

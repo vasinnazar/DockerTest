@@ -38,7 +38,7 @@ class AdminPanelController extends Controller {
     public function getUsers() {
         return view('adminpanel.users', [
             'users_regions' => UsersRegions::getRegions(),
-            'subdivisions' => \App\Subdivision::where('closed', '<>', 1)->lists('name'),
+            'subdivisions' => \App\Subdivision::where('closed', '<>', 1)->pluck('name'),
             'roles' => \App\Role::all(),
 			'permissions' => \App\Permission::where('name', 'like', 'show.%')->get()
         ]);
@@ -339,7 +339,7 @@ class AdminPanelController extends Controller {
         } else {
             $item = new NpfFond();
         }
-        return view('adminpanel.npffond_edit')->with('item', $item)->with('contract_forms', \App\ContractForm::lists('name', 'id'));
+        return view('adminpanel.npffond_edit')->with('item', $item)->with('contract_forms', \App\ContractForm::pluck('name', 'id'));
     }
 
     public function updateNpfFond(Request $req) {

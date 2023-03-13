@@ -70,8 +70,7 @@ class CandidateController extends BasicController {
 		
 		$user = DB::table('users')->whereIn('id', $userList)->orderBy('name', 'asc')->pluck('name', 'id');
 		
-		//$userList = DB::table('candidate_list')->leftJoin('users', 'users.id', '=', 'candidate_list.headman')->groupBy('candidate_list.headman')->lists('users.name' as 'name', 'candidate_list.headman' as 'id');
-		
+
         return view('candidate.index', [
             'candidate_list' => $candidate,
             'reach_list' => $reach,
@@ -88,10 +87,10 @@ class CandidateController extends BasicController {
         $decision = Candidate::getDecision();
 		$result = Candidate::getResult();
 		$interviewResult = Candidate::getInterviewResult();
-        $regions = CandidateRegion::where('visible', 1)->lists('name', 'id')->toArray();
+        $regions = CandidateRegion::where('visible', 1)->pluck('name', 'id')->toArray();
         $role = DB::table('roles')->select('id')->where('name', 'DepHR_headman')->first();
-        $role_user = DB::table('role_user')->where('role_id', $role->id)->lists('user_id');
-        $user = DB::table('users')->whereIn('id', $role_user)->lists('name', 'id');
+        $role_user = DB::table('role_user')->where('role_id', $role->id)->pluck('user_id');
+        $user = DB::table('users')->whereIn('id', $role_user)->pluck('name', 'id');
         return view('candidate.create', [
             'candidate' => new Candidate(),
             'reach_list' => $reach,
@@ -126,10 +125,10 @@ class CandidateController extends BasicController {
         $decision = Candidate::getDecision();
 		$result = Candidate::getResult();
 		$interviewResult = Candidate::getInterviewResult();
-        $regions = CandidateRegion::where('visible', 1)->lists('name', 'id')->toArray();
+        $regions = CandidateRegion::where('visible', 1)->pluck('name', 'id')->toArray();
         $role = DB::table('roles')->select('id')->where('name', 'DepHR_headman')->first();
-        $role_user = DB::table('role_user')->where('role_id', $role->id)->lists('user_id');
-        $user = DB::table('users')->whereIn('id', $role_user)->lists('name', 'id');
+        $role_user = DB::table('role_user')->where('role_id', $role->id)->pluck('user_id');
+        $user = DB::table('users')->whereIn('id', $role_user)->pluck('name', 'id');
 
         return view('candidate.update', [
             'candidate' => Candidate::where('id', '=', $req->get('id'))->first(),
@@ -151,8 +150,8 @@ class CandidateController extends BasicController {
 		$interviewResult = Candidate::getInterviewResult();
         $regions = CandidateRegion::getCandidateRegions();
         $role = DB::table('roles')->select('id')->where('name', 'DepHR_headman')->first();
-        $role_user = DB::table('role_user')->where('role_id', $role->id)->lists('user_id');
-        $user = DB::table('users')->whereIn('id', $role_user)->lists('name', 'id');
+        $role_user = DB::table('role_user')->where('role_id', $role->id)->pluck('user_id');
+        $user = DB::table('users')->whereIn('id', $role_user)->pluck('name', 'id');
 
         $html = '<table border="1">';
         $firstRow = true;

@@ -45,7 +45,7 @@ class NpfController extends BasicController {
         }
         //убираем доверие из списка фондов
 //        if (Auth::user()->isAdmin()) {
-        return view($this->table . '.edit')->with('item', $item)->with('npf_fonds', NpfFond::lists('name', 'id'));
+        return view($this->table . '.edit')->with('item', $item)->with('npf_fonds', NpfFond::pluck('name', 'id'));
 //        } else {
 //            return view($this->table . '.edit')->with('item', $item)->with('npf_fonds', NpfFond::where('id', '<>', 8)->lists('name', 'id'));
 //        }

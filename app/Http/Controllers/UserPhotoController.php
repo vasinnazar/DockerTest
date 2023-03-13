@@ -22,7 +22,7 @@ class UserPhotoController extends Controller {
      */
     public function index(Request $req) {
         $data = [
-            'directorsList' => \App\Region::distinct()->lists('director')->toArray()
+            'directorsList' => \App\Region::distinct()->pluck('director')->toArray()
         ];
         array_unshift($data['directorsList'], '');
         return view('reports.userphotos.index', $data);

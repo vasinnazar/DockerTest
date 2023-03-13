@@ -16,7 +16,7 @@ use Carbon\Carbon;
     </div>
     @if(Auth::user()->isAdmin())
     <div class="input-group input-group-sm">
-        <!--{!!Form::select('cashbookSubdivision',\App\Subdivision::lists('name','id'),null,['class'=>'form-control','id'=>'cashbookSubdivision'])!!}-->
+        <!--{!!Form::select('cashbookSubdivision',\App\Subdivision::pluck('name','id'),null,['class'=>'form-control','id'=>'cashbookSubdivision'])!!}-->
         <input type='hidden' name='subdivision_id' id="cashbookSubdivision" />
         <input type='text' name='subdivision_id_autocomplete' class='form-control' data-autocomplete='subdivisions' />
     </div>
@@ -32,7 +32,7 @@ use Carbon\Carbon;
         <input class="form-control input-sm" name="from" placeholder="Дата от" type="date" id="cashbookDate" value="{{Carbon::now()->format('Y-m-d')}}"/>
     </div>-->
 <!--    <div class="input-group input-group-sm">
-        {!!Form::select('cashbookSubdivision2',\App\Subdivision::lists('name','id'),null,['class'=>'form-control','id'=>'cashbookSubdivision2'])!!}
+        {!!Form::select('cashbookSubdivision2',\App\Subdivision::pluck('name','id'),null,['class'=>'form-control','id'=>'cashbookSubdivision2'])!!}
         <input type='hidden' name='subdivision_id' id="cashbookSubdivision2" />
         <input type='text' name='subdivision_id_autocomplete' class='form-control' data-autocomplete='subdivisions' />
     </div>

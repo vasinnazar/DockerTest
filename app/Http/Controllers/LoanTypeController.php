@@ -48,7 +48,7 @@ class LoanTypeController extends Controller {
                         ->with('loanType', LoanType::findOrNew($loantype_id))
                         ->with('conditions', Condition::whereNotNull('created_at')->get())
 //                        ->with('conditions', [])
-                        ->with('contract_forms', ContractForm::lists('name', 'id'));
+                        ->with('contract_forms', ContractForm::pluck('name', 'id'));
 //                        ->with('contract_forms', []);
     }
 

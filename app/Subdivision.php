@@ -18,7 +18,7 @@ class Subdivision extends Model {
         return $this->belongsTo('App\City','city_id');
     }
     static function getDirectorsList($withEmpty=false){
-        $res = Subdivision::groupBy('director')->lists('director')->toArray();
+        $res = Subdivision::groupBy('director')->pluck('director')->toArray();
         if($withEmpty){
             array_unshift($res, '');
         }

@@ -13,7 +13,7 @@
 </div>
 <div class="form-group">
     <label class="control-label">Город</label>
-    {!! Form::select('city_id', \App\City::lists('name','id')->all(),null,['class'=>'form-control']) !!}
+    {!! Form::select('city_id', \App\City::pluck('name','id')->all(),null,['class'=>'form-control']) !!}
 </div>
 <div class="form-group">
     <label class="control-label">Город (вписать здесь если нет в списке)</label>
