@@ -15,8 +15,8 @@ return array (
             2 => '5.175.225.158:8081',
             3 => '52a204b0bdc1.sn.mynetname.net:16590',
         ),
-    //'print_server' => '81.177.142.230',
-    'print_server' => '5.175.225.158:8081',
+    'print_server' => '81.177.142.230',
+    //'print_server' => '5.175.225.158:8081',
     //'print_server' => '52a204b0bdc1.sn.mynetname.net:8889',
     // 'print_server' => '192.168.34.209',
     'local_print_servers_list' =>
@@ -54,7 +54,7 @@ return array (
         'absolute_url' => true
     ],
     'buh_base_1c' => [
-        'url' => '192.168.1.23:8080/ARMDolzniki/ws/Mole/?wsdl',
+        'url' => '192.168.35.38:8080/ARMDolzniki/ws/Mole/?wsdl',
         'login' => 'KAadmin',
         'password' => 'dune25',
         'absolute_url' => true

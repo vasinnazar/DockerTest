@@ -180,22 +180,20 @@ class DebtorsController extends BasicController
      */
     public function debtorcard(int $debtor_id)
     {
-        $user_id = Auth::id();
-
-        $objUser = User::find($user_id);
+        $user = auth()->user();
         $debt_roles = [];
 
         $debtor = Debtor::find($debtor_id);
 
         // проверяем был ли пропущенный звонок от должника и если был - удаляем запись
         $loss_call = \App\DebtorsLossCalls::where('debtor_id_1c', $debtor->debtor_id_1c)->first();
-        if (!is_null($loss_call) && !$objUser->isAdmin()) {
+        if (!is_null($loss_call) && !$user->isAdmin()) {
             $loss_call->delete();
         }
 
         // если у должника есть уведомление "должник на точке" - "удаляем" его (при условии, если открыл не админ)
-        if (!$objUser->isAdmin() && ($objUser->hasRole('debtors_remote') || ($objUser->hasRole('debtors_personal') && $objUser->hasRole('debtors_chief')))) {
-            $pfx_loan = ($objUser->hasRole('debtors_personal')) ? 'pn' : 'ln';
+        if (!$user->isAdmin() && ($user->hasRole('debtors_remote') || ($user->hasRole('debtors_personal') && $user->hasRole('debtors_chief')))) {
+            $pfx_loan = ($user->hasRole('debtors_personal')) ? 'pn' : 'ln';
             $msg_on_subdivision = Message::where('type', $pfx_loan . $debtor->loan_id_1c)->first();
             if (!is_null($msg_on_subdivision)) {
                 $msg_on_subdivision->deleted_at = date('Y-m-d H:i:s', time());
@@ -204,7 +202,7 @@ class DebtorsController extends BasicController
         }
 
         // если у должника есть уведомление "должник на сайте" - "удаляем" его (при условии, если открыл не админ)
-        if (!$objUser->isAdmin() && $objUser->hasRole('debtors_remote')) {
+        if (!$user->isAdmin() && $user->hasRole('debtors_remote')) {
             $pfx_loan = 'sn';
             $msg_on_subdivision = Message::where('type', $pfx_loan . $debtor->loan_id_1c)->first();
             if (!is_null($msg_on_subdivision)) {
@@ -263,7 +261,7 @@ class DebtorsController extends BasicController
         $data[0]['not_responsible_user_open'] = false;
         if (!is_null($objRespUser)) {
             $data[0]['responsible_user_fio'] = $objRespUser->login;
-            if ($objUser->id != $objRespUser->id) {
+            if ($user->id != $objRespUser->id) {
                 $data[0]['not_responsible_user_open'] = true;
             }
             if ($objRespUser->hasRole('debtors_remote')) {
@@ -397,16 +395,16 @@ class DebtorsController extends BasicController
         \PC::debug($data[0]['loans_created_at']);
         $data[0]['debt_group_text'] = (array_key_exists($data[0]['d_debt_group_id'],
             $arDebtGroups)) ? $arDebtGroups[$data[0]['d_debt_group_id']] : '';
-        $data[0]['sms_available'] = (!is_null($objUser->sms_limit) ? $objUser->sms_limit : 0) - (!is_null($objUser->sms_sent) ? $objUser->sms_sent : 0);
+        $data[0]['sms_available'] = (!is_null($user->sms_limit) ? $user->sms_limit : 0) - (!is_null($user->sms_sent) ? $user->sms_sent : 0);
 
         // определяем группу специалиста удаленного взыскания пользователя в "Должниках" (удаленное и личное)
-        $debt_roles['canSend'] = $objUser->canSendSms();
+        $debt_roles['canSend'] = $user->canSendSms();
         if ($debt_roles['canSend']) {
-            if ($objUser->hasRole('debtors_remote')) {
+            if ($user->hasRole('debtors_remote')) {
                 $is_ubytki = ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') ? true : false;
                 $arSmsRemoteRows = DebtorSmsTpls::getSmsTpls('remote', $is_ubytki);
                 foreach ($arSmsRemoteRows as $k => $row) {
-                    $spec_phone = (mb_strlen($objUser->phone) < 6) ? '88003014344' : $objUser->phone;
+                    $spec_phone = (mb_strlen($user->phone) < 6) ? '88003014344' : $user->phone;
                     $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##spec_phone##', $spec_phone,
                         $arSmsRemoteRows[$k]['text_tpl']);
                     $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##sms_till_date##', date('d.m.Y', time()),
@@ -417,11 +415,11 @@ class DebtorsController extends BasicController
                 }
                 $debt_roles['remote'] = $arSmsRemoteRows;
             }
-            if ($objUser->hasRole('debtors_personal')) {
+            if ($user->hasRole('debtors_personal')) {
                 $arSmsPersonalRows = DebtorSmsTpls::getSmsTpls('personal');
                 $arDebtorName = explode(' ', $data[0]['fio']);
                 foreach ($arSmsPersonalRows as $k => $row) {
-                    $spec_phone = (mb_strlen($objUser->phone) < 6) ? '88003014344' : $objUser->phone;
+                    $spec_phone = (mb_strlen($user->phone) < 6) ? '88003014344' : $user->phone;
                     $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##spec_phone##', $spec_phone,
                         $arSmsPersonalRows[$k]['text_tpl']);
                     $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_till_date##', date('d.m.Y', time()),
@@ -434,12 +432,12 @@ class DebtorsController extends BasicController
             }
         }
 
-        $debt_roles['is_chief'] = ($objUser->hasRole('debtors_chief')) ? true : false;
+        $debt_roles['is_chief'] = ($user->hasRole('debtors_chief')) ? true : false;
 
-        if ($objUser->hasRole('debtors_remote')) {
+        if ($user->hasRole('debtors_remote')) {
             $debt_roles['remote_notice'] = true;
         }
-        if ($objUser->hasRole('debtors_personal')) {
+        if ($user->hasRole('debtors_personal')) {
             $debt_roles['personal_notice'] = true;
         }
 
@@ -865,7 +863,7 @@ class DebtorsController extends BasicController
 
         return view('debtors.debtorcard', [
             'debtor_id' => $debtor_id,
-            'current_user_id' => $user_id,
+            'current_user_id' => $user->id,
             'data' => $data,
             'dataevents' => $dataevents,
             'datapayments' => $datapayments,
@@ -3883,7 +3881,7 @@ class DebtorsController extends BasicController
                 $debtors->where('str_podr', '000000000006')
                     ->where('qty_delays', '>=', 21)
                     ->where('qty_delays', '<=', 135)
-                    ->whereIn('debt_group_id', [4, 5, 6]);
+                    ->whereIn('debt_group_id', [2, 4, 5, 6]);
             }
 
             if ($str_podr == '000000000007') {
