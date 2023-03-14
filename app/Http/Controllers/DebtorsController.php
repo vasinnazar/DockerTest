@@ -3861,6 +3861,8 @@ class DebtorsController extends BasicController
         if (is_null($str_podr)) {
             return redirect()->back();
         }
+        
+        $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
 
         $start_flag = $req->get('start', false);
 
@@ -3875,6 +3877,20 @@ class DebtorsController extends BasicController
 
         if ($start_flag && $canStartToday) {
             $debtors = Debtor::where('is_debtor', 1);
+            
+            if ($timezone == 'east') {
+                $debtors->leftJoin('passports', function ($join) {
+                    $join->on('passports.series', '=', 'debtors.passport_series');
+                    $join->on('passports.number', '=', 'debtors.passport_number');
+                })
+                ->whereBetween('passports.fact_timezone', [-1, 5]);
+            } else if ($timezone == 'west') {
+                $debtors->leftJoin('passports', function ($join) {
+                    $join->on('passports.series', '=', 'debtors.passport_series');
+                    $join->on('passports.number', '=', 'debtors.passport_number');
+                })
+                ->whereBetween('passports.fact_timezone', [-5, -2]);
+            }
 
             if ($str_podr == '000000000006') {
                 $debtors->where('str_podr', '000000000006')
@@ -3913,13 +3929,14 @@ class DebtorsController extends BasicController
             if ($debtors) {
                 $recurrent_task = new \App\MassRecurrentTask();
 
-                if ($timezone) {
+                /*if ($timezone) {
                     $debtors = TimezoneService::getDebtorsForTimezone($debtors, $timezone);
-                }
+                }*/
 
                 $recurrent_task->user_id = $user->id;
                 $recurrent_task->debtors_count = count($debtors);
                 $recurrent_task->str_podr = $str_podr;
+                $recurrent_task->timezone = $timezone;
                 $recurrent_task->save();
 
                 return json_encode(['task_id' => $recurrent_task->id, 'debtors_count' => count($debtors)]);
@@ -3962,10 +3979,27 @@ class DebtorsController extends BasicController
         $recurrent_task = \App\MassRecurrentTask::find($task_id);
 
         $user = auth()->user();
+        
+        $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
+        
+        $debtors = Debtor::where('is_debtor', 1);
+        
+        if ($timezone == 'east') {
+            $debtors->leftJoin('passports', function ($join) {
+                $join->on('passports.series', '=', 'debtors.passport_series');
+                $join->on('passports.number', '=', 'debtors.passport_number');
+            })
+            ->whereBetween('passports.fact_timezone', [-1, 5]);
+        } else if ($timezone == 'west') {
+            $debtors->leftJoin('passports', function ($join) {
+                $join->on('passports.series', '=', 'debtors.passport_series');
+                $join->on('passports.number', '=', 'debtors.passport_number');
+            })
+            ->whereBetween('passports.fact_timezone', [-5, -2]);
+        }
 
         if ($recurrent_type && $recurrent_type == 'olv_chief') {
-            $debtors = Debtor::where('is_debtor', 1)
-                ->where('str_podr', '000000000007')
+            $debtors->where('str_podr', '000000000007')
                 ->where('responsible_user_id_1c', 'Ведущий специалист личного взыскания')
                 ->where('qty_delays', '>=', 60)
                 ->where('qty_delays', '<=', 150)
@@ -3974,8 +4008,7 @@ class DebtorsController extends BasicController
                 ->get();
         } else {
             if ($recurrent_type && $recurrent_type == 'ouv_chief') {
-                $debtors = Debtor::where('is_debtor', 1)
-                    ->where('str_podr', '000000000006')
+                $debtors->where('str_podr', '000000000006')
                     ->whereIn('responsible_user_id_1c', [
                         'Осипова Е. А.                                ',
                         'Петухова Е. И.                               '
@@ -3984,8 +4017,7 @@ class DebtorsController extends BasicController
                     ->get();
             } else {
                 if ($user->hasRole('debtors_remote')) {
-                    $debtors = Debtor::where('is_debtor', 1)
-                        ->where('str_podr', '000000000006')
+                    $debtors->where('str_podr', '000000000006')
                         ->where('qty_delays', '>=', 22)
                         ->where('qty_delays', '<=', 69)
                         ->where('base', '<>', 'ХПД')
@@ -3993,8 +4025,7 @@ class DebtorsController extends BasicController
                         ->get();
                 } else {
                     if ($user->hasRole('debtors_personal')) {
-                        $debtors = Debtor::where('is_debtor', 1)
-                            ->where('str_podr', '000000000007')
+                        $debtors->where('str_podr', '000000000007')
                             ->where('qty_delays', '>=', 60)
                             ->where('qty_delays', '<=', 150)
                             ->where('base', '<>', 'ХПД')
@@ -4008,7 +4039,7 @@ class DebtorsController extends BasicController
         }
 
         if (isset($debtors) && $debtors) {
-            $debtors = TimezoneService::getDebtorsForTimezone($debtors, $timezone);
+            //$debtors = TimezoneService::getDebtorsForTimezone($debtors, $timezone);
 
             foreach ($debtors as $debtor) {
                 $postdata = [
