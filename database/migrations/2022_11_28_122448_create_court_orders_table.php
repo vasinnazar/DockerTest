@@ -13,7 +13,8 @@ class CreateCourtOrdersTable extends Migration
             $table->integer('debtor_id')->unsigned();
             $table->foreign('debtor_id')->references('id')->on('debtors');
             $table->integer('is_printed');
-            $table->timestamps();
+            $table->timestamp('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('updated_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
         });
     }
 

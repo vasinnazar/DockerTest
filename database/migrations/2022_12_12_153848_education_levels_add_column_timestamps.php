@@ -9,7 +9,8 @@ class EducationLevelsAddColumnTimestamps extends Migration
     public function up()
     {
         Schema::table('education_levels', function (Blueprint $table) {
-            $table->timestamps();
+            $table->timestamp('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('updated_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
         });
     }
 

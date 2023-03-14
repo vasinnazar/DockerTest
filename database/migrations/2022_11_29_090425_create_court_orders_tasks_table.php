@@ -18,7 +18,8 @@ class CreateCourtOrdersTasksTable extends Migration
             $table->string('struct_subdivision');
             $table->integer('in_progress')->default(0);
             $table->integer('completed')->default(0);
-            $table->timestamps();
+            $table->timestamp('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('updated_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
         });
     }
 

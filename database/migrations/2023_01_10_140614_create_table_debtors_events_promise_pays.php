@@ -18,7 +18,8 @@ class CreateTableDebtorsEventsPromisePays extends Migration
             $table->integer('event_id');
             $table->integer('amount')->default(0);
             $table->dateTime('promise_date');
-            $table->timestamps();
+            $table->timestamp('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('updated_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
         });
     }
 

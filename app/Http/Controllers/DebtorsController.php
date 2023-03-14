@@ -3836,12 +3836,11 @@ class DebtorsController extends BasicController
     public function massRecurrentTask(Request $req)
     {
         $user = auth()->user();
-
         $is_leading_task = $req->get('type', false);
-
         $timezone = $req->get('timezone', false);
 
-        if ($is_leading_task && $is_leading_task == 'ouv_chief' && ($user->id == 916 || $user->id == 69)) { // запуск по Ведущему личного взыскания Свиридовым
+        if ($is_leading_task && $is_leading_task == 'ouv_chief' && ($user->id == 916 || $user->id == 69)) {
+            // запуск по Ведущему личного взыскания Свиридовым
             $str_podr = '000000000007-1';
         } else {
             if ($is_leading_task && $is_leading_task == 'ouv_chief' && ($user->id == 3448 || $user->id == 69)) {
