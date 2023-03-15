@@ -50,17 +50,6 @@ class RepaymentOfferService
             if (!is_null($debtorProlangation)) {
                 continue;
             }
-            $loansDebtor = $this->armClient->getLoanById1c($debtor->loan_id_1c);
-            if ($loansDebtor->isEmpty()) {
-                continue;
-            }
-            $ordersDebtor = $this->armClient->getOrdersById($loansDebtor->first()->id);
-            $filteredOrders = $ordersDebtor->filter(function ($item) {
-                return $item->type->plus === 1 && $item->money > 50000;
-            });
-            if (!$filteredOrders->isEmpty()) {
-                continue;
-            }
             $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
 
             Log::info('Repayment Offer Auto Peace SEND:',
