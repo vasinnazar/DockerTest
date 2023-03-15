@@ -24,27 +24,32 @@ use Illuminate\Http\Request,
     App\Utils\HtmlHelper,
     Illuminate\Support\Facades\Hash;
 
-class AdminPanelController extends Controller {
+class AdminPanelController extends Controller
+{
 
-    public function __construct() {
+    public function __construct()
+    {
 //        $this->middleware('auth');
     }
 
-    public function index() {
+    public function index()
+    {
         return view('adminpanel.main');
 //        return view('adminpanel.main')->with('today_orders',DB::raw());
     }
 
-    public function getUsers() {
+    public function getUsers()
+    {
         return view('adminpanel.users', [
             'users_regions' => UsersRegions::getRegions(),
             'subdivisions' => \App\Subdivision::where('closed', '<>', 1)->pluck('name'),
             'roles' => \App\Role::all(),
-			'permissions' => \App\Permission::where('name', 'like', 'show.%')->get()
+            'permissions' => \App\Permission::where('name', 'like', 'show.%')->get()
         ]);
     }
 
-    public function changeSubdivision(Request $req) {
+    public function changeSubdivision(Request $req)
+    {
         if (!$req->has('user_id') || !$req->has('subdivision_id')) {
             return 0;
         }
@@ -54,14 +59,16 @@ class AdminPanelController extends Controller {
         }
         $user->subdivision_id = $req->get('subdivision_id');
         if ($user->save()) {
-            Spylog::log(Spylog::ACTION_SUBDIV_CHANGE, 'users', $user->id, ($user->subdivision_id . '->' . $req->get('subdivision_id')));
+            Spylog::log(Spylog::ACTION_SUBDIV_CHANGE, 'users', $user->id,
+                ($user->subdivision_id . '->' . $req->get('subdivision_id')));
             return 1;
         } else {
             return 0;
         }
     }
 
-    public function getUserLog(Request $req = null, $user_id = null) {
+    public function getUserLog(Request $req = null, $user_id = null)
+    {
         if (!is_null($req) && !$req->has('user_id')) {
             return null;
         }
@@ -96,13 +103,14 @@ class AdminPanelController extends Controller {
         return $logs;
     }
 
-    public function getUser($user_id) {
-        $user = User::find($user_id);
+    public function getUser(int $userId)
+    {
+        $user = User::find($userId);
         $user->subdivision_name = ($user->subdivision != null) ? $user->subdivision->name : '';
         $data = [
             'user' => $user,
             'passports' => \App\Passport::where('customer_id', $user->customer_id)->select('id')->get(),
-            'logs' => $this->getUserLog(null, $user_id),
+            'logs' => $this->getUserLog(null, $userId),
             'roles' => $user->roles,
             'debtorRoleUsers' => json_encode([]),
             'debtorUserSlaves' => json_encode([]),
@@ -110,12 +118,13 @@ class AdminPanelController extends Controller {
         ];
         if (config('app.version_type') != 'sales') {
             $data['debtorRoleUsers'] = User::getDebtorRoleUsers();
-            $data['debtorUserSlaves'] = DebtorUsersRef::getDebtorSlaveUsers($user_id);
+            $data['debtorUserSlaves'] = DebtorUsersRef::getDebtorSlaveUsers($userId);
         }
         return $data;
     }
 
-    public function getUsersList(Request $request) {
+    public function getUsersList(Request $request)
+    {
         if (!Auth::user()->isAdmin()) {
             return redirect('home')->with('msg', 'Нет доступа!')->with('class', 'alert-danger');
         }
@@ -138,7 +147,8 @@ class AdminPanelController extends Controller {
             ->make();
     }
 
-    public function updateUser(Request $request) {
+    public function updateUser(Request $request)
+    {
         $user = User::find($request->user_id);
 
         if (is_null($user)) {
@@ -147,10 +157,11 @@ class AdminPanelController extends Controller {
         Spylog::logModelChange('users', $user, $request->all());
         $user->fill($request->all());
 
-        return($user->save()) ? 1 : 0;
+        return ($user->save()) ? 1 : 0;
     }
 
-    public function createCustomer($id) {
+    public function createCustomer($id)
+    {
         $user = User::find($id);
         if (!is_null($user)) {
             if (is_null($user->customer_id)) {
@@ -183,7 +194,8 @@ class AdminPanelController extends Controller {
         }
     }
 
-    public function changePassword(Request $req) {
+    public function changePassword(Request $req)
+    {
         if (!$req->has('password') || !$req->has('old_password') || !$req->has('user_id')) {
             return 0;
         }
@@ -193,17 +205,19 @@ class AdminPanelController extends Controller {
         }
         if (!config('app.dev')) {
             if (!in_array(Auth::user()->id, [1, 5, 69])) {
-                if (!is_null($user->password) && $user->password != '' && !Hash::check($req->old_password, $user->password)) {
+                if (!is_null($user->password) && $user->password != '' && !Hash::check($req->old_password,
+                        $user->password)) {
                     return 0;
                 }
             }
         }
         $user->fill(['password' => Hash::make($req->password)]);
         Spylog::log(Spylog::ACTION_UPDATE, 'users', $user->id, 'Изменён пароль');
-        return($user->save()) ? 1 : 0;
+        return ($user->save()) ? 1 : 0;
     }
 
-    public function updateUserBantime(Request $request) {
+    public function updateUserBantime(Request $request)
+    {
         $user = User::find($request->user_id);
 
         if (is_null($user)) {
@@ -228,13 +242,15 @@ class AdminPanelController extends Controller {
         return ($user->save()) ? 1 : 0;
     }
 
-    public function refreshUserLastLogin($user_id) {
+    public function refreshUserLastLogin($user_id)
+    {
         $user = User::find($user_id);
         if (!is_null($user)) {
             $last_login = $user->last_login;
             $user->last_login = Carbon::now()->format('Y-m-d H:i:s');
             if ($user->save()) {
-                Spylog::log(Spylog::ACTION_LASTLOGIN_REFRESH, 'users', $user_id, $last_login . '->' . $user->last_login);
+                Spylog::log(Spylog::ACTION_LASTLOGIN_REFRESH, 'users', $user_id,
+                    $last_login . '->' . $user->last_login);
                 return 1;
             } else {
                 return 0;
@@ -244,18 +260,20 @@ class AdminPanelController extends Controller {
         }
     }
 
-    public function addUser() {
+    public function addUser()
+    {
         $ts = Carbon::now()->timestamp;
         $user = User::create([
-                    'name' => 'Новый пользователь ' . $ts,
-                    'login' => $ts,
-                    'password' => Hash::make('1')
+            'name' => 'Новый пользователь ' . $ts,
+            'login' => $ts,
+            'password' => Hash::make('1')
         ]);
         Spylog::logModelAction(Spylog::ACTION_CREATE, 'users', $user);
         return $user;
     }
 
-    public function getSubdivisionsList(Request $request) {
+    public function getSubdivisionsList(Request $request)
+    {
         $subdivisions = Subdivision::select('id', 'name_id', 'name', 'closed');
         return Datatables::of($subdivisions)
             ->editColumn('name', function ($subdiv) {
@@ -290,11 +308,13 @@ class AdminPanelController extends Controller {
             ->make();
     }
 
-    public function subdivisionsList() {
+    public function subdivisionsList()
+    {
         return view('adminpanel.subdivisions');
     }
 
-    public function closeSubdivision($id) {
+    public function closeSubdivision($id)
+    {
         $subdiv = Subdivision::find($id);
         if (is_null($subdiv)) {
             return redirect()->back()->with('msg_err', StrLib::$ERR_NULL);
@@ -308,13 +328,15 @@ class AdminPanelController extends Controller {
         }
     }
 
-    public function getCashbook($id) {
+    public function getCashbook($id)
+    {
         $cashbook = \App\Cashbook::where('subdivision_id', $id)->get();
         Spylog::log(Spylog::ACTION_OPEN, 'cashbook', null, 'subdivision_id=' . $id);
         return view('adminpanel.cashbook', ['cashbook' => $cashbook]);
     }
 
-    public function removeOrder($id) {
+    public function removeOrder($id)
+    {
         $order = \App\Order::find($id);
         if (is_null($order)) {
             return redirect()->back()->with('msg_err', StrLib::$ERR);
@@ -326,11 +348,13 @@ class AdminPanelController extends Controller {
         }
     }
 
-    public function getNpfFondsList() {
+    public function getNpfFondsList()
+    {
         return view('adminpanel.npffonds')->with('npf_fonds', NpfFond::all());
     }
 
-    public function editNpfFond(Request $req) {
+    public function editNpfFond(Request $req)
+    {
         if ($req->has('id')) {
             $item = NpfFond::find($req->id);
             if (is_null($item)) {
@@ -339,10 +363,12 @@ class AdminPanelController extends Controller {
         } else {
             $item = new NpfFond();
         }
-        return view('adminpanel.npffond_edit')->with('item', $item)->with('contract_forms', \App\ContractForm::pluck('name', 'id'));
+        return view('adminpanel.npffond_edit')->with('item', $item)->with('contract_forms',
+            \App\ContractForm::pluck('name', 'id'));
     }
 
-    public function updateNpfFond(Request $req) {
+    public function updateNpfFond(Request $req)
+    {
         $item = NpfFond::findOrNew($req->get('id'));
         $item->fill($req->all());
         if ($item->save()) {
@@ -352,7 +378,8 @@ class AdminPanelController extends Controller {
         }
     }
 
-    public function removeNpfFond(Request $req) {
+    public function removeNpfFond(Request $req)
+    {
         if ($req->has('id')) {
             $fond = NpfFond::find($req->id);
             if (is_null($fond)) {
@@ -366,11 +393,13 @@ class AdminPanelController extends Controller {
         }
     }
 
-    public function problemSolverMain(Request $req) {
+    public function problemSolverMain(Request $req)
+    {
         return view('adminpanel.problemsolver');
     }
 
-    public function saveDebtorUserSlaves(Request $req) {
+    public function saveDebtorUserSlaves(Request $req)
+    {
         if (DebtorUsersRef::saveRefs($req->input())) {
             return 1;
         }
@@ -378,13 +407,14 @@ class AdminPanelController extends Controller {
         return 0;
     }
 
-    public function createUserCertificate(Request $req) {
+    public function createUserCertificate(Request $req)
+    {
         $user = User::find($req->get('user_id'));
-        if(is_null($user)){
+        if (is_null($user)) {
             return redirect()->back()->with('msg_err', 'Ошибка! Пользователь не найден');
         }
         $clientFilePath = \App\Utils\SslUtil::createUserCertificate($user);
-        if ($clientFilePath === FALSE) {
+        if ($clientFilePath === false) {
             return redirect()->back()->with('msg_err', 'Ошибка при создании сертификата.');
         }
         return response()->download($clientFilePath);

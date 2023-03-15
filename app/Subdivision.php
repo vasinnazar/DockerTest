@@ -4,22 +4,41 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Subdivision extends Model {
-    protected $fillable = ['name_id','name','address','peacejudge','districtcourt','director','is_terminal','city','city_id','allow_use_new_cards'];
+class Subdivision extends Model
+{
+    protected $fillable = [
+        'name_id',
+        'name',
+        'address',
+        'peacejudge',
+        'districtcourt',
+        'director',
+        'is_terminal',
+        'city',
+        'city_id',
+        'allow_use_new_cards'
+    ];
     protected $table = 'subdivisions';
-    
-    public function group(){
+
+    public function group()
+    {
         return $this->belongsTo('App\SubdivisionGroup');
     }
-    public function users(){
+
+    public function users()
+    {
         return $this->hasMany('App\User');
     }
-    public function getCity(){
-        return $this->belongsTo('App\City','city_id');
+
+    public function getCity()
+    {
+        return $this->belongsTo('App\City', 'city_id');
     }
-    static function getDirectorsList($withEmpty=false){
+
+    static function getDirectorsList($withEmpty = false)
+    {
         $res = Subdivision::groupBy('director')->pluck('director')->toArray();
-        if($withEmpty){
+        if ($withEmpty) {
             array_unshift($res, '');
         }
         return $res;
