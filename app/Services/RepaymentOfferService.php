@@ -33,7 +33,6 @@ class RepaymentOfferService
             ->where('str_podr', '000000000006')
             ->whereIn('debt_group_id', [2, 4, 5])
             ->where('qty_delays', 36)
-            ->where('od', '>=', 500000)
             ->where('base', 'Б-1')
             ->get();
 
@@ -50,7 +49,12 @@ class RepaymentOfferService
             if (!is_null($debtorProlangation)) {
                 continue;
             }
-            $amount = (int)(($debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine) * 0.3);
+            $amount = $debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine;
+            if ($amount < 500000) {
+                continue;
+            }
+
+            $amount = (int)($amount * 0.3);
 
             Log::info('Repayment Offer Auto Peace SEND:',
                 ['debtorID' => $debtor->id, 'loanId1c' => $debtor->loan_id_1c]);
