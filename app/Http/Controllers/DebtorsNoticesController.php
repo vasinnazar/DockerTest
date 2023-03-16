@@ -103,7 +103,7 @@ class DebtorsNoticesController extends Controller {
         $fixationDateTo = !empty($input['fixation_date_to']) ?
             Carbon::parse($input['fixation_date_to'])->endOfDay() : null;
 
-        $respUsers = User::whereIn('id',[$input['responsible_users_ids']])->get()->pluck('id_1c')->toArray();
+        $respUsers = User::whereIn('id',$input['responsible_users_ids'])->get()->pluck('id_1c')->toArray();
 
         $bases = null;
         if (!empty($input['debt_base_ids'])) {
