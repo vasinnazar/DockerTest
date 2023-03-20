@@ -210,12 +210,7 @@ class DebtorsController extends BasicController
                 $msg_on_subdivision->save();
             }
         }
-
-        $customer = \App\Customer::where('id_1c', $debtor->customer_id_1c)->first();
-        // получаем данные по клиенту и договору
-        $passport = Passport::where('series', $debtor->passport_series)->where('number',
-            $debtor->passport_number)->first();
-
+        
         $debtorcard = Debtor::select(DB::raw('*, loans.created_at as loans_created_at, loantypes.percent as loantype_percent, loantypes.exp_pc as loantype_exp_pc, 
                                                 loans.special_percent as loan_special_percent, loantypes.special_pc as loantype_special_pc,
                                                 loantypes.fine_pc as loantype_fine_pc, loantypes.id_1c as loantype_id_1c, claims.id as claim_id, 
@@ -243,7 +238,7 @@ class DebtorsController extends BasicController
         
         if (count($data) > 1) {
             foreach ($data as $k => $tmp_data) {
-                if ($tmp_data['customer_id'] == $customer->id) {
+                if ($tmp_data['customer_id'] == $debtor->customer->id) {
                     $data[0] = $data[$k];
                     break;
                 }
@@ -256,52 +251,11 @@ class DebtorsController extends BasicController
         }
 
         // получаем данные об ответственном
-        $objRespUser = User::where('id_1c', $data[0]['responsible_user_id_1c'])->first();
-
-        $data[0]['not_responsible_user_open'] = false;
-        if (!is_null($objRespUser)) {
-            $data[0]['responsible_user_fio'] = $objRespUser->login;
-            if ($user->id != $objRespUser->id) {
-                $data[0]['not_responsible_user_open'] = true;
-            }
-            if ($objRespUser->hasRole('debtors_remote')) {
-                $debt_roles['resp_user_remote'] = true;
-            }
-            if ($objRespUser->hasRole('debtors_personal')) {
-                $debt_roles['resp_user_personal'] = true;
-            }
-        } else {
-            $data[0]['responsible_user_fio'] = '<b>Не определен</b>';
-            $data[0]['not_responsible_user_open'] = true;
-        }
-
-        $today = with(new Carbon())->today();
+        $responsibleUser = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
 
         $all_debts = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
 
-
-        $ar_debtor_ids = [];
-        foreach ($all_debts as $obj_debt) {
-            $ar_debtor_ids[] = $obj_debt->debtor_id_1c;
-        }
-
-        // получаем данные по мероприятиям на клиента
-        $debtorevents = DebtorEvent::select(DB::raw('*, debtor_events.id as id, debtor_events.created_at as de_created_at, debtors_events_promise_pays.promise_date as promise_date, debtors_events_promise_pays.amount as promise_amount'))
-            ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
-            ->leftJoin('customers', 'customers.id_1c', '=', 'debtor_events.customer_id_1c')
-            ->leftJoin('debtors_events_promise_pays', 'debtors_events_promise_pays.event_id', '=', 'debtor_events.id')
-            //->where('debtor_id_1c', $debtor->debtor_id_1c)
-            ->whereIn('debtor_id_1c', $ar_debtor_ids)
-            //->where('customer_id_1c', $debtor->customer_id_1c)
-//                ->where('debtor_events.user_id', $user_id)
-            ->orderBy('de_created_at', 'desc');
-        \PC::debug($debtorevents);
-        //->whereBetween('debtor_events.created_at', array($today->setTime(0, 0, 0)->format('Y-m-d H:i:s'), $today->setTime(23, 59, 59)->format('Y-m-d H:i:s')));
-        $dataevents = $debtorevents->get()->toArray();
-
-        foreach ($dataevents as $k => $event) {
-            $dataevents[$k]['day'] = date('d.m.Y', strtotime($event['de_created_at']));
-        }
+        $debtorEvents = $this->debtEventService->getDebtorEventsForCustomer($all_debts);
 
         $arPurposes = Order::getPurposeNames();
 
@@ -322,22 +276,6 @@ class DebtorsController extends BasicController
             ]);
             $whatsAppEvent = false;
         }
-        // получаем данные об ответственном пользователе
-        $debtorRespUser = Debtor::select(DB::raw('*'))
-            ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c');
-
-        // форматируем данные
-//        if (Auth::user()->id == 5) {
-        $passport = Passport::where('series', $debtor->passport_series)->where('number',
-            $debtor->passport_number)->first();
-//            \PC::debug($passport,'passport');
-//        } else {
-//            $passport = json_decode(json_encode(DB::connection('arm')->table('passports')->where('id', $data[0]['passport_id'])->first()), true);
-//        }
-        // получаем данные о платежах
-//        $debtorpayments = DB::Table('armf.orders')->select(DB::raw('*'))->where('passport_id', $passport->id)->where('loan_id', $data[0]['loan_id'])->whereNotNull('passport_id');
-//        $datapayments = $debtorpayments->get();
-//        if(Auth::user()->id==5){
 
         $passport_armf = DB::Table('armf.passports')->select(DB::raw('*'))->where('series',
             $debtor->passport_series)->where('number', $debtor->passport_number)->first();
@@ -377,22 +315,17 @@ class DebtorsController extends BasicController
             $datapayments = [];
         }
 
+
         //\PC::debug(json_decode($datapayments, true)); die();
 //        }
         $arDebtGroups = \App\DebtGroup::getDebtGroups();
         \PC::debug($arDebtGroups);
         $data[0]['loans_created_at_time'] = strtotime($data[0]['loans_created_at']);
         \PC::debug($data[0]['loans_created_at_time']);
-        $data[0]['passport_address'] = Passport::getFullAddress($passport);
-        $data[0]['real_address'] = Passport::getFullAddress($passport, true);
-        $data[0]['fact_address_region'] = $passport->fact_address_region;
-        $data[0]['loan_date_start'] = date('d.m.Y', strtotime($data[0]['loans_created_at']));
-        $period_type = ($debtor->is_bigmoney || $debtor->is_pledge || $debtor->is_pos) ? 'month' : 'days';
-        $data[0]['loan_date_end'] = date('d.m.Y',
-            strtotime("+" . $data[0]['time'] . " " . $period_type, strtotime($data[0]['loans_created_at'])));
-        \PC::debug($data[0]['loans_created_at']);
+        $data[0]['passport_address'] = Passport::getFullAddress($debtor->passport->first());
+        $data[0]['real_address'] = Passport::getFullAddress($debtor->passport->first(), true);
+        $data[0]['fact_address_region'] = $debtor->passport->first()->fact_address_region;
         $data[0]['loans_created_at'] = StrUtils::dateToStr($data[0]['loans_created_at']);
-        \PC::debug($data[0]['loans_created_at']);
         $data[0]['debt_group_text'] = (array_key_exists($data[0]['d_debt_group_id'],
             $arDebtGroups)) ? $arDebtGroups[$data[0]['d_debt_group_id']] : '';
         $data[0]['sms_available'] = (!is_null($user->sms_limit) ? $user->sms_limit : 0) - (!is_null($user->sms_sent) ? $user->sms_sent : 0);
@@ -432,8 +365,6 @@ class DebtorsController extends BasicController
             }
         }
 
-        $debt_roles['is_chief'] = ($user->hasRole('debtors_chief')) ? true : false;
-
         if ($user->hasRole('debtors_remote')) {
             $debt_roles['remote_notice'] = true;
         }
@@ -454,8 +385,8 @@ class DebtorsController extends BasicController
         ];
 
         $recommend_user_name = '';
-        if (!is_null($data[0]['recommend_user_id'])) {
-            $recUser = User::find($data[0]['recommend_user_id']);
+        if (!is_null($debtor->recommend_user_id)) {
+            $recUser = User::find($debtor->recommend_user_id);
             if (!is_null($recUser)) {
                 $recommend_user_name = $recUser->name;
             }
@@ -517,16 +448,12 @@ class DebtorsController extends BasicController
             $arPdAgreement['signed_time'] = date('d.m.Y H:i', strtotime($pdagreement->signed_at));
         }
 
-        // проверяем должника на соглашение о рекструктуризации
-        $data[0]['date_restruct_agreement'] = false;
-        if (!is_null($debtor->date_restruct_agreement) && $debtor->date_restruct_agreement != '0000-00-00 00:00:00') {
-            $data[0]['date_restruct_agreement'] = date('d.m.Y', strtotime($debtor->date_restruct_agreement));
-        }
-
         // получаем данные о выдаче займа налом или на карту из реплики
-        $repl_loan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c', $debtor->loan_id_1c)->first();
+        $repl_loan = DB::Table('armf.loans')->where('id_1c', $debtor->loan_id_1c)->first();
+        
+        
 
-        $data[0]['repl_in_cash'] = (!is_null($repl_loan)) ? $repl_loan->in_cash : false;
+        $data[0]['repl_in_cash'] = ($repl_loan) ? $repl_loan->in_cash : false;
 
         if ($data[0]['repl_in_cash'] == 0) {
             if ($repl_loan) {
@@ -542,30 +469,12 @@ class DebtorsController extends BasicController
             }
         }
 
-        $data[0]['has_tranche'] = false;
-        if ($data[0]['repl_in_cash'] == 0 && !is_null($repl_loan) && !is_null($repl_loan->first_loan_id_1c) && mb_strlen($repl_loan->first_loan_id_1c)) {
-            $data[0]['has_tranche'] = true;
-            $data[0]['loan_tranche_number'] = $repl_loan->tranche_number;
-            $data[0]['loan_first_loan_id_1c'] = $repl_loan->first_loan_id_1c;
-            $data[0]['loan_first_loan_date'] = $repl_loan->first_loan_date;
-        }
-
         // получаем отправленные уведомления по текущему должнику
         $notices = NoticeNumbers::where('debtor_id_1c', $debtor->debtor_id_1c)->where('str_podr',
             '000000000006')->orderBy('created_at', 'desc')->get();
         if (is_null($notices)) {
             $notices = [];
         }
-
-        // мультидоговора
-        /* $customer_open_loans = DB::Table('armf.loans')
-          ->select(DB::raw('*'))
-          ->leftJoin('armf.claims', 'armf.claims.id', '=', 'armf.loans.claim_id')
-          ->leftJoin('armf.customers', 'armf.customers.id', '=', 'armf.claims.customer_id')
-          ->where('armf.customers.id_1c', $debtor->customer_id_1c)
-          ->where('armf.loans.closed', 0)
-          ->get()
-          ->toArray(); */
 
         $multi_loan_debts = Loan::select(DB::raw('*, debtors.debtors.id as debtor_id, debtors.loans.id_1c as mloan_id_1c'))
             ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
@@ -598,7 +507,7 @@ class DebtorsController extends BasicController
 
         $total_multi_sum = number_format($total_multi_sum / 100, 2, '.', ' ');
 
-        $loan_percents = DB::Table('armf.loan_rates')->select(DB::raw('*'))
+        $loan_percents = DB::Table('armf.loan_rates')
             ->where('start_date', '<=', date('Y-m-d H:i:s', $data[0]['loans_created_at_time']))
             ->orderBy('start_date', 'desc')
             ->limit(1)
@@ -862,17 +771,16 @@ class DebtorsController extends BasicController
         }
 
         return view('debtors.debtorcard', [
-            'debtor_id' => $debtor_id,
-            'current_user_id' => $user->id,
+            'user' => $user,
+            'responsibleUser' => $responsibleUser,
             'data' => $data,
-            'dataevents' => $dataevents,
+            'debtorEvents' => $debtorEvents,
             'datapayments' => $datapayments,
             'purposes' => $arPurposes,
             'debtdata' => $arDebtData,
             'debtroles' => $debt_roles,
-            'debtor' => Debtor::find($debtor_id),
+            'debtor' => $debtor,
             'contractforms' => $arContractFormsIds,
-            'isPlannedDeparture' => PlannedDeparture::isPlanned($debtor_id),
             'arPdAgreement' => $arPdAgreement,
             'recommend_user_name' => $recommend_user_name,
             'notices' => $notices,
@@ -1898,6 +1806,7 @@ class DebtorsController extends BasicController
                 $data['completed'] = 1;
                 $debtorEvent->fill($data);
                 $debtorEvent->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
+                $debtorEvent->customer_id_1c = $debtor->customer_id_1c;
                 $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
                 $debtorEvent->debtor_id = $debtor->id;
                 $debtorEvent->user_id = $user->id;
@@ -3839,7 +3748,7 @@ class DebtorsController extends BasicController
         $is_leading_task = $req->get('type', false);
         $timezone = $req->get('timezone', false);
 
-        if ($is_leading_task && $is_leading_task == 'ouv_chief' && ($user->id == 916 || $user->id == 69)) {
+        if ($is_leading_task && $is_leading_task == 'olv_chief' && ($user->id == 916 || $user->id == 69)) {
             // запуск по Ведущему личного взыскания Свиридовым
             $str_podr = '000000000007-1';
         } else {
@@ -3894,8 +3803,8 @@ class DebtorsController extends BasicController
 
             if ($str_podr == '000000000006') {
                 $debtors->where('str_podr', '000000000006')
-                    ->where('qty_delays', '>=', 21)
-                    ->where('qty_delays', '<=', 135)
+                    ->where('qty_delays', '>=', 22)
+                    ->where('qty_delays', '<=', 69)
                     ->whereIn('debt_group_id', [2, 4, 5, 6]);
             }
 
@@ -4021,7 +3930,7 @@ class DebtorsController extends BasicController
                         ->where('qty_delays', '>=', 22)
                         ->where('qty_delays', '<=', 69)
                         ->where('base', '<>', 'ХПД')
-                        ->whereIn('debt_group_id', [4, 5, 6])
+                        ->whereIn('debt_group_id', [2, 4, 5, 6])
                         ->get();
                 } else {
                     if ($user->hasRole('debtors_personal')) {

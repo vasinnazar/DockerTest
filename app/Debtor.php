@@ -23,6 +23,11 @@ class Debtor extends Model
 
     protected $table = 'debtors.debtors';
     protected $fillable = ['od', 'pc', 'exp_pc', 'fine', 'tax', 'customer_id_1c', 'loan_id_1c', 'is_debtor'];
+    
+    protected $dates = [
+        'recommend_created_at',
+        'date_restruct_agreement'
+    ];
 
     public static function getDebtorsWithEmptyCustomer($offset, $limit = 50)
     {
@@ -209,16 +214,7 @@ class Debtor extends Model
 
     public function loan()
     {
-        $loan_id = Loan::leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-            ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
-            ->where('customers.id_1c', $this->customer_id_1c)
-            ->where('loans.id_1c', $this->loan_id_1c)
-            ->select('loans.id')->first();
-        if (!is_null($loan_id)) {
-            return Loan::find($loan_id->id);
-        } else {
-            return null;
-        }
+        return $this->hasOne('App\Loan', 'id_1c', 'loan_id_1c');
     }
 
     /**
@@ -247,7 +243,31 @@ class Debtor extends Model
 
     public function customer()
     {
-        return Customer::where('id_1c', $this->customer_id_1c)->first();
+        return $this->hasOne('App\Customer', 'id_1c', 'customer_id_1c');
+    }
+    
+    public function passport()
+    {
+        return $this->hasMany('App\Passport', 'number', 'passport_number')->where('series', $this->passport_series);
+    }
+    
+    public function struct_subdivision()
+    {
+        return $this->hasOne('App\StructSubdivision', 'id_1c', 'str_podr');
+    }
+    
+    public function getLoanEndDate()
+    {
+        $period_type = ($this->is_bigmoney || $this->is_pledge || $this->is_pos) ? 'month' : 'days';
+        $date = $this->loan->created_at;
+        
+        if ($this->is_bigmoney || $this->is_pledge || $this->is_pos) {
+            $date->addMonths($this->loan->time);
+        } else {
+            $date->addDays($this->loan->time);
+        }
+        
+        return $date->format('d.m.Y');
     }
 
     static function getOverall($user = false)

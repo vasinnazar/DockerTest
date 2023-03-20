@@ -25,14 +25,14 @@
         @elseif ($debtor->is_pos == 1)
         <span style="color: red; font-size: 120%;">Товарный займ</span><br>
         @endif
-        @if ($debtroles['is_chief'] && $data[0]['recommend_created_at'] == null)
+        @if ($user->hasRole('debtors_chief') && $debtor->recommend_created_at == null)
         <input id="add_recommend" data-toggle="modal" data-target="#debtorRecommend" type="button" class="btn btn-primary" value="Добавить рекомендацию" />
-        @elseif ($debtroles['is_chief'] && $data[0]['recommend_created_at'] != null)
+        @elseif ($user->hasRole('debtors_chief') && $debtor->recommend_created_at != null)
         <div class="alert alert-warning">
             <div style="position: absolute; right: 30px;">
                 <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="remove"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
                 <a href="#" data-toggle="modal" data-target="#debtorRecommendEdit" class="btn btn-default btn-xs pull-right"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
-                @if ($data[0]['recommend_completed'] == 1)
+                @if ($debtor->recommend_completed == 1)
                 <a href="#" class="btn btn-primary btn-xs pull-right recommend-ctrl" data-action="complete" disabled><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
                 @else
                 <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="complete"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
@@ -44,7 +44,7 @@
             {{$data[0]['recommend_text']}}
             <span class="pull-right"><i>{{$recommend_user_name}}</i></span>
         </div>
-        @elseif (!$debtroles['is_chief'] && $data[0]['recommend_created_at'] != null && ($data[0]['recommend_completed'] == 0 || $data[0]['recommend_completed'] == null))
+        @elseif (!$user->hasRole('debtors_chief') && $debtor->recommend_created_at != null && ($debtor->recommend_completed == 0 || $debtor->recommend_completed == null))
         <div class="alert alert-warning">
             <div style="position: absolute; right: 30px;">
                 <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="complete"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
@@ -71,7 +71,7 @@
         <div class='col-xs-12 col-sm-6 col-lg-4'>
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <u>{{$data[0]['fio']}}</u>
+                    <u>{{ $debtor->passport->first()->fio }}</u>
                     @if(auth()->user()->id==5)
                     <a target="_blank" href="{{url('customers/edit/'.$data[0]['customer_id'].'/'.$data[0]['passport_id'])}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span></a>
                     @endif
@@ -144,7 +144,7 @@
                                         </p>
                                     </a>
                                 </span>
-                                @if($debtor->printCourtOrder() && auth()->user()->isChiefSpecialist())
+                                @if($debtor->printCourtOrder() && $user->isChiefSpecialist())
                                 <span>
                                     <a href="{{route('debtor.courtorder',$debtor->id)}}"
                                        style="color: #fff; text-decoration: none;">
@@ -167,9 +167,6 @@
                             <div class='btn-group btn-group-sm btn-group-vertical'>
                                 <a class='btn btn-default' href='{{url('debtors/logs/'.$debtor->id)}}'>История изменений</a>
                                 <a id="debtor_history_button" class='btn btn-default' href='{{url('debtors/history/'.$debtor->id)}}' target="_blank" disabled>История заемщика</a>
-                                @if (isset($debtroles['personal_notice']))
-                                <a id="planDepartureLink" data-action="{{($isPlannedDeparture) ? 'remove' : 'add'}}" data-link="{{url('ajax/debtors/changePlanDeparture/' . $debtor->id . '/')}}" class='btn {{($isPlannedDeparture) ? 'btn-danger' : 'btn-default'}}' href='#'>{{($isPlannedDeparture) ? 'Выезд запланирован' : 'Запланировать выезд'}}</a>
-                                @endif
                             </div>
                         </div>
                         @if (!isset($debtroles['personal_notice']))
@@ -184,7 +181,7 @@
                                 <a href="#" data-toggle="modal" data-target="#debtorSmsSent" class="btn btn-default">Отправленные SMS</a>
                             </div>
                         </div>
-                        @if ($debtroles['is_chief'])
+                        @if ($user->hasRole('debtors_chief'))
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 15px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
                                 <a class='btn change-personal-data {{$data[0]['non_interaction'] == 1 ? 'btn-danger' : 'btn-default'}}' data-action="{{$data[0]['non_interaction'] == 0 ? 'on' : 'off'}}_non_interaction" href='#' data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отказ от взаимодействия (по форме)</a>
@@ -240,10 +237,10 @@
                                 <button data-toggle="modal" data-target="#debtorTherdPeopleAgreementInfo" class='btn {{($third_people_agreement) ? 'btn-primary' : 'btn-danger'}}'>{{($third_people_agreement) ? 'Согласие на взаимодействие с 3-ми лицами подписано' : 'Согласие на взаимодействие с 3-ми лицами не подписано'}}</button>
                             </div>
                         </div>
-                        @if ($data[0]['date_restruct_agreement'])
+                        @if ($debtor->date_restruct_agreement && $debtor->date_restruct_agreement->year != '-1')
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
-                                <button class='btn btn-success'>Реструктуризация от {{$data[0]['date_restruct_agreement']}}</button>
+                                <button class='btn btn-success'>Реструктуризация от {{ $debtor->date_restruct_agreement->format('d.m.Y') }}</button>
                             </div>
                         </div>
                         @endif
@@ -340,7 +337,7 @@
                         <tr style="background-color: #5CCDC9;">
                             <td>Т. моб.:</td>
                             <td>
-                                @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $debtroles['is_chief'])
+                                @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $user->hasRole('debtors_chief'))
                                     @if (isset($data[0]['telephone']) && mb_strlen($data[0]['telephone']) && $debtor->base != 'Архив ЗД')
                                         <button type="button" class="btn btn-default btn-xs" data-toggle="modal"
                                                 data-target="#debtorSMS" data-phone="{{$data[0]['telephone']}}">
@@ -491,7 +488,7 @@
                             <tr>
                                 <td>E-mail:</td>
                                 <td>
-                                    <input type="hidden" name="debtor_id" id="debtCardId" value="{{$debtor['id']}}">
+                                    <input type="hidden" name="debtor_id" id="debtCardId" value="{{ $debtor->id }}">
                                     <button onclick="($.debtorsCtrl.emailMessagesList({{auth()->user()->id}}))" target="_blank" class="btn btn-default btn-xs">
                                         <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
                                     </button>
@@ -505,17 +502,24 @@
                         <tr>
                             <td>Ответственный:</td>
                             <td></td>
-                            <?php
-                            if ($data[0]['not_responsible_user_open'] == true) {
-                                $color_td_style = ' style="color: #A60000;"';
-                            } else {
-                                $color_td_style = '';
-                            }
-                            ?>
-                            <td<?= $color_td_style; ?>>
-                                {{$data[0]['responsible_user_fio']}} ({{(isset($debtroles['resp_user_remote']) && $debtroles['resp_user_remote']) ? 'Отдел удаленного взыскания' : ''}}{{(isset($debtroles['resp_user_personal']) && $debtroles['resp_user_personal'] && strpos($data[0]['responsible_user_fio'], 'Котельникова') === false) ? 'Отдел личного взыскания' : ''}})
-                                @if (auth()->user()->hasRole('debtors_remote') && $data[0]['not_responsible_user_open'])
-                                <br><a class="btn btn-primary" href="/debtors/setSelfResponsible/{{$debtor->id}}">Закрепить за собой</a>
+                            <td{!! ($user->id != $responsibleUser->id) ? ' style="color: #A60000;"' : '' !!}>
+                                @if ($responsibleUser)
+                                    {{ $responsibleUser->login }}
+                                @else
+                                    <b>Не определен</b>
+                                @endif
+                                
+                                (
+                                @if ($responsibleUser->hasRole('debtors_remote'))
+                                    Отдел удаленного взыскания
+                                @endif
+                                @if ($responsibleUser->hasRole('debtors_personal') && strpos($responsibleUser->login, 'Котельникова') === false)
+                                    Отдел личного взыскания
+                                @endif
+                                )
+                                
+                                @if ($user->hasRole('debtors_remote') && ($user->id != $responsibleUser->id))
+                                    <br><a class="btn btn-primary" href="/debtors/setSelfResponsible/{{$debtor->id}}">Закрепить за собой</a>
                                 @endif
                             </td>
                             <td></td>
@@ -523,7 +527,7 @@
                         <tr>
                             <td>Структурное<br>подразделение:</td>
                             <td></td>
-                            <td>{{$data[0]['str_podr_name']}}</td>
+                            <td>{{ $debtor->struct_subdivision->name }}</td>
                             <td></td>
                         </tr>
                     </table>
@@ -549,60 +553,60 @@
                         </tr>
                     </thead>
                     <tbody class="debtor-comments-block">
-                        @if (is_array($dataevents) && count($dataevents))
+                        @if (count($debtorEvents))
                         <?php
-                        $curDay = $dataevents[0]['day'];
+                        $curDay = '';
                         $row_color = 'ffffff';
-                        $isMasterUser = \App\DebtorUsersRef::isMasterUserWithSlaves(Auth::user()->id);
+                        $isMasterUser = \App\DebtorUsersRef::isMasterUserWithSlaves($user->id);
                         ?>
-                        @foreach ($dataevents as $event)
+                        @foreach ($debtorEvents as $event)
                         <?php
-                        if ($curDay != $event['day'] || $row_color == 'ffaaa7' || $row_color == '6C8CD5') {
+                        if ($curDay != date('d.m.Y', strtotime($event->de_created_at)) || $row_color == 'ffaaa7' || $row_color == '6C8CD5') {
                             if ($row_color == 'ffffff') {
                                 $row_color = 'dddddd';
                             } else {
                                 $row_color = 'ffffff';
                             }
 
-                            $curDay = $event['day'];
+                            $curDay = date('d.m.Y', strtotime($event->de_created_at));
                         }
-                        if (strpos($event['user_id_1c'], 'Кондратенко И') !== false || strpos($event['user_id_1c'], 'Рифель Ю. О.') !== false) {
+                        if (strpos($event->user_id_1c, 'Кондратенко И') !== false || strpos($event->user_id_1c, 'Рифель Ю. О.') !== false) {
                             $row_color = 'ffaaa7';
                         }
-                        if ($event['event_type_id'] == 16) {
+                        if ($event->event_type_id == 16) {
                             $row_color = '6C8CD5';
                         }
                         ?>
                         <tr style="background-color: #{{$row_color}}">
-                            <td>{{($event['date'] == '0000-00-00 00:00:00' || is_null($event['date'])) ? '' : date('d.m.Y H:i:s', strtotime($event['date']))}}</td>
-                            <td>{{date('d.m.Y', strtotime($event['de_created_at']))}}</td>
+                            <td>{{($event->date == '0000-00-00 00:00:00' || is_null($event->date)) ? '' : date('d.m.Y H:i:s', strtotime($event->date))}}</td>
+                            <td>{{date('d.m.Y', strtotime($event->de_created_at))}}</td>
                             <td>
                                 @if(array_key_exists($event['event_type_id'],$debtdata['event_types']))
-                                {{$debtdata['event_types'][$event['event_type_id']]}}
+                                {{$debtdata['event_types'][$event->event_type_id]}}
                                 @endif
                             </td>
                             <td>
                                 @if ($event['event_type_id'] == 26)
                                 @if (!is_null($event['promise_amount']) && !is_null($event['promise_date']))
-                                <b>{{ number_format($event['promise_amount'] / 100, 2, '.', '') }} руб.</b>
+                                <b>{{ number_format($event->promise_amount / 100, 2, '.', '') }} руб.</b>
                                 <br>
-                                <span style="font-size: 80%; font-style: italic;">до {{ date('d.m.Y', strtotime($event['promise_date'])) }}</span>
+                                <span style="font-size: 80%; font-style: italic;">до {{ date('d.m.Y', strtotime($event->promise_date)) }}</span>
                                 @endif
                                 @endif
                             </td>
                             <td>
                                 @if(array_key_exists($event['event_result_id'],$debtdata['event_results']))
-                                {{$debtdata['event_results'][$event['event_result_id']]}}
+                                {{$debtdata['event_results'][$event->event_result_id]}}
                                 @endif
                             </td>
                             <td>
-                                {{$event['report']}}
+                                {{$event->report}}
                             </td>
-                            <td>{{$event['login']}}</td>
+                            <td>{{$event->login}}</td>
                             <td>
-                                <input type="checkbox" name="eventDone[]" value="{{$event['id']}}" {{($event['completed'] == 1) ? 'checked' : ''}}/>
+                                <input type="checkbox" name="eventDone[]" value="{{$event->id}}" {{($event->completed == 1) ? 'checked' : ''}}/>
                                 @if($isMasterUser)
-                                <button type="button" name="debtor_event_edit" class="btn btn-default btn-xs" onclick="$.debtorsCtrl.openDebtorEvent({{$event['id']}});"><span class="glyphicon glyphicon-pencil"></span></button>
+                                <button type="button" name="debtor_event_edit" class="btn btn-default btn-xs" onclick="$.debtorsCtrl.openDebtorEvent({{$event->id}});"><span class="glyphicon glyphicon-pencil"></span></button>
                                 @endif
                             </td>
                         </tr>
@@ -622,7 +626,7 @@
         <div class="col-xs-12 col-sm-12 col-lg-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    {{$data[0]['fio']}}
+                    {{ $debtor->passport->first()->fio }}
                 </div>
             </div>
         </div>
@@ -666,18 +670,15 @@
                                 <li class='list-group-item'>
                                     <small>Договор:</small><br>
                                     {{$data[0]['loan_id_1c']}} от {{$data[0]['loans_created_at']}} | (сумма займа: {{number_format($data[0]['d_money'], 2, '.', '')}} руб.)
-                                    @if(isset($data[0]['repl_in_cash']) && !$data[0]['repl_in_cash'] && $data[0]['has_tranche'])
-                                    <!-- (транш №{!!str_pad($data[0]['loan_tranche_number'], 3, '0', STR_PAD_LEFT)!!} к договору № {{$data[0]['loan_first_loan_id_1c']}} от {{with(new \Carbon\Carbon($data[0]['loan_first_loan_date']))->format('d.m.Y')}}) -->
-                                    @endif
                                 </li>
                                 <li class='list-group-item'>
                                     <small>Срок:</small> {{$data[0]['time']}} {{ ($debtor->is_pos || $debtor->is_pledge || $debtor->is_bigmoney) ? 'мес.' : 'дн.' }}
                                 </li>
                                 <li class='list-group-item'>
-                                    <small>Дата начала:</small> {{$data[0]['loan_date_start']}}
+                                    <small>Дата начала:</small> {{ $debtor->loan->created_at->format('d.m.Y') }}
                                 </li>
                                 <li class='list-group-item'>
-                                    <small>Дата окончания:</small> {{$data[0]['loan_date_end']}}
+                                    <small>Дата окончания:</small> {{ $debtor->getLoanEndDate() }}
                                 </li>
                                 <li class='list-group-item'>
                                     <span>Просроченных дней:</span> <span class="debt-exp_days-ondate">{{$data[0]['qty_delays']}}</span>
@@ -885,13 +886,13 @@
                 </table>
             </div>
         </div>
-        @if(isset($debtor) && (!auth()->user()->hasRole('cant_edit_all_debtors') || auth()->user()->id_1c == $debtor->responsible_user_id_1c) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $debtroles['is_chief'])
+        @if(isset($debtor) && (!$user->hasRole('cant_edit_all_debtors') || $user->id_1c == $debtor->responsible_user_id_1c) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $user->hasRole('debtors_chief'))
 
                 <div class="col-xs-12 col-sm-6 col-lg-8">
                     <form action="/debtors/addevent" id="event-form" enctype="multipart/form-data" method="POST">
                         {{ csrf_field() }}
-                        <input type="hidden" name="debtor_id" value="{{$debtor_id}}">
-                        <input type="hidden" name="user_id" value="{{$current_user_id}}">
+                        <input type="hidden" name="debtor_id" value="{{ $debtor->id }}">
+                        <input type="hidden" name="user_id" value="{{ $user->id }}">
                         <div class="row">
                             <div class="col-xs-12 col-lg-6">
                                 <div class="panel panel-default">
@@ -975,7 +976,7 @@
                                                     </select>
                                                 </div>
                                             </div>
-                                            @if ($debtroles['is_chief'] || auth()->user()->hasRole('can_edit_all_debtors'))
+                                            @if ($user->hasRole('debtors_chief') || $user->hasRole('can_edit_all_debtors'))
                                                 <div class='form-group' id='chief_event_field'>
                                                     <label class='col-xs-12 col-sm-4 text-right'>От имени:</label>
                                                     <div class='col-xs-12 col-sm-8 form-inline'>

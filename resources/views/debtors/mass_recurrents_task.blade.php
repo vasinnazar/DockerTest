@@ -45,7 +45,7 @@
                             $.ajax({
                                 url: '/debtor/recurrent/massquery',
                                 method: 'post',
-                                data: {task_id: json_data.task_id, recurrent_type: $('#recurrent_type').val()},
+                                data: {task_id: json_data.task_id, recurrent_type: $('#recurrent_type').val(), timezone: timezone},
                                 success: function (answer) {
                                     location.reload();
                                 }
