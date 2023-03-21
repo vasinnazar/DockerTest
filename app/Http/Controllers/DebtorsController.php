@@ -1687,8 +1687,7 @@ class DebtorsController extends BasicController
         $sms = DebtorSmsTpls::where('id', $req->sms_id)->first();
         if ($sms && is_null($sms->is_excluded)) {
             try {
-                $customer = $debtor->customer();
-                $debtors = Debtor::where('customer_id_1c', $customer->id_1c)->get();
+                $debtors = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
                 foreach ($debtors as $debt) {
                     $this->debtEventService->checkLimitEvent($debt);
                 }
