@@ -502,7 +502,7 @@
                         <tr>
                             <td>Ответственный:</td>
                             <td></td>
-                            <td{!! ($user->id != $responsibleUser->id) ? ' style="color: #A60000;"' : '' !!}>
+                            <td{!! ($responsibleUser && $user->id != $responsibleUser->id) ? ' style="color: #A60000;"' : '' !!}>
                                 @if ($responsibleUser)
                                     {{ $responsibleUser->login }}
                                 @else
@@ -510,15 +510,15 @@
                                 @endif
                                 
                                 (
-                                @if ($responsibleUser->hasRole('debtors_remote'))
+                                @if ($responsibleUser && $responsibleUser->hasRole('debtors_remote'))
                                     Отдел удаленного взыскания
                                 @endif
-                                @if ($responsibleUser->hasRole('debtors_personal') && strpos($responsibleUser->login, 'Котельникова') === false)
+                                @if ($responsibleUser && $responsibleUser->hasRole('debtors_personal') && strpos($responsibleUser->login, 'Котельникова') === false)
                                     Отдел личного взыскания
                                 @endif
                                 )
                                 
-                                @if ($user->hasRole('debtors_remote') && ($user->id != $responsibleUser->id))
+                                @if ($responsibleUser && $responsibleUser && $user->hasRole('debtors_remote') && ($user->id != $responsibleUser->id))
                                     <br><a class="btn btn-primary" href="/debtors/setSelfResponsible/{{$debtor->id}}">Закрепить за собой</a>
                                 @endif
                             </td>
@@ -527,7 +527,7 @@
                         <tr>
                             <td>Структурное<br>подразделение:</td>
                             <td></td>
-                            <td>{{ $debtor->struct_subdivision->name }}</td>
+                            <td>{{ ($debtor->struct_subdivision) ? $debtor->struct_subdivision->name : '' }}</td>
                             <td></td>
                         </tr>
                     </table>
@@ -581,13 +581,13 @@
                             <td>{{($event->date == '0000-00-00 00:00:00' || is_null($event->date)) ? '' : date('d.m.Y H:i:s', strtotime($event->date))}}</td>
                             <td>{{date('d.m.Y', strtotime($event->de_created_at))}}</td>
                             <td>
-                                @if(array_key_exists($event['event_type_id'],$debtdata['event_types']))
+                                @if(array_key_exists($event->event_type_id,$debtdata['event_types']))
                                 {{$debtdata['event_types'][$event->event_type_id]}}
                                 @endif
                             </td>
                             <td>
-                                @if ($event['event_type_id'] == 26)
-                                @if (!is_null($event['promise_amount']) && !is_null($event['promise_date']))
+                                @if ($event->event_type_id == 26)
+                                @if (!is_null($event->promise_amount) && !is_null($event->promise_date))
                                 <b>{{ number_format($event->promise_amount / 100, 2, '.', '') }} руб.</b>
                                 <br>
                                 <span style="font-size: 80%; font-style: italic;">до {{ date('d.m.Y', strtotime($event->promise_date)) }}</span>
@@ -595,7 +595,7 @@
                                 @endif
                             </td>
                             <td>
-                                @if(array_key_exists($event['event_result_id'],$debtdata['event_results']))
+                                @if(array_key_exists($event->event_result_id,$debtdata['event_results']))
                                 {{$debtdata['event_results'][$event->event_result_id]}}
                                 @endif
                             </td>
@@ -875,7 +875,7 @@
                         @if ($i == 1)
                         <tr>
                             <td>{{$i}}</td>
-                            <td>{{date('d.m.Y', strtotime($data[0]['loan_date_start']))}}</td>
+                            <td>{{date('d.m.Y', strtotime($debtor->loan->created_at))}}</td>
                             <td>Списание на карту</td>
                             <td>{{number_format($data[0]['d_money'], 2, '.', '')}}</td>
                             <td></td>

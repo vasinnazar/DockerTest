@@ -40,7 +40,7 @@ class EmailController extends Controller
             'discountPayment' => $request->discountPayment ?? null,
         ];
 
-        $customer = (Debtor::find($request->debtor_id))->customer();
+        $customer = (Debtor::find($request->debtor_id))->customer;
         $debtors = Debtor::where('customer_id_1c', $customer->id_1c)->get();
 
 

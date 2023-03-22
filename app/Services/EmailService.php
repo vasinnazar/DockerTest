@@ -117,7 +117,7 @@ class EmailService
 
     public function replaceKeysTemplateMessage($user, $debtor, $templateMessage, $arrayParam)
     {
-        $passport = $debtor->customer()->getLastPassport();
+        $passport = $debtor->customer->getLastPassport();
         $fio = $passport->fio;
         $templateMessage = str_replace('{{company_new_name}}', config('vars.company_new_name'), $templateMessage);
         $templateMessage = str_replace('{{company_phone}}', config('vars.company_phone'), $templateMessage);
