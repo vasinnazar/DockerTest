@@ -39,7 +39,7 @@ class RepaymentOfferService
         foreach ($debtors as $debtor) {
             $repaymentOffers = $this->armClient->getOffers($debtor->loan_id_1c);
             $repaymentOffersFiltered = $repaymentOffers->filter(function ($item) {
-                return Carbon::now()->lessThan(Carbon::parse($item->end_at)) && $item->status == 1;
+                return Carbon::now()->lessThan(Carbon::parse($item->end_at)) && $item->status != 4;
             });
 
             if (!$repaymentOffersFiltered->isEmpty()) {
