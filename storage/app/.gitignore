@@ -1,2 +1,6 @@
-*
+/dumps/
+/debtors/
+/images/
+/ssl/
+/terminal/
 !.gitignore
