@@ -60,7 +60,7 @@ class DebtorExportController extends Controller
                 $debtor->sum_indebt / 100,
                 $debtor->od / 100,
                 $debtor->base,
-                ($debtor->customer())->telephone,
+                $debtor->customer->telephone,
                 $nameDebtorGroup ? $nameDebtorGroup->name : '',
                 $item['debtors_username'],
                 $item['debtor_str_podr']
