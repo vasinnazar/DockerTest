@@ -343,12 +343,6 @@
                                                 data-target="#debtorSMS" data-phone="{{$data[0]['telephone']}}">
                                             <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                         </button>
-                                        @if(!empty(auth()->user()->infinity_extension))
-                                            <button type="button" class="btn btn-default btn-xs phone-call-btn"
-                                                    data-phone="{{$data[0]['telephone']}}">
-                                                <span class="glyphicon glyphicon-earphone"></span>
-                                            </button>
-                                        @endif
                                         @if($whatsApp)
                                         <a href="whatsapp://send?phone={{$data[0]['telephone']}}"
                                            class="btn btn-default btn-xs" target="_blank">
@@ -366,7 +360,13 @@
                                 @endif
                             </td>
                             <td id="debtor-phone-clip">{{$data[0]['telephone']}}</td>
-                            <td>
+                            <td style="display: flex;">
+                                @if(!empty(auth()->user()->infinity_extension))
+                                    <button type="button" class="btn btn-success btn-xs phone-call-btn"
+                                            data-phone="{{$data[0]['telephone']}}" style="margin-right: 20%">
+                                        <span class="glyphicon glyphicon-earphone"></span>
+                                    </button>
+                                @endif
                                 <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-phone-clip">
                                     <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
                                 </button>
@@ -379,19 +379,21 @@
                                 <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['telephonehome']}}">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </button-->
-                                @if(!empty(auth()->user()->infinity_extension))
-                                <button type="button" class="btn btn-default btn-xs phone-call-btn" data-phone="{{$data[0]['telephonehome']}}">
-                                    <span class="glyphicon glyphicon-earphone"></span>
-                                </button>
-                                @endif
                                 @endif
                             </td>
                             <td id="debtor-telephonehome-clip">{{$data[0]['telephonehome']}}</td>
-                            <td>
+                            <td style="display: flex;">
                                 @if (isset($data[0]['telephonehome']) && mb_strlen($data[0]['telephonehome']))
-                                <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-telephonehome-clip">
-                                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                                </button>
+                                    @if(!empty(auth()->user()->infinity_extension))
+                                        <button type="button" class="btn btn-success btn-xs phone-call-btn"
+                                                data-phone="{{$data[0]['telephonehome']}}" style="margin-right: 20%">
+                                            <span class="glyphicon glyphicon-earphone"></span>
+                                        </button>
+                                    @endif
+                                    <button class="btn btn-default btn-xs btn-clipboard"
+                                            data-clipboard-target="#debtor-telephonehome-clip">
+                                        <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                                    </button>
                                 @endif
                             </td>
                         </tr>
@@ -399,49 +401,54 @@
                             <td>Т. организации:</td>
                             <td>
                                 @if (isset($data[0]['telephoneorganiz']) && mb_strlen($data[0]['telephoneorganiz']))
-                                <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['telephoneorganiz']}}">
+                                    <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['telephoneorganiz']}}">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </button-->
-                                @if(!empty(auth()->user()->infinity_extension))
-                                <button type="button" class="btn btn-default btn-xs phone-call-btn" data-phone="{{$data[0]['telephoneorganiz']}}">
-                                    <span class="glyphicon glyphicon-earphone"></span>
-                                </button>
-                                @endif
                                 @endif
                             </td>
                             <td id="debtor-telephoneorganiz-clip">{{$data[0]['telephoneorganiz']}}</td>
-                            <td>
+                            <td style="display: flex;">
                                 @if (isset($data[0]['telephoneorganiz']) && mb_strlen($data[0]['telephoneorganiz']))
-                                <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-telephoneorganiz-clip">
-                                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                                </button>
+                                    @if(!empty(auth()->user()->infinity_extension))
+                                        <button type="button" class="btn btn-success btn-xs phone-call-btn"
+                                                data-phone="{{$data[0]['telephoneorganiz']}}" style="margin-right: 20%">
+                                            <span class="glyphicon glyphicon-earphone"></span>
+                                        </button>
+                                    @endif
+                                    <button class="btn btn-default btn-xs btn-clipboard"
+                                            data-clipboard-target="#debtor-telephoneorganiz-clip">
+                                        <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                                    </button>
                                 @endif
                             </td>
                         </tr>
                         @if (strtotime($data[0]['loans_created_at']) > 1544720399)
-                        <tr>
-                            <td>Т. родств.:</td>
-                            <td>
-                                @if (isset($data[0]['telephonerodstv']) && mb_strlen($data[0]['telephonerodstv']))
-                                <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['telephonerodstv']}}">
+                            <tr>
+                                <td>Т. родств.:</td>
+                                <td>
+                                    @if (isset($data[0]['telephonerodstv']) && mb_strlen($data[0]['telephonerodstv']))
+                                        <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['telephonerodstv']}}" style="margin-right: 20%">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </button-->
-                                @if(!empty(auth()->user()->infinity_extension))
-                                <button type="button" class="btn btn-default btn-xs phone-call-btn" data-phone="{{$data[0]['telephonerodstv']}}">
-                                    <span class="glyphicon glyphicon-earphone"></span>
-                                </button>
-                                @endif
-                                @endif
-                            </td>
-                            <td id="debtor-telephonerodstv-clip">{{$data[0]['telephonerodstv']}}</td>
-                            <td>
-                                @if (isset($data[0]['telephonerodstv']) && mb_strlen($data[0]['telephonerodstv']))
-                                <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-telephonerodstv-clip">
-                                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                                </button>
-                                @endif
-                            </td>
-                        </tr>
+                                    @endif
+                                </td>
+                                <td id="debtor-telephonerodstv-clip">{{$data[0]['telephonerodstv']}}</td>
+                                <td style="display: flex;">
+                                    @if (isset($data[0]['telephonerodstv']) && mb_strlen($data[0]['telephonerodstv']))
+                                        @if(!empty(auth()->user()->infinity_extension))
+                                            <button type="button" class="btn btn-success btn-xs phone-call-btn"
+                                                    data-phone="{{$data[0]['telephonerodstv']}}"
+                                                    style="margin-right: 20%">
+                                                <span class="glyphicon glyphicon-earphone"></span>
+                                            </button>
+                                        @endif
+                                        <button class="btn btn-default btn-xs btn-clipboard"
+                                                data-clipboard-target="#debtor-telephonerodstv-clip">
+                                            <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                                        </button>
+                                    @endif
+                                </td>
+                            </tr>
                         @endif
                         <tr>
                             <td>Т. доп.:</td>
@@ -453,22 +460,25 @@
                             <td>Т. др.:</td>
                             <td>
                                 @if (isset($data[0]['anothertelephone']) && mb_strlen($data[0]['anothertelephone']))
-                                <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['anothertelephone']}}">
+                                    <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['anothertelephone']}}">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </button-->
-                                @if(!empty(auth()->user()->infinity_extension))
-                                <button type="button" class="btn btn-default btn-xs phone-call-btn" data-phone="{{$data[0]['anothertelephone']}}">
-                                    <span class="glyphicon glyphicon-earphone"></span>
-                                </button>
-                                @endif
+
                                 @endif
                             </td>
                             <td id="debtor-anothertelephone-clip">{{$data[0]['anothertelephone']}}</td>
-                            <td>
+                            <td style="display: flex">
                                 @if (isset($data[0]['anothertelephone']) && mb_strlen($data[0]['anothertelephone']))
-                                <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-anothertelephone-clip">
-                                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                                </button>
+                                    @if(!empty(auth()->user()->infinity_extension))
+                                        <button type="button" class="btn btn-success btn-xs phone-call-btn"
+                                                data-phone="{{$data[0]['anothertelephone']}}" style="margin-right: 20%">
+                                            <span class="glyphicon glyphicon-earphone"></span>
+                                        </button>
+                                    @endif
+                                    <button class="btn btn-default btn-xs btn-clipboard"
+                                            data-clipboard-target="#debtor-anothertelephone-clip">
+                                        <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                                    </button>
                                 @endif
                             </td>
                         </tr>
