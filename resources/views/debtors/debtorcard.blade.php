@@ -237,6 +237,11 @@
                                 <button data-toggle="modal" data-target="#debtorTherdPeopleAgreementInfo" class='btn {{($third_people_agreement) ? 'btn-primary' : 'btn-danger'}}'>{{($third_people_agreement) ? 'Согласие на взаимодействие с 3-ми лицами подписано' : 'Согласие на взаимодействие с 3-ми лицами не подписано'}}</button>
                             </div>
                         </div>
+                        <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
+                            <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
+                                <button data-toggle="modal" data-target="#debtorReccurent" class='btn {{($noRecurrent) ? 'btn-danger' : 'btn-primary'}}'>Отзыв безакцептного списания</button>
+                            </div>
+                        </div>
                         @if ($debtor->date_restruct_agreement && $debtor->date_restruct_agreement->year != '-1')
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
