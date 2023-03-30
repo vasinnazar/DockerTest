@@ -39,4 +39,10 @@ return [
       'arm_login'=>env('ARM_LOGIN'),
       'arm_password'=>env('ARM_PASSWORD'),
     ],
+
+    'pays'=>[
+        'url'=>env('PAYS_URL'),
+        'pays_login'=>env('PAYS_LOGIN'),
+        'pays_password'=>env('PAYS_PASSWORD'),
+    ],
 ];
