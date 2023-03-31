@@ -841,7 +841,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{--*/ $i = 1 /*--}}
+                        {{$i = 1}}
                         <?php $day_sum = 0; $payment_date = ''; $cnt_payments = count($datapayments); ?>
                         @foreach ($datapayments as $k => $payment)
                         <?php
@@ -885,7 +885,7 @@
                                 <?php
                         }
                         ?>
-                        {{--*/ $i++ /*--}}
+                        {{$i++}}
                         @endforeach
                         @if ($i == 1)
                         <tr>
