@@ -72,7 +72,7 @@ class DebtorService
             ) {
                 $itemCollect = [
                     'debtors_fixation_date' => $debtor->fixation_date,
-                    'passports_fio' => ($debtor->customer())->getLastPassport()->fio,
+                    'passports_fio' => $debtor->customer->getLastPassport()->fio,
                     'debtors_id' => $debtor->id,
                     'debtors_username' => (User::where('id_1c', $debtor->responsible_user_id_1c)->first())->name,
                     'debtor_str_podr' => $debtor->str_podr,

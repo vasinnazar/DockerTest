@@ -345,7 +345,7 @@ class PhotoController extends Controller {
      */
     public function setMain(Request $req) {
         if (config('app.version_type') == 'debtors') {
-            return \App\Utils\HelperUtil::SendPostByCurl(config('admin.sales_arm_url').'/debtors/photos/main', ['main_id' => $req->get('main_id','')]);
+            return \App\Utils\HelperUtil::SendPostByCurl(config('services.arm.url').'/debtors/photos/main', ['main_id' => $req->get('main_id','')]);
         }
         $photo = Photo::where('claim_id', $req->get('claim_id'))->where('id', $req->get('main_id'))->first();
         if(is_null($photo)){

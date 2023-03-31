@@ -50,7 +50,7 @@ class PdfService
     {
         $loan = Loan::where('id_1c', $debtor->loan_id_1c)->first();
         $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
-        $passportDebtor = $debtor->customer()->getLastPassport();
+        $passportDebtor = $debtor->customer->getLastPassport();
         $duty = $this->getStateDuty($arraySumDebtor->money / 100);
 
         $full_address = $passportDebtor->address_region . ',';

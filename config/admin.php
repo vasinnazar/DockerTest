@@ -59,6 +59,5 @@ return array (
         'password' => 'dune25',
         'absolute_url' => true
     ],
-    'sales_arm_url' => 'http://192.168.35.89',
     'debtors_arm' => 'http://192.168.1.215'
 ) ;

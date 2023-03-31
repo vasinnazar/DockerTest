@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Clients\ArmClient;
+use App\Clients\PaysClient;
 use App\DebtGroup;
 use App\Debtor;
 use App\DebtorEvent;
@@ -177,7 +178,7 @@ class DebtorsController extends BasicController
      * @param int $debtor_id
      * @return type
      */
-    public function debtorcard(int $debtor_id)
+    public function debtorcard(PaysClient $paysClient,int $debtor_id)
     {
         $user = auth()->user();
         $debt_roles = [];
@@ -397,7 +398,7 @@ class DebtorsController extends BasicController
             if (is_null($is_orders_loaded) || $is_orders_loaded->is_loaded == 0) {
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL,
-                    config('admin.sales_arm_url') . '/debtors/orders/upload?passport_series=' . $debtor->passport_series . '&passport_number=' . $debtor->passport_number . '&loan_id_1c=' . $debtor->loan_id_1c . '&customer_id_1c=' . $debtor->customer_id_1c);
+                    config('services.arm.url') . '/debtors/orders/upload?passport_series=' . $debtor->passport_series . '&passport_number=' . $debtor->passport_number . '&loan_id_1c=' . $debtor->loan_id_1c . '&customer_id_1c=' . $debtor->customer_id_1c);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 $answer_curl = curl_exec($ch);
                 curl_close($ch);
@@ -711,7 +712,7 @@ class DebtorsController extends BasicController
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL,
-            config('admin.sales_arm_url') . '/api/repayments/offers/status?loan_id_1c=' . $debtor->loan_id_1c);
+            config('services.arm.url') . '/api/repayments/offers/status?loan_id_1c=' . $debtor->loan_id_1c);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $resultPeace = curl_exec($ch);
         curl_close($ch);
@@ -768,6 +769,10 @@ class DebtorsController extends BasicController
                     time()));
             $arDataCcCard = json_decode($json_string_cc, true);
         }
+        $noRecurrent = $paysClient->getInfoByCustomerId1c($debtor->customer_id_1c)->first();
+        if($noRecurrent) {
+            $noRecurrent = (bool)$noRecurrent->no_recurrent;
+        }
 
         return view('debtors.debtorcard', [
             'user' => $user,
@@ -802,6 +807,7 @@ class DebtorsController extends BasicController
             'blockProlongation' => $blockProlongation,
             'arDataCcCard' => $arDataCcCard,
             'whatsApp' => $whatsAppEvent,
+            'noRecurrent' => $noRecurrent
         ]);
     }
 
@@ -1856,14 +1862,14 @@ class DebtorsController extends BasicController
           }
 
           if ($cnt_opened == 0) {
-          $result = file_get_contents(config('admin.sales_arm_url')."/debtors/loans/upload?passport_series={$debtor->passport_series}&passport_number={$debtor->passport_number}");
+          $result = file_get_contents(config('services.arm.url')."/debtors/loans/upload?passport_series={$debtor->passport_series}&passport_number={$debtor->passport_number}");
           $loans = $debtor->getAllLoans();
           }
 
           if ($cnt_opened > 1) {
           foreach ($loans as $loan) {
           if (!$loan->closed) {
-          $result = file_get_contents(config('admin.sales_arm_url')."/debtors/loans/upload?loan_id_1c={$debtor->loan_id_1c}&customer_id_1c={$debtor->customer_id_1c}");
+          $result = file_get_contents(config('services.arm.url')."/debtors/loans/upload?loan_id_1c={$debtor->loan_id_1c}&customer_id_1c={$debtor->customer_id_1c}");
           }
           }
           $loans = $debtor->getAllLoans();
@@ -2980,7 +2986,7 @@ class DebtorsController extends BasicController
         }
         $debtors = Debtor::select(['passport_series', 'passport_number', 'customer_id_1c', 'loan_id_1c'])->where('id',
             $req->get('debtor_id'))->get();
-        $json = \App\Utils\HelperUtil::SendPostByCurl(config('admin.sales_arm_url') . '/debtors/orders/upload',
+        $json = \App\Utils\HelperUtil::SendPostByCurl(config('services.arm.url') . '/debtors/orders/upload',
             ['data' => json_encode($debtors)]);
         $orders = json_decode($json);
         \PC::debug($orders, 'orders');
@@ -3115,7 +3121,7 @@ class DebtorsController extends BasicController
 
         if ($need_post) {
             $arForPostPayments["data"] = json_encode($arForPostPayments["data"]);
-            $p = Utils\HelperUtil::SendPostByCurl(config('admin.sales_arm_url') . '/debtors/orders/upload',
+            $p = Utils\HelperUtil::SendPostByCurl(config('services.arm.url') . '/debtors/orders/upload',
                 $arForPostPayments);
             \PC::debug($p);
         }
@@ -3391,7 +3397,7 @@ class DebtorsController extends BasicController
         if (!\App\DebtorCardOpen::checkOpenCard($debtor->id)) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL,
-                config('admin.sales_arm_url') . '/debtors/loans/upload?passport_series=' . $debtor->passport_series . '&passport_number=' . $debtor->passport_number);
+                config('services.arm.url') . '/debtors/loans/upload?passport_series=' . $debtor->passport_series . '&passport_number=' . $debtor->passport_number);
             $answer_curl = curl_exec($ch);
             curl_close($ch);
         }
@@ -3410,7 +3416,7 @@ class DebtorsController extends BasicController
 
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL,
-                config('admin.sales_arm_url') . '/debtors/loans/upload?loan_id_1c=' . $input['loan_id_1c'] . '&customer_id_1c=' . $debtor->customer_id_1c);
+                config('services.arm.url') . '/debtors/loans/upload?loan_id_1c=' . $input['loan_id_1c'] . '&customer_id_1c=' . $debtor->customer_id_1c);
             $answer_curl = curl_exec($ch);
             curl_close($ch);
         }
