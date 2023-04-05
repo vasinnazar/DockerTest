@@ -45,7 +45,7 @@
 
     };
     $.rolesCtrl.editPermission = function (id) {
-        $.post($.app.url + '/adminpanel/permissions/ajax/get/' + id).done(function (data) {
+        $.post($.app.url + '/ajax/adminpanel/permissions/get/' + id).done(function (data) {
             if (data.result.toString() === '1') {
                 for (var item in data.permission) {
                     $('#permissionModal').find('[name="' + item + '"]').val(data.permission[item]);

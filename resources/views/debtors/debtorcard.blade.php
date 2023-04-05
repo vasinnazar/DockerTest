@@ -841,25 +841,24 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{$i = 1}}
                         <?php $day_sum = 0; $payment_date = ''; $cnt_payments = count($datapayments); ?>
                         @foreach ($datapayments as $k => $payment)
-                        <?php
+                        @php
                         if ($payment->type != 3 && $payment->type != 0) {
                             if ($payment_date == date('d.m.Y', strtotime($payment->created_at))) {
                                 $day_sum += $payment->money;
 
                             } else {
                                 $payment_date = date('d.m.Y', strtotime($payment->created_at));
-                                ?>
+                        @endphp
                                 <tr><td colspan="6" style="background: #84C9FF;">Сумма: {{ number_format($day_sum / 100, 2, '.', '') }} руб.</td></tr>
-                                <?php
+                        @php
                                 $day_sum = $payment->money;
                             }
                         }
-                        ?>
+                        @endphp
                         <tr>
-                            <td>{{$i}}</td>
+                            <td>{{$loop->iteration}}</td>
                             <td>
                                 {{ date('d.m.Y', strtotime($payment->created_at)) }}
                                 <br>
@@ -878,14 +877,12 @@
                                 @endif
                             </td>
                         </tr>
-                        <?php
-                        if ($i == $cnt_payments) {
-                                ?>
+                        @if ($loop->iteration == $cnt_payments)
                                 <tr><td colspan="6" style="background: #84C9FF;">Сумма: {{ number_format($day_sum / 100, 2, '.', '') }} руб.</td></tr>
-                                <?php
-                        }
-                        ?>
-                        {{$i++}}
+                        @endif
+                            @php
+                                $i = $loop->iteration
+                            @endphp
                         @endforeach
                         @if ($i == 1)
                         <tr>

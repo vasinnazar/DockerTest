@@ -27,7 +27,7 @@
         });
     };
     $.terminalsCtrl.refreshStatus = function (id) {
-        $.get(armffURL + 'ajax/terminals/refreshstatus', {id: id}).done(function (data) {
+        $.get(armffURL + 'ajax/adminpanel/terminals/refreshstatus', {id: id}).done(function (data) {
             if(data){
                 $.app.ajaxResult(1);
                 for(var d in data){

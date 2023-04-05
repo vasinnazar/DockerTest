@@ -118,7 +118,7 @@
             {data: '4', name: 'bill_cash'},
             {data: '5', name: 'lock_status', orderable: false, searchable: false},
             {data: '6', name: 'actions', orderable: false, searchable: false},
-        ], {listURL: 'ajax/terminals/list'});
+        ], {listURL: 'ajax/adminpanel/terminals/list'});
     })(jQuery);
 </script>
 @stop

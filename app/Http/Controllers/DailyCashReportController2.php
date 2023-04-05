@@ -87,7 +87,7 @@ class DailyCashReportController extends Controller {
                 $html .= '<a title="Редактировать" class="btn btn-default" href="' . url('reports/dailycashreport/' . $report->id) . '"><span class="glyphicon glyphicon-pencil"></span></a>';
                 if (Auth::user()->isAdmin()) {
                     $html .= '<a title="Удалить" class="btn btn-default" href="' . url('reports/remove') . '?id=' . $report->id . '"><span class="glyphicon glyphicon-remove"></span></a>';
-                    $html .= '<a title="Синхронизировать кассовую книгу" class="btn btn-default" href="' . url('cashbook/sync2') .
+                    $html .= '<a title="Синхронизировать кассовую книгу" class="btn btn-default" href="' . url('reports/cashbook/sync2') .
                         '?date=' . Carbon::now()->setTime(0, 0, 0)->format('Y-m-d') .
                         '&subdivision_id=' . $report->subdiv_id . '"><span class="glyphicon glyphicon-refresh"></span></a>';
                     $html .= '<a title="Сверить с кассовой книгой" class="btn btn-default" href="#" onclick="$.reportsListCtrl.matchWithCashbook(' . $report->id . '); return false;"><span class="glyphicon glyphicon-check"></span></a>';

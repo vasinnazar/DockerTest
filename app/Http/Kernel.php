@@ -2,9 +2,21 @@
 
 namespace App\Http;
 
+use App\Http\Middleware\AdminOnlyMiddleware;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\AuthenticateOnceWithBasicAuth;
+use App\Http\Middleware\AuthOnlyMiddleware;
+use App\Http\Middleware\ChangeSubdivOnceMiddleware;
+use App\Http\Middleware\CsrfMiddleware;
+use App\Http\Middleware\InfinityOnlyMiddleware;
+use App\Http\Middleware\LocalCallOnlyMiddleware;
+use App\Http\Middleware\OfficeOnlyMiddleware;
+use App\Http\Middleware\RedirectIfAuthenticated;
+use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
-class Kernel extends HttpKernel {
+class Kernel extends HttpKernel
+{
 
     /**
      * The application's global HTTP middleware stack.
@@ -21,10 +33,9 @@ class Kernel extends HttpKernel {
         'App\Http\Middleware\VerifyCsrfToken',
         'App\Http\Middleware\CheckForEmploymentDocs',
     ];
-    
+
     protected $middlewareGroups = [
         'web' => [
-            \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
@@ -41,10 +52,17 @@ class Kernel extends HttpKernel {
      * @var array
      */
     protected $routeMiddleware = [
-        'auth' => 'App\Http\Middleware\Authenticate',
-        'auth.basic.once' => 'App\Http\Middleware\AuthenticateOnceWithBasicAuth',
-        'auth.basic' => 'Illuminate\Auth\Middleware\AuthenticateWithBasicAuth',
-        'guest' => 'App\Http\Middleware\RedirectIfAuthenticated',
+        'auth' => Authenticate::class,
+        'auth.basic.once' => AuthenticateOnceWithBasicAuth::class,
+        'auth.basic' => AuthenticateWithBasicAuth::class,
+        'guest' => RedirectIfAuthenticated::class,
+        'admin_only' => AdminOnlyMiddleware::class,
+        'auth_only' => AuthOnlyMiddleware::class,
+        'office_only' => OfficeOnlyMiddleware::class,
+        'infinity_only' => InfinityOnlyMiddleware::class,
+        'localCallOnly' => LocalCallOnlyMiddleware::class,
+        'csrf' => CsrfMiddleware::class,
+        'change_subdiv_once' => ChangeSubdivOnceMiddleware::class,
     ];
 
 }

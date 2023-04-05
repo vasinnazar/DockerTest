@@ -148,7 +148,7 @@
 
     };
     $.debtorsCtrl.updateDebtTable = function (date) {
-        $.post($.app.url + '/ajax/loan/get/debt', {
+        $.post($.app.url + '/ajax/loans/get/debt', {
             date: date,
             loan_id_1c: $('.debtor-data [name="loan_id_1c"]').val(),
             customer_id_1c: $('.debtor-data [name="customer_id_1c"]').val()

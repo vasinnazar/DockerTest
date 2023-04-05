@@ -199,7 +199,7 @@ class PhotoController extends Controller {
                 [
                     "caption" => $filename,
                     "width" => '120px',
-                    "url" => url('photos/ajax/remove'),
+                    "url" => url('ajax/photos/remove'),
                     "key" => $photo->id,
                     "extra" => ["id" => $photo->id]
                 ]
@@ -251,7 +251,7 @@ class PhotoController extends Controller {
                 $res['initialPreviewConfig'][] = [
                     "caption" => $p->description,
                     "width" => '120px',
-                    "url" => url('photos/ajax/remove'),
+                    "url" => url('ajax/photos/remove'),
                     "key" => $p->id,
                     "extra" => ["id" => $p->id]
                 ];
@@ -409,7 +409,7 @@ class PhotoController extends Controller {
                 "showBrowse" => true
             ];
             if (Auth::user()->isAdmin() || Auth::user()->isCC()) {
-                $res["initialPreviewConfig"][count($res["initialPreviewConfig"]) - 1]["url"] = url('photos/ajax/remove?id=' . $photo->id);
+                $res["initialPreviewConfig"][count($res["initialPreviewConfig"]) - 1]["url"] = url('ajax/photos/remove?id=' . $photo->id);
             }
         }
         return $res;

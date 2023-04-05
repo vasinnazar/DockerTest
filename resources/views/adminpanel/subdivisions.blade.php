@@ -35,7 +35,7 @@
         
         $('#getSubdivsBtn').click(function(){
             $.app.blockScreen(true);
-            $.post(armffURL+'subdivisions/list/1c').done(function(data){
+            $.post(armffURL+'/ajax/adminpanel/subdivisions/list/1c').done(function(data){
                 $.app.blockScreen(false);
             });
             return false;

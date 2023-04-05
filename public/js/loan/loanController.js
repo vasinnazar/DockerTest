@@ -24,7 +24,7 @@
         });
         $('#createPromocodeBtn').click(function(){
             var $btn = $(this);
-            $.post(armffURL+'ajax/promocodes/create',{loan_id:$('#loanEditForm [name="id"]').val()}).done(function(data){
+            $.post(armffURL+'ajax/loans/promocodes/create',{loan_id:$('#loanEditForm [name="id"]').val()}).done(function(data){
                 if(data){
                     $('#loanEditForm [name="promocode_id"]').val(data.id);
                     $('#loanEditForm [name="promocode_number"]').fadeIn().val(data.number);

@@ -137,7 +137,7 @@
     $.photosCtrl.initPhotoUploader = function (modal, inputHolder, data, claim_id, customer_id) {
         $(inputHolder + ' input[type="file"]').fileinput({
             uploadAsync: false,
-            uploadUrl: armffURL + "photos/ajax/upload2",
+            uploadUrl: armffURL + "ajax/photos/upload2",
             allowedFileExtensions: ["jpg", "png", "gif", "jpeg"],
             maxImageWidth: 800,
             maxImageHeight: 800,
@@ -223,7 +223,7 @@
     };
     $.photosCtrl.uploadWebcamSnapshot = function () {
         Webcam.snap(function (data_uri) {
-            Webcam.upload(data_uri, $.app.url + '/photos/ajax/webcam/upload?claim_id=' + $('[name="webcam_claim_id"]').val() + '&customer_id=' + $('[name="webcam_customer_id"]').val(), function (code, text) {
+            Webcam.upload(data_uri, $.app.url + '/ajax/photos/webcam/upload?claim_id=' + $('[name="webcam_claim_id"]').val() + '&customer_id=' + $('[name="webcam_customer_id"]').val(), function (code, text) {
                 // Upload complete!
                 // 'code' will be the HTTP response code from the server, e.g. 200
                 // 'text' will be the raw response content
@@ -248,7 +248,7 @@
     };
     $.photosCtrl.uploadUserPhoto = function(){
         Webcam.snap(function (data_uri) {
-            Webcam.upload(data_uri, $.app.url + '/photos/ajax/userphoto/upload', function (code, text) {
+            Webcam.upload(data_uri, $.app.url + '/ajax/photos/userphoto/upload', function (code, text) {
                 $.app.ajaxResult(1);
             });
         });
@@ -257,7 +257,7 @@
     $.photosCtrl.removeAllPhotos = function (btn) {
         var claim_id = $(btn).attr('data-claim-id');
         if (claim_id !== '') {
-            $.post($.app.url + '/photos/ajax/remove/all', {claim_id: claim_id}).done(function (data) {
+            $.post($.app.url + 'ajax//photos/remove/all', {claim_id: claim_id}).done(function (data) {
                 $.app.ajaxResult(data);
                 $('#addPhotosModal').modal('hide');
             });

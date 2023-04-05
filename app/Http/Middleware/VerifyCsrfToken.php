@@ -68,7 +68,7 @@ class VerifyCsrfToken extends LaravelsVerifyCsrfToken {
         'infinity/is_debtor_operator',
         'debtors/event/withoutAccept',
         'debtors/omicron/task',
-        'ajax/loan/get/debt',
+        'ajax/loans/get/debt',
         'debtors/infinity/incomingCall',
         'debtors/infinity/closingModals'
     ];

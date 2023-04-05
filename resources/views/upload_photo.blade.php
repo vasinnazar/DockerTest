@@ -97,7 +97,7 @@
 <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>
 <script>
 $("#input-image-3").fileinput({
-    uploadUrl: "{{url('photos/ajax/upload')}}",
+    uploadUrl: "{{url('ajax/photos/upload')}}",
     allowedFileExtensions: ["jpg", "png", "gif"],
     maxImageWidth: 1000,
     maxImageHeight: 1000,

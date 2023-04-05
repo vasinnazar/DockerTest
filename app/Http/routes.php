@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DebtorsController;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
@@ -715,7 +716,7 @@ Route::get('debtors/calendar', ['uses' => 'DebtorsController@calendar']);
 Route::post('debtors/calendar', ['uses' => 'DebtorsController@calendar']);
 Route::get('debtors/editSmsCount', ['uses' => 'DebtorsController@editSmsCount']);
 Route::post('debtors/editSmsCount', ['uses' => 'DebtorsController@editSmsCount']);
-Route::get('debtors/debtorcard/{debtor_id}', ['uses' => 'DebtorsController@debtorcard']);
+Route::get('debtors/debtorcard/{debtor_id}', [DebtorsController::class,'debtorcard']);
 Route::get('debtors/addevent', ['uses' => 'DebtorsController@addevent']);
 Route::post('debtors/addevent', ['uses' => 'DebtorsController@addevent']);
 Route::post('ajax/debtors/eventcomplete', ['as' => 'ajax.debtors.eventcomplete', 'uses' => 'DebtorsController@eventComplete']);

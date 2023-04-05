@@ -227,7 +227,7 @@
      */
     $.summaryCtrl.updateReqMoneyOnDateChange = function () {
         var $createDateInput = $(this);
-        $.post($.app.url + '/ajax/loan/get/debt', {id: $('[name="loan_id"]').val(), date: $('[name="create_date"]').val()}).done(function (data) {
+        $.post($.app.url + '/ajax/loans/get/debt', {id: $('[name="loan_id"]').val(), date: $('[name="create_date"]').val()}).done(function (data) {
             var json = $.parseJSON(data);
             $('#reqMoneyDetails [name="reqPc"]').val(json['pc']);
             $('#reqMoneyDetails [name="reqExpPc"]').val(json['exp_pc']);
@@ -334,7 +334,7 @@
      * @returns {undefined}
      */
     $.summaryCtrl.editPeacePay = function (id) {
-        $.get(armffURL + 'ajax/peacepays/get/' + id).done(function (data) {
+        $.get(armffURL + 'ajax/repayments/peacepays/get/' + id).done(function (data) {
             $('#editPeacePayModal').modal('show');
             for (var d in data) {
                 $('#editPeacePayModal input[name="' + d + '"]').val(data[d]);
