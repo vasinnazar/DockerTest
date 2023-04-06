@@ -7,11 +7,11 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xs-12">
-                        @if ($debtroles['canSend'])
+                        @if ($user->canSendSms())
                         @if (count($debtroles))
                         <form id="formSendSMS">
                             <input type="hidden" name="sms_phone_number" value="">
-                            <input type="hidden" name="debtor_id_1c" value="{{$data[0]['debtor_id_1c']}}">
+                            <input type="hidden" name="debtor_id_1c" value="{{ $debtor->debtor_id_1c }}">
                             @if (isset($debtroles['remote']))
                             <h4>Удаленное взыскание</h4>
                             <table style="margin-bottom: 15px;">
@@ -92,10 +92,10 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xs-12">
-                        @if ($debtroles['canSend'])
+                        @if ($user->canSendSms())
                         @if (count($debtroles))
                         <form id="formSendSMSLink">
-                            <input type="hidden" name="debtor_id_1c" value="{{$data[0]['debtor_id_1c']}}">
+                            <input type="hidden" name="debtor_id_1c" value="{{ $debtor->debtor_id_1c }}">
                             <h4>Отправка ссылки на оплату</h4>
                             <div class="form-group">
                                 <div class="col-xs-4">
@@ -156,11 +156,11 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xs-12">
-                        @if ($debtroles['canSend'])
+                        @if ($user->canSendSms())
                         @if (count($debtroles))
                         <form id="formSendSMSProps">
                             <input type="hidden" name="sms_phone_number" value="">
-                            <input type="hidden" name="debtor_id_1c" value="{{$data[0]['debtor_id_1c']}}">
+                            <input type="hidden" name="debtor_id_1c" value="{{ $debtor->debtor_id_1c }}">
                             <h4>Отправка ссылки на реквизиты</h4>
                             <div class="form-group">
                                 <div class="col-xs-4">
