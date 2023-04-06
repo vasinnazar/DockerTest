@@ -13,6 +13,7 @@ use App\DebtorUsersRef;
 use App\Exceptions\DebtorException;
 use App\Http\Requests\DebtorCard\MultiSumRequest;
 use App\Loan;
+use App\MassRecurrentTask;
 use App\Message;
 use App\NoticeNumbers;
 use App\Order;
@@ -315,61 +316,43 @@ class DebtorsController extends BasicController
             $datapayments = [];
         }
 
-
-        //\PC::debug(json_decode($datapayments, true)); die();
-//        }
         $arDebtGroups = \App\DebtGroup::getDebtGroups();
         \PC::debug($arDebtGroups);
-        $data[0]['loans_created_at_time'] = strtotime($data[0]['loans_created_at']);
-        \PC::debug($data[0]['loans_created_at_time']);
         $data[0]['passport_address'] = Passport::getFullAddress($debtor->passport->first());
         $data[0]['real_address'] = Passport::getFullAddress($debtor->passport->first(), true);
         $data[0]['fact_address_region'] = $debtor->passport->first()->fact_address_region;
-        $data[0]['loans_created_at'] = StrUtils::dateToStr($data[0]['loans_created_at']);
-        $data[0]['debt_group_text'] = (array_key_exists($data[0]['d_debt_group_id'],
-            $arDebtGroups)) ? $arDebtGroups[$data[0]['d_debt_group_id']] : '';
+        $data[0]['debt_group_text'] = (array_key_exists($debtor->debt_group_id,
+            $arDebtGroups)) ? $arDebtGroups[$debtor->debt_group_id] : '';
         $data[0]['sms_available'] = (!is_null($user->sms_limit) ? $user->sms_limit : 0) - (!is_null($user->sms_sent) ? $user->sms_sent : 0);
 
         // определяем группу специалиста удаленного взыскания пользователя в "Должниках" (удаленное и личное)
-        $debt_roles['canSend'] = $user->canSendSms();
-        if ($debt_roles['canSend']) {
+        if ($user->canSendSms()) {
             if ($user->hasRole('debtors_remote')) {
                 $is_ubytki = ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') ? true : false;
-                $arSmsRemoteRows = DebtorSmsTpls::getSmsTpls('remote', $is_ubytki);
-                foreach ($arSmsRemoteRows as $k => $row) {
+                $smsTpls = DebtorSmsTpls::getSmsTpls('remote', $is_ubytki);
+                foreach ($smsTpls as $tpl) {
                     $spec_phone = (mb_strlen($user->phone) < 6) ? '88003014344' : $user->phone;
-                    $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##spec_phone##', $spec_phone,
-                        $arSmsRemoteRows[$k]['text_tpl']);
-                    $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##sms_till_date##', date('d.m.Y', time()),
-                        $arSmsRemoteRows[$k]['text_tpl']);
-                    $arSmsRemoteRows[$k]['text_tpl'] = str_replace('##sms_loan_info##',
-                        $data[0]['loan_id_1c'] . ' от ' . $data[0]['loans_created_at'],
-                        $arSmsRemoteRows[$k]['text_tpl']);
+                    $tpl->text_tpl = str_replace('##spec_phone##', $spec_phone, $tpl->text_tpl);
+                    $tpl->text_tpl = str_replace('##sms_till_date##', date('d.m.Y', time()), $tpl->text_tpl);
+                    $tpl->text_tpl = str_replace('##sms_loan_info##',
+                        $debtor->loan_id_1c . ' от ' . StrUtils::dateToStr($debtor->loan->created_at),
+                        $tpl->text_tpl);;
                 }
-                $debt_roles['remote'] = $arSmsRemoteRows;
+                $debt_roles['remote'] = $smsTpls;
             }
             if ($user->hasRole('debtors_personal')) {
-                $arSmsPersonalRows = DebtorSmsTpls::getSmsTpls('personal');
-                $arDebtorName = explode(' ', $data[0]['fio']);
-                foreach ($arSmsPersonalRows as $k => $row) {
+                $smsTpls = DebtorSmsTpls::getSmsTpls('personal');
+                $arDebtorName = explode(' ', $debtor->passport->first()->name);
+                foreach ($smsTpls as $tpl) {
                     $spec_phone = (mb_strlen($user->phone) < 6) ? '88003014344' : $user->phone;
-                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##spec_phone##', $spec_phone,
-                        $arSmsPersonalRows[$k]['text_tpl']);
-                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_till_date##', date('d.m.Y', time()),
-                    $arSmsPersonalRows[$k]['text_tpl']);
-                    $arSmsPersonalRows[$k]['text_tpl'] = str_replace('##sms_debtor_name##',
+                    $tpl->text_tpl = str_replace('##spec_phone##', $spec_phone, $tpl->text_tpl);
+                    $tpl->text_tpl = str_replace('##sms_till_date##', date('d.m.Y', time()), $tpl->text_tpl);
+                    $tpl->text_tpl = str_replace('##sms_debtor_name##',
                         (isset($arDebtorName[1]) ? $arDebtorName[1] : '') . ' ' . (isset($arDebtorName[2]) ? $arDebtorName[2] : ''),
-                        $arSmsPersonalRows[$k]['text_tpl']);
+                        $tpl->text_tpl);
                 }
-                $debt_roles['personal'] = $arSmsPersonalRows;
+                $debt_roles['personal'] = $smsTpls;
             }
-        }
-
-        if ($user->hasRole('debtors_remote')) {
-            $debt_roles['remote_notice'] = true;
-        }
-        if ($user->hasRole('debtors_personal')) {
-            $debt_roles['personal_notice'] = true;
         }
 
         $arContractFormsIds = [
@@ -508,7 +491,7 @@ class DebtorsController extends BasicController
         $total_multi_sum = number_format($total_multi_sum / 100, 2, '.', ' ');
 
         $loan_percents = DB::Table('armf.loan_rates')
-            ->where('start_date', '<=', date('Y-m-d H:i:s', $data[0]['loans_created_at_time']))
+            ->where('start_date', '<=', $debtor->loan->created_at)
             ->orderBy('start_date', 'desc')
             ->limit(1)
             ->first();
@@ -3777,6 +3760,7 @@ class DebtorsController extends BasicController
         $recurrent_task = \App\MassRecurrentTask::where('created_at', '>=', date('Y-m-d 00:00:00', time()))
             ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
             ->where('str_podr', $str_podr)
+            ->where('timezone', $timezone)
             //->orderBy('id', 'desc')
             ->first();
 
@@ -3827,7 +3811,7 @@ class DebtorsController extends BasicController
                 $debtors->where('str_podr', '000000000006')
                     ->whereIn('responsible_user_id_1c', [
                         'Осипова Е. А.                                ',
-                        'Петухова Е. И.                               '
+                        'Ленева Алина Андреевна                      '
                     ])
                     ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График']);
             }
@@ -3864,10 +3848,27 @@ class DebtorsController extends BasicController
             }
         }
 
+        $collectionTasks = MassRecurrentTask::whereDate('created_at', '=', Carbon::today())
+            ->where('str_podr', $str_podr)
+            ->get();
+
+        $executingTask = MassRecurrentTask::whereDate('created_at', '=', Carbon::today())
+            ->where('str_podr', $str_podr)
+            ->where('completed', 0)
+            ->first();
+
+        if ($executingTask) {
+            $canStartToday = false;
+            $completedTodayTask = false;
+            $recurrent_task = $executingTask;
+        }
+
         return view('debtors.mass_recurrents_task', [
             'canStartToday' => $canStartToday,
             'completed' => $completedTodayTask,
-            'recurrent_type' => $recurrent_type
+            'recurrent_type' => $recurrent_type,
+            'collectionTasks' => $collectionTasks,
+            'recurrent_task' => $recurrent_task
         ]);
     }
 
@@ -3919,7 +3920,7 @@ class DebtorsController extends BasicController
                 $debtors->where('str_podr', '000000000006')
                     ->whereIn('responsible_user_id_1c', [
                         'Осипова Е. А.                                ',
-                        'Петухова Е. И.                               '
+                        'Ленева Алина Андреевна                      '
                     ])
                     ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График'])
                     ->get();
@@ -3999,8 +4000,9 @@ class DebtorsController extends BasicController
         $user = auth()->user();
 
         $recurrent_type = $req->get('recurrent_type', false);
+        $recurrent_task_id = $req->get('recurrent_task_id', false);
 
-        if ($recurrent_type && $recurrent_type == 'olv_chief') {
+        /*if ($recurrent_type && $recurrent_type == 'olv_chief') {
             $str_podr = '000000000007-1';
         } else {
             if ($recurrent_type && $recurrent_type == 'ouv_chief') {
@@ -4016,13 +4018,15 @@ class DebtorsController extends BasicController
                     }
                 }
             }
-        }
+        }*/
 
-        $recurrent_task = \App\MassRecurrentTask::where('created_at', '>=', date('Y-m-d 00:00:00', time()))
+        /*$recurrent_task = \App\MassRecurrentTask::where('created_at', '>=', date('Y-m-d 00:00:00', time()))
             ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
             ->where('str_podr', $str_podr)
             //->orderBy('id', 'desc')
-            ->first();
+            ->first();*/
+
+        $recurrent_task = MassRecurrentTask::find($recurrent_task_id);
 
         if ($recurrent_task && $recurrent_task->completed == 0) {
             $recurrents_count = \App\MassRecurrent::where('task_id', $recurrent_task->id)->count();
