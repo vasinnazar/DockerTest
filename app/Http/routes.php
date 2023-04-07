@@ -766,12 +766,12 @@ Route::get('debtors/notices/index', ['uses' => 'DebtorsNoticesController@index']
 Route::get('debtors/notices/start', ['uses' => 'DebtorsNoticesController@startTask']);
 Route::get('debtors/notices/getFile/{type}/{task_id}', ['uses' => 'DebtorsNoticesController@getFile']);
 
-Route::get('/debtor/recurrent/query', ['uses' => 'DebtorsController@sentRecurrentQuery']);
-Route::get('/debtor/recurrent/massquery', ['uses' => 'DebtorsController@massRecurrentQuery']);
-Route::post('/debtor/recurrent/massquery', ['uses' => 'DebtorsController@massRecurrentQuery']);
-Route::get('/debtor/recurrent/massquerytask', ['uses' => 'DebtorsController@massRecurrentTask']);
-Route::post('/debtor/recurrent/massquerytask', ['uses' => 'DebtorsController@massRecurrentTask']);
-Route::post('/debtor/recurrent/getstatus', ['uses' => 'DebtorsController@getMassRecurrentStatus']);
+Route::get('/debtors/recurrent/query', ['uses' => 'DebtorsController@sentRecurrentQuery']);
+Route::get('/debtors/recurrent/massquery', ['uses' => 'DebtorsController@massRecurrentQuery']);
+Route::post('/debtors/recurrent/massquery', ['uses' => 'DebtorsController@massRecurrentQuery']);
+Route::get('/debtors/recurrent/massquerytask', ['uses' => 'DebtorsController@massRecurrentTask']);
+Route::post('/debtors/recurrent/massquerytask', ['uses' => 'DebtorsController@massRecurrentTask']);
+Route::post('/debtors/recurrent/getstatus', ['uses' => 'DebtorsController@getMassRecurrentStatus']);
 
 Route::get('/debtor/sms/mass', ['uses' => 'DebtorMassSmsController@index']);
 Route::get('ajax/debtormasssms/list', ['uses' => 'DebtorMassSmsController@ajaxList']);
@@ -812,15 +812,15 @@ Route::get('/debtors/temporary/cron/handle', ['uses' => 'DebtorsController@tempo
 Route::get('debtors/reports/plancalend', ['uses' => 'DebtorsReportsController@planCalend']);
 Route::get('debtors/reports/ovz', ['uses' => 'DebtorsReportsController@ovz']);
 Route::get('debtors/reports/jobsdoneact', ['uses' => 'DebtorsReportsController@jobsDoneAct']);
-Route::get('debtorsreports/dzcollect', ['uses' => 'DebtorsReportsController@dzcollect']);
+Route::get('debtors/reports/dzcollect', ['uses' => 'DebtorsReportsController@dzcollect']);
 Route::get('debtors/reports/loginlog', ['uses' => 'DebtorsReportsController@exportToExcelDebtorsLoginLog']);
 
 //ДОЛЖНИКИ: ПЕРЕДАЧА ОТ ОТВЕТСТВЕННОМУ К ОТВЕТСТВЕННОМУ
-Route::get('debtortransfer/index', ['uses' => 'DebtorTransferController@index']);
-Route::get('debtortransfer/history', ['uses' => 'DebtorTransferController@transferHistory']);
-Route::get('ajax/debtortransfer/list', ['uses' => 'DebtorTransferController@ajaxList']);
-Route::post('ajax/debtortransfer/changeResponsibleUser', ['uses' => 'DebtorTransferController@changeResponsibleUser']);
-Route::get('ajax/debtortransfer/printResponsibleUser', ['uses' => 'DebtorTransferController@getActPdf']);
+Route::get('debtors/transfer/index', ['uses' => 'DebtorTransferController@index']);
+Route::get('debtors/transfer/history', ['uses' => 'DebtorTransferController@transferHistory']);
+Route::get('ajax/debtors/transfer/list', ['uses' => 'DebtorTransferController@ajaxList']);
+Route::post('ajax/debtors/transfer/changeResponsibleUser', ['uses' => 'DebtorTransferController@changeResponsibleUser']);
+Route::get('ajax/debtors/transfer/printResponsibleUser', ['uses' => 'DebtorTransferController@getActPdf']);
 
 //ФОРМЫ СМСОК ДЛЯ ВЗЫСКАНИЯ
 Route::get('adminpanel/smsform/index', ['uses' => 'SmsFormController@index']);
@@ -877,7 +877,7 @@ Route::get('reports/advancereports/pdf/{id}', ['uses' => 'AdvanceReportControlle
 Route::post('reports/advancereports/upload', ['uses' => 'AdvanceReportController@upload']);
 Route::get('reports/advancereports/upload', ['uses' => 'AdvanceReportController@upload']);
 Route::post('reports/advancereports/update', ['uses' => 'AdvanceReportController@update']);
-Route::get('nomenclature/upload', ['uses' => 'NomenclatureController@upload', 'before' => 'admin_only']);
+Route::get('reports/nomenclature/upload', ['uses' => 'NomenclatureController@upload', 'before' => 'admin_only']);
 
 //ФОТО СПЕЦИАЛИСТОВ
 Route::get('reports/userphotos/index', ['uses' => 'UserPhotoController@index']);

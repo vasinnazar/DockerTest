@@ -177,7 +177,7 @@
 
                 $.ajax({
                     type: "POST",
-                    url: "/ajax/debtormasssms/send",
+                    url: "/ajax/debtors/masssms/send",
                     data: $('#massSmsFormFilter').serialize(),
                     dataType: "json",
                     success: function (data) {

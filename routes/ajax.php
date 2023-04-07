@@ -1,12 +1,20 @@
 <?php
 
+use App\Http\Controllers\AddressDoublesController;
 use App\Http\Controllers\AdminPanelController;
+use App\Http\Controllers\AdvanceReportController;
 use App\Http\Controllers\AjaxController;
 use App\Http\Controllers\CardsController;
 use App\Http\Controllers\ClaimController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DailyCashReportController;
+use App\Http\Controllers\DebtorMassSmsController;
+use App\Http\Controllers\DebtorsController;
+use App\Http\Controllers\DebtorsReportsController;
+use App\Http\Controllers\DebtorTransferController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InfinityController;
+use App\Http\Controllers\IssueClaimController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\LoanTypeController;
 use App\Http\Controllers\MaterialsClaimsController;
@@ -62,6 +70,8 @@ Route::prefix('/ajax')->group(function () {
             ->name('ajax.reports.dailycashreportslist');
         Route::get('/matchWithCashbook/{report_id}', [DailyCashReportController::class, 'matchWithCashbookById'])
             ->name('ajax.reports.matchWithCashbook');
+        Route::get('/advancereports/list', [AdvanceReportController::class, 'ajaxList']);
+        Route::get('/advancereports/issueorders', [AdvanceReportController::class, 'getIssueOrders']);
     });
     //загрузка фотографий
     Route::prefix('/photos')->group(function () {
@@ -154,6 +164,11 @@ Route::prefix('/ajax')->group(function () {
         Route::get('/list', [OrdersController::class,'getOrdersList'])->name('ajax.orders.list');
         Route::post('/claimforremove/{id}', [OrdersController::class,'claimForRemove'])
             ->name('ajax.orders.claimforremove');
+
+        //ЗАЯВКИ НА ОРДЕРА НА ПОДОТЧЕТ
+        Route::get('/issueclaims/list', [IssueClaimController::class, 'ajaxList']);
+        Route::get('/issueclaims/view/{id}', [IssueClaimController::class, 'ajaxView']);
+        Route::post('/issueclaims/update', [IssueClaimController::class, 'update']);
     });
 
     Route::prefix('/repayments')->group(function () {
@@ -162,7 +177,37 @@ Route::prefix('/ajax')->group(function () {
         Route::get('/peacepays/get/{id}', [PeacePaysController::class,'getPeacePay'])->name('ajax.peacepays.get');
     });
 
-
+    Route::prefix('/debtors')->group(function () {
+        Route::post('/eventcomplete', [DebtorsController::class,'eventComplete'])->name('ajax.debtors.eventcomplete');
+        Route::post('/sendsmstodebtor', [DebtorsController::class,'sendSmsToDebtor'])->name('ajax.debtors.sendsmstodebtor');
+        Route::get('/sendsmstodebtor', [DebtorsController::class,'sendSmsToDebtor'])->name('ajax.debtors.sendsmstodebtor');
+        Route::post('/loadphoto/{claim_id}', [DebtorsController::class,'loadPhoto']);
+        Route::get('/list', [DebtorsController::class,'ajaxList'])->name('ajax.debtors.list');
+        Route::get('/events/list', [DebtorsController::class,'ajaxEventsList'])->name('ajax.debtorevents.list');
+        Route::get('/forgotten/list', [DebtorsController::class,'ajaxForgottenList'])->name('ajax.debtorforgotten.list');
+        Route::get('/recommends/list', [DebtorsController::class,'ajaxRecommendsList'])->name('ajax.debtorrecommends.list');
+        Route::get('/event/data', [DebtorsController::class,'getDebtorEventData']);
+        Route::get('/search/autocomplete', [DebtorsController::class,'ajaxColumnAutocomplete']);
+        Route::post('/changePlanDeparture/{debtor_id}/{action}', [DebtorsController::class,'changePlanDeparture']);
+        Route::post('/changePersonalData/{debtor_id}/{action}', [DebtorsController::class,'changePersonalData']);
+        Route::post('/changeRecommend', [DebtorsController::class,'changeRecommend']);
+        Route::get('/userpayments', [DebtorsReportsController::class,'getPaymentsForUser']);
+        Route::post('/oldevents/upload', [DebtorsController::class,'uploadOldDebtorEvents']);
+        Route::post('/orders/upload', [DebtorsController::class,'uploadOrdersFrom1c']);
+        Route::get('/total-planned',[DebtorsController::class,'totalNumberPlaned']);
+        Route::post('/calc/creditcard', [DebtorsController::class,'getCalcDataForCreditCard']);
+        Route::get('/masssms/list', [DebtorMassSmsController::class,'ajaxList']);
+        Route::post('/masssms/send', [DebtorMassSmsController::class,'sendMassSms']);
+        Route::get('/changeloadstatus/{debtor_id}', [DebtorsController::class,'changeLoadStatus']);
+        Route::post('/getallpayments/{debtor_id}', [DebtorsController::class,'getAllPayments']);
+        Route::post('/loans/upload', [DebtorsController::class,'uploadLoans']);
+        Route::post('/loans/getmultisum', [DebtorsController::class,'getMultiSum']);
+        Route::post('/totalEvents', [DebtorsController::class,'refreshTotalEventTable']);
+        Route::post('/overallEvents', [DebtorsController::class,'refreshOverallTable']);
+        Route::get('/transfer/list', [DebtorTransferController::class,'ajaxList']);
+        Route::post('/transfer/changeResponsibleUser', [DebtorTransferController::class,'changeResponsibleUser']);
+        Route::get('/transfer/printResponsibleUser', [DebtorTransferController::class,'getActPdf']);
+    });
 
     Route::get('/removeRequests/list', [UsersRequestsController::class,'removeRequestsList'])
         ->middleware('office_only')
@@ -178,16 +223,16 @@ Route::prefix('/ajax')->group(function () {
     Route::get('/{table}/autocomplete', [AjaxController::class, 'autocomplete']);
     Route::get('/autocomplete/label', [AjaxController::class, 'getLabelById']);
     Route::get('/users/autocomplete', [UserController::class, 'getAutocompleteList'])->name('ajax.users.autocomplete');
-    Route::get('/user/info', [UserController::class, 'getInfo']);
     Route::post('/cards/check', [CardsController::class,'checkCard']);
     Route::get('/cardChanges/list', [CardsController::class,'getCardChangesList'])->name('ajax.cardchanges.list');
     Route::get('/npf/list', [NpfController::class,'getList'])->name('npf.list');
     Route::get('/matclaims/list', [MaterialsClaimsController::class,'getList'])->name('matclaims.list');
     Route::get('/work_times/list', [WorkTimeController::class,'getList'])->middleware('admin_only');
     Route::get('/messages/list', [MessagesController::class,'getList'])->name('messages.list');
-
-
-
+    Route::get('/addressdoubles/list', [AddressDoublesController::class,'ajaxList']);
+    Route::get('/userphotos/list', [UserPhotoController::class,'ajaxList']);
+    Route::get('/userphotos/list2', [UserPhotoController::class,'ajaxBasicList']);
+    Route::get('/infinity', [InfinityController::class,'main']);
 
 
 });

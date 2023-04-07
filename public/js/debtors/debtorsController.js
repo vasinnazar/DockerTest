@@ -345,7 +345,7 @@
         $(document).on('click', '#debtorTransferFilterButton', function () {
             //$(document).on('change', '#debtorTransferFilter [name="old_user_id"], #debtorTransferFilter [name="new_user_id"], #debtorTransferFilter [name="debt_group_id"], #debtorTransferFilter [name="act_number"], #debtorTransferFilter [name="overdue_from"], #debtorTransferFilter [name="overdue_till"], #debtorTransferFilter [name="search_field_cities@id"], #debtorTransferFilter [name="base"]', function(){
             var data = $('#debtorTransferFilter').serialize();
-            $.get($.app.url + '/ajax/debtortransfer/list', data).done(function () {
+            $.get($.app.url + '/ajax/debtors/transfer/list', data).done(function () {
 
             });
         });
@@ -552,7 +552,7 @@
             if ($('#debtorTransferAction [name="debtors@base"]').val() == $('[name="search_field_debtors@base"]').val()) {
                 postData.base = $('[name="search_field_debtors@base"]').val();
             }
-            $.post($.app.url + '/ajax/debtortransfer/changeResponsibleUser', postData).done(function (data) {
+            $.post($.app.url + '/ajax/debtors/transfer/changeResponsibleUser', postData).done(function (data) {
                 $.app.ajaxResult(data);
                 setTimeout(function () {
                     window.location.reload();
@@ -569,7 +569,7 @@
 
             var serialized = $('input[name="debtor_transfer_id[]"]:checked').serialize().replace(/%5B%5D/g, '[]');
 
-            $.get(window.open($.app.url + '/ajax/debtortransfer/printResponsibleUser/?new_user_id=' + $('#new_user_id').val() + '&old_user_id=' + $('#old_user_id').val() + '&act_number=' + $('input[name="act_number"]').val() + '&' + serialized), {}).done(function (data) {
+            $.get(window.open($.app.url + '/ajax/debtors/transfer/printResponsibleUser/?new_user_id=' + $('#new_user_id').val() + '&old_user_id=' + $('#old_user_id').val() + '&act_number=' + $('input[name="act_number"]').val() + '&' + serialized), {}).done(function (data) {
 
             });
             return false;

@@ -19,7 +19,7 @@
         <span class='glyphicon glyphicon-plus'></span> Создать
     </a>
     @if(Auth::user()->isAdmin())
-    <a class='btn btn-default' href="{{url('nomenclature/upload')}}">
+    <a class='btn btn-default' href="{{url('reports/nomenclature/upload')}}">
         <span class='glyphicon glyphicon-refresh'></span> Загрузить список номенклатуры из 1С
     </a>
     {!! Form::open(['url'=>url('reports/advancereports/upload'),'class'=>'form-inline']) !!}

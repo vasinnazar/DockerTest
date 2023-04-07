@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AddressDoublesController;
 use App\Http\Controllers\AdminPanelController;
+use App\Http\Controllers\AdvanceReportController;
 use App\Http\Controllers\BlanksController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CardsController;
@@ -8,24 +10,40 @@ use App\Http\Controllers\ClaimController;
 use App\Http\Controllers\ConditionsController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\ContractVersionsController;
+use App\Http\Controllers\CronController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DailyCashReportController;
 use App\Http\Controllers\DataLoaderController;
+use App\Http\Controllers\DebtorExportController;
+use App\Http\Controllers\DebtorMassSmsController;
+use App\Http\Controllers\DebtorsController;
+use App\Http\Controllers\DebtorsFrom1cController;
+use App\Http\Controllers\DebtorsNoticesController;
+use App\Http\Controllers\DebtorsReportsController;
+use App\Http\Controllers\DebtorTransferController;
 use App\Http\Controllers\DocsRegisterController;
+use App\Http\Controllers\EmailController;
+use App\Http\Controllers\EmploymentDocsController;
 use App\Http\Controllers\FinterraController;
 use App\Http\Controllers\From1cController;
+use App\Http\Controllers\FromDebtorsController;
+use App\Http\Controllers\FromSellingARMController;
 use App\Http\Controllers\GraphController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InfinityController;
+use App\Http\Controllers\IssueClaimController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\LoanTypeController;
 use App\Http\Controllers\MailLoaderController;
 use App\Http\Controllers\MassiveChangeController;
 use App\Http\Controllers\MaterialsClaimsController;
 use App\Http\Controllers\MessagesController;
+use App\Http\Controllers\NomenclatureController;
 use App\Http\Controllers\NpfController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaySheetController;
+use App\Http\Controllers\PdfController;
 use App\Http\Controllers\PeacePaysController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\PhoneCallController;
@@ -41,13 +59,17 @@ use App\Http\Controllers\RnkoController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\SaldoController;
 use App\Http\Controllers\SalesReportsController;
+use App\Http\Controllers\SmsFormController;
 use App\Http\Controllers\SpylogController;
 use App\Http\Controllers\SubdivisionController;
 use App\Http\Controllers\TerminalAdminController;
 use App\Http\Controllers\TerminalController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\TesterController;
+use App\Http\Controllers\UserPhotoController;
 use App\Http\Controllers\UsersRequestsController;
+use App\Http\Controllers\UserTestController;
+use App\Http\Controllers\UserTestEditorController;
 use App\Http\Controllers\WorkTimeController;
 use Illuminate\Support\Facades\Route;
 
@@ -86,6 +108,8 @@ Route::middleware('auth_only')->group(function () {
     Route::get('spylog/list', [SpylogController::class, 'index'])
         ->middleware('admin_only')
         ->name('spylog.list');
+    Route::get('addressdoubles/index', [AddressDoublesController::class,'index']);
+
     //ГРАФИК ПРОДАЖ
     Route::get('graph/index', [GraphController::class,'index']);
     Route::post('graph/index/graphdata', [GraphController::class,'getGraphData']);
@@ -227,6 +251,14 @@ Route::middleware('auth_only')->group(function () {
                 ->name('adminpanel.terminals.command.add');
             Route::get('/report', [TerminalAdminController::class, 'getReport']);
         });
+    });
+
+    //ФОРМЫ СМСОК ДЛЯ ВЗЫСКАНИЯ
+    Route::prefix('/adminpanel/smsform')->group(function () {
+        Route::get('/index', [SmsFormController::class,'index']);
+        Route::get('/edit', [SmsFormController::class,'edit']);
+        Route::post('/update', [SmsFormController::class,'update']);
+        Route::get('/destroy', [SmsFormController::class,'destroy']);
     });
     //заявка
     Route::prefix('/claims')->group(function () {
@@ -382,7 +414,23 @@ Route::middleware('auth_only')->group(function () {
             Route::get('/rnko/check/get', [RnkoController::class, 'getUncheckedRnko']);
             Route::get('/rnko/photos', [RnkoController::class, 'openAllPhotos']);
             Route::get('/rnko/skip', [RnkoController::class, 'skipRnko']);
+            //АВАНСОВЫЕ ОТЧЕТЫ
+            Route::get('/nomenclature/upload', [NomenclatureController::class,'upload']);
         });
+
+        //АВАНСОВЫЕ ОТЧЕТЫ
+        Route::prefix('/advancereports')->group(function () {
+            Route::get('/index', [AdvanceReportController::class, 'index']);
+            Route::get('/create', [AdvanceReportController::class, 'edit']);
+            Route::get('/edit/{id}', [AdvanceReportController::class, 'edit']);
+            Route::get('/destroy/{id}', [AdvanceReportController::class, 'destroy']);
+            Route::get('/pdf/{id}', [AdvanceReportController::class, 'pdf']);
+            Route::post('/upload', [AdvanceReportController::class, 'upload']);
+            Route::get('/upload', [AdvanceReportController::class, 'upload']);
+            Route::post('/update', [AdvanceReportController::class, 'update']);
+        });
+
+        Route::get('/userphotos/index', [UserPhotoController::class,'index']);
 
     });
     //смена подразделения
@@ -473,6 +521,12 @@ Route::middleware('auth_only')->group(function () {
             ->name('orders.remove');
         Route::get('/pdf/{id}', [OrdersController::class, 'createPDF'])->name('orders.pdf');
         Route::get('/claimforremove/{id}', [OrdersController::class, 'claimForRemove'])->name('orders.claimforremove');
+
+        //ЗАЯВКИ НА ОРДЕРА НА ПОДОТЧЕТ
+        Route::get('/issueclaims/index', [IssueClaimController::class, 'index']);
+        Route::get('/issueclaims/delete/{id}', [IssueClaimController::class, 'delete'])->middleware('admin_only');
+        Route::get('/issueclaims/claimforremove/{id}', [IssueClaimController::class, 'claimForRemove']);
+        Route::get('/issueclaims/pdf/{id}', [IssueClaimController::class, 'createPdf']);
 
     });
     //карты
@@ -612,6 +666,146 @@ Route::middleware('auth_only')->group(function () {
         Route::post('/excel/report/city', [CandidateController::class, 'exportToExcelReportCity'])
             ->name('candidate.excel.report.city');
     });
+    //СТРАНИЦА ПЕЧАТИ ДОКУМЕНТОВ НА ТРУДОУСТРОЙСТВО
+    Route::prefix('/employment')->group(function () {
+        Route::get('/docs', [EmploymentDocsController::class,'index']);
+        Route::get('/tracknumber', [EmploymentDocsController::class,'addTrackNumber']);
+        Route::post('/tracknumber/update', [EmploymentDocsController::class,'updateTrackNumber']);
+        Route::post('/docs/signed', [EmploymentDocsController::class,'setEmploymentDocsSigned']);
+        Route::post('/user/update', [EmploymentDocsController::class,'setBirthDate']);
+        Route::get('/docs/pdf', [EmploymentDocsController::class,'createPdf']);
 
+    });
+    //ТЕСТИРОВАНИЕ
+    Route::prefix('/usertests')->group(function () {
+        Route::get('/home', [UserTestController::class,'home']);
+        Route::get('/index', [UserTestController::class,'index']);
+        Route::get('/view/{id}', [UserTestController::class,'view']);
+        Route::get('/stat/{id}', [UserTestController::class,'stat']);
+        Route::get('/view/{test_id}/{question_id}', [UserTestController::class,'view']);
+        Route::post('/answer', [UserTestController::class,'answer']);
+
+        //РЕДАКТОР ТЕСТОВ
+        Route::prefix('/editor')->group(function () {
+            Route::get('/index', [UserTestEditorController::class,'index']);
+            Route::get('/create', [UserTestEditorController::class,'create']);
+            Route::post('/update', [UserTestEditorController::class,'update']);
+            Route::get('/edit/{id}', [UserTestEditorController::class,'edit']);
+            Route::get('/remove/{id}', [UserTestEditorController::class,'remove']);
+
+        });
+
+
+    });
+
+
+    Route::prefix('/debtors')->group(function () {
+        Route::get('/index', [DebtorsController::class,'index']);
+        Route::get('/forgotten', [DebtorsController::class,'forgotten']);
+        Route::post('/forgotten', [DebtorsController::class,'forgotten']);
+        Route::get('/recommends', [DebtorsController::class,'recommends']);
+        Route::post('/recommends', [DebtorsController::class,'recommends']);
+        Route::get('/calendar', [DebtorsController::class,'calendar']);
+        Route::post('/calendar', [DebtorsController::class,'calendar']);
+        Route::get('/editSmsCount', [DebtorsController::class,'editSmsCount']);
+        Route::post('/editSmsCount', [DebtorsController::class,'editSmsCount']);
+        Route::get('/debtorcard/{debtor_id}', [DebtorsController::class,'debtorcard']);
+        Route::get('/addevent', [DebtorsController::class,'addevent']);
+        Route::post('/addevent', [DebtorsController::class,'addevent']);
+        Route::post('/event/update', [DebtorsController::class,'updateDebtorEvent']);
+        Route::get('/history/{debtor_id}', [DebtorsController::class,'debtorHistory']);
+        Route::get('/debtorcard/createPdf/{doc_id}/{debtor_id}/{date}/{fact_address}', [DebtorsController::class,'createPdf']);
+        Route::get('/debtorcard/createPdf/{doc_id}/{debtor_id}/{date}', [DebtorsController::class,'createPdf']);
+        Route::get('/courtorder/{debtor_id}',[PdfController::class,'getCourtOrderPdf'])->name('debtor.courtorder');
+        Route::get('/contacts/{debtor_id}', [DebtorsController::class,'contacts']);
+        Route::get('/logs/{debtor_id}', [DebtorsController::class,'debtorLogs']);
+        Route::get('/departuremap', [DebtorsController::class,'departureMap']);
+        Route::get('/departureprint', [DebtorsController::class,'departurePrint']);
+        Route::get('/report/countcustomers', [DebtorsReportsController::class,'countDebtCustomersForRespUser']);
+        Route::post('/peaceclaim/new', [DebtorsController::class,'addNewRepaymentOffer']);
+        Route::get('/omicron/gettask', [CronController::class,'getOmicronTask']);
+        Route::get('/sms/mass', [DebtorMassSmsController::class,'index']);
+        Route::get('/loans/summary/{loan_id}', [DebtorsController::class,'getLoanSummary']);
+        Route::post('/getResponsibleUser', [FromDebtorsController::class,'respUserForSellingARM']);
+        Route::post('/loans/summary/updateloan', [DebtorsController::class,'updateLoan']);
+
+        Route::post('/photos/main', [FromDebtorsController::class,'setMainPhoto']);
+        Route::post('/debt', [FromDebtorsController::class,'getDebt']);
+        Route::get('/orders/upload', [FromDebtorsController::class,'uploadOrders']);
+        Route::get('/loans/upload', [FromDebtorsController::class,'uploadLoans']);
+
+        Route::post('/events/from1c', [DebtorsFrom1cController::class,'eventFrom1c']);
+        Route::post('/loan/closing', [DebtorsFrom1cController::class,'loanClosing']);
+        Route::post('/omicron/task', [DebtorsFrom1cController::class,'omicronTask']);
+
+        Route::get('/msg/debtoronsubdivision', [FromSellingARMController::class,'alertDebtorOnSubdivision']);
+        Route::get('/onsite', [FromSellingARMController::class,'isDebtorOnSite']);
+        Route::post('/event/withoutAccept', [FromSellingARMController::class,'withoutAcceptEvent']);
+
+        Route::get('/setSelfResponsible/{debtor_id}', [DebtorsController::class,'setSelfResponsible']);
+        Route::get('/temporary/cron/handle', [DebtorsController::class,'temporaryCronTasksHandling']);
+
+        Route::post('/infinity/incomingCall', [InfinityController::class,'incomingCall']);
+        Route::post('/infinity/closingModals', [InfinityController::class,'closingModals']);
+
+        Route::get('/emails/list/{user_id}',[EmailController::class,'index']);
+        Route::post('/email/send',[EmailController::class,'sendEmail'])->name('email.send');
+
+        Route::prefix('/export')->group(function () {
+            Route::get('/', [DebtorExportController::class,'exportInExcelDebtors']);
+            Route::get('/events',[DebtorExportController::class,'exportEvents']);
+            Route::get('/forgotten', [DebtorExportController::class,'exportForgotten']);
+            Route::get('/postregistry', [DebtorsController::class,'exportPostRegistry']);
+        });
+
+        Route::prefix('/courts')->group(function () {
+            Route::get('/index', [DebtorsNoticesController::class,'courtNotices']);
+            Route::get('/start', [DebtorsNoticesController::class,'startCourtTask']);
+            Route::get('getFile/{type}/{task_id}', [DebtorsNoticesController::class,'getCourtFile']);
+        });
+
+        Route::prefix('/notices')->group(function () {
+            Route::get('/index', [DebtorsNoticesController::class,'index']);
+            Route::get('/start', [DebtorsNoticesController::class,'startTask']);
+            Route::get('/getFile/{type}/{task_id}', [DebtorsNoticesController::class,'getFile']);
+            Route::get('/getFile/{type}/{task_id}', [DebtorsNoticesController::class,'getFile']);
+        });
+        Route::prefix('/recurrent')->group(function () {
+            Route::get('/query', [DebtorsController::class,'sentRecurrentQuery']);
+            Route::get('/massquery', [DebtorsController::class,'massRecurrentQuery']);
+            Route::post('/massquery', [DebtorsController::class,'massRecurrentQuery']);
+            Route::get('/massquerytask', [DebtorsController::class,'massRecurrentTask']);
+            Route::post('/massquerytask', [DebtorsController::class,'massRecurrentTask']);
+            Route::post('/getstatus', [DebtorsController::class,'getMassRecurrentStatus']);
+        });
+        Route::prefix('/reports')->group(function () {
+            Route::get('/plancalend', [DebtorsReportsController::class,'planCalend']);
+            Route::get('/ovz', [DebtorsReportsController::class,'ovz']);
+            Route::get('/jobsdoneact', [DebtorsReportsController::class,'jobsDoneAct']);
+            Route::get('/dzcollect', [DebtorsReportsController::class,'dzcollect']);
+            Route::get('/loginlog', [DebtorsReportsController::class,'exportToExcelDebtorsLoginLog']);
+        });
+        Route::prefix('/transfer')->group(function () {
+            Route::get('/index', [DebtorTransferController::class,'index']);
+            Route::get('/history', [DebtorTransferController::class,'transferHistory']);
+        });
+
+
+
+
+
+    });
+
+    //ИНФИНИТИ
+    Route::prefix('/infinity')->group(function () {
+
+        Route::get('infinity/income', [InfinityController::class,'incoming']);
+        Route::post('/callbacks/{item}/{callback}', [InfinityController::class,'callbacks']);
+        Route::get('/callbacks/{item}/{callback}', [InfinityController::class,'callbacks']);
+        Route::get('/losscall', [InfinityController::class,'fromInfinityLossCalls']);
+        Route::get('/is_debtor_time', [InfinityController::class,'getDebtorTimeByPhoneWithRequest']);
+        Route::get('/is_debtor_time/{telephone}', [InfinityController::class,'getDebtorTimeByPhone']);
+        Route::get('/is_debtor_operator/{telephone}', [InfinityController::class,'getUserInfinityIdByDebtorPhone']);
+    });
 
 });

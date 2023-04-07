@@ -261,7 +261,7 @@ $(document).ready(function () {
                         @endif
                         @if(!is_null(Auth::user()) && Auth::user()->hasPermission(\App\Permission::makeName(\App\Utils\PermLib::ACTION_OPEN,\App\Utils\PermLib::SUBJ_DEBTOR_TRANSFER)))
                         <li class="{{ (str_contains(Request::path(), 'debtortransfer')) ? 'active' : '' }}">
-                            <a href="{{ url('/debtortransfer/index') }}">Передача должников</a>
+                            <a href="{{ url('/debtors/transfer/index') }}">Передача должников</a>
                         </li>
                         @endif
 						@if(!is_null(Auth::user()) && Auth::user()->hasPermission(\App\Permission::makeName(\App\Utils\PermLib::ACTION_SELECT,\App\Utils\PermLib::SUBJ_CANDIDATE_LIST)))

@@ -16,7 +16,7 @@
 <div class='row'>
     <div class="col-xs-12">
         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#debtorTransferFilterModal"><span class='glyphicon glyphicon-search'></span> Фильтр</button>
-        <a href="/debtortransfer/history" class="pull-right" style="margin-right: 20px;" target="_blank">История передач</a>
+        <a href="/debtors/transfer/history" class="pull-right" style="margin-right: 20px;" target="_blank">История передач</a>
     </div>
 </div>
 <div class='row'>

@@ -809,7 +809,7 @@
                             <br>
                             @endif
                             @if($enableRecurrentButton)
-                            <a href="/debtor/recurrent/query?debtor_id={{$debtor->id}}&amount={{$data[0]['sum_indebt']}}" class="btn btn-primary" id="recurrentButton">Списать (безакцепт)</a>
+                            <a href="/debtors/recurrent/query?debtor_id={{$debtor->id}}&amount={{$data[0]['sum_indebt']}}" class="btn btn-primary" id="recurrentButton">Списать (безакцепт)</a>
                             @endif
                         </div>
                     </div>

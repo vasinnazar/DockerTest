@@ -36,13 +36,13 @@
             <input type="button" class="btn btn-default" value="Зачет оплат" data-target='#userPaymentsModal' data-toggle='modal' />
             <a class="btn btn-default" href="{{url('reports/paysheet')}}" target="_blank">Расчетный лист</a>
             @if ($user_id == 69 || $user_id == 916 || $user_id == 885 || $user_id == 3448 || $user_id == 970 || $user_id == 3465)
-            <a href="{{url('debtor/recurrent/massquerytask')}}"  class="btn btn-default">Массовое списание</a>
+            <a href="{{url('debtors/recurrent/massquerytask')}}"  class="btn btn-default">Массовое списание</a>
             @endif
             @if ($user_id == 69 || $user_id == 916)
-            <a href="{{url('debtor/recurrent/massquerytask?type=olv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
+            <a href="{{url('debtors/recurrent/massquerytask?type=olv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
             @endif
             @if ($user_id == 69 || $user_id == 3448)
-            <a href="{{url('debtor/recurrent/massquerytask?type=ouv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
+            <a href="{{url('debtors/recurrent/massquerytask?type=ouv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
             @endif
             @if (!$personalGroup['isGroup'])
             <a href="{{url('usertests/index')}}" class="btn btn-default" target="_blank">Тесты</a>
@@ -52,7 +52,7 @@
                 Отчеты <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-                <li><a href="{{url('debtorsreports/dzcollect')}}">Сбор ДЗ</a></li>
+                <li><a href="{{url('debtors/reports/dzcollect')}}">Сбор ДЗ</a></li>
                 <li><a href="{{url('reports/paysheet')}}">Расчетный лист</a></li>
                 <li><a href="{{url('debtors/reports/plancalend')}}">Календарь планов</a></li>
                 <li><a href="{{url('debtors/reports/jobsdoneact')}}">Акт выполненных работ</a></li>
