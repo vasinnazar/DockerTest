@@ -790,10 +790,6 @@ Route::middleware('auth_only')->group(function () {
             Route::get('/history', [DebtorTransferController::class,'transferHistory']);
         });
 
-
-
-
-
     });
 
     //ИНФИНИТИ

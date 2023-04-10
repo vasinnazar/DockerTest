@@ -183,9 +183,7 @@ Route::prefix('/ajax')->group(function () {
         Route::get('/sendsmstodebtor', [DebtorsController::class,'sendSmsToDebtor'])->name('ajax.debtors.sendsmstodebtor');
         Route::post('/loadphoto/{claim_id}', [DebtorsController::class,'loadPhoto']);
         Route::get('/list', [DebtorsController::class,'ajaxList'])->name('ajax.debtors.list');
-        Route::get('/events/list', [DebtorsController::class,'ajaxEventsList'])->name('ajax.debtorevents.list');
-        Route::get('/forgotten/list', [DebtorsController::class,'ajaxForgottenList'])->name('ajax.debtorforgotten.list');
-        Route::get('/recommends/list', [DebtorsController::class,'ajaxRecommendsList'])->name('ajax.debtorrecommends.list');
+
         Route::get('/event/data', [DebtorsController::class,'getDebtorEventData']);
         Route::get('/search/autocomplete', [DebtorsController::class,'ajaxColumnAutocomplete']);
         Route::post('/changePlanDeparture/{debtor_id}/{action}', [DebtorsController::class,'changePlanDeparture']);
@@ -204,7 +202,6 @@ Route::prefix('/ajax')->group(function () {
         Route::post('/loans/getmultisum', [DebtorsController::class,'getMultiSum']);
         Route::post('/totalEvents', [DebtorsController::class,'refreshTotalEventTable']);
         Route::post('/overallEvents', [DebtorsController::class,'refreshOverallTable']);
-        Route::get('/transfer/list', [DebtorTransferController::class,'ajaxList']);
         Route::post('/transfer/changeResponsibleUser', [DebtorTransferController::class,'changeResponsibleUser']);
         Route::get('/transfer/printResponsibleUser', [DebtorTransferController::class,'getActPdf']);
     });
@@ -233,6 +230,12 @@ Route::prefix('/ajax')->group(function () {
     Route::get('/userphotos/list', [UserPhotoController::class,'ajaxList']);
     Route::get('/userphotos/list2', [UserPhotoController::class,'ajaxBasicList']);
     Route::get('/infinity', [InfinityController::class,'main']);
+    Route::get('debtorevents/list', [DebtorsController::class,'ajaxEventsList'])->name('ajax.debtorevents.list');
+    Route::get('debtorforgotten/list', [DebtorsController::class,'ajaxForgottenList'])
+        ->name('ajax.debtorforgotten.list');
+    Route::get('debtorrecommends/list', [DebtorsController::class,'ajaxRecommendsList'])
+        ->name('ajax.debtorrecommends.list');
+    Route::get('debtortransfer/list', [DebtorTransferController::class,'ajaxList']);
 
 
 });

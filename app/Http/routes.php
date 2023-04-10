@@ -818,9 +818,9 @@ Route::get('debtors/reports/loginlog', ['uses' => 'DebtorsReportsController@expo
 //ДОЛЖНИКИ: ПЕРЕДАЧА ОТ ОТВЕТСТВЕННОМУ К ОТВЕТСТВЕННОМУ
 Route::get('debtors/transfer/index', ['uses' => 'DebtorTransferController@index']);
 Route::get('debtors/transfer/history', ['uses' => 'DebtorTransferController@transferHistory']);
-Route::get('ajax/debtors/transfer/list', ['uses' => 'DebtorTransferController@ajaxList']);
-Route::post('ajax/debtors/transfer/changeResponsibleUser', ['uses' => 'DebtorTransferController@changeResponsibleUser']);
-Route::get('ajax/debtors/transfer/printResponsibleUser', ['uses' => 'DebtorTransferController@getActPdf']);
+Route::get('ajax/debtortransfer/list', ['uses' => 'DebtorTransferController@ajaxList']);
+Route::post('ajax/debtortransfer/changeResponsibleUser', ['uses' => 'DebtorTransferController@changeResponsibleUser']);
+Route::get('ajax/debtortransfer/printResponsibleUser', ['uses' => 'DebtorTransferController@getActPdf']);
 
 //ФОРМЫ СМСОК ДЛЯ ВЗЫСКАНИЯ
 Route::get('adminpanel/smsform/index', ['uses' => 'SmsFormController@index']);

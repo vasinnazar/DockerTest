@@ -245,6 +245,7 @@ class MySoap {
             }
             \PC::debug($params, 'call1c_params');
             $start_req_date = Carbon::now();
+            logger([ $url,'login' => $login, 'password' => $pass, 'cache_wsdl' => WSDL_CACHE_NONE, 'trace' => 1]);
             $client = new SoapClient('http://' . $url, ['login' => $login, 'password' => $pass, 'cache_wsdl' => WSDL_CACHE_NONE, 'trace' => 1]);
             $response = $client->__soapCall($name, [$params]);
             \PC::debug($response, 'MySoap.call1c.response');

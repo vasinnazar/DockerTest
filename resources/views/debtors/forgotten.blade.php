@@ -55,7 +55,7 @@
 $(document).ready(function () {
     $.debtorsCtrl.init();
     $.debtorsCtrl.initDebtorForgottenTable();
-    $.debtorsCtrl.changeForgottenDebtorFilter();
+    // $.debtorsCtrl.changeForgottenDebtorFilter();
 });
 </script>
 @stop
