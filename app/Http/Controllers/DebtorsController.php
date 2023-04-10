@@ -3897,16 +3897,17 @@ class DebtorsController extends BasicController
         
         $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
         
-        $debtors = Debtor::where('is_debtor', 1);
+        $debtorsQuery = Debtor::select('debtors.*')
+            ->where('is_debtor', 1);
         
         if ($timezone == 'east') {
-            $debtors->leftJoin('passports', function ($join) {
+            $debtorsQuery->leftJoin('passports', function ($join) {
                 $join->on('passports.series', '=', 'debtors.passport_series');
                 $join->on('passports.number', '=', 'debtors.passport_number');
             })
             ->whereBetween('passports.fact_timezone', [-1, 5]);
         } else if ($timezone == 'west') {
-            $debtors->leftJoin('passports', function ($join) {
+            $debtorsQuery->leftJoin('passports', function ($join) {
                 $join->on('passports.series', '=', 'debtors.passport_series');
                 $join->on('passports.number', '=', 'debtors.passport_number');
             })
@@ -3914,44 +3915,42 @@ class DebtorsController extends BasicController
         }
 
         if ($recurrent_type && $recurrent_type == 'olv_chief') {
-            $debtors->where('str_podr', '000000000007')
+            $debtorsQuery->where('str_podr', '000000000007')
                 ->where('responsible_user_id_1c', 'Ведущий специалист личного взыскания')
                 ->where('qty_delays', '>=', 60)
                 ->where('qty_delays', '<=', 150)
                 ->whereIn('debt_group_id', [5, 6])
-                ->whereIn('base', ['Б-3', 'Б-МС', 'Б-риски', 'Б-График'])
-                ->get();
+                ->whereIn('base', ['Б-3', 'Б-МС', 'Б-риски', 'Б-График']);
         } else {
             if ($recurrent_type && $recurrent_type == 'ouv_chief') {
-                $debtors->where('str_podr', '000000000006')
+                $debtorsQuery->where('str_podr', '000000000006')
                     ->whereIn('responsible_user_id_1c', [
                         'Осипова Е. А.                                ',
                         'Ленева Алина Андреевна                      '
                     ])
-                    ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График'])
-                    ->get();
+                    ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График']);
             } else {
                 if ($user->hasRole('debtors_remote')) {
-                    $debtors->where('str_podr', '000000000006')
+                    $debtorsQuery->where('str_podr', '000000000006')
                         ->where('qty_delays', '>=', 22)
                         ->where('qty_delays', '<=', 69)
                         ->where('base', '<>', 'ХПД')
-                        ->whereIn('debt_group_id', [2, 4, 5, 6])
-                        ->get();
+                        ->whereIn('debt_group_id', [2, 4, 5, 6]);
                 } else {
                     if ($user->hasRole('debtors_personal')) {
-                        $debtors->where('str_podr', '000000000007')
+                        $debtorsQuery->where('str_podr', '000000000007')
                             ->where('qty_delays', '>=', 60)
                             ->where('qty_delays', '<=', 150)
                             ->where('base', '<>', 'ХПД')
-                            ->whereIn('debt_group_id', [5, 6])
-                            ->get();
+                            ->whereIn('debt_group_id', [5, 6]);
                     } else {
 
                     }
                 }
             }
         }
+
+        $debtors = $debtorsQuery->get();
 
         if (isset($debtors) && $debtors) {
             //$debtors = TimezoneService::getDebtorsForTimezone($debtors, $timezone);
