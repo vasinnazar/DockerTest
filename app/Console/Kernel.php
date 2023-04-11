@@ -185,6 +185,18 @@ class Kernel extends ConsoleKernel
                 ]);
         })->dailyAt('07:00');
 
+        $schedule->call(function () {
+            $timezones = \App\DebtorRegionTimezone::get();
+
+            foreach ($timezones as $tz) {
+                if ($tz->id == 65) {
+                    \App\Passport::where('fact_address_region', 'like', $tz->root_word . '%')->whereNull('fact_timezone')->update(['fact_timezone' => $tz->timezone]);
+                    continue;
+                }
+                \App\Passport::where('fact_address_region', 'like', '%' . $tz->root_word . '%')->whereNull('fact_timezone')->update(['fact_timezone' => $tz->timezone]);
+            }
+        })->dailyAt('07:00');
+
         $schedule->command('repayment-offers:auto-peace');
         $schedule->command('debtor-sync:import')->withoutOverlapping();
         $schedule->command('debtor-sync:execute-sql')->withoutOverlapping();
