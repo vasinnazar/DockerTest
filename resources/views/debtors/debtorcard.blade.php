@@ -169,7 +169,7 @@
                                 <a id="debtor_history_button" class='btn btn-default' href='{{url('debtors/history/'.$debtor->id)}}' target="_blank" disabled>История заемщика</a>
                             </div>
                         </div>
-                        @if (!isset($debtroles['personal_notice']))
+                        @if (!$user->hasRole('debtors_personal'))
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center' style="padding-top: 4px;">
                             <div class='btn-group btn-group-sm btn-group-vertical'>
                                 <a href="#" data-toggle="modal" data-target="#debtorSendedNotices" class="btn btn-default">Отправленные уведомления</a>
@@ -282,7 +282,7 @@
                         <tr>
                             <td>А. регистрации:</td>
                             <td style='width: 60px;'>
-                                @if (isset($debtroles['remote_notice']))
+                                @if ($user->hasRole('debtors_remote'))
                                 @if ($debtor->qty_delays < 61 && str_contains($debtor->loan_id_1c, 'ККЗ'))
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote_cc'] . '/'.$debtor->id.'/0/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
                                 @else
@@ -296,7 +296,7 @@
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['requirement_personal'] . '/'.$debtor->id.'/' . date('Y-m-d', time()) . '/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
                                 @endif
                                 @endif
-                                @elseif (isset($debtroles['personal_notice']) && !$hasSentNoticePersonal)
+                                @elseif ($user->hasRole('debtors_personal') && !$hasSentNoticePersonal)
                                 <a href="#" data-toggle="modal" data-target="#debtorNoticePersonal" class="btn btn-default btn-xs printaddr notice_personal" data-typeaddr="0"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
                                 @endif
                             </td>
@@ -312,7 +312,7 @@
                         <tr>
                             <td>А. проживания:</td>
                             <td>
-                                @if (isset($debtroles['remote_notice']))
+                                @if ($user->hasRole('debtors_remote'))
                                 @if ($debtor->qty_delays < 61 && str_contains($debtor->loan_id_1c, 'ККЗ'))
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote_cc'] . '/'.$debtor->id.'/0/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
                                 @else
@@ -326,7 +326,7 @@
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['requirement_personal'] . '/'.$debtor->id.'/' . date('Y-m-d', time()) . '/1')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
                                 @endif
                                 @endif
-                                @elseif (isset($debtroles['personal_notice']) && !$hasSentNoticePersonal)
+                                @elseif ($user->hasRole('debtors_personal') && !$hasSentNoticePersonal)
                                 <a href="#" data-toggle="modal" data-target="#debtorNoticePersonal" class="btn btn-default btn-xs printaddr notice_personal" data-typeaddr="1"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
                                 @endif
                             </td>
@@ -684,7 +684,7 @@
                                 </li>
                                 <li class='list-group-item'>
                                     <small>Договор:</small><br>
-                                    {{$data[0]['loan_id_1c']}} от {{$data[0]['loans_created_at']}} | (сумма займа: {{number_format($data[0]['d_money'], 2, '.', '')}} руб.)
+                                    {{ $debtor->loan_id_1c }} от {{ \App\StrUtils::dateToStr($debtor->loan->created_at) }} | (сумма займа: {{number_format($data[0]['d_money'], 2, '.', '')}} руб.)
                                 </li>
                                 <li class='list-group-item'>
                                     <small>Срок:</small> {{$data[0]['time']}} {{ ($debtor->is_pos || $debtor->is_pledge || $debtor->is_bigmoney) ? 'мес.' : 'дн.' }}
@@ -966,7 +966,7 @@
                                                                         $selected = ' selected';
                                                                     }
                                                                 }
-                                                                if (isset($debtroles['personal_notice']) && !in_array($k,
+                                                                if ($user->hasRole('debtors_personal') && !in_array($k,
                                                                         [1, 2, 3, 5, 6, 19, 51])) {
                                                                     continue;
                                                                 }

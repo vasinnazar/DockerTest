@@ -2,17 +2,10 @@
 
 namespace App;
 
-use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Auth\Passwords\CanResetPassword;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 
 //group_id: 0-admin, 1-user,-1 - superadmin
-class DebtorSmsTpls extends Model implements AuthenticatableContract, CanResetPasswordContract {
-
-    use Authenticatable,
-        CanResetPassword;
+class DebtorSmsTpls extends Model {
 
     /**
      * The database table used by the model.
@@ -27,13 +20,6 @@ class DebtorSmsTpls extends Model implements AuthenticatableContract, CanResetPa
      * @var array
      */
     protected $fillable = ['sort'];
-
-    /**
-     * The attributes excluded from the model's JSON form.
-     *
-     * @var array
-     */
-    protected $hidden = [];
     
     /**
      * Возвращает шаблоны для SMS-сообщений
@@ -41,14 +27,12 @@ class DebtorSmsTpls extends Model implements AuthenticatableContract, CanResetPa
      * @return array
      */
     static function getSmsTpls($recovery_type, $is_ubytki = false) {
-        $q = DebtorSmsTpls::where('recovery_type', $recovery_type);
+        $q = self::where('recovery_type', $recovery_type);
         if ($recovery_type == 'remote' && $is_ubytki) {
             $q->where('sort', 1);
         } else {
             $q->where('sort', null);
         }
-        $arReturn = $q->get()->toArray();
-        
-        return $arReturn;
+        return $q->get();
     }
 }

@@ -5,16 +5,17 @@
     <h1 xmlns="http://www.w3.org/1999/html">Массовый
         безакцепт {{ ($recurrent_type == 'olv_chief' || $recurrent_type == 'ouv_chief') ? 'Ведущий' : '' }}</h1>
     <input type="hidden" id="recurrent_type" value="{{ $recurrent_type }}">
+    <input type="hidden" id="recurrent_task_id" value="{{ ($recurrent_task) ? $recurrent_task->id : '' }}">
     @if ($canStartToday)
         @if (auth()->user()->hasRole('debtors_chief'))
             <div class="timezone">
                 <h4>Интервал часовых поясов:</h4>
-                <button id="startMassRecurrents1" class="btn btn-primary" value="east">Запустить -1+5</button>
-                <button id="startMassRecurrents2" class="btn btn-primary" value="west">Запустить -2-5</button>
+                <button id="startMassRecurrents1" class="btn btn-primary" value="east"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'east')) ? ' disabled' : '' }}>Запустить -1+5</button>
+                <button id="startMassRecurrents2" class="btn btn-primary" value="west"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'west')) ? ' disabled' : '' }}>Запустить -2-5</button>
             </div>
         @endif
         <h4 style="{{ !auth()->user()->hasRole('debtors_chief') ? 'display: none' : '' }}">Запустить весь пулл:</h4>
-        <button type="button" id="startMassRecurrents" class="btn btn-primary" value="">Запустить</button>
+        <button type="button" id="startMassRecurrents" class="btn btn-primary" value=""{{ $collectionTasks->count() ? ' disabled' : '' }}>Запустить</button>
         <div id="task_status"></div>
     @else
         @if ($completed)
@@ -33,6 +34,8 @@
         <script>
             $(document).ready(function () {
                 $('button').click(function () {
+                    $(this).attr('disabled', true);
+
                     let timezone = $(this).val();
                     $.ajax({
                         url: '/debtors/recurrent/massquerytask',
@@ -63,7 +66,7 @@
                         $.ajax({
                             url: '/debtors/recurrent/getstatus',
                             method: 'post',
-                            data: {type: $('#recurrent_type').val()},
+                            data: {type: $('#recurrent_type').val(), recurrent_task_id: $('#recurrent_task_id').val()},
                             success: function (data) {
                                 var json_data = JSON.parse(data);
                                 if (json_data.status == 'completed') {
