@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Customer;
 use App\Debtor;
 use App\DebtorEvent;
 use App\DebtorUsersRef;
+use App\Passport;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
