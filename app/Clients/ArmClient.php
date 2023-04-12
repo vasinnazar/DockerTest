@@ -2,6 +2,7 @@
 
 namespace App\Clients;
 
+use App\Debtor;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
@@ -100,5 +101,16 @@ class ArmClient
         return json_decode($response->getBody()->getContents());
     }
 
-
+    public function getTinkoffLink(Debtor $debtor, int $amount, string $phone)
+    {
+        $response = $this->client->get($this->url . '/api/tinkoff/init?amount=' . $amount
+            . '&loan_1c_id=' . $debtor->loan_id_1c
+            . '&order_id=&customer_id=' . $debtor->customer_id_1c
+            . '&phone=' . $phone
+            . '&token=' . crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai')
+            . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&'
+            . 'notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url='
+        );
+        return json_decode($response->getBody()->getContents());
+    }
 }

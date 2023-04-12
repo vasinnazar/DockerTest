@@ -12,10 +12,11 @@ class CreateDebtorEventSmsTable extends Migration
             $table->bigIncrements('id');
             $table->integer('event_id');
             $table->integer('sms_id');
-            $table->integer('customer_id');
+            $table->string('customer_id_1c');
+            $table->string('debtor_base');
             $table->foreign('event_id')->references('id')->on('debtor_event');
             $table->foreign('sms_id')->references('id')->on('debtor_sms_tpls');
-            $table->foreign('customer_id')->references('id')->on('customers');
+            $table->foreign('customer_id_1c')->references('id_1c')->on('customers');
             $table->softDeletes();
             $table->timestamps();
         });

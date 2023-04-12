@@ -1,7 +1,11 @@
 <?php
 
-namespace App;
+namespace App\Model;
 
+use App\Customer;
+use App\Debtor;
+use App\DebtorEvent;
+use App\DebtorSmsTpls;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,9 +15,10 @@ class DebtorEventSms extends Model
     use SoftDeletes;
 
     protected $fillable = [
-      'event_id',
-      'customer_id',
-      'sms_id'
+        'event_id',
+        'sms_id',
+        'customer_id_1c',
+        'debtor_base'
     ];
 
     public function sms(): BelongsTo
@@ -28,6 +33,6 @@ class DebtorEventSms extends Model
 
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Customer::class,'customer_id_1c','id_1c');
     }
 }
