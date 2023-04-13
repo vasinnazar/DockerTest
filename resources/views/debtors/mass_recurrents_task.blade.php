@@ -1,21 +1,36 @@
 @extends('app')
-@section('title') Массовый безакцепт {{ ($recurrent_type == 'olv_chief' || $recurrent_type == 'ouv_chief') ? 'Ведущий' : '' }}@stop
+@section('title')
+    Массовый безакцепт
+@stop
 @section('content')
 
-    <h1 xmlns="http://www.w3.org/1999/html">Массовый
-        безакцепт {{ ($recurrent_type == 'olv_chief' || $recurrent_type == 'ouv_chief') ? 'Ведущий' : '' }}</h1>
-    <input type="hidden" id="recurrent_type" value="{{ $recurrent_type }}">
+    <h1>Массовый безакцепт
+        @if ($str_podr == '000000000006-1')
+            - старший УПР
+        @elseif ($str_podr == '000000000007-1')
+            - ведущий УДР
+        @endif
+    </h1>
+    <input type="hidden" id="str_podr" value="{{ $str_podr }}">
     <input type="hidden" id="recurrent_task_id" value="{{ ($recurrent_task) ? $recurrent_task->id : '' }}">
     @if ($canStartToday)
         @if (auth()->user()->hasRole('debtors_chief'))
             <div class="timezone">
                 <h4>Интервал часовых поясов:</h4>
-                <button id="startMassRecurrents1" class="btn btn-primary" value="east"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'east')) ? ' disabled' : '' }}>Запустить -1+5</button>
-                <button id="startMassRecurrents2" class="btn btn-primary" value="west"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'west')) ? ' disabled' : '' }}>Запустить -2-5</button>
+                <button id="startMassRecurrents1" class="btn btn-primary"
+                        value="east"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'east')) ? ' disabled' : '' }}>
+                    Запустить -1+5
+                </button>
+                <button id="startMassRecurrents2" class="btn btn-primary"
+                        value="west"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'west')) ? ' disabled' : '' }}>
+                    Запустить -2-5
+                </button>
             </div>
         @endif
         <h4 style="{{ !auth()->user()->hasRole('debtors_chief') ? 'display: none' : '' }}">Запустить весь пулл:</h4>
-        <button type="button" id="startMassRecurrents" class="btn btn-primary" value=""{{ $collectionTasks->count() ? ' disabled' : '' }}>Запустить</button>
+        <button type="button" id="startMassRecurrents" class="btn btn-primary"
+                value=""{{ $collectionTasks->count() ? ' disabled' : '' }}>Запустить
+        </button>
         <div id="task_status"></div>
     @else
         @if ($completed)
@@ -48,7 +63,11 @@
                             $.ajax({
                                 url: '/debtor/recurrent/massquery',
                                 method: 'post',
-                                data: {task_id: json_data.task_id, recurrent_type: $('#recurrent_type').val(), timezone: timezone},
+                                data: {
+                                    task_id: json_data.task_id,
+                                    recurrent_type: $('#recurrent_type').val(),
+                                    timezone: timezone
+                                },
                                 success: function (answer) {
                                     location.reload();
                                 }

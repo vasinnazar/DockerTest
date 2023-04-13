@@ -25,6 +25,7 @@ use App\DebtorEventPromisePay;
 use App\Repayment;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
+use App\Services\MassRecurrentService;
 use App\Services\RepaymentOfferService;
 use App\Services\DebtorService;
 use App\Services\TimezoneService;
@@ -52,8 +53,13 @@ class DebtorsController extends BasicController
 
     public $debtCardService;
     public $debtEventService;
+    public $massRecurrentService;
 
-    public function __construct(DebtorCardService $debtService, DebtorEventService $eventService)
+    public function __construct(
+        DebtorCardService $debtService,
+        DebtorEventService $eventService,
+        MassRecurrentService $massRecurrentService
+    )
     {
         $this->middleware('auth');
         if (is_null(Auth::user())) {
@@ -65,6 +71,7 @@ class DebtorsController extends BasicController
 
         $this->debtCardService = $debtService;
         $this->debtEventService = $eventService;
+        $this->massRecurrentService = $massRecurrentService;
     }
 
     /**
@@ -74,18 +81,11 @@ class DebtorsController extends BasicController
      */
     public function index()
     {
-        $user_id = Auth::id();
+        $user = auth()->user();
 
-        $objUser = User::find($user_id);
-        $isPersonalGroup = $objUser->hasRole('debtors_personal');
+        $canEditSmsCount = ($user->id == 817) ? true : false; // Яблонцев (редактирование количества SMS)
 
-        $canEditSmsCount = ($objUser->id == 817) ? true : false; // Яблонцев (редактирование количества SMS)
-
-        $planDeparturesCount = 0;
-        if ($isPersonalGroup) {
-            $planDeparturesCount = PlannedDeparture::getCountPlanned();
-        }
-        $slavesUserIds = json_decode(DebtorUsersRef::getDebtorSlaveUsers($user_id), true);
+        $slavesUserIds = json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true);
         $slave_list = [];
         foreach ($slavesUserIds as $slave) {
             $slave_list[] = $slave['user_id'];
@@ -96,8 +96,8 @@ class DebtorsController extends BasicController
             $debtorUsers[$debtorUser->id]['name'] = $debtorUser->name;
             $debtorUsers[$debtorUser->id]['group_id'] = $debtorUser->user_group_id;
         }
-        $debtorUsers[$user_id]['name'] = $objUser->name;
-        $debtorUsers[$user_id]['group_id'] = $objUser->user_group_id;
+        $debtorUsers[$user->id]['name'] = $user->name;
+        $debtorUsers[$user->id]['group_id'] = $user->user_group_id;
 
         \PC::debug($debtorUsers);
 
@@ -111,24 +111,18 @@ class DebtorsController extends BasicController
             $arIn[] = $tmpUser['id_1c'];
         }
 
-        $isChief = $objUser->hasRole('debtors_chief');
         $dbt = Debtor::whereNotNull('debtors.recommend_created_at');
 
-        if (!$isChief) {
+        if (!$user->hasRole('debtors_chief')) {
             $dbt->whereIn('debtors.responsible_user_id_1c', $arIn);
             $dbt->where('debtors.recommend_completed', 0);
         }
 
-        $recommends_count = count($dbt->get());
-        $debtorsOverall = [];
-        if ($user_id == 916 || $user_id == 227) {
-            $debtorsOverall = Debtor::getOverall();
-        }
+        $recommends_count = $dbt->count();
 
         return view('debtors.index', [
-            'is_chief' => $objUser->hasRole('debtors_chief'),
             'recommends_count' => $recommends_count,
-            'user_id' => $user_id,
+            'user' => $user,
             'event_types' => config('debtors.event_types'),
             'overdue_reasons' => config('debtors.overdue_reasons'),
             'event_results' => config('debtors.event_results'),
@@ -137,10 +131,6 @@ class DebtorsController extends BasicController
             'debtorEventsSearchFields' => DebtorEvent::getSearchFields(),
             'debtorEventsGroupPlanFields' => DebtorEvent::getGroupPlanFields(),
             'debtorUsers' => $debtorUsers,
-            'personalGroup' => [
-                'isGroup' => $isPersonalGroup,
-                'count' => $planDeparturesCount
-            ],
             'canEditSmsCount' => $canEditSmsCount
         ]);
     }
@@ -3732,36 +3722,23 @@ class DebtorsController extends BasicController
 
     public function massRecurrentTask(Request $req)
     {
-        $user = auth()->user();
-        $is_leading_task = $req->get('type', false);
         $timezone = $req->get('timezone', false);
+        $str_podr = $req->get('str_podr', false);
+        $start_flag = $req->get('start', false);
 
-        if ($is_leading_task && $is_leading_task == 'olv_chief' && ($user->id == 916 || $user->id == 69)) {
-            // запуск по Ведущему личного взыскания Свиридовым
-            $str_podr = '000000000007-1';
-        } else {
-            if ($is_leading_task && $is_leading_task == 'ouv_chief' && ($user->id == 3448 || $user->id == 69)) {
-                $str_podr = '000000000006-1';
-            } else {
-                if ($user->hasRole('debtors_remote')) {
-                    $str_podr = '000000000006';
-                } else {
-                    if ($user->hasRole('debtors_personal')) {
-                        $str_podr = '000000000007';
-                    } else {
-                        $str_podr = null;
-                    }
-                }
-            }
+        if (!$str_podr) {
+            return redirect()->back();
         }
 
-        if (is_null($str_podr)) {
+        $checkUser = $this->massRecurrentService->checkStrPodrUser($str_podr);
+
+        if (!$checkUser) {
             return redirect()->back();
         }
         
         $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
 
-        $start_flag = $req->get('start', false);
+
 
         $recurrent_task = \App\MassRecurrentTask::where('created_at', '>=', date('Y-m-d 00:00:00', time()))
             ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
@@ -3773,72 +3750,14 @@ class DebtorsController extends BasicController
         $canStartToday = ($recurrent_task) ? false : true;
         //$canStartToday = true;
 
-        if ($start_flag && $canStartToday) {
-            $debtors = Debtor::where('is_debtor', 1);
-            
-            if ($timezone == 'east') {
-                $debtors->leftJoin('passports', function ($join) {
-                    $join->on('passports.series', '=', 'debtors.passport_series');
-                    $join->on('passports.number', '=', 'debtors.passport_number');
-                })
-                ->whereBetween('passports.fact_timezone', [-1, 5]);
-            } else if ($timezone == 'west') {
-                $debtors->leftJoin('passports', function ($join) {
-                    $join->on('passports.series', '=', 'debtors.passport_series');
-                    $join->on('passports.number', '=', 'debtors.passport_number');
-                })
-                ->whereBetween('passports.fact_timezone', [-5, -2]);
+        if ($start_flag) {
+            $recurrentTask = $this->massRecurrentService->createTask($str_podr, $timezone);
+
+            if ($recurrentTask) {
+                return json_encode(['task_id' => $recurrentTask->id, 'debtors_count' => $recurrentTask->debtors_count]);
             }
 
-            if ($str_podr == '000000000006') {
-                $debtors->where('str_podr', '000000000006')
-                    ->where('qty_delays', '>=', 22)
-                    ->where('qty_delays', '<=', 69)
-                    ->whereIn('debt_group_id', [2, 4, 5, 6]);
-            }
-
-            if ($str_podr == '000000000007') {
-                $debtors->where('str_podr', '000000000007')
-                    ->where('qty_delays', '>=', 60)
-                    ->where('qty_delays', '<=', 150)
-                    ->whereIn('debt_group_id', [5, 6]);
-            }
-
-            if ($str_podr == '000000000007-1') {
-                $debtors->where('str_podr', '000000000007')
-                    ->where('responsible_user_id_1c', 'Ведущий специалист личного взыскания')
-                    ->where('qty_delays', '>=', 60)
-                    ->where('qty_delays', '<=', 150)
-                    ->whereIn('debt_group_id', [5, 6])
-                    ->whereIn('base', ['Б-3', 'Б-МС', 'Б-риски', 'Б-График']);
-            }
-
-            if ($str_podr == '000000000006-1') {
-                $debtors->where('str_podr', '000000000006')
-                    ->whereIn('responsible_user_id_1c', [
-                        'Осипова Е. А.                                ',
-                        'Ленева Алина Андреевна                      '
-                    ])
-                    ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График']);
-            }
-
-            $debtors = $debtors->get();
-
-            if ($debtors) {
-                $recurrent_task = new \App\MassRecurrentTask();
-
-                /*if ($timezone) {
-                    $debtors = TimezoneService::getDebtorsForTimezone($debtors, $timezone);
-                }*/
-
-                $recurrent_task->user_id = $user->id;
-                $recurrent_task->debtors_count = count($debtors);
-                $recurrent_task->str_podr = $str_podr;
-                $recurrent_task->timezone = $timezone;
-                $recurrent_task->save();
-
-                return json_encode(['task_id' => $recurrent_task->id, 'debtors_count' => count($debtors)]);
-            }
+            return redirect()->back();
         }
 
         $completedTodayTask = ($canStartToday) ? 0 : $recurrent_task->completed;
@@ -3897,60 +3816,7 @@ class DebtorsController extends BasicController
         
         $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
         
-        $debtorsQuery = Debtor::select('debtors.*')
-            ->where('is_debtor', 1);
-        
-        if ($timezone == 'east') {
-            $debtorsQuery->leftJoin('passports', function ($join) {
-                $join->on('passports.series', '=', 'debtors.passport_series');
-                $join->on('passports.number', '=', 'debtors.passport_number');
-            })
-            ->whereBetween('passports.fact_timezone', [-1, 5]);
-        } else if ($timezone == 'west') {
-            $debtorsQuery->leftJoin('passports', function ($join) {
-                $join->on('passports.series', '=', 'debtors.passport_series');
-                $join->on('passports.number', '=', 'debtors.passport_number');
-            })
-            ->whereBetween('passports.fact_timezone', [-5, -2]);
-        }
 
-        if ($recurrent_type && $recurrent_type == 'olv_chief') {
-            $debtorsQuery->where('str_podr', '000000000007')
-                ->where('responsible_user_id_1c', 'Ведущий специалист личного взыскания')
-                ->where('qty_delays', '>=', 60)
-                ->where('qty_delays', '<=', 150)
-                ->whereIn('debt_group_id', [5, 6])
-                ->whereIn('base', ['Б-3', 'Б-МС', 'Б-риски', 'Б-График']);
-        } else {
-            if ($recurrent_type && $recurrent_type == 'ouv_chief') {
-                $debtorsQuery->where('str_podr', '000000000006')
-                    ->whereIn('responsible_user_id_1c', [
-                        'Осипова Е. А.                                ',
-                        'Ленева Алина Андреевна                      '
-                    ])
-                    ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График']);
-            } else {
-                if ($user->hasRole('debtors_remote')) {
-                    $debtorsQuery->where('str_podr', '000000000006')
-                        ->where('qty_delays', '>=', 22)
-                        ->where('qty_delays', '<=', 69)
-                        ->where('base', '<>', 'ХПД')
-                        ->whereIn('debt_group_id', [2, 4, 5, 6]);
-                } else {
-                    if ($user->hasRole('debtors_personal')) {
-                        $debtorsQuery->where('str_podr', '000000000007')
-                            ->where('qty_delays', '>=', 60)
-                            ->where('qty_delays', '<=', 150)
-                            ->where('base', '<>', 'ХПД')
-                            ->whereIn('debt_group_id', [5, 6]);
-                    } else {
-
-                    }
-                }
-            }
-        }
-
-        $debtors = $debtorsQuery->get();
 
         if (isset($debtors) && $debtors) {
             //$debtors = TimezoneService::getDebtorsForTimezone($debtors, $timezone);

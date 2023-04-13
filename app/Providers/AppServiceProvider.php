@@ -1,5 +1,6 @@
 <?php namespace App\Providers;
 
+use App\Services\MassRecurrentService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider {
@@ -11,7 +12,11 @@ class AppServiceProvider extends ServiceProvider {
 	 */
 	public function boot()
 	{
-		//
+		$this->app->bind(MassRecurrentService::class, function () {
+            return new MassRecurrentService(
+                auth()->user(),
+            );
+        });
 	}
 
 	/**
