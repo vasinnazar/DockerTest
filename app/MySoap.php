@@ -298,7 +298,7 @@ class MySoap {
                 Spylog::logError(json_encode(['name' => $name, 'params' => $params, 'response' => $response]));
                 return ['res' => 0, 'value' => $response->return];
             } else {
-                return ['res' => 1, 'value' => (array_key_exists('result', $response)) ? $response->result : $response->return];
+                return ['res' => 1, 'value' => (array_key_exists('result', (array)$response)) ? $response->result : $response->return];
             }
         }
     }
