@@ -3413,7 +3413,7 @@ class DebtorsController extends BasicController
 
         $result = $this->debtCardService->getMultiSum1c($customerId1c, $loanId1c, $date);
         return view('elements.debtors.multiloans_buttons', [
-            'loans' => $result ?? []
+            'loans' => $result ?? null
         ]);
     }
 
