@@ -32,7 +32,8 @@
     "barryvdh/laravel-debugbar": "*",
     "laravelcollective/html": "^5.2.0",
     "fideloper/proxy" : "~4.0",
-    "ext-soap": "*"
+    "ext-soap": "*",
+    "maatwebsite/excel": "^2.1"
   },
   "require-dev": {
     "symfony/dom-crawler": "~3.1",
