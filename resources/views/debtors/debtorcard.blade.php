@@ -162,7 +162,7 @@
                             <div class="btn-group btn-group-sm btn-group-vertical">
                                 <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['anketa'] . '/'.$debtor->id.'/0')}}" target="_blank" class="btn btn-default">Анкета</a>
                                 <!--button disabled class='btn btn-default'>Связанные лица</button-->
-                                <button class='btn btn-default' disabled>Прочие контакты</button>
+                                <button class="btn btn-default" data-toggle="modal" data-target="#debtorSearchContacts">Поиск контактов</button>
                             </div>
                             <div class='btn-group btn-group-sm btn-group-vertical'>
                                 <a class='btn btn-default' href='{{url('debtors/logs/'.$debtor->id)}}'>История изменений</a>
@@ -1111,6 +1111,7 @@
 @include('elements.debtors.smsSent')
 @include('elements.debtors.addDebtorPeace')
 @include('elements.debtors.addDebtorClaim')
+@include('elements.debtors.searchContactsModal')
 
 @if ($third_people_agreement)
 @include('elements.debtors.third_people_agreement')
@@ -1469,6 +1470,15 @@ $(document).on('change', 'select[name="event_type_id_plan"]', function() {
         $('input[name="promise_pay_amount"]').attr('disabled', true);
     }
     
+});
+
+$(document).on('click', '#searchContactsButton', function() {
+    $(this).attr('disabled', true);
+    $(this).html('Идет поиск, ожидайте...');
+
+    $.post($.app.url + '/ajax/debtors/searchEqualContacts', {debtor_id: $('input[name="debtor_id"]').val()}).done(function(answer) {
+        $('#searchContactsContent').html(answer);
+    });
 });
 </script>
 @stop

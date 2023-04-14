@@ -752,7 +752,7 @@ class DebtorsController extends BasicController
                     time()));
             $arDataCcCard = json_decode($json_string_cc, true);
         }
-        $noRecurrent = $paysClient->getInfoByCustomerId1c($debtor->customer_id_1c)->first();
+        $noRecurrent = $paysClient->getInfoByCustomerId1c($debtor->customer_id_1c  )->first();
         if($noRecurrent) {
             $noRecurrent = (bool)$noRecurrent->no_recurrent;
         }
@@ -790,7 +790,7 @@ class DebtorsController extends BasicController
             'blockProlongation' => $blockProlongation,
             'arDataCcCard' => $arDataCcCard,
             'whatsApp' => $whatsAppEvent,
-            'noRecurrent' => $noRecurrent
+            'noRecurrent' => $noRecurrent,
         ]);
     }
 
@@ -2319,7 +2319,7 @@ class DebtorsController extends BasicController
                 $arParams['spec_phone'] = '88003014344';
             }
 
-            if (isset($repayment_in_cash) && $repayment_in_cash) {
+            if (isset($repayment_in_cash) && $repayment_in_cash && isset($repl_repayment)) {
                 $arParams['dop_string'] = 'Дополнительное соглашение от ' . date('d.m.Y',
                         strtotime($repl_repayment->created_at)) . ', ';
             }
@@ -4216,6 +4216,18 @@ class DebtorsController extends BasicController
         }
 
         return view('debtors.temporaryCronTaskHandling', compact('message'));
+    }
+
+    public function searchEqualContacts(Request $request) {
+        $debtor_id = $request->get('debtor_id', false);
+
+        $collectContacts = collect();
+
+        if ($debtor_id) {
+            $collectContacts = $this->debtCardService->getEqualContactsDebtors($debtor_id);
+        }
+
+        return view('elements.debtors.searchContactsTable', compact('collectContacts'));
     }
 
 

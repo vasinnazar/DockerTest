@@ -85,6 +85,7 @@ class DebtorService
         }
         return $collectDebtors;
     }
+
     private function getTableColumns($forPersonalDepartment = false)
     {
         if ($forPersonalDepartment) {
@@ -141,6 +142,7 @@ class DebtorService
             'debtors.passports.fact_timezone' => 'passports_fact_timezone'
         ];
     }
+
     public function getDebtors($req, $forPersonalDepartment = false)
     {
         $cols = [];
