@@ -283,7 +283,7 @@ class MySoap {
             Session::flash('error_1c', json_encode(['name' => $name, 'params' => $params, 'exception' => $exc]));
             return MySoap::error(MySoap::MSG_NORESPONSE);
         }
-        if (is_null($response) || !array_key_exists('return', $response)) {
+        if (is_null($response) || !array_key_exists('return', (array)$response)) {
             Log::error('MySoap.call1c.NO_RESPONSE', ['name' => $name, 'params' => $params, 'response' => $response]);
             Spylog::logError(json_encode(['name' => $name, 'params' => $params, 'response' => $response]));
             Session::flash('error_1c', json_encode(['name' => $name, 'params' => $params]));
