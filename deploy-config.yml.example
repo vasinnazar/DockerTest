@@ -10,3 +10,10 @@ prod:
   stage: prod
   deploy_path: /sites/debtors
   timezone: Asia/Novokuznetsk
+laravel5.6:
+  hostname: 192.168.35.102
+  user: debtor
+  keep_releases: 5
+  stage: laravel5.6
+  deploy_path: /sites/debtors
+  timezone: Asia/Novokuznetsk
