@@ -3,11 +3,10 @@
 namespace App\Services;
 
 use App\Debtor;
+use App\MassRecurrent;
 use App\MassRecurrentTask;
 use App\User;
-use App\Passport;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class MassRecurrentService
@@ -18,6 +17,11 @@ class MassRecurrentService
         $this->user = $user;
     }
 
+    /**
+     * Проверяем пользователя на соответствие структурному подразделению
+     * @param $str_podr
+     * @return bool
+     */
     public function checkStrPodrUser($str_podr)
     {
         $str_podr = str_replace('-1', '', $str_podr);
@@ -60,6 +64,62 @@ class MassRecurrentService
         }
 
         return false;
+    }
+
+    public function executeTask($task_id)
+    {
+        $task = MassRecurrentTask::find($task_id);
+
+        $debtorsQuery = $this->getDebtorsQuery($task->str_podr, $task->timezone);
+
+        $debtors = $debtorsQuery->get();
+
+        foreach ($debtors as $debtor) {
+            $postdata = [
+                'customer_external_id' => $debtor->customer_id_1c,
+                'loan_external_id' => $debtor->loan_id_1c,
+                'amount' => $debtor->sum_indebt,
+                'purpose_id' => 3,
+                'is_recurrent' => 1,
+                'details' => '{"is_debtor":true,"is_mass_debtor":true}'
+            ];
+
+            $url = 'http://192.168.35.69:8080/api/v1/payments';
+
+            $ch = curl_init($url);
+
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/x-www-form-urlencoded',
+                'X-Requested-With: XMLHttpRequest'
+            ));
+            curl_setopt($ch, CURLOPT_HEADER, true);
+            curl_setopt($ch, CURLOPT_NOBODY, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postdata));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+            curl_exec($ch);
+
+            $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if (curl_errno($ch)) {
+                Log::error('DebtorsController.massRecurrentQuery cURL error: ',
+                    [curl_error($ch), $httpcode, $debtor]);
+            }
+
+            MassRecurrent::create([
+                'task_id' => $task_id,
+                'debtor_id' => $debtor->id
+            ]);
+
+            curl_close($ch);
+
+            sleep(1);
+        }
+
+        $task->completed = 1;
+        $task->save();
     }
 
     private function getDebtorsQuery($str_podr, $timezone)
@@ -118,6 +178,12 @@ class MassRecurrentService
         return $debtorsQuery;
     }
 
+    /**
+     * Проверка на уже существующую задачу, созданную сегодня, с определенными параметрами
+     * @param $str_podr
+     * @param $timezone
+     * @return bool
+     */
     private function _checkTaskCanStart($str_podr, $timezone)
     {
         $task = MassRecurrentTask::whereDate('created_at', '=', Carbon::today())

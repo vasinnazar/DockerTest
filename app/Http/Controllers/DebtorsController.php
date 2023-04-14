@@ -14,6 +14,7 @@ use App\DebtorUsersRef;
 use App\Exceptions\DebtorException;
 use App\Http\Requests\DebtorCard\MultiSumRequest;
 use App\Loan;
+use App\MassRecurrent;
 use App\MassRecurrentTask;
 use App\Message;
 use App\NoticeNumbers;
@@ -3738,18 +3739,6 @@ class DebtorsController extends BasicController
         
         $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
 
-
-
-        $recurrent_task = \App\MassRecurrentTask::where('created_at', '>=', date('Y-m-d 00:00:00', time()))
-            ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
-            ->where('str_podr', $str_podr)
-            ->where('timezone', $timezone)
-            //->orderBy('id', 'desc')
-            ->first();
-
-        $canStartToday = ($recurrent_task) ? false : true;
-        //$canStartToday = true;
-
         if ($start_flag) {
             $recurrentTask = $this->massRecurrentService->createTask($str_podr, $timezone);
 
@@ -3760,40 +3749,13 @@ class DebtorsController extends BasicController
             return redirect()->back();
         }
 
-        $completedTodayTask = ($canStartToday) ? 0 : $recurrent_task->completed;
-        //$completedTodayTask = (is_null($recurrent_task)) ? 0 : $recurrent_task->completed;
-
-        if ($str_podr == '000000000007-1') {
-            $recurrent_type = 'olv_chief';
-        } else {
-            if ($str_podr == '000000000006-1') {
-                $recurrent_type = 'ouv_chief';
-            } else {
-                $recurrent_type = 'usual';
-            }
-        }
-
         $collectionTasks = MassRecurrentTask::whereDate('created_at', '=', Carbon::today())
             ->where('str_podr', $str_podr)
             ->get();
 
-        $executingTask = MassRecurrentTask::whereDate('created_at', '=', Carbon::today())
-            ->where('str_podr', $str_podr)
-            ->where('completed', 0)
-            ->first();
-
-        if ($executingTask) {
-            $canStartToday = false;
-            $completedTodayTask = false;
-            $recurrent_task = $executingTask;
-        }
-
         return view('debtors.mass_recurrents_task', [
-            'canStartToday' => $canStartToday,
-            'completed' => $completedTodayTask,
-            'recurrent_type' => $recurrent_type,
-            'collectionTasks' => $collectionTasks,
-            'recurrent_task' => $recurrent_task
+            'str_podr' => $str_podr,
+            'collectionTasks' => $collectionTasks
         ]);
     }
 
@@ -3803,114 +3765,32 @@ class DebtorsController extends BasicController
         set_time_limit(0);
 
         $task_id = $req->get('task_id', false);
-        $recurrent_type = $req->get('recurrent_type', false);
-        $timezone = $req->get('timezone', false);
 
         if (!$task_id) {
             return 0;
         }
 
-        $recurrent_task = \App\MassRecurrentTask::find($task_id);
-
-        $user = auth()->user();
-        
-        $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
-        
-
-
-        if (isset($debtors) && $debtors) {
-            //$debtors = TimezoneService::getDebtorsForTimezone($debtors, $timezone);
-
-            foreach ($debtors as $debtor) {
-                $postdata = [
-                    'customer_external_id' => $debtor->customer_id_1c,
-                    'loan_external_id' => $debtor->loan_id_1c,
-                    'amount' => $debtor->sum_indebt,
-                    'purpose_id' => 3,
-                    'is_recurrent' => 1,
-                    'details' => '{"is_debtor":true,"is_mass_debtor":true}'
-                ];
-
-                $url = 'http://192.168.35.69:8080/api/v1/payments';
-                $ch = curl_init($url);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                    'Content-Type: application/x-www-form-urlencoded',
-                    'X-Requested-With: XMLHttpRequest'
-                ));
-                curl_setopt($ch, CURLOPT_HEADER, true);
-                curl_setopt($ch, CURLOPT_NOBODY, true);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postdata));
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-                $output = curl_exec($ch);
-                $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-                if (curl_errno($ch)) {
-                    Log::error('DebtorsController.massRecurrentQuery cURL error: ',
-                        [curl_error($ch), $httpcode, $debtor]);
-                }
-
-                $recurrent_item = new \App\MassRecurrent();
-                $recurrent_item->task_id = $task_id;
-                $recurrent_item->debtor_id = $debtor->id;
-                $recurrent_item->save();
-
-                curl_close($ch);
-
-                sleep(1);
-            }
-        }
-
-        $recurrent_task->completed = 1;
-        $recurrent_task->save();
+        $this->massRecurrentService->executeTask($task_id);
     }
 
     public function getMassRecurrentStatus(Request $req)
     {
-        $user = auth()->user();
+        $tasks = $req->get('tasks', false);
 
-        $recurrent_type = $req->get('recurrent_type', false);
-        $recurrent_task_id = $req->get('recurrent_task_id', false);
+        $arTasksCount = ['status' => 'progress'];
 
-        /*if ($recurrent_type && $recurrent_type == 'olv_chief') {
-            $str_podr = '000000000007-1';
-        } else {
-            if ($recurrent_type && $recurrent_type == 'ouv_chief') {
-                $str_podr = '000000000006-1';
-            } else {
-                if ($user->hasRole('debtors_remote')) {
-                    $str_podr = '000000000006';
-                } else {
-                    if ($user->hasRole('debtors_personal')) {
-                        $str_podr = '000000000007';
-                    } else {
-                        $str_podr = null;
-                    }
-                }
+        foreach ($tasks as $arTask) {
+            $task = MassRecurrentTask::find($arTask['value']);
+            if ($task->completed) {
+                $arTasksCount = [
+                    'status' => 'completed'
+                ];
+                break;
             }
-        }*/
-
-        /*$recurrent_task = \App\MassRecurrentTask::where('created_at', '>=', date('Y-m-d 00:00:00', time()))
-            ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
-            ->where('str_podr', $str_podr)
-            //->orderBy('id', 'desc')
-            ->first();*/
-
-        $recurrent_task = MassRecurrentTask::find($recurrent_task_id);
-
-        if ($recurrent_task && $recurrent_task->completed == 0) {
-            $recurrents_count = \App\MassRecurrent::where('task_id', $recurrent_task->id)->count();
-            return json_encode([
-                'status' => 'progress',
-                'debtors_count' => $recurrent_task->debtors_count,
-                'progress' => $recurrents_count
-            ]);
+            $arTasksCount['tasks'][$arTask['value']] = MassRecurrent::where('task_id', $arTask['value'])->count();
         }
 
-        return json_encode([
-            'status' => 'completed'
-        ]);
+        return json_encode($arTasksCount);
     }
 
     public function getCalcDataForCreditCard(Request $request)

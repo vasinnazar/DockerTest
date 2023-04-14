@@ -16,4 +16,9 @@ class MassRecurrentTask extends Model {
         'timezone',
         'completed'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
