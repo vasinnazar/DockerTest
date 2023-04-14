@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Mail\Mailer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EmailService
 {
@@ -56,9 +57,8 @@ class EmailService
         $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
         $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
 
-        $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->pluck('template_message');
-        $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage, $arrayParam);
-
+        $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
+        $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
         $armf_customer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
         $client = DB::Table('armf.about_clients')->where('customer_id', $armf_customer->id)->first();
         $userArm = $this->armClient->getUserById1c($user->id_1c);
