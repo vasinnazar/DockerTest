@@ -110,7 +110,7 @@ class AdminPanelController extends Controller {
         ];
         if (config('app.version_type') != 'sales') {
             $data['debtorRoleUsers'] = User::getDebtorRoleUsers();
-            $data['debtorUserSlaves'] = DebtorUsersRef::getDebtorSlaveUsers($user_id);
+            $data['debtorUserSlaves'] = json_encode($user->subordinatedUsers->pluck('id'));
         }
         return $data;
     }

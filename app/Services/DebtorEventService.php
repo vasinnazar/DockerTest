@@ -96,7 +96,7 @@ class DebtorEventService
             $cols[] = $intname;
             $totalDays[$intname] = 0;
         }
-        $usersId = array_merge([$user->id], json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true));
+        $usersId = array_merge([$user->id], $user->subordinatedUsers->pluck('id')->toArray());
         foreach ($dates as $intk => $intv) {
             $data = DebtorEvent::select(DB::raw('count(*) as num, event_type_id'))
                 ->whereIn('user_id', $usersId)
