@@ -8,7 +8,7 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-xs-12">
-                                <input type="hidden" name="mode" value="{{ ($personalGroup['isGroup']) ? 'lv' : 'uv' }}">
+                                <input type="hidden" name="mode" value="{{ ($user->hasRole('debtors_personal')) ? 'lv' : 'uv' }}">
                                 <h4>Отчет по заходам на сайт</h4>
                                 <table style="margin-bottom: 15px;">
                                     <tr>

@@ -142,6 +142,7 @@ return [
         Barryvdh\Debugbar\ServiceProvider::class,
         Maatwebsite\Excel\ExcelServiceProvider::class,
         \Yajra\Datatables\DatatablesServiceProvider::class,
+        \App\Providers\DebtorServiceProvider::class,
         
     ],
     /*

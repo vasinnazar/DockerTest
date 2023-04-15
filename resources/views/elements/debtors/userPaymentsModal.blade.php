@@ -21,7 +21,7 @@
                             <span class='glyphicon glyphicon-user'></span> 
                             Указать специалистов
                         </button>
-                        @if (auth()->user()->hasRole('debtors_remote') && auth()->user()->hasRole('debtors_chief'))
+                        @if ($user->hasRole('debtors_remote') && $user->hasRole('debtors_chief'))
                         <button class="btn btn-default" type="button" id="check-all-resps">
                             <span class='glyphicon glyphicon-home'></span> 
                             По всему отделу

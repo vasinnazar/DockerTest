@@ -5,6 +5,7 @@
 <style>
     .debtors-frame {
         height: 250px;
+
         overflow-y:scroll;
     }
     .debtors-table-frame {
@@ -26,25 +27,20 @@
     <div class="col-xs-12">
         <div class='pull-right btn-group'>
             <a href="{{url('debtors/recommends')}}" class="btn {{($recommends_count > 0) ? 'btn-danger' : 'btn-default'}}"{{($recommends_count > 0) ? '' : ' disabled'}}>Рекомендации ({{$recommends_count}})</a>
-            <a href="##" class="btn btn-default" onclick="$.debtorsCtrl.debtorsTotalPlanned({{$user_id}})">Общее количество запланированных</a>
-            @if ($personalGroup['isGroup'])
-            <a href="{{url('debtors/departuremap')}}" class="btn btn-default">Карта выездов ({{$personalGroup['count']}})</a>
-            <a href="{{url('debtors/departureprint')}}" class="btn btn-default" {{($personalGroup['count'] == 0) ? 'disabled' : ''}}>Печать выездов ({{$personalGroup['count']}})</a>
-            @endif
+            <a href="##" class="btn btn-default" onclick="$.debtorsCtrl.debtorsTotalPlanned({{$user->id}})">Общее количество запланированных</a>
             <a href="{{url('debtors/forgotten')}}" class="btn btn-default" target="_blank">"Забытые" должники</a>
             <a href="{{url('addressdoubles/index')}}" class="btn btn-default">Дубли адресов</a>
             <input type="button" class="btn btn-default" value="Зачет оплат" data-target='#userPaymentsModal' data-toggle='modal' />
             <a class="btn btn-default" href="{{url('reports/paysheet')}}" target="_blank">Расчетный лист</a>
-            @if ($user_id == 69 || $user_id == 916 || $user_id == 885 || $user_id == 3448 || $user_id == 970 || $user_id == 3465)
-            <a href="{{url('debtor/recurrent/massquerytask')}}"  class="btn btn-default">Массовое списание</a>
+            @if ($user->hasRole('debtors_chief') && $user->hasRole('debtors_personal'))
+                <a href="{{url('debtor/recurrent/massquerytask?str_podr=000000000007')}}"  class="btn btn-default">Массовое списание</a>
+                <a href="{{url('debtor/recurrent/massquerytask?str_podr=000000000007-1')}}"  class="btn btn-default">Масс. списание Ведущий</a>
             @endif
-            @if ($user_id == 69 || $user_id == 916)
-            <a href="{{url('debtor/recurrent/massquerytask?type=olv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
+            @if ($user->hasRole('debtors_chief') && $user->hasRole('debtors_remote'))
+                <a href="{{url('debtor/recurrent/massquerytask?str_podr=000000000006')}}"  class="btn btn-default">Массовое списание</a>
+                <a href="{{url('debtor/recurrent/massquerytask?str_podr=000000000006-1')}}"  class="btn btn-default">Масс. списание Ведущий</a>
             @endif
-            @if ($user_id == 69 || $user_id == 3448)
-            <a href="{{url('debtor/recurrent/massquerytask?type=ouv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
-            @endif
-            @if (!$personalGroup['isGroup'])
+            @if (!$user->hasRole('debtors_personal'))
             <a href="{{url('usertests/index')}}" class="btn btn-default" target="_blank">Тесты</a>
             @endif
             <!--button type="button" class='btn btn-default' onclick="$.debtorsCtrl.uploadOldDebtorEvents(); return false;">Подгрузить мероприятия</button-->
@@ -58,24 +54,24 @@
                 <li><a href="{{url('debtors/reports/jobsdoneact')}}">Акт выполненных работ</a></li>
                 <li><a href="{{url('debtors/reports/ovz')}}">ОВЗ</a></li>
                 <li><a href="#" data-toggle="modal" data-target="#debtorsSiteLoginReportModal">Должник на сайте</a></li>
-                @if ($is_chief)
+                @if ($user->hasRole('debtors_chief'))
                 <li><a href="{{url('debtors/editSmsCount')}}">SMS</a></li>
-                @if ($personalGroup['isGroup'])
+                @if ($user->hasRole('debtors_personal'))
                 <li><a href="{{url('debtors/export/postregistry?mode=lv')}}">Реестр писем</a></li>
                 @else
                 <li><a href="{{url('debtors/export/postregistry?mode=uv')}}">Реестр писем</a></li>
                 @endif
                 @endif
-                @if ($user_id == 817 || $user_id == 69)
+                @if ($user->id == 817 || $user->id == 69)
                 <li><a href="{{url('/usertests/editor/index')}}">Тесты</a></li>
                 @endif
-                @if ($is_chief)
+                @if ($user->hasRole('debtors_chief'))
                 <li><a href="{{url('/debtors/notices/index')}}">Отправка писем</a></li>
                 @endif
-                @if ($personalGroup['isGroup'] && $is_chief)
+                @if ($user->hasRole('debtors_personal') && $user->hasRole('debtors_chief'))
                 <li><a href="{{url('/debtors/courts/index')}}">Отправка судебников</a></li>
                 @endif
-                @if ($is_chief)
+                @if ($user->hasRole('debtors_chief'))
                 <li><a href="{{url('/debtors/temporary/cron/handle')}}">Исправления</a></li>
                 @endif
             </ul>
@@ -116,7 +112,7 @@
     <div class="col-xs-12 col-lg-7">
         <div class='panel panel-default'>
             <div class='panel-heading'>
-                <h3 class='panel-title'>Должники 
+                <h3 class='panel-title'>Должники
                     <button type="button" class="btn btn-default pull-right btn-xs" data-toggle="modal" data-target="#debtorsSearchModal"><span class='glyphicon glyphicon-search'></span> Поиск</button>
                     &nbsp;
                     <a target="_blank" class="btn btn-default pull-right btn-xs" onclick="$.debtorsCtrl.debtorsToExcel(); return false;"><span class='glyphicon glyphicon-export'></span> В Excel</a>
