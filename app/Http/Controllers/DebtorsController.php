@@ -3736,17 +3736,21 @@ class DebtorsController extends BasicController
         if (!$checkUser) {
             return redirect()->back();
         }
-        
+
         $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
 
         if ($start_flag) {
             $recurrentTask = $this->massRecurrentService->createTask($str_podr, $timezone);
 
             if ($recurrentTask) {
-                return json_encode(['task_id' => $recurrentTask->id, 'debtors_count' => $recurrentTask->debtors_count]);
+                return json_encode([
+                    'status' => 'success',
+                    'task_id' => $recurrentTask->id,
+                    'debtors_count' => $recurrentTask->debtors_count]
+                );
             }
 
-            return redirect()->back();
+            return json_encode(['status' => 'fail']);
         }
 
         $collectionTasks = MassRecurrentTask::whereDate('created_at', '=', Carbon::today())
@@ -3777,18 +3781,7 @@ class DebtorsController extends BasicController
     {
         $tasks = $req->get('tasks', false);
 
-        $arTasksCount = ['status' => 'progress'];
-
-        foreach ($tasks as $arTask) {
-            $task = MassRecurrentTask::find($arTask['value']);
-            if ($task->completed) {
-                $arTasksCount = [
-                    'status' => 'completed'
-                ];
-                break;
-            }
-            $arTasksCount['tasks'][$arTask['value']] = MassRecurrent::where('task_id', $arTask['value'])->count();
-        }
+        $arTasksCount = $this->massRecurrentService->getExecutingTasksProcessedDebtors($tasks);
 
         return json_encode($arTasksCount);
     }

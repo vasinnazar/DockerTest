@@ -113,6 +113,8 @@ class MassRecurrentService
                 'debtor_id' => $debtor->id
             ]);
 
+            $task->increment('debtors_processed');
+
             curl_close($ch);
 
             sleep(1);
@@ -120,6 +122,30 @@ class MassRecurrentService
 
         $task->completed = 1;
         $task->save();
+    }
+
+    /**
+     * @param $tasks
+     * @return array|string[]
+     */
+    public function getExecutingTasksProcessedDebtors($tasks)
+    {
+        $arTasksCount = [
+            'status' => 'progress'
+        ];
+
+        foreach ($tasks as $arTask) {
+            $task = MassRecurrentTask::find($arTask['value']);
+            if ($task->completed) {
+                $arTasksCount = [
+                    'status' => 'completed'
+                ];
+                break;
+            }
+            $arTasksCount['tasks'][$arTask['value']] = $task->debtors_processed;
+        }
+
+        return $arTasksCount;
     }
 
     private function getDebtorsQuery($str_podr, $timezone)
@@ -191,6 +217,6 @@ class MassRecurrentService
             ->where('timezone', $timezone)
             ->first();
 
-        return (bool)$task;
+        return (bool) !$task;
     }
 }

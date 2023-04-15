@@ -21,22 +21,27 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-xs-4">
+            <div class="col-xs-4 text-center">
                 <button id="startMassRecurrents1" class="btn btn-primary"
                         value="east"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'east')) ? ' disabled' : '' }}>
                     Запустить Восток (-1 +5)
                 </button>
             </div>
-            <div class="col-xs-4">
+            <div class="col-xs-4 text-center">
                 <button id="startMassRecurrents2" class="btn btn-primary"
                         value="west"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'west')) ? ' disabled' : '' }}>
                     Запустить Запад (-2 -5)
                 </button>
             </div>
-            <div class="col-xs-4">
+            <div class="col-xs-4 text-center">
                 <button type="button" id="startMassRecurrents" class="btn btn-primary"
                         value=""{{ $collectionTasks->count() ? ' disabled' : '' }}>Запустить весь пулл
                 </button>
+            </div>
+        </div>
+        <div id="error-block" class="row hide" style="margin-top: 50px;">
+            <div class="col-xs-12">
+                <div class="alert alert-danger">Произошла ошибка! Вероятно, задача уже создана. Обновите страницу.</div>
             </div>
         </div>
         <div class="row">
@@ -128,18 +133,22 @@
                             success: function (data) {
                                 var json_data = JSON.parse(data);
 
-                                $.ajax({
-                                    url: '/debtor/recurrent/massquery',
-                                    method: 'post',
-                                    data: {
-                                        task_id: json_data.task_id
-                                    },
-                                    success: function () {
+                                if (json_data.status == 'success') {
+                                    $.ajax({
+                                        url: '/debtor/recurrent/massquery',
+                                        method: 'post',
+                                        data: {
+                                            task_id: json_data.task_id
+                                        },
+                                        success: function (data) {
 
-                                    }
-                                });
+                                        }
+                                    });
 
-                                location.reload();
+                                    location.reload();
+                                } else {
+                                    $('#error-block').show();
+                                }
                             }
                         });
                     }
