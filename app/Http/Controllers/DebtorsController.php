@@ -86,22 +86,6 @@ class DebtorsController extends BasicController
 
         $canEditSmsCount = ($user->id == 817) ? true : false; // Яблонцев (редактирование количества SMS)
 
-        $slavesUserIds = json_decode(DebtorUsersRef::getDebtorSlaveUsers($user->id), true);
-        $slave_list = [];
-        foreach ($slavesUserIds as $slave) {
-            $slave_list[] = $slave['user_id'];
-        }
-        $arDebtorUsers = User::whereIn('id', $slave_list)->get();
-        $debtorUsers = [];
-        foreach ($arDebtorUsers as $debtorUser) {
-            $debtorUsers[$debtorUser->id]['name'] = $debtorUser->name;
-            $debtorUsers[$debtorUser->id]['group_id'] = $debtorUser->user_group_id;
-        }
-        $debtorUsers[$user->id]['name'] = $user->name;
-        $debtorUsers[$user->id]['group_id'] = $user->user_group_id;
-
-        \PC::debug($debtorUsers);
-
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
         $usersDebtors = User::select('users.id_1c')
             ->whereIn('id', $arResponsibleUserIds);
@@ -131,7 +115,6 @@ class DebtorsController extends BasicController
             'debtorsSearchFields' => Debtor::getSearchFields(),
             'debtorEventsSearchFields' => DebtorEvent::getSearchFields(),
             'debtorEventsGroupPlanFields' => DebtorEvent::getGroupPlanFields(),
-            'debtorUsers' => $debtorUsers,
             'canEditSmsCount' => $canEditSmsCount
         ]);
     }

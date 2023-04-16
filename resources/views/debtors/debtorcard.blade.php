@@ -572,7 +572,6 @@
                         <?php
                         $curDay = '';
                         $row_color = 'ffffff';
-                        $isMasterUser = \App\DebtorUsersRef::isMasterUserWithSlaves($user->id);
                         ?>
                         @foreach ($debtorEvents as $event)
                         <?php
@@ -620,7 +619,7 @@
                             <td>{{$event->login}}</td>
                             <td>
                                 <input type="checkbox" name="eventDone[]" value="{{$event->id}}" {{($event->completed == 1) ? 'checked' : ''}}/>
-                                @if($isMasterUser)
+                                @if($user->hasRole('debtors_chief'))
                                 <button type="button" name="debtor_event_edit" class="btn btn-default btn-xs" onclick="$.debtorsCtrl.openDebtorEvent({{$event->id}});"><span class="glyphicon glyphicon-pencil"></span></button>
                                 @endif
                             </td>

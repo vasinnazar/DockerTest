@@ -252,71 +252,7 @@ class ConfigController extends BasicController {
             $debtor->refresh_date = date('Y-m-d H:i:s', time());
             $debtor->save();
         }*/
-        
-        /*$objUser = \App\User::find(2344);
-        if (!$objUser->canSendSms()) {
-            return -1;
-        }
-        
-        $debtors = \App\Debtor::where('is_debtor', 1)->where('responsible_user_id_1c', $objUser->id_1c)
-                ->whereIn('base', ['Б-1', 'КБ-График'])
-                ->whereIn('debt_group_id', [4, 5])
-                ->get();
-        
-        foreach ($debtors as $debtor) {
-            $smsAlreadySent = \App\DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
-                ->where('created_at', '>=', date('Y-m-d 00:00:00', time()))
-                ->where('created_at', '<=', date('Y-m-d 23:59:59', time()))
-                ->where('event_type_id', 12)
-                ->count();
 
-            if ($smsAlreadySent >= 2) {
-                continue;
-            }
-            
-            $customer = \App\Customer::where('id_1c', $debtor->customer_id_1c)->first();
-            
-            if (is_null($customer)) {
-                continue;
-            }
-            
-            $phone = $customer->telephone;
-            if (isset($phone[0]) && $phone[0] == '8') {
-                $phone[0] = '7';
-            }
-            
-            if (mb_strlen($phone) == 11) {
-                if (\App\Utils\SMSer::send($phone, 'Оплатите долг до 30.07.2021 ООО МКК "ФИНТЕРРА" 88003014344')) {
-                    // увеличиваем счетчик отправленных пользователем смс
-                    $objUser->increaseSentSms();
-
-                    // создаем мероприятие отправки смс
-                    $debtorEvent = new \App\DebtorEvent();
-                    $data = [];
-                    $data['created_at'] = date('Y-m-d H:i:s', time());
-                    $data['event_type_id'] = 12;
-                    $data['overdue_reason_id'] = 0;
-                    $data['event_result_id'] = 22;
-                    $data['debt_group_id'] = $debtor->debt_group_id;
-                    $data['report'] = $phone . ' SMS: Оплатите долг до 30.07.2021 ООО МКК "ФИНТЕРРА" 88003014344';
-                    $data['completed'] = 1;
-                    $debtorEvent->fill($data);
-                    $debtorEvent->refresh_date = date('Y-m-d H:i:s', time());
-
-                    if (!is_null($debtor)) {
-                        $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
-                        $debtorEvent->debtor_id = $debtor->id;
-                    }
-                    $debtorEvent->user_id = $objUser->id;
-                    $debtorEvent->user_id_1c = $objUser->id_1c;
-    //                $debtorEvent->id_1c = DebtorEvent::getNextNumber();
-                    $debtorEvent->save();
-
-                    //$debtorEvent->id_1c = 'М' . StrUtils::addChars(strval($debtorEvent->id), 9, '0', false);
-                    //$debtorEvent->save();
-                }
-            }
-        }*/
         
         /*$dbh = \App\DebtorTransferHistory:://where('created_at', '>=', '2021-07-02 00:00:00')->where('created_at', '<=', '2021-07-02 12:00:00')
                 where('row', 45795)

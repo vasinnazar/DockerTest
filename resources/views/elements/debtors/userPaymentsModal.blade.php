@@ -30,10 +30,9 @@
                         <br><br>
                         <div class="collapse" id="userPaymentsModalUsers">
                             <div class="list-group">
-                                <?php asort($debtorUsers); ?>
-                                @foreach($debtorUsers as $duk=>$duv)
+                                @foreach($user->subordinatedUsers->sortBy('login') as $subordinated)
                                 <li class='list-group-item'>
-                                    <label><input name='debtor_id_1c[]' class="{{($duv['group_id'] == '1541') ? 'remote_user' : ''}}" type='checkbox' value="{{$duk}}" @if($duk==Auth::user()->id) checked @endif /> {{$duv['name']}}</label>
+                                    <label><input name='debtor_id_1c[]' class="{{($subordinated->group_id == '1541') ? 'remote_user' : ''}}" type='checkbox' value="{{$subordinated->id}}" @if($subordinated->id == auth()->user()->id) checked @endif /> {{$subordinated->name}}</label>
                                 </li>
                                 @endforeach
                             </div>
