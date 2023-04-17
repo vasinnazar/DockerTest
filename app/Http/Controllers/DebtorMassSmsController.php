@@ -297,28 +297,28 @@ class DebtorMassSmsController extends BasicController
 
             if ($tpl->id == 21) {
                 $isSendOnce = $repository->checkSmsOnce($debtor, 21);
-                $isFirstCondition = ($debtor->qty_delays != 80 && !in_array($debtor->base, [
+                $isFirstCondition = ($debtor->qty_delays != 80 || !in_array($debtor->base, [
                         'Б-3',
                         'Б-риски',
                         'КБ-график',
                         'Б-график'
                     ])
                 );
-                $isSecondCondition = ($debtor->qty_delays != 20 && !in_array($debtor->base, ['Б-МС']));
+                $isSecondCondition = ($debtor->qty_delays != 20 || !in_array($debtor->base, ['Б-МС']));
                 if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
                     $tpl = $repository->firstById(3);
                 }
             }
             if ($tpl->id == 45) {
                 $isSendOnce = $repository->checkSmsOnce($debtor, 45);
-                $isFirstCondition = ($debtor->qty_delays != 95 && !in_array($debtor->base, [
+                $isFirstCondition = ($debtor->qty_delays != 95 || !in_array($debtor->base, [
                         'Б-3',
                         'Б-риски',
                         'КБ-график',
                         'Б-график'
                     ])
                 );
-                $isSecondCondition = ($debtor->qty_delays != 25 && !in_array($debtor->base, ['Б-МС']));
+                $isSecondCondition = ($debtor->qty_delays != 25 || !in_array($debtor->base, ['Б-МС']));
                 if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
                     $tpl = $repository->firstById(3);
                 }

@@ -39,11 +39,11 @@ class DebtorSmsRepository
     {
         $recoveryType = null;
         $isUbytki = null;
-        if ($user->isDebtorsPersonal()) {
+        if ($user->isDebtorsRemote()) {
             $recoveryType = 'remote';
             $isUbytki = ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') ? true : false;
         }
-        if ($user->isDebtorsRemote()) {
+        if ($user->isDebtorsPersonal()) {
             $recoveryType = 'personal';
             $isUbytki = false;
         }
@@ -76,28 +76,28 @@ class DebtorSmsRepository
         });
 
         $isSendOnce = $this->checkSmsOnce($debtor, 21);
-        $isFirstCondition = ($debtor->qty_delays != 80 && !in_array($debtor->base, [
+        $isFirstCondition = ($debtor->qty_delays != 80 || !in_array($debtor->base, [
                 'Б-3',
                 'Б-риски',
                 'КБ-график',
                 'Б-график'
             ])
         );
-        $isSecondCondition = ($debtor->qty_delays != 20 && !in_array($debtor->base, ['Б-МС']));
+        $isSecondCondition = ($debtor->qty_delays != 20 || !in_array($debtor->base, ['Б-МС']));
         if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
             $sms = $sms->reject(function ($item) {
                 return $item->id == 21;
             });
         }
         $isSendOnce = $this->checkSmsOnce($debtor, 45);
-        $isFirstCondition = ($debtor->qty_delays != 95 && !in_array($debtor->base, [
+        $isFirstCondition = ($debtor->qty_delays != 95 || !in_array($debtor->base, [
                 'Б-3',
                 'Б-риски',
                 'КБ-график',
                 'Б-график'
             ])
         );
-        $isSecondCondition = ($debtor->qty_delays != 25 && !in_array($debtor->base, ['Б-МС']));
+        $isSecondCondition = ($debtor->qty_delays != 25 || !in_array($debtor->base, ['Б-МС']));
         if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
             $sms = $sms->reject(function ($item) {
                 return $item->id == 45;
