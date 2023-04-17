@@ -8,7 +8,7 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xs-12">
-                        <textarea id="recommend_text_edit" name="recommend_text_edit" style="width: 100%" rows="5" class="form-control">{{$data[0]['recommend_text']}}</textarea>
+                        <textarea id="recommend_text_edit" name="recommend_text_edit" style="width: 100%" rows="5" class="form-control">{{$debtor->recommend_text}}</textarea>
                     </div>
                 </div>
             </div>
