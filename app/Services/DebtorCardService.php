@@ -5,14 +5,33 @@ namespace App\Services;
 
 use App\Customer;
 use App\Debtor;
+use App\DebtorRecurrentQuery;
+use App\MassRecurrentTask;
 use App\MySoap;
-use App\Passport;
 use Carbon\Carbon;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class DebtorCardService
 {
+    private $httpClient;
+
+    public function __construct()
+    {
+        $this->httpClient = new Client(
+            [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ],
+            ]
+        );
+    }
+
     /**
      * @string  $customerId1c
      * @string  $loanId1c
@@ -224,5 +243,59 @@ class DebtorCardService
         ]);
 
         return $collection;
+    }
+
+    public function checkRecurrentButtonEnabled(Debtor $debtor, $loan_in_cash, $loan_required_money)
+    {
+        if ($loan_in_cash || !$loan_required_money || in_array($debtor->debt_group_id, [1, 2, 3])) {
+            return false;
+        }
+
+        if (auth()->user()->hasRole('debtors_remote')) {
+            $userStrPodr = '000000000006';
+        } else {
+            if (auth()->user()->hasRole('debtors_personal')) {
+                $userStrPodr = '000000000007';
+            } else {
+                $userStrPodr = null;
+            }
+        }
+
+        if ($debtor->str_podr != $userStrPodr) {
+            return false;
+        }
+
+        $sentRecurrentQueryToday = DebtorRecurrentQuery::where('debtor_id', $debtor->id)
+            ->whereDate('created_at', '=', Carbon::today())
+            ->first();
+
+        if ($sentRecurrentQueryToday) {
+            return false;
+        }
+
+        $factTimezone = $debtor->passport()->first()->fact_timezone;
+
+        if (!$factTimezone) {
+            return false;
+        }
+
+        if ($factTimezone >= -5 && $factTimezone <= -2) {
+            $taskTimezone = 'west';
+        } else if ($factTimezone >= -1 && $factTimezone <= 5) {
+            $taskTimezone = 'east';
+        } else {
+            return false;
+        }
+
+        $recurrentTask = MassRecurrentTask::whereDate('created_at', '=', Carbon::today())
+            ->whereIn('str_podr', [$userStrPodr, $userStrPodr . '-1'])
+            ->where('timezone', $taskTimezone)
+            ->first();
+
+        if ($recurrentTask) {
+            return false;
+        }
+
+        return true;
     }
 }

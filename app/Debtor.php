@@ -255,6 +255,11 @@ class Debtor extends Model
     {
         return $this->hasOne('App\StructSubdivision', 'id_1c', 'str_podr');
     }
+
+    public function notices()
+    {
+        return $this->hasMany(NoticeNumbers::class, 'debtor_id_1c', 'debtor_id_1c');
+    }
     
     public function getLoanEndDate()
     {

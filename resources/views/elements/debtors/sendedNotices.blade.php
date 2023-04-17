@@ -8,21 +8,23 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xs-12">
-                        @if (count($notices))
+                        @if (count($debtor->notices))
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
                                     <th>Дата</th>
+                                    <th>Отдел</th>
                                     <th>Тип адреса</th>
                                     <th>Номер</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($notices as $notice)
+                                @foreach ($debtor->notices as $notice)
                                 <tr>
                                     <td>{{date('d.m.Y', strtotime($notice->created_at))}}</td>
+                                    <td>{{ $notice->str_podr == '000000000006' ? 'УПР' : 'УДР' }}</td>
                                     <td>{{($notice->is_ur_address) ? 'По регистрации' : 'По проживанию'}}</td>
-                                    <td>{{$notice->id}}/УВ</td>
+                                    <td>{{$notice->id}}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
