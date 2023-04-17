@@ -34,7 +34,6 @@
             <a class="btn btn-default" href="{{url('reports/paysheet')}}" target="_blank">Расчетный лист</a>
             @if ($user->hasRole('debtors_chief') && $user->hasRole('debtors_personal'))
                 <a href="{{url('debtor/recurrent/massquerytask?str_podr=000000000007')}}"  class="btn btn-default">Массовое списание</a>
-                <a href="{{url('debtor/recurrent/massquerytask?str_podr=000000000007-1')}}"  class="btn btn-default">Масс. списание Ведущий</a>
             @endif
             @if ($user->hasRole('debtors_chief') && $user->hasRole('debtors_remote'))
                 <a href="{{url('debtor/recurrent/massquerytask?str_podr=000000000006')}}"  class="btn btn-default">Массовое списание</a>
