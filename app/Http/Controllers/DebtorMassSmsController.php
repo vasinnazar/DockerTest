@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Customer;
 use App\DebtorEvent;
 use App\Exceptions\DebtorException;
+use App\Repositories\DebtorSmsRepository;
 use App\Services\DebtorEventService;
 use App\Utils\SMSer;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ class DebtorMassSmsController extends BasicController
 {
 
     public $debtorEventService;
+
     public function __construct(DebtorEventService $service)
     {
         if (!Auth::user()->hasPermission(Permission::makeName(PermLib::ACTION_OPEN, PermLib::SUBJ_DEBTOR_TRANSFER))) {
@@ -189,7 +191,7 @@ class DebtorMassSmsController extends BasicController
         return $collection;
     }
 
-    public function sendMassSms(Request $request)
+    public function sendMassSms(DebtorSmsRepository $repository, Request $request)
     {
         set_time_limit(0);
 
@@ -277,20 +279,49 @@ class DebtorMassSmsController extends BasicController
         foreach ($customers as $customer) {
 
             try {
-                $debtors = Debtor::where('customer_id_1c',$customer->id_1c)->get();
-                foreach($debtors as $debtor){
+                $debtors = Debtor::where('customer_id_1c', $customer->id_1c)->get();
+                foreach ($debtors as $debtor) {
                     $this->debtorEventService->checkLimitEvent($debtor);
                 }
-            }catch (DebtorException $e){
+            } catch (DebtorException $e) {
                 Log::error("$e->errorName:", [
-                    'customer'=>$debtor->customer_id_1c,
-                    'file'=> __FILE__,
-                    'method'=> __METHOD__,
-                    'line'=> __LINE__,
+                    'customer' => $debtor->customer_id_1c,
+                    'file' => __FILE__,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
                     'id' => $e->errorId,
                     'message' => $e->errorMessage,
                 ]);
                 continue;
+            }
+
+            if ($tpl->id == 21) {
+                $isSendOnce = $repository->checkSmsOnce($debtor, 21);
+                $isFirstCondition = ($debtor->qty_delays != 80 && !in_array($debtor->base, [
+                        'Б-3',
+                        'Б-риски',
+                        'КБ-график',
+                        'Б-график'
+                    ])
+                );
+                $isSecondCondition = ($debtor->qty_delays != 20 && !in_array($debtor->base, ['Б-МС']));
+                if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
+                    $tpl = $repository->firstById(3);
+                }
+            }
+            if ($tpl->id == 45) {
+                $isSendOnce = $repository->checkSmsOnce($debtor, 45);
+                $isFirstCondition = ($debtor->qty_delays != 95 && !in_array($debtor->base, [
+                        'Б-3',
+                        'Б-риски',
+                        'КБ-график',
+                        'Б-график'
+                    ])
+                );
+                $isSecondCondition = ($debtor->qty_delays != 25 && !in_array($debtor->base, ['Б-МС']));
+                if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
+                    $tpl = $repository->firstById(3);
+                }
             }
 
             $phone = $customer->telephone;
@@ -299,6 +330,7 @@ class DebtorMassSmsController extends BasicController
             }
 
             if (mb_strlen($phone) == 11) {
+
 
                 $smsText = str_replace([
                     '##sms_till_date##',
@@ -330,12 +362,13 @@ class DebtorMassSmsController extends BasicController
 
     public function getCustomersToArray($customersIds)
     {
-        foreach ($customersIds as $customerId){
+        foreach ($customersIds as $customerId) {
             $customers[] = $customerId['customer_id_1c'];
         }
-        return Customer::whereIn('id_1c',$customers)->get();
+        return Customer::whereIn('id_1c', $customers)->get();
 
     }
+
     /**
      * @param Debtor $debt
      * @param User $respUser
