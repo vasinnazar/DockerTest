@@ -11,11 +11,11 @@ use Illuminate\Support\Facades\Log;
 
 class MassRecurrentService
 {
-    private $user;
+    /*private $user;
     public function __construct(User $user)
     {
         $this->user = $user;
-    }
+    }*/
 
     /**
      * Проверяем пользователя на соответствие структурному подразделению
@@ -24,13 +24,15 @@ class MassRecurrentService
      */
     public function checkStrPodrUser($str_podr)
     {
+        $user = auth()->user();
+
         $str_podr = str_replace('-1', '', $str_podr);
 
-        if ($str_podr == '000000000006' && $this->user->hasRole('debtors_remote')) {
+        if ($str_podr == '000000000006' && $user->hasRole('debtors_remote')) {
             return true;
         }
 
-        if ($str_podr == '000000000007' && $this->user->hasRole('debtors_personal')) {
+        if ($str_podr == '000000000007' && $user->hasRole('debtors_personal')) {
             return true;
         }
 
@@ -39,9 +41,11 @@ class MassRecurrentService
 
     public function createTask($str_podr, $timezone)
     {
+        $user = auth()->user();
+
         if ($this->_checkTaskCanStart($str_podr, $timezone)) {
             $task = MassRecurrentTask::create([
-                'user_id' => $this->user->id,
+                'user_id' => $user->id,
                 'debtors_count' => 0,
                 'str_podr' => $str_podr,
                 'timezone' => $timezone,

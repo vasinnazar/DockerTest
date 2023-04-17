@@ -39,7 +39,7 @@
                 @endif
             </div>
             <h4>
-                Рекомендация от {{date('d.m.Y', strtotime($data[0]['recommend_created_at']))}}
+                Рекомендация от {{date('d.m.Y', strtotime($debtor->recommend_created_at))}}
             </h4>
             {{$debtor->recommend_text}}
             <span class="pull-right"><i>{{$recommend_user_name}}</i></span>
@@ -49,7 +49,7 @@
             <div style="position: absolute; right: 30px;">
                 <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="complete"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
             </div>
-            <h4>Рекомендация от {{date('d.m.Y', strtotime($data[0]['recommend_created_at']))}}</h4>
+            <h4>Рекомендация от {{date('d.m.Y', strtotime($debtor->recommend_created_at))}}</h4>
             {{$debtor->recommend_text}}
             <span class="pull-right"><i>{{$recommend_user_name}}</i></span>
         </div>
@@ -73,7 +73,7 @@
                 <div class="panel-heading">
                     <u>{{ $debtor->passport->first()->fio }}</u>
                     @if(auth()->user()->id==5)
-                    <a target="_blank" href="{{url('customers/edit/'.$data[0]['customer_id'].'/'.$data[0]['passport_id'])}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span></a>
+                    <a target="_blank" href="{{url('customers/edit/'.$debtor->customer->id.'/'.$data[0]['passport_id'])}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span></a>
                     @endif
                 </div>
                 <div class="panel-body">
@@ -498,7 +498,7 @@
                             <td></td>
                             <td></td>
                         </tr>
-                        @if (str_contains($data[0]['email'], '@'))
+                        @if (isset($data[0]['email']) && str_contains($data[0]['email'], '@'))
                             <tr>
                                 <td>E-mail:</td>
                                 <td>
@@ -851,7 +851,7 @@
                                 <br>
                                 {{ date('H:i', strtotime($payment->created_at)) }}
                             </td>
-                            <td>{{($payment->type == 3) ? 'Списание на карту' : $payment->reason}} {{ ($payment->type == 3 && isset($data[0]['card_type_string'])) ? $data[0]['card_type_string'] : '' }}</td>
+                            <td>{{($payment->type == 3) ? 'Списание на карту' : $payment->reason}}</td>
                             <td>{{(in_array($payment->type,[0,3])) ? number_format($payment->money / 100, 2, '.', '') . ' руб.' : ''}}</td>
                             <td>{{(in_array($payment->type,[5,18,19,20,21,22,30,36,37,47,48,49])) ? number_format($payment->money / 100, 2, '.', '') . ' руб.' : ''}}</td>
                             <td>
@@ -878,7 +878,7 @@
                             <td>{{$i}}</td>
                             <td>{{date('d.m.Y', strtotime($debtor->loan->created_at))}}</td>
                             <td>Списание на карту</td>
-                            <td>{{number_format($data[0]['d_money'], 2, '.', '')}}</td>
+                            <td>{{number_format($debtor->loan->money, 2, '.', '')}}</td>
                             <td></td>
                             <td></td>
                         </tr>

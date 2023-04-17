@@ -650,7 +650,7 @@ class DebtorsController extends BasicController
             }
         }
 
-        $data['date'] = (mb_strlen($data['date']) > 0) ? date('Y-m-d H:i:s',
+        $data['date'] = (isset($data['date']) && mb_strlen($data['date']) > 0) ? date('Y-m-d H:i:s',
             strtotime($data['date'])) : '0000-00-00 00:00:00';
 
         $debtor = Debtor::find($data['debtor_id']);
