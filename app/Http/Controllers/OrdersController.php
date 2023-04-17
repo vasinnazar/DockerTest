@@ -22,7 +22,7 @@ use Illuminate\Http\Request,
     App\Passport,
     App\RemoveRequest,
     Illuminate\Support\Facades\DB,
-    Yajra\Datatables\Facades\Datatables,
+    Yajra\DataTables\Facades\DataTables,
     Carbon\Carbon,
     App\Spylog\Spylog,
     App\Spylog\SpylogModel,
@@ -156,7 +156,7 @@ class OrdersController extends BasicController {
     /**
      * Получает список ордеров аяксом для таблицы
      * @param Request $request
-     * @return \yajra\Datatables\Facades\Datatables
+     * @return \Yajra\DataTables\Facades\DataTables
      */
     public function getOrdersList(Request $request)
     {

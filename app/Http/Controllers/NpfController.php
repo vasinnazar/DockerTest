@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request,
     App\NpfContract,
     App\NpfFond,
-    Yajra\Datatables\Facades\Datatables,
+    Yajra\DataTables\Facades\DataTables,
     App\Utils\StrLib,
     Auth,
     App\Utils\HtmlHelper,

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request,
-    Yajra\Datatables\Facades\Datatables,
+    Yajra\DataTables\Facades\DataTables,
     App\Utils\StrLib,
     Auth,
     App\Utils\HtmlHelper,

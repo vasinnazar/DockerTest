@@ -13,7 +13,7 @@ use Auth;
 use App\Candidate;
 use App\Region;
 use App\Order;
-use Yajra\Datatables\Facades\Datatables;
+use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\StrUtils;
 use App\Utils\HtmlHelper;

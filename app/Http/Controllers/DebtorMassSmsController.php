@@ -14,7 +14,7 @@ use App\Utils\StrLib;
 use Illuminate\Support\Facades\Auth;
 use App\Debtor;
 use Illuminate\Support\Facades\Log;
-use Yajra\Datatables\Facades\Datatables;
+use Yajra\DataTables\Facades\DataTables;
 use App\Utils\HtmlHelper;
 use Carbon\Carbon;
 use App\User;

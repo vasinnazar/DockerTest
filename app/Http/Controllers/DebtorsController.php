@@ -45,7 +45,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Image;
 use Maatwebsite\Excel\Excel;
-use Yajra\Datatables\Facades\Datatables;
+use Yajra\DataTables\Facades\DataTables;
 
 class DebtorsController extends BasicController
 {
@@ -1078,11 +1078,10 @@ class DebtorsController extends BasicController
         $debtors = $service->getDebtors($req);
 
         $user = auth()->user();
-
-        return Datatables::of($debtors)
-            ->editColumn('debtors_created_at', function ($item) {
-                return (!is_null($item->d_created_at)) ? date('d.m.Y', strtotime($item->d_created_at)) : '-';
-            })
+        return DataTables::of($debtors)
+//            ->editColumn('debtors_created_at', function ($item) {
+//                return (!is_null($item->d_created_at)) ? date('d.m.Y', strtotime($item->d_created_at)) : '-';
+//            })
             ->editColumn('debtors_fixation_date', function ($item) {
                 return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
                     strtotime($item->debtors_fixation_date)) : '-';
@@ -1135,6 +1134,7 @@ class DebtorsController extends BasicController
                 }
                 return $html;
             })
+            ->removeColumn('debtors_created_at')
             ->removeColumn('debtors_id')
             ->removeColumn('debtor_id_1c')
             ->removeColumn('uploaded')
@@ -1147,8 +1147,8 @@ class DebtorsController extends BasicController
             ->removeColumn('debtor_is_online')
             ->removeColumn('debtors_od_after_closing')
             ->removeColumn('passports_fact_timezone')
-            ->setTotalRecords(count($debtors))
-            ->make();
+            ->rawColumns(['actions'])
+            ->toJson();
     }
 
     /**
@@ -1467,7 +1467,7 @@ class DebtorsController extends BasicController
         }
 
         // формирование коллекции для заполнения таблицы
-        return Datatables::of($events)
+        return DataTables::of($events)
             ->editColumn('de_date', function ($item) {
                 return date('d.m.Y', strtotime($item->de_date));
             })
@@ -1514,8 +1514,8 @@ class DebtorsController extends BasicController
                 $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
                 return $html;
             })
-            ->setTotalRecords(count($events))
-            ->make();
+            ->rawColumns(['actions'])
+            ->toJson();
     }
 
     /**
@@ -3200,6 +3200,7 @@ class DebtorsController extends BasicController
 
     public function ajaxForgottenList(Request $req,DebtorService $service)
     {
+        set_time_limit(0);
         $id1c = $req->get('search_field_users@id_1c') !== '' ? $req->get('search_field_users@id_1c') : null;
         $debtors =  $service->getForgottenById1c($id1c);
 
@@ -3216,8 +3217,7 @@ class DebtorsController extends BasicController
             }, 0)
             ->removeColumn('debtors_id')
             ->removeColumn('debtors_responsible_user_id_1c')
-            ->setTotalRecords(count($debtors))
-            ->make();
+            ->toJson();
     }
 
     /**
@@ -3329,7 +3329,7 @@ class DebtorsController extends BasicController
             }
         }
 
-        $collection = Datatables::of($debtors)
+        return Datatables::of($debtors)
             ->editColumn('debtors_fixation_date', function ($item) {
                 return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
                     strtotime($item->debtors_fixation_date)) : '-';
@@ -3355,9 +3355,7 @@ class DebtorsController extends BasicController
             ->removeColumn('debtors_debt_group')
             ->removeColumn('debtors_responsible_user_id_1c')
             ->setTotalRecords(1000)
-            ->make();
-        $collection->getData();
-        return $collection;
+            ->toJson();
     }
 
     /**

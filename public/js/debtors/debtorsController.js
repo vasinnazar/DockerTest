@@ -49,18 +49,18 @@
     };
     $.debtorsCtrl.initDebtorsTable = function () {
         $.debtorsCtrl.debtorsTableCtrl = new TableController('debtors', [
-            {data: '0', name: 'debtors_fixation_date'},
-            {data: '1', name: 'passports_fio'},
-            {data: '2', name: 'debtors_loan_id_1c'},
-            {data: '3', name: 'debtors_qty_delays'},
-            {data: '4', name: 'debtors_sum_indebt'},
-            {data: '5', name: 'debtors_od'},
-            {data: '6', name: 'debtors_base'},
-            {data: '7', name: 'customers_telephone'},
-            {data: '8', name: 'debtors_debt_group'},
-            {data: '9', name: 'debtors_username'},
-            {data: '10', name: 'debtors_str_podr'},
-            {data: '11', name: 'actions', searchable: false, orderable: false},
+            {data:'debtors_fixation_date', name: 'debtors_fixation_date'},
+            {data:'passports_fio', name: 'passports_fio'},
+            {data:'debtors_loan_id_1c', name: 'debtors_loan_id_1c'},
+            {data:'debtors_qty_delays', name: 'debtors_qty_delays'},
+            {data:'debtors_sum_indebt', name: 'debtors_sum_indebt'},
+            {data:'debtors_od', name: 'debtors_od'},
+            {data:'debtors_base', name: 'debtors_base'},
+            {data:'customers_telephone', name: 'customers_telephone'},
+            {data:'debtors_debt_group_id', name: 'debtors_debt_group_id'},
+            {data:'debtors_username', name: 'debtors_username'},
+            {data: 'debtor_str_podr', name: 'debtor_str_podr'},
+            {data: 'actions', name: 'actions', searchable: false, orderable: false},
         ], {
             dtData: {
                 scrollY: 300,
@@ -78,13 +78,13 @@
 //            repeatLastSearchBtn: $('#repeatLastSearchBtn'),
         });
         $.debtorsCtrl.eventsTableCtrl = new TableController('debtorevents', [
-            {data: '0', name: 'de_date'},
-            {data: '1', name: 'de_type_id'},
-            {data: '3', name: 'passports_fio'},
-            {data: '4', name: 'de_created_at'},
-            {data: '2', name: 'de_amount'},
-            {data: '5', name: 'de_username'},
-            {data: '6', name: 'actions', searchable: false, orderable: false},
+            {data: 'de_date', name: 'de_date'},
+            {data: 'de_type_id', name: 'de_type_id'},
+            {data: 'passports_fio', name: 'passports_fio'},
+            {data: 'de_created_at', name: 'de_created_at'},
+            {data: 'de_amount', name: 'de_amount'},
+            {data: 'de_username', name: 'de_username'},
+            {data: 'actions', name: 'actions', searchable: false, orderable: false},
         ], {
             dtData: {
                 scrollY: 300,
@@ -357,18 +357,18 @@
      */
     $.debtorsCtrl.initDebtorTransferTable = function () {
         $.debtorsCtrl.debtorTransferTableCtrl = new TableController('debtortransfer', [
-                {data: '0', name: 'actions', searchable: false, orderable: false},
-                {data: '1', name: 'links', searchable: false, orderable: false},
-                {data: '2', name: 'passports_fio'},
-                {data: '3', name: 'debtors_od'},
-                {data: '4', name: 'debtors_base'},
-                {data: '5', name: 'passports_fact_address_city'},
-                {data: '6', name: 'debtors_fixation_date'},
-                {data: '7', name: 'debtors_qty_delays'},
-                {data: '8', name: 'debtors_last_user_id'},
-                {data: '9', name: 'debtors_responsible_user_id_1c'},
-                {data: '10', name: 'debtors_debt_group_id'},
-                {data: '11', name: 'debtors_str_podr'}
+                {data:'actions', name: 'actions', searchable: false, orderable: false},
+                {data:'links', name: 'links', searchable: false, orderable: false},
+                {data:'passports_fio', name: 'passports_fio'},
+                {data:'debtors_od', name: 'debtors_od'},
+                {data:'debtors_base', name: 'debtors_base'},
+                {data:'passports_fact_address_city', name: 'passports_fact_address_city'},
+                {data:'debtors_fixation_date', name: 'debtors_fixation_date'},
+                {data:'debtors_qty_delays', name: 'debtors_qty_delays'},
+                {data:'debtors_last_user_id', name: 'debtors_last_user_id'},
+                {data:'debtors_responsible_user_id_1c', name: 'debtors_responsible_user_id_1c'},
+                {data: 'debtors_debt_group_id', name: 'debtors_debt_group_id'},
+                {data: 'debtors_str_podr', name: 'debtors_str_podr'}
             ],
             {
                 dtData: {
@@ -431,16 +431,16 @@
 
     $.debtorsCtrl.initDebtorMassSmsTable = function () {
         $.debtorsCtrl.debtorTransferTableCtrl = new TableController('debtormasssms', [
-                {data: '0', name: 'links', searchable: false, orderable: false},
-                {data: '1', name: 'passports_fio'},
-                {data: '2', name: 'debtors_od'},
-                {data: '3', name: 'debtors_base'},
-                {data: '4', name: 'passports_fact_address_city'},
-                {data: '5', name: 'debtors_fixation_date'},
-                {data: '6', name: 'debtors_qty_delays'},
-                {data: '7', name: 'debtors_responsible_user_id_1c'},
-                {data: '8', name: 'debtors_debt_group_id'},
-                {data: '9', name: 'debtors_str_podr'}
+                {data: 'links', name: 'links', searchable: false, orderable: false},
+                {data: 'passports_fio', name: 'passports_fio'},
+                {data: 'debtors_od', name: 'debtors_od'},
+                {data: 'debtors_base', name: 'debtors_base'},
+                {data: 'passports_fact_address_city', name: 'passports_fact_address_city'},
+                {data: 'debtors_fixation_date', name: 'debtors_fixation_date'},
+                {data: 'debtors_qty_delays', name: 'debtors_qty_delays'},
+                {data: 'debtors_responsible_user_id_1c', name: 'debtors_responsible_user_id_1c'},
+                {data: 'debtors_debt_group_id', name: 'debtors_debt_group_id'},
+                {data: 'debtors_str_podr', name: 'debtors_str_podr'}
             ],
             {
                 dtData: {
@@ -474,11 +474,11 @@
             {data: '11', name: 'debtors_str_podr'},
         ],*/
         $.debtorsCtrl.debtorforgotten = new TableController('debtorforgotten', [
-                {data: '0', name: 'links', searchable: false, orderable: false},
-                {data: '1', name: 'debtors_fixation_date'},
-                {data: '2', name: 'passports_fio'},
-                {data: '3', name: 'debtors_responsible_user_id_1c'},
-                {data: '4', name: 'debtors_str_podr'},
+                {data: 'links', name: 'links', searchable: false, orderable: false},
+                {data: 'debtors_fixation_date', name: 'debtors_fixation_date'},
+                {data: 'passports_fio', name: 'passports_fio'},
+                {data: 'debtors_responsible_user_id_1c', name: 'debtors_responsible_user_id_1c'},
+                {data: 'debtors_str_podr', name: 'debtors_str_podr'},
             ],
             {
                 dtData: {
@@ -502,19 +502,19 @@
      */
     $.debtorsCtrl.initDebtorRecommendsTable = function () {
         $.debtorsCtrl.debtorrecommends = new TableController('debtorrecommends', [
-                {data: '0', name: 'links', searchable: false, orderable: false},
-                {data: '1', name: 'debtors_fixation_date'},
-                {data: '2', name: 'passports_fio'},
-                {data: '3', name: 'debtors_loan_id_1c'},
-                {data: '4', name: 'debtors_qty_delays'},
-                {data: '5', name: 'debtors_sum_indebt'},
-                {data: '6', name: 'debtors_od'},
-                {data: '7', name: 'debtors_base'},
-                {data: '8', name: 'customers_telephone'},
-                {data: '9', name: 'debtors_debt_group_id'},
-                {data: '10', name: 'debtors_responsible_user_id_1c'},
-                {data: '11', name: 'debtors_str_podr'},
-                {data: '12', name: 'debtors_rec_completed'},
+                {data:'links', name: 'links', searchable: false, orderable: false},
+                {data:'debtors_fixation_date', name: 'debtors_fixation_date'},
+                {data:'passports_fio', name: 'passports_fio'},
+                {data:'debtors_loan_id_1c', name: 'debtors_loan_id_1c'},
+                {data:'debtors_qty_delays', name: 'debtors_qty_delays'},
+                {data:'debtors_sum_indebt', name: 'debtors_sum_indebt'},
+                {data:'debtors_od', name: 'debtors_od'},
+                {data:'debtors_base', name: 'debtors_base'},
+                {data:'customers_telephone', name: 'customers_telephone'},
+                {data:'debtors_debt_group_id', name: 'debtors_debt_group_id'},
+                {data: 'debtors_responsible_user_id_1c', name: 'debtors_responsible_user_id_1c'},
+                {data: 'debtors_str_podr', name: 'debtors_str_podr'},
+                {data: 'debtors_rec_completed', name: 'debtors_rec_completed'},
             ],
             {
                 dtData: {

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Terminal;
 use App\TerminalAction;
-use yajra\Datatables\Facades\Datatables;
+use Yajra\DataTables\Facades\DataTables;
 use Form;
 use App\Utils\StrLib;
 use App\User;

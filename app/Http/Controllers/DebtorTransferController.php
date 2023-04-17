@@ -12,7 +12,7 @@ use App\Utils\StrLib;
 use Auth;
 use App\Debtor;
 use App\Order;
-use Yajra\Datatables\Facades\Datatables;
+use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\StrUtils;
 use App\DebtorEvent;
@@ -162,7 +162,7 @@ class DebtorTransferController extends BasicController {
             });
         }
 
-        $collection = Datatables::of($debtors)
+        return DataTables::of($debtors)
             ->editColumn('debtors_fixation_date', function ($item) {
                 return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
                     strtotime($item->debtors_fixation_date)) : '-';
@@ -224,6 +224,7 @@ class DebtorTransferController extends BasicController {
             ->removeColumn('passports_fact_address_district')
             ->removeColumn('passports_fact_address_street')
             ->removeColumn('passports_fact_address_house')
+            ->rawColumns(['actions','links','passports_fact_address_city'])
             ->filter(function ($query) use ($req) {
                 $input = $req->input();
                 foreach ($input as $k => $v) {
@@ -240,9 +241,7 @@ class DebtorTransferController extends BasicController {
                     }
                 }
             })
-            ->setTotalRecords(1000)
             ->make();
-        return $collection;
     }
 
     public function transferHistory(Request $req) {

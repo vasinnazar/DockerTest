@@ -8,7 +8,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\AddressDouble;
 use Illuminate\Support\Facades\DB;
-use Yajra\Datatables\Facades\Datatables;
+use Yajra\DataTables\Facades\DataTables;
 
 class AddressDoublesController extends BasicController
 {

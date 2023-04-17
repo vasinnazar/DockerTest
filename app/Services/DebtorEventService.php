@@ -9,7 +9,10 @@ use App\DebtorUsersRef;
 use App\Exceptions\DebtorException;
 use App\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+
 
 class DebtorEventService
 {
@@ -132,11 +135,11 @@ class DebtorEventService
                     $totalDays[$intk] = 0;
                 }
             }
-            
+
             $amountOfAgreement = DebtorEventPromisePay::whereIn('user_id', $usersId)
                 ->whereBetween('promise_date', $intv)
                 ->sum('amount');
-            
+
             $amount[$intk] = (is_null($amountOfAgreement)) ? 0 : $amountOfAgreement;
 
         }
@@ -158,7 +161,7 @@ class DebtorEventService
         $res['totalDayAmount'] = $amount;
         return $res;
     }
-    
+
     public function getDebtorEventsForCustomer($debtors)
     {
         $arDebtorIds = [];
@@ -173,5 +176,95 @@ class DebtorEventService
             ->whereIn('debtor_id_1c', $arDebtorIds)
             ->orderBy('de_created_at', 'desc')
             ->get();
+    }
+
+    public function getEventsForExport(Request $req)
+    {
+        $cols = [];
+        $tCols = [
+            'debtor_events.date' => 'de_date',
+            'debtor_events.event_type_id' => 'de_type_id',
+            'debtors.passports.fio' => 'passports_fio',
+            'debtor_events.created_at' => 'de_created_at',
+            'users.login' => 'de_username',
+            'debtors.id' => 'debtors_id'
+        ];
+
+        foreach ($tCols as $k => $v) {
+            $cols[] = $k . ' as ' . $v;
+        }
+
+        $currentUser = User::find(Auth::id());
+
+        $arIn = DebtorUsersRef::getUserRefs();
+        $date = (is_null($req->get('search_field_debtor_events@date'))) ?
+            Carbon::today() :
+            (new Carbon($req->get('search_field_debtor_events@date')));
+
+        $date_from = $req->get('search_field_debtor_events@date_from');
+        $date_to = $req->get('search_field_debtor_events@date_to');
+
+        $debt_group_id = $req->get('search_field_debt_groups@id');
+
+        $date_from_fmt = false;
+        if (!is_null($date_from) && !empty($date_from)) {
+            $date_from_fmt = date('Y-m-d 00:00:00', strtotime($date_from));
+        }
+
+        $date_to_fmt = false;
+        if (!is_null($date_to) && !empty($date_to)) {
+            $date_to_fmt = date('Y-m-d 23:59:59', strtotime($date_to));
+        }
+
+        $responsible_id_1c = $req->get('search_field_users@id_1c');
+
+        // получаем список запланированных мероприятий на сегодня
+        $debtorEvents = DB::table('debtor_events')->select($cols)
+            ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
+            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+            ->leftJoin('debtors.passports', function ($join) {
+                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+            })
+            ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
+            ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
+            ->leftJoin('debtors_event_types', 'debtors_event_types.id', '=', 'debtor_events.event_type_id')
+            ->where('debtor_events.completed', 0)
+            ->groupBy('debtor_events.id');
+
+        if (!$date_from_fmt && !$date_to_fmt) {
+            $debtorEvents->whereBetween('debtor_events.date', array(
+                $date->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
+                $date->setTime(23, 59, 59)->format('Y-m-d H:i:s')
+            ));
+        } else {
+            if ($date_from_fmt) {
+                $debtorEvents->where('debtor_events.date', '>=', $date_from_fmt);
+            }
+
+            if ($date_to_fmt) {
+                $debtorEvents->where('debtor_events.date', '<=', $date_to_fmt);
+            }
+        }
+
+        if (!is_null($debt_group_id) && mb_strlen($debt_group_id)) {
+            $debtorEvents->where('debtors.debt_group_id', (int)$debt_group_id);
+        }
+
+        if (!is_null($responsible_id_1c) && mb_strlen($responsible_id_1c)) {
+            $debtorEvents->where('debtors.debtor_events.user_id_1c', $responsible_id_1c);
+        }
+
+        if ($currentUser->hasRole('debtors_personal')) {
+            $debtorEvents->where('debtors.debtor_events.user_id', $currentUser->id);
+        } else {
+
+            // если придет пустой массив - будут показаны все планы на день
+            if (count($arIn) && (is_null($responsible_id_1c) || !mb_strlen($responsible_id_1c))) {
+                $debtorEvents->whereIn('debtors.debtor_events.user_id', $arIn);
+            }
+        }
+        return $debtorEvents->get();
     }
 }

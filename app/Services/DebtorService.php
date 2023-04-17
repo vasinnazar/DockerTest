@@ -339,7 +339,7 @@ class DebtorService
             });
         }
 
-        return collect($debtors->get());
+        return $debtors;
     }
 
 }
