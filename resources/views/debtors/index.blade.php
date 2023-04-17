@@ -31,16 +31,16 @@
             <a href="{{url('addressdoubles/index')}}" class="btn btn-default">Дубли адресов</a>
             <input type="button" class="btn btn-default" value="Зачет оплат" data-target='#userPaymentsModal' data-toggle='modal' />
             <a class="btn btn-default" href="{{url('reports/paysheet')}}" target="_blank">Расчетный лист</a>
-            @if ($user_id == 69 || $user_id == 916 || $user_id == 885 || $user_id == 3448 || $user_id == 970 || $user_id == 3465)
+            @if ($user->id== 69 || $user->id== 916 || $user->id== 885 || $user->id== 3448 || $user->id== 970 || $user->id== 3465)
             <a href="{{url('debtors/recurrent/massquerytask')}}"  class="btn btn-default">Массовое списание</a>
             @endif
-            @if ($user_id == 69 || $user_id == 916)
+            @if ($user->id== 69 || $user->id== 916)
             <a href="{{url('debtors/recurrent/massquerytask?type=olv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
             @endif
-            @if ($user_id == 69 || $user_id == 3448)
+            @if ($user->id== 69 || $user->id== 3448)
             <a href="{{url('debtors/recurrent/massquerytask?type=ouv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
             @endif
-            @if (!$personalGroup['isGroup'])
+            @if (!$user->hasRole('debtors_personal'))
             <a href="{{url('usertests/index')}}" class="btn btn-default" target="_blank">Тесты</a>
             @endif
             <!--button type="button" class='btn btn-default' onclick="$.debtorsCtrl.uploadOldDebtorEvents(); return false;">Подгрузить мероприятия</button-->
