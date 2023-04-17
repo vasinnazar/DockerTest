@@ -139,7 +139,7 @@
                 $.each(jsonDebtorRoleUsers, function (k, u) {
                     var checked = '';
                     $.each(jsonDebtorUserSlaves, function (key, ui) {
-                        if (u.id == ui.user_id) {
+                        if (u.id == ui) {
                             checked = ' checked';
                         }
                     });

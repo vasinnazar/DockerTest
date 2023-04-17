@@ -9,4 +9,8 @@ class MassRecurrent extends Model {
 
     protected $table = 'debtors_mass_recurrents';
 
+    protected $fillable = [
+        'task_id',
+        'debtor_id'
+    ];
 }

@@ -9,4 +9,17 @@ class MassRecurrentTask extends Model {
 
     protected $table = 'debtors_mass_recurrents_tasks';
 
+    protected $fillable = [
+        'user_id',
+        'debtors_count',
+        'debtors_processed',
+        'str_podr',
+        'timezone',
+        'completed'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

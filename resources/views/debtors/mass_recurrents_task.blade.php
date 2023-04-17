@@ -1,90 +1,186 @@
 @extends('app')
-@section('title') Массовый безакцепт {{ ($recurrent_type == 'olv_chief' || $recurrent_type == 'ouv_chief') ? 'Ведущий' : '' }}@stop
+@section('title')
+    Массовый безакцепт
+@stop
 @section('content')
+    <input type="hidden" id="str_podr" value="{{ $str_podr }}">
+    @foreach ($collectionTasks->where('completed', 0) as $task)
+        <input type="hidden" class="exec-tasks" name="executing_tasks[]" value="{{ $task->id }}">
+    @endforeach
 
-    <h1 xmlns="http://www.w3.org/1999/html">Массовый
-        безакцепт {{ ($recurrent_type == 'olv_chief' || $recurrent_type == 'ouv_chief') ? 'Ведущий' : '' }}</h1>
-    <input type="hidden" id="recurrent_type" value="{{ $recurrent_type }}">
-    <input type="hidden" id="recurrent_task_id" value="{{ ($recurrent_task) ? $recurrent_task->id : '' }}">
-    @if ($canStartToday)
-        @if (auth()->user()->hasRole('debtors_chief'))
-            <div class="timezone">
-                <h4>Интервал часовых поясов:</h4>
-                <button id="startMassRecurrents1" class="btn btn-primary" value="east"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'east')) ? ' disabled' : '' }}>Запустить -1+5</button>
-                <button id="startMassRecurrents2" class="btn btn-primary" value="west"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'west')) ? ' disabled' : '' }}>Запустить -2-5</button>
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12">
+                <h1>Массовый безакцепт
+                    @if ($str_podr == '000000000006-1')
+                        - старший УПР
+                    @elseif ($str_podr == '000000000007-1')
+                        - ведущий УДР
+                    @endif
+                </h1>
             </div>
-        @endif
-        <h4 style="{{ !auth()->user()->hasRole('debtors_chief') ? 'display: none' : '' }}">Запустить весь пулл:</h4>
-        <button type="button" id="startMassRecurrents" class="btn btn-primary" value=""{{ $collectionTasks->count() ? ' disabled' : '' }}>Запустить</button>
-        <div id="task_status"></div>
-    @else
-        @if ($completed)
-            <div id="task_status">Задача уже была запущена и выполнена сегодня.</div>
-        @else
-            <div id="task_status">Задача создана и находится в обработке.</div>
-            <div id="task_progress">Обработано договоров: <span id="progress">-</span> из <span
-                        id="debtors_count">-</span></div>
-        @endif
-    @endif
+        </div>
+        <div class="row">
+            <div class="col-xs-4 text-center">
+                <button id="startMassRecurrents1" class="btn btn-primary"
+                        value="east"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'east')) ? ' disabled' : '' }}>
+                    Запустить Восток (-1 +5)
+                </button>
+            </div>
+            <div class="col-xs-4 text-center">
+                <button id="startMassRecurrents2" class="btn btn-primary"
+                        value="west"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'west')) ? ' disabled' : '' }}>
+                    Запустить Запад (-2 -5)
+                </button>
+            </div>
+            <div class="col-xs-4 text-center">
+                <button type="button" id="startMassRecurrents" class="btn btn-primary"
+                        value=""{{ $collectionTasks->count() ? ' disabled' : '' }}>Запустить весь пулл
+                </button>
+            </div>
+        </div>
+        <div id="error-block" class="row hide" style="margin-top: 50px;">
+            <div class="col-xs-12">
+                <div class="alert alert-danger">Произошла ошибка! Вероятно, задача уже создана. Обновите страницу.</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <table class="table table-bordered" style="margin-top: 50px;">
+                    <caption style="text-align: center;">
+                        <strong>Задачи, запущенные сегодня</strong>
+                    </caption>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Отдел</th>
+                        <th>Инициатор</th>
+                        <th>Часовые пояса</th>
+                        <th>Прогресс</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @if (!$collectionTasks->count())
+                        <tr>
+                            <td colspan="5">Задачи отсутствуют.</td>
+                        </tr>
+                    @else
+                        @foreach($collectionTasks as $task)
+                            <tr>
+                                <td>{{ $task->id }}</td>
+                                <td>
+                                    @if ($task->str_podr == '000000000006')
+                                        УПР
+                                    @elseif($task->str_podr == '000000000006-1')
+                                        УПР Старший
+                                    @elseif($task->str_podr == '000000000007')
+                                        УДР
+                                    @elseif($task->str_podr == '000000000007-1')
+                                        УДР Ведущий
+                                    @else
+                                        Не определен
+                                    @endif
+                                </td>
+                                <td>
+                                    {{ $task->user->login }}
+                                    <br>
+                                    <span style="font-size: 80%; color: grey; font-style: italic;">{{ $task->created_at->format('d.m.Y H:i:s') }}</span>
+                                </td>
+                                <td>
+                                    @if ($task->timezone == 'east')
+                                        Восток
+                                    @elseif($task->timezone == 'west')
+                                        Запад
+                                    @elseif($task->timezone == 'all')
+                                        Весь пулл
+                                    @else
+                                        Не определен
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($task->completed)
+                                        Выполнена
+                                        <br>
+                                        <span style="font-size: 80%; color: grey; font-style: italic;">{{ $task->updated_at->format('d.m.Y H:i:s') }}</span>
+                                    @else
+                                        <span id="progress-count-{{ $task->id }}">?</span> / {{ $task->debtors_count }}
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
 @stop
 
 @section('scripts')
-    @if ($canStartToday)
         <script>
             $(document).ready(function () {
                 $('button').click(function () {
-                    $(this).attr('disabled', true);
+                    if (confirm('Вы уверены, что хотите запустить задачу?')) {
+                        $(this).attr('disabled', true);
+                        $(this).html('Задача создается, ожидайте...');
 
-                    let timezone = $(this).val();
-                    $.ajax({
-                        url: '/debtor/recurrent/massquerytask',
-                        method: 'post',
-                        data: {start: 1, type: $('#recurrent_type').val(), timezone: timezone},
-                        success: function (data) {
-                            var json_data = JSON.parse(data);
-                            $('#task_status').html('Задача создана. Количество договоров: ' + json_data.debtors_count);
-
-                            $.ajax({
-                                url: '/debtor/recurrent/massquery',
-                                method: 'post',
-                                data: {task_id: json_data.task_id, recurrent_type: $('#recurrent_type').val(), timezone: timezone},
-                                success: function (answer) {
-                                    location.reload();
-                                }
-                            });
-                        }
-                    });
-                });
-            });
-        </script>
-    @else
-        @if (!$completed)
-            <script>
-                $(document).ready(function () {
-                    function loop() {
+                        let timezone = $(this).val();
                         $.ajax({
-                            url: '/debtor/recurrent/getstatus',
+                            url: '/debtor/recurrent/massquerytask',
                             method: 'post',
-                            data: {type: $('#recurrent_type').val(), recurrent_task_id: $('#recurrent_task_id').val()},
+                            data: {start: 1, str_podr: $('#str_podr').val(), timezone: timezone},
                             success: function (data) {
                                 var json_data = JSON.parse(data);
-                                if (json_data.status == 'completed') {
+
+                                if (json_data.status == 'success') {
+                                    $.ajax({
+                                        url: '/debtor/recurrent/massquery',
+                                        method: 'post',
+                                        data: {
+                                            task_id: json_data.task_id
+                                        },
+                                        success: function (data) {
+
+                                        }
+                                    });
+
                                     location.reload();
                                 } else {
-                                    $('#debtors_count').html(json_data.debtors_count);
-                                    $('#progress').html(json_data.progress);
-                                    setTimeout(() => {
-                                        loop();
-                                    }, 1000);
+                                    $('#error-block').show();
                                 }
                             }
                         });
                     }
-
-                    loop();
                 });
-            </script>
+            });
+        </script>
+        @if ($collectionTasks->where('completed', 0)->count())
+        <script>
+            $(document).ready(function () {
+                function loop() {
+                    $.ajax({
+                        url: '/debtor/recurrent/getstatus',
+                        method: 'post',
+                        data: {tasks: $('input[name="executing_tasks[]"]').serializeArray()},
+                        success: function (data) {
+                            var json_data = JSON.parse(data);
+                            if (json_data.status == 'completed') {
+                                location.reload();
+                            } else {
+                                $.each(json_data.tasks, function(task_id, count) {
+                                    $('#progress-count-' + task_id).html(count);
+                                });
+                            }
+                            setTimeout(() => {
+                                loop();
+                            }, 2000);
+                        }
+                    });
+                }
+
+                loop();
+            });
+        </script>
         @endif
-    @endif
 @stop

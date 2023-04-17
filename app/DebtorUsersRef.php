@@ -28,25 +28,6 @@ class DebtorUsersRef extends Model {
      * @var array
      */
     protected $hidden = [];
-
-    /**
-     * Возвращает подчиненных пользователей
-     * @param string $master_user_id
-     * @return json
-     */
-    static function getDebtorSlaveUsers($master_user_id) {
-        $slaves = DebtorUsersRef::select(array('debtor_users_ref.user_id as user_id'))
-                ->where('master_user_id', $master_user_id);
-        
-        return json_encode($slaves->get()->toArray());
-    }
-    
-    static function isMasterUserWithSlaves($master_user_id) {
-        return (DebtorUsersRef::select(array('debtor_users_ref.user_id as user_id'))
-                ->where('master_user_id', $master_user_id)
-                ->count()>0);
-    }
-    
     
     /**
      * Сохранение подчиненных пользователей

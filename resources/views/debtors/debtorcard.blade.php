@@ -9,8 +9,8 @@
     {!! Form::hidden('customer_id_1c',$debtor->customer_id_1c) !!}
     {!! Form::hidden('loan_id_1c',$debtor->loan_id_1c) !!}
     {!! Form::hidden('debtor_id',$debtor->id) !!}
-    {!! Form::hidden('passport_series',$data[0]['series']) !!}
-    {!! Form::hidden('passport_number',$data[0]['number']) !!}
+    {!! Form::hidden('passport_series', $debtor->passport_series) !!}
+    {!! Form::hidden('passport_number', $debtor->passport_number) !!}
     {!! Form::hidden('user_infinity_extension', auth()->user()->infinity_extension) !!}
     <input type="hidden" name="overall_sum_today" id="overall_sum_today" value="">
     <input type="hidden" name="overall_sum_onday" id="overall_sum_onday" value="">
@@ -39,9 +39,9 @@
                 @endif
             </div>
             <h4>
-                Рекомендация от {{date('d.m.Y', strtotime($data[0]['recommend_created_at']))}}
+                Рекомендация от {{date('d.m.Y', strtotime($debtor->recommend_created_at))}}
             </h4>
-            {{$data[0]['recommend_text']}}
+            {{$debtor->recommend_text}}
             <span class="pull-right"><i>{{$recommend_user_name}}</i></span>
         </div>
         @elseif (!$user->hasRole('debtors_chief') && $debtor->recommend_created_at != null && ($debtor->recommend_completed == 0 || $debtor->recommend_completed == null))
@@ -49,8 +49,8 @@
             <div style="position: absolute; right: 30px;">
                 <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="complete"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
             </div>
-            <h4>Рекомендация от {{date('d.m.Y', strtotime($data[0]['recommend_created_at']))}}</h4>
-            {{$data[0]['recommend_text']}}
+            <h4>Рекомендация от {{date('d.m.Y', strtotime($debtor->recommend_created_at))}}</h4>
+            {{$debtor->recommend_text}}
             <span class="pull-right"><i>{{$recommend_user_name}}</i></span>
         </div>
         @endif
@@ -73,7 +73,7 @@
                 <div class="panel-heading">
                     <u>{{ $debtor->passport->first()->fio }}</u>
                     @if(auth()->user()->id==5)
-                    <a target="_blank" href="{{url('customers/edit/'.$data[0]['customer_id'].'/'.$data[0]['passport_id'])}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span></a>
+                    <a target="_blank" href="{{url('customers/edit/'.$debtor->customer->id.'/'.$data[0]['passport_id'])}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span></a>
                     @endif
                 </div>
                 <div class="panel-body">
@@ -81,7 +81,6 @@
                     <div class='row'>
                         <div class='col-xs-12 col-sm-6 col-lg-4'>
                             <div class="photo-gallery text-center">
-                                <!--input type="button" id="photoLoad" class="btn btn-default" data-claim="{{$data[0]['claim_id']}}" value="Загрузить фото" disabled /-->
                                 <a href="http://photo.fterra.ru/photos?customer_external_id={{$debtor->customer_id_1c}}" class="btn btn-default" target="_blank">Открыть фото</a>
                                 <br>
                                 <a href="http://photo.fterra.ru/photos?customer_external_id={{$debtor->customer_id_1c}}&types[]=7" style="margin-top: 5px;" class="btn btn-default" target="_blank">Мессенджер-фото</a>
@@ -184,47 +183,47 @@
                         @if ($user->hasRole('debtors_chief'))
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 15px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
-                                <a class='btn change-personal-data {{$data[0]['non_interaction'] == 1 ? 'btn-danger' : 'btn-default'}}' data-action="{{$data[0]['non_interaction'] == 0 ? 'on' : 'off'}}_non_interaction" href='#' data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отказ от взаимодействия (по форме)</a>
+                                <a class='btn change-personal-data {{$debtor->non_interaction == 1 ? 'btn-danger' : 'btn-default'}}' data-action="{{$debtor->non_interaction == 0 ? 'on' : 'off'}}_non_interaction" href='#' data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отказ от взаимодействия (по форме)</a>
                             </div>
                         </div>
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
-                                <a class='btn change-personal-data {{$data[0]['non_interaction_nf'] == 1 ? 'btn-danger' : 'btn-default'}}' data-action="{{$data[0]['non_interaction_nf'] == 0 ? 'on' : 'off'}}_non_interaction_nf" href='#' data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отказ от взаимодействия (не по форме)</a>
+                                <a class='btn change-personal-data {{$debtor->non_interaction_nf == 1 ? 'btn-danger' : 'btn-default'}}' data-action="{{$debtor->non_interaction_nf == 0 ? 'on' : 'off'}}_non_interaction_nf" href='#' data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отказ от взаимодействия (не по форме)</a>
                             </div>
                         </div>
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
-                                <a class='btn change-personal-data {{$data[0]['by_agent'] == 1 ? 'btn-danger' : 'btn-default'}}' data-action="{{$data[0]['by_agent'] == 0 ? 'on' : 'off'}}_by_agent" href='#' data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Взаимодействие через представителя</a>
+                                <a class='btn change-personal-data {{$debtor->by_agent == 1 ? 'btn-danger' : 'btn-default'}}' data-action="{{$debtor->by_agent == 0 ? 'on' : 'off'}}_by_agent" href='#' data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Взаимодействие через представителя</a>
                             </div>
                         </div>
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
-                                <a class='btn change-personal-data {{$data[0]['recall_personal_data'] == 1 ? 'btn-danger' : 'btn-default'}}' data-action="{{$data[0]['recall_personal_data'] == 0 ? 'on' : 'off'}}_recall_personal_data" href='#' data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отзыв персональных данных</a>
+                                <a class='btn change-personal-data {{$debtor->recall_personal_data == 1 ? 'btn-danger' : 'btn-default'}}' data-action="{{$debtor->recall_personal_data == 0 ? 'on' : 'off'}}_recall_personal_data" href='#' data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отзыв персональных данных</a>
                             </div>
                         </div>
                         @else
-                        @if ($data[0]['non_interaction'] == 1)
+                        @if ($debtor->non_interaction == 1)
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
                                 <button class='btn btn-danger'>Отказ от взаимодействия (по форме)</button>
                             </div>
                         </div>
                         @endif
-                        @if ($data[0]['non_interaction_nf'] == 1)
+                        @if ($debtor->non_interaction_nf == 1)
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
                                 <button class='btn btn-danger'>Отказ от взаимодействия (не по форме)</button>
                             </div>
                         </div>
                         @endif
-                        @if ($data[0]['by_agent'] == 1)
+                        @if ($debtor->by_agent == 1)
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
                                 <button class='btn btn-danger'>Взаимодействие через представителя</button>
                             </div>
                         </div>
                         @endif
-                        @if ($data[0]['recall_personal_data'] == 1)
+                        @if ($debtor->recall_personal_data == 1)
                         <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
                             <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
                                 <button class='btn btn-danger'>Отзыв персональных данных</button>
@@ -276,7 +275,7 @@
                     <table class="table table-condensed debtor-card-data">
                         <tr class='active'>
                             <td colspan="3" class='text-center'>
-                                <span>Паспорт:</span> <span>серия <strong>{{$data[0]['series']}}</strong> номер <strong>{{$data[0]['number']}}</strong></span>
+                                <span>Паспорт:</span> <span>серия <strong>{{$debtor->series}}</strong> номер <strong>{{$debtor->number}}</strong></span>
                             </td>
                         </tr>
                         <tr>
@@ -343,13 +342,13 @@
                             <td>Т. моб.:</td>
                             <td>
                                 @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $user->hasRole('debtors_chief'))
-                                    @if (isset($data[0]['telephone']) && mb_strlen($data[0]['telephone']) && $debtor->base != 'Архив ЗД')
+                                    @if (mb_strlen($debtor->customer->telephone) && $debtor->base != 'Архив ЗД')
                                         <button type="button" class="btn btn-default btn-xs" data-toggle="modal"
-                                                data-target="#debtorSMS" data-phone="{{$data[0]['telephone']}}">
+                                                data-target="#debtorSMS" data-phone="{{$debtor->customer->telephone}}">
                                             <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                         </button>
                                         @if($whatsApp)
-                                        <a href="whatsapp://send?phone={{$data[0]['telephone']}}"
+                                        <a href="whatsapp://send?phone={{$debtor->customer->telephone}}"
                                            class="btn btn-default btn-xs" target="_blank">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"
                                                  fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
@@ -357,18 +356,18 @@
                                             </svg>
                                         </a>
                                         @endif
-                                        <a href="https://t.me/+{{$data[0]['telephone']}}" class="btn btn-default btn-xs"
+                                        <a href="https://t.me/+{{$debtor->customer->telephone}}" class="btn btn-default btn-xs"
                                            target="_blank">
                                             Т
                                         </a>
                                     @endif
                                 @endif
                             </td>
-                            <td id="debtor-phone-clip">{{$data[0]['telephone']}}</td>
+                            <td id="debtor-phone-clip">{{$debtor->customer->telephone}}</td>
                             <td style="display: flex;">
                                 @if(!empty(auth()->user()->infinity_extension))
                                     <button type="button" class="btn btn-success btn-xs phone-call-btn"
-                                            data-phone="{{$data[0]['telephone']}}" style="margin-right: 20%">
+                                            data-phone="{{$debtor->customer->telephone}}" style="margin-right: 20%">
                                         <span class="glyphicon glyphicon-earphone"></span>
                                     </button>
                                 @endif
@@ -380,18 +379,18 @@
                         <tr>
                             <td>Т. домашний:</td>
                             <td>
-                                @if (isset($data[0]['telephonehome']) && mb_strlen($data[0]['telephonehome']))
-                                <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['telephonehome']}}">
+                                @if (mb_strlen($debtor->customer->about_clients->last()->telephonehome))
+                                <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$debtor->customer->about_clients->last()->telephonehome}}">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </button-->
                                 @endif
                             </td>
-                            <td id="debtor-telephonehome-clip">{{$data[0]['telephonehome']}}</td>
+                            <td id="debtor-telephonehome-clip">{{$debtor->customer->about_clients->last()->telephonehome}}</td>
                             <td style="display: flex;">
-                                @if (isset($data[0]['telephonehome']) && mb_strlen($data[0]['telephonehome']))
+                                @if (mb_strlen($debtor->customer->about_clients->last()->telephonehome))
                                     @if(!empty(auth()->user()->infinity_extension))
                                         <button type="button" class="btn btn-success btn-xs phone-call-btn"
-                                                data-phone="{{$data[0]['telephonehome']}}" style="margin-right: 20%">
+                                                data-phone="{{$debtor->customer->about_clients->last()->telephonehome}}" style="margin-right: 20%">
                                             <span class="glyphicon glyphicon-earphone"></span>
                                         </button>
                                     @endif
@@ -405,18 +404,18 @@
                         <tr>
                             <td>Т. организации:</td>
                             <td>
-                                @if (isset($data[0]['telephoneorganiz']) && mb_strlen($data[0]['telephoneorganiz']))
-                                    <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['telephoneorganiz']}}">
+                                @if (mb_strlen($debtor->customer->about_clients->last()->telephoneorganiz))
+                                    <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$debtor->customer->about_clients->last()->telephoneorganiz}}">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </button-->
                                 @endif
                             </td>
-                            <td id="debtor-telephoneorganiz-clip">{{$data[0]['telephoneorganiz']}}</td>
+                            <td id="debtor-telephoneorganiz-clip">{{$debtor->customer->about_clients->last()->telephoneorganiz}}</td>
                             <td style="display: flex;">
-                                @if (isset($data[0]['telephoneorganiz']) && mb_strlen($data[0]['telephoneorganiz']))
+                                @if (mb_strlen($debtor->customer->about_clients->last()->telephoneorganiz))
                                     @if(!empty(auth()->user()->infinity_extension))
                                         <button type="button" class="btn btn-success btn-xs phone-call-btn"
-                                                data-phone="{{$data[0]['telephoneorganiz']}}" style="margin-right: 20%">
+                                                data-phone="{{$debtor->customer->about_clients->last()->telephoneorganiz}}" style="margin-right: 20%">
                                             <span class="glyphicon glyphicon-earphone"></span>
                                         </button>
                                     @endif
@@ -427,22 +426,22 @@
                                 @endif
                             </td>
                         </tr>
-                        @if (strtotime($data[0]['loans_created_at']) > 1544720399)
+                        @if (strtotime($debtor->loan->created_at) > 1544720399)
                             <tr>
                                 <td>Т. родств.:</td>
                                 <td>
-                                    @if (isset($data[0]['telephonerodstv']) && mb_strlen($data[0]['telephonerodstv']))
-                                        <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['telephonerodstv']}}" style="margin-right: 20%">
+                                    @if (mb_strlen($debtor->customer->about_clients->last()->telephonerodstv))
+                                        <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$debtor->customer->about_clients->last()->telephonerodstv}}" style="margin-right: 20%">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </button-->
                                     @endif
                                 </td>
-                                <td id="debtor-telephonerodstv-clip">{{$data[0]['telephonerodstv']}}</td>
+                                <td id="debtor-telephonerodstv-clip">{{$debtor->customer->about_clients->last()->telephonerodstv}}</td>
                                 <td style="display: flex;">
-                                    @if (isset($data[0]['telephonerodstv']) && mb_strlen($data[0]['telephonerodstv']))
+                                    @if (mb_strlen($debtor->customer->about_clients->last()->telephonerodstv))
                                         @if(!empty(auth()->user()->infinity_extension))
                                             <button type="button" class="btn btn-success btn-xs phone-call-btn"
-                                                    data-phone="{{$data[0]['telephonerodstv']}}"
+                                                    data-phone="{{$debtor->customer->about_clients->last()->telephonerodstv}}"
                                                     style="margin-right: 20%">
                                                 <span class="glyphicon glyphicon-earphone"></span>
                                             </button>
@@ -464,19 +463,19 @@
                         <tr>
                             <td>Т. др.:</td>
                             <td>
-                                @if (isset($data[0]['anothertelephone']) && mb_strlen($data[0]['anothertelephone']))
-                                    <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$data[0]['anothertelephone']}}">
+                                @if (mb_strlen($debtor->customer->about_clients->last()->anothertelephone))
+                                    <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$debtor->customer->about_clients->last()->anothertelephone}}">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </button-->
 
                                 @endif
                             </td>
-                            <td id="debtor-anothertelephone-clip">{{$data[0]['anothertelephone']}}</td>
+                            <td id="debtor-anothertelephone-clip">{{$debtor->customer->about_clients->last()->anothertelephone}}</td>
                             <td style="display: flex">
-                                @if (isset($data[0]['anothertelephone']) && mb_strlen($data[0]['anothertelephone']))
+                                @if (mb_strlen($debtor->customer->about_clients->last()->anothertelephone))
                                     @if(!empty(auth()->user()->infinity_extension))
                                         <button type="button" class="btn btn-success btn-xs phone-call-btn"
-                                                data-phone="{{$data[0]['anothertelephone']}}" style="margin-right: 20%">
+                                                data-phone="{{$debtor->customer->about_clients->last()->anothertelephone}}" style="margin-right: 20%">
                                             <span class="glyphicon glyphicon-earphone"></span>
                                         </button>
                                     @endif
@@ -497,9 +496,9 @@
                             <td>Т. моб. старый:</td>
                             <td></td>
                             <td></td>
-                            <td></td>s
+                            <td></td>
                         </tr>
-                        @if (str_contains($data[0]['email'], '@'))
+                        @if (isset($data[0]['email']) && str_contains($data[0]['email'], '@'))
                             <tr>
                                 <td>E-mail:</td>
                                 <td>
@@ -572,7 +571,6 @@
                         <?php
                         $curDay = '';
                         $row_color = 'ffffff';
-                        $isMasterUser = \App\DebtorUsersRef::isMasterUserWithSlaves($user->id);
                         ?>
                         @foreach ($debtorEvents as $event)
                         <?php
@@ -620,7 +618,7 @@
                             <td>{{$event->login}}</td>
                             <td>
                                 <input type="checkbox" name="eventDone[]" value="{{$event->id}}" {{($event->completed == 1) ? 'checked' : ''}}/>
-                                @if($isMasterUser)
+                                @if($user->hasRole('debtors_chief'))
                                 <button type="button" name="debtor_event_edit" class="btn btn-default btn-xs" onclick="$.debtorsCtrl.openDebtorEvent({{$event->id}});"><span class="glyphicon glyphicon-pencil"></span></button>
                                 @endif
                             </td>
@@ -662,32 +660,27 @@
                         <div class='col-xs-12 col-lg-5 debtor-loan-data'>
                             <ul class='list-group'>
                                 <li class='list-group-item'>
-                                    <small>Подразделение (заявка):</small> {{$data[0]['address']}}
+                                    <small>Подразделение (заявка):</small> {{ $data['subdivisions']['claim_address'] ?? 'адрес неопределен' }}
                                 </li>
-                                @if (isset($data[0]['loan_subdivision_address']))
                                 <li class='list-group-item'>
-                                    <small>Подразделение (договор):</small> {{$data[0]['loan_subdivision_address']}}
+                                    <small>Подразделение (договор):</small> {{ $data['subdivisions']['loan_address'] ?? 'адрес неопределен' }}
                                 </li>
-                                @endif
                                 <li class='list-group-item'>
-                                    <small>Тип займа: {{(isset($data[0]['repl_in_cash']) && $data[0]['repl_in_cash']) ? 'наличные' : 'на карту'}}</small><br>
-                                    @if(isset($data[0]['is_terminal']) && $data[0]['is_terminal'] == 1)
-                                    2.2
-                                    @elseif($data[0]['loantype_special_pc']==1)
-                                    {{$data[0]['loan_special_percent']}}
+                                    <small>Тип займа: {{($loanSellingArm->in_cash) ? 'наличные' : 'на карту'}}</small><br>
+                                    @if($loanSellingArm->loantype->special_pc)
+                                    {{$loanSellingArm->loantype->special_pc}}
                                     @else
-                                    <b>({{$loan_first_percent}})</b> {{$loan_percents->pc}}
+                                    <b>({{$loanSellingArm->loantype->percent}}%)</b>,
                                     @endif
-                                    %,
-                                    пр. {{$loan_percents->exp_pc}}%,
-                                    пеня {{$loan_percents->fine}}%
+                                    пр. {{$loanSellingArm->loantype->exp_pc}}%,
+                                    пеня {{$loanSellingArm->loantype->fine_pc}}%
                                 </li>
                                 <li class='list-group-item'>
                                     <small>Договор:</small><br>
-                                    {{ $debtor->loan_id_1c }} от {{ \App\StrUtils::dateToStr($debtor->loan->created_at) }} | (сумма займа: {{number_format($data[0]['d_money'], 2, '.', '')}} руб.)
+                                    {{ $debtor->loan_id_1c }} от {{ \App\StrUtils::dateToStr($debtor->loan->created_at) }} | (сумма займа: {{number_format($debtor->loan->money, 2, '.', '')}} руб.)
                                 </li>
                                 <li class='list-group-item'>
-                                    <small>Срок:</small> {{$data[0]['time']}} {{ ($debtor->is_pos || $debtor->is_pledge || $debtor->is_bigmoney) ? 'мес.' : 'дн.' }}
+                                    <small>Срок:</small> {{$debtor->loan->time}} {{ ($debtor->is_pos || $debtor->is_pledge || $debtor->is_bigmoney) ? 'мес.' : 'дн.' }}
                                 </li>
                                 <li class='list-group-item'>
                                     <small>Дата начала:</small> {{ $debtor->loan->created_at->format('d.m.Y') }}
@@ -696,10 +689,10 @@
                                     <small>Дата окончания:</small> {{ $debtor->getLoanEndDate() }}
                                 </li>
                                 <li class='list-group-item'>
-                                    <span>Просроченных дней:</span> <span class="debt-exp_days-ondate">{{$data[0]['qty_delays']}}</span>
+                                    <span>Просроченных дней:</span> <span class="debt-exp_days-ondate">{{$debtor->qty_delays}}</span>
                                 </li>
                                 <li class='list-group-item'>
-                                    <span>База:</span> {{$data[0]['base']}} | Группа долга: {{$data[0]['debt_group_text']}}
+                                    <span>База:</span> {{$debtor->base}} | Группа долга: {{$data[0]['debt_group_text']}}
                                 </li>
                                 @if ($data_pos)
                                 <li class='list-group-item'>
@@ -728,7 +721,7 @@
                             </ul>
                         </div>
                         <div class='col-xs-12 col-lg-7' id="calc-data-block">
-                            @if ($data[0]['loantype_id_1c'] != 'ARM000047')
+                            @if ($debtor->loan->loantype->id_1c != 'ARM000047')
                             <table class='table table-condensed table-bordered debtor-debt-table'>
                                 <thead>
                                     <tr>
@@ -743,32 +736,32 @@
                                 <tbody>
                                     <tr>
                                         <td><span>Общая:</span></td>
-                                        <td style="text-align: center;"><b id="current-total-debt">{{number_format($data[0]['sum_indebt'] / 100, 2, '.', '')}}</b></td>
+                                        <td style="text-align: center;"><b id="current-total-debt">{{number_format($debtor->sum_indebt / 100, 2, '.', '')}}</b></td>
                                         <td style="text-align: center; font-weight: bold" class='debt-money-ondate'></td>
                                     </tr>
                                     <tr>
                                         <td><span>Основной долг:</span></td>
-                                        <td style="text-align: center;">{{number_format($data[0]['d_od'] / 100, 2, '.', '')}}</td>
+                                        <td style="text-align: center;">{{number_format($debtor->od / 100, 2, '.', '')}}</td>
                                         <td style="text-align: center;" class='debt-od-ondate'></td>
                                     </tr>
                                     <tr>
                                         <td><span>Проценты:</span></td>
-                                        <td style="text-align: center;">{{number_format($data[0]['d_pc'] / 100, 2, '.', '')}}</td>
+                                        <td style="text-align: center;">{{number_format($debtor->pc / 100, 2, '.', '')}}</td>
                                         <td style="text-align: center;" class='debt-pc-ondate'></td>
                                     </tr>
                                     <tr>
                                         <td><span>Проценты пр.:</span></td>
-                                        <td style="text-align: center;">{{number_format($data[0]['d_exp_pc'] / 100, 2, '.', '')}}</td>
+                                        <td style="text-align: center;">{{number_format($debtor->exp_pc / 100, 2, '.', '')}}</td>
                                         <td style="text-align: center;" class='debt-exp_pc-ondate'></td>
                                     </tr>
                                     <tr>
                                         <td><span>Пеня:</span></td>
-                                        <td style="text-align: center;">{{number_format($data[0]['d_fine'] / 100, 2, '.', '')}}</td>
+                                        <td style="text-align: center;">{{number_format($debtor->fine / 100, 2, '.', '')}}</td>
                                         <td style="text-align: center;" class='debt-fine-ondate'></td>
                                     </tr>
                                     <tr>
                                         <td><span>Переплата:</span></td>
-                                        <td style="text-align: center;">{{number_format($data[0]['d_overpayments'] / 100, 2, '.', '')}}</td>
+                                        <td style="text-align: center;">{{number_format($debtor->overpayments / 100, 2, '.', '')}}</td>
                                         <td style="text-align: center;" class='debt-overpayments-ondate'></td>
                                     </tr>
                                     <tr>
@@ -808,18 +801,11 @@
                             <a href="{{url('adminpanel/tester/solvedebtornoclaim/'.$debtor->id)}}">Подгрузить заявку</a>
                             <br>
                             @endif
-                            @if($enableRecurrentButton)
-                            <a href="/debtor/recurrent/query?debtor_id={{$debtor->id}}&amount={{$data[0]['sum_indebt']}}" class="btn btn-primary" id="recurrentButton">Списать (безакцепт)</a>
+                            @if($enableRecurrentButton && !$noRecurrent)
+                            <a href="/debtor/recurrent/query?debtor_id={{$debtor->id}}&amount={{$loanSellingArm->required_money}}" class="btn btn-primary" id="recurrentButton">Списать (безакцепт)</a>
                             @endif
                         </div>
                     </div>
-                    @if (count($multi_loans) > 1)
-                    <!--div class="row">
-                        <div class="col-lg-12" style="margin-top: 15px;">
-                            <p style="text-align: center;"><b>Общая задолженность на сегодня: <span> руб.</span></b></p>
-                        </div>
-                    </div-->
-                    @endif
                 </div>
             </div>
             <div class="panel panel-default">
@@ -865,7 +851,7 @@
                                 <br>
                                 {{ date('H:i', strtotime($payment->created_at)) }}
                             </td>
-                            <td>{{($payment->type == 3) ? 'Списание на карту' : $payment->reason}} {{ ($payment->type == 3 && isset($data[0]['card_type_string'])) ? $data[0]['card_type_string'] : '' }}</td>
+                            <td>{{($payment->type == 3) ? 'Списание на карту' : $payment->reason}}</td>
                             <td>{{(in_array($payment->type,[0,3])) ? number_format($payment->money / 100, 2, '.', '') . ' руб.' : ''}}</td>
                             <td>{{(in_array($payment->type,[5,18,19,20,21,22,30,36,37,47,48,49])) ? number_format($payment->money / 100, 2, '.', '') . ' руб.' : ''}}</td>
                             <td>
@@ -892,7 +878,7 @@
                             <td>{{$i}}</td>
                             <td>{{date('d.m.Y', strtotime($debtor->loan->created_at))}}</td>
                             <td>Списание на карту</td>
-                            <td>{{number_format($data[0]['d_money'], 2, '.', '')}}</td>
+                            <td>{{number_format($debtor->loan->money, 2, '.', '')}}</td>
                             <td></td>
                             <td></td>
                         </tr>
@@ -952,20 +938,20 @@
                                                         <?php
                                                         $sel_disabled = '';
                                                         $bool_sel_disabled = false;
-                                                        if ($data[0]['base'] == 'Архив убытки' || $data[0]['base'] == 'Архив компании') {
+                                                        if ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') {
                                                             $sel_disabled = ' disabled';
                                                             $bool_sel_disabled = true;
                                                         }
                                                         ?>
                                                     <select name="debt_group_id" class="form-control"{{$sel_disabled}}>
-                                                        @if ($data[0]['d_debt_group_id'] == null && $bool_sel_disabled)
+                                                        @if ($debtor->debt_group_id == null && $bool_sel_disabled)
                                                             <option value="" selected disabled></option>
                                                         @else
                                                             <option value=""></option>
                                                                 <?php foreach ($debtdata['debt_groups'] as $k => $type) {
                                                                 $selected = '';
                                                                 if ($bool_sel_disabled) {
-                                                                    if ($k == $data[0]['d_debt_group_id']){
+                                                                    if ($k == $debtor->debt_group_id){
                                                                         $selected = ' selected';
                                                                     }
                                                                 }
@@ -1158,7 +1144,7 @@
 $(document).ready(function () {
     new Clipboard('.btn-clipboard');
     $.debtorsCtrl.init();
-    @if ($data[0]['loantype_id_1c'] != 'ARM000047')
+    @if ($debtor->loan->loantype->id_1c != 'ARM000047')
     $.debtorsCtrl.initDebtorsCard();
     @else
         $.post($.app.url + '/ajax/debtors/calc/creditcard', {
@@ -1263,7 +1249,7 @@ $(document).on('click', '#sendSMS', function () {
         sms_id: $('input[name="sms_id"]:checked').val(),
         sms_text: sms,
         debtor_id_1c: $('input[name="debtor_id_1c"]').val(),
-        debt_group_id: "{{$data[0]['d_debt_group_id']}}"
+        debt_group_id: "{{$debtor->debt_group_id}}"
     }).done(function (data) {
         $.app.blockScreen(false);
         $('#debtorSMS').modal('hide');
@@ -1318,7 +1304,7 @@ $(document).on('click', '#sendSMSLink', function() {
             sms_type: 'link',
             amount: amount,
             debtor_id_1c: $('input[name="debtor_id_1c"]').val(),
-            debt_group_id: "{{$data[0]['d_debt_group_id']}}"
+            debt_group_id: "{{$debtor->debt_group_id}}"
         }).done(function (data) {
         if (data.title == 'Ошибка') {
             $.app.openErrorModal('Ошибка', data.msg);
@@ -1355,7 +1341,7 @@ $(document).on('click', '#sendSMSProps', function() {
         phone: sms_phone,
         sms_type: 'props',
         debtor_id_1c: $('input[name="debtor_id_1c"]').val(),
-        debt_group_id: "{{$data[0]['d_debt_group_id']}}"
+        debt_group_id: "{{$debtor->debt_group_id}}"
     }).done(function (data) {
         $.app.blockScreen(false);
         $('#debtorSMS').modal('hide');
@@ -1389,7 +1375,7 @@ $(document).on('click', '#getMessengerText', function() {
         sms_type: 'msg',
         amount: amount,
         debtor_id_1c: $('input[name="debtor_id_1c"]').val(),
-        debt_group_id: "{{$data[0]['d_debt_group_id']}}"
+        debt_group_id: "{{$debtor->debt_group_id}}"
     }).done(function (data) {
         if (data.title == 'Ошибка') {
             $.app.openErrorModal('Ошибка', data.msg);
