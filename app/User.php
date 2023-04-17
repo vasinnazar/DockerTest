@@ -109,6 +109,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         return $this->belongsTo('App\Customer');
     }
 
+    public function subordinatedUsers()
+    {
+        return $this->belongsToMany(User::class, 'debtor_users_ref', 'master_user_id', 'user_id');
+    }
+
     static function createEmptyUser($user_id_1c, $subdiv_id = null)
     {
         $user = User::where('id_1c', $user_id_1c)->first();
@@ -196,6 +201,5 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         $this->sms_sent++;
         $this->save();
-        return;
     }
 }

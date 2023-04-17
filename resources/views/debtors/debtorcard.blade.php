@@ -9,8 +9,8 @@
     {!! Form::hidden('customer_id_1c',$debtor->customer_id_1c) !!}
     {!! Form::hidden('loan_id_1c',$debtor->loan_id_1c) !!}
     {!! Form::hidden('debtor_id',$debtor->id) !!}
-    {!! Form::hidden('passport_series',$data[0]['series']) !!}
-    {!! Form::hidden('passport_number',$data[0]['number']) !!}
+    {!! Form::hidden('passport_series', $debtor->passport_series) !!}
+    {!! Form::hidden('passport_number', $debtor->passport_number) !!}
     {!! Form::hidden('user_infinity_extension', auth()->user()->infinity_extension) !!}
     <input type="hidden" name="overall_sum_today" id="overall_sum_today" value="">
     <input type="hidden" name="overall_sum_onday" id="overall_sum_onday" value="">
@@ -809,7 +809,7 @@
                             <br>
                             @endif
                             @if($enableRecurrentButton)
-                            <a href="/debtors/recurrent/query?debtor_id={{$debtor->id}}&amount={{$data[0]['sum_indebt']}}" class="btn btn-primary" id="recurrentButton">Списать (безакцепт)</a>
+                            <a href="/debtor/recurrent/query?debtor_id={{$debtor->id}}&amount={{$data[0]['sum_indebt']}}" class="btn btn-primary" id="recurrentButton">Списать (безакцепт)</a>
                             @endif
                         </div>
                     </div>
@@ -841,24 +841,25 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {{--*/ $i = 1 /*--}}
                         <?php $day_sum = 0; $payment_date = ''; $cnt_payments = count($datapayments); ?>
                         @foreach ($datapayments as $k => $payment)
-                        @php
+                        <?php
                         if ($payment->type != 3 && $payment->type != 0) {
                             if ($payment_date == date('d.m.Y', strtotime($payment->created_at))) {
                                 $day_sum += $payment->money;
 
                             } else {
                                 $payment_date = date('d.m.Y', strtotime($payment->created_at));
-                        @endphp
+                                ?>
                                 <tr><td colspan="6" style="background: #84C9FF;">Сумма: {{ number_format($day_sum / 100, 2, '.', '') }} руб.</td></tr>
-                        @php
+                                <?php
                                 $day_sum = $payment->money;
                             }
                         }
-                        @endphp
+                        ?>
                         <tr>
-                            <td>{{$loop->iteration}}</td>
+                            <td>{{$i}}</td>
                             <td>
                                 {{ date('d.m.Y', strtotime($payment->created_at)) }}
                                 <br>
@@ -877,12 +878,14 @@
                                 @endif
                             </td>
                         </tr>
-                        @if ($loop->iteration == $cnt_payments)
+                        <?php
+                        if ($i == $cnt_payments) {
+                                ?>
                                 <tr><td colspan="6" style="background: #84C9FF;">Сумма: {{ number_format($day_sum / 100, 2, '.', '') }} руб.</td></tr>
-                        @endif
-                            @php
-                                $i = $loop->iteration
-                            @endphp
+                                <?php
+                        }
+                        ?>
+                        {{--*/ $i++ /*--}}
                         @endforeach
                         @if ($i == 1)
                         <tr>

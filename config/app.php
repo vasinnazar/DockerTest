@@ -4,7 +4,6 @@ return [
     'dev'=>0,
     'centos'=>1,
     'version_type'=>'debtors',
-    'name' => 'Debtors',
     /*
       |--------------------------------------------------------------------------
       | Application Debug Mode
@@ -106,10 +105,12 @@ return [
          * Laravel Framework Service Providers...
          */
         'Illuminate\Broadcasting\BroadcastServiceProvider',
+        'Illuminate\Foundation\Providers\ArtisanServiceProvider',
         'Illuminate\Auth\AuthServiceProvider',
         'Illuminate\Bus\BusServiceProvider',
         'Illuminate\Cache\CacheServiceProvider',
         'Illuminate\Foundation\Providers\ConsoleSupportServiceProvider',
+        'Illuminate\Routing\ControllerServiceProvider',
         'Illuminate\Cookie\CookieServiceProvider',
         'Illuminate\Database\DatabaseServiceProvider',
         'Illuminate\Encryption\EncryptionServiceProvider',
@@ -138,9 +139,10 @@ return [
         Barryvdh\Debugbar\ServiceProvider::class,
         Maatwebsite\Excel\ExcelServiceProvider::class,
         \Yajra\Datatables\DatatablesServiceProvider::class,
+        \App\Providers\DebtorServiceProvider::class,
         Collective\Html\HtmlServiceProvider::class,
         App\Providers\BroadcastServiceProvider::class
-        
+
     ],
     /*
       |--------------------------------------------------------------------------

@@ -5,14 +5,33 @@ namespace App\Services;
 
 use App\Customer;
 use App\Debtor;
+use App\DebtorRecurrentQuery;
+use App\MassRecurrentTask;
 use App\MySoap;
-use App\Passport;
 use Carbon\Carbon;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class DebtorCardService
 {
+    private $httpClient;
+
+    public function __construct()
+    {
+        $this->httpClient = new Client(
+            [
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ],
+            ]
+        );
+    }
+
     /**
      * @string  $customerId1c
      * @string  $loanId1c
@@ -147,10 +166,11 @@ class DebtorCardService
 
         $passport = $debtor->passport->first();
 
-        $equalAddressesRegisterToRegister = Debtor::leftJoin('passports', function ($join) {
-            $join->on('passports.series', '=', 'debtors.debtors.passport_series');
-            $join->on('passports.number', '=', 'debtors.debtors.passport_number');
-        })
+        $equalAddressesRegisterToRegister = Debtor::select('debtors.*')
+            ->leftJoin('passports', function ($join) {
+                $join->on('passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('passports.number', '=', 'debtors.debtors.passport_number');
+            })
             ->where('passports.zip', $passport->zip)
             ->where('passports.address_region', $passport->address_region)
             ->where('passports.address_district', $passport->address_district)
@@ -163,10 +183,11 @@ class DebtorCardService
             ->where('passports.id', '<>', $passport->id)
             ->get();
 
-        $equalAddressesRegisterToFact = Debtor::leftJoin('passports', function ($join) {
-            $join->on('passports.series', '=', 'debtors.debtors.passport_series');
-            $join->on('passports.number', '=', 'debtors.debtors.passport_number');
-        })
+        $equalAddressesRegisterToFact = Debtor::select('debtors.*')
+            ->leftJoin('passports', function ($join) {
+                $join->on('passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('passports.number', '=', 'debtors.debtors.passport_number');
+            })
             ->where('passports.fact_zip', $passport->zip)
             ->where('passports.fact_address_region', $passport->address_region)
             ->where('passports.fact_address_district', $passport->address_district)
@@ -179,10 +200,11 @@ class DebtorCardService
             ->where('passports.id', '<>', $passport->id)
             ->get();
 
-        $equalAddressesFactToRegister = Debtor::leftJoin('passports', function ($join) {
-            $join->on('passports.series', '=', 'debtors.debtors.passport_series');
-            $join->on('passports.number', '=', 'debtors.debtors.passport_number');
-        })
+        $equalAddressesFactToRegister = Debtor::select('debtors.*')
+            ->leftJoin('passports', function ($join) {
+                $join->on('passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('passports.number', '=', 'debtors.debtors.passport_number');
+            })
             ->where('zip', $passport->zip)
             ->where('address_region', $passport->fact_address_region)
             ->where('address_district', $passport->fact_address_district)
@@ -195,10 +217,11 @@ class DebtorCardService
             ->where('passports.id', '<>', $passport->id)
             ->get();
 
-        $equalAddressesFactToFact = Debtor::leftJoin('passports', function ($join) {
-            $join->on('passports.series', '=', 'debtors.debtors.passport_series');
-            $join->on('passports.number', '=', 'debtors.debtors.passport_number');
-        })
+        $equalAddressesFactToFact = Debtor::select('debtors.*')
+            ->leftJoin('passports', function ($join) {
+                $join->on('passports.series', '=', 'debtors.debtors.passport_series');
+                $join->on('passports.number', '=', 'debtors.debtors.passport_number');
+            })
             ->where('fact_zip', $passport->fact_zip)
             ->where('fact_address_region', $passport->fact_address_region)
             ->where('fact_address_district', $passport->fact_address_district)
@@ -220,5 +243,59 @@ class DebtorCardService
         ]);
 
         return $collection;
+    }
+
+    public function checkRecurrentButtonEnabled(Debtor $debtor, $loan_in_cash, $loan_required_money)
+    {
+        if ($loan_in_cash || !$loan_required_money || in_array($debtor->debt_group_id, [1, 2, 3])) {
+            return false;
+        }
+
+        if (auth()->user()->hasRole('debtors_remote')) {
+            $userStrPodr = '000000000006';
+        } else {
+            if (auth()->user()->hasRole('debtors_personal')) {
+                $userStrPodr = '000000000007';
+            } else {
+                $userStrPodr = null;
+            }
+        }
+
+        if ($debtor->str_podr != $userStrPodr) {
+            return false;
+        }
+
+        $sentRecurrentQueryToday = DebtorRecurrentQuery::where('debtor_id', $debtor->id)
+            ->whereDate('created_at', '=', Carbon::today())
+            ->first();
+
+        if ($sentRecurrentQueryToday) {
+            return false;
+        }
+
+        $factTimezone = $debtor->passport()->first()->fact_timezone;
+
+        if (!$factTimezone) {
+            return false;
+        }
+
+        if ($factTimezone >= -5 && $factTimezone <= -2) {
+            $taskTimezone = 'west';
+        } else if ($factTimezone >= -1 && $factTimezone <= 5) {
+            $taskTimezone = 'east';
+        } else {
+            return false;
+        }
+
+        $recurrentTask = MassRecurrentTask::whereDate('created_at', '=', Carbon::today())
+            ->whereIn('str_podr', [$userStrPodr, $userStrPodr . '-1'])
+            ->where('timezone', $taskTimezone)
+            ->first();
+
+        if ($recurrentTask) {
+            return false;
+        }
+
+        return true;
     }
 }
