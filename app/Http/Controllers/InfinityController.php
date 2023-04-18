@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Debtor;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Events\Infinity\IncomingCallEvent;
@@ -112,30 +114,21 @@ class InfinityController extends BasicController
         Redis::publish('incoming-calls', json_encode(['data' => $data]));
     }
 
-    function getDebtorByPhone($telephone)
+    public function getDebtorByPhone($telephone): ?Debtor
     {
-        $customers = DB::Table('armf.customers')->select(DB::raw('*'))->where('telephone', (int)$telephone)->get();
+        $customers = DB::table('armf.customers')
+            ->select(DB::raw('*'))
+            ->where('telephone', (int)$telephone)
+            ->get();
         if (count($customers) > 1) {
-            //logger('InfinityController.getDebtorByPhone more than 1 customers', ['tel' => $telephone, 'res' => 0]);
             Log::info("InfinityController.getDebtorByPhone more than 1 customers", ['tel' => $telephone, 'res' => 0]);
-            return 0;
+            return null;
         }
         $customer = \App\Customer::where('telephone', (int)$telephone)->orderBy('created_at', 'desc')->first();
         if (is_null($customer)) {
-            //logger('InfinityController.getDebtorByPhone customer is null', ['tel' => $telephone, 'res' => 0]);
             Log::info("InfinityController.getDebtorByPhone customer is null", ['tel' => $telephone, 'res' => 0]);
             return null;
         }
-        /* $loan = \App\Loan::leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-          ->where('claims.customer_id', $customer->id)
-          ->orderBy('loans.created_at', 'desc')
-          ->select(['loans.id_1c'])
-          ->first();
-          if (is_null($loan)) {
-          //logger('InfinityController.getDebtorByPhone loan is null', ['tel' => $telephone, 'res' => 0]);
-          Log::info("InfinityController.getDebtorByPhone loan is null", ['tel' => $telephone, 'res' => 0]);
-          return null;
-          } */
         return \App\Debtor::where('customer_id_1c', $customer->id_1c)
             ->where('is_debtor', 1)
             ->orderBy('created_at', 'desc')
@@ -146,7 +139,6 @@ class InfinityController extends BasicController
     {
         logger('InfinityController.getDebtorTimeByPhone 1', ['telephone' => $telephone]);
         if (empty($telephone)) {
-            //logger('InfinityController.getDebtorTimeByPhone empty phone', ['tel' => $telephone, 'res' => 0]);
             Log::info("InfinityController.getDebtorTimeByPhone empty phone", ['tel' => $telephone, 'res' => 0]);
             return 0;
         }
@@ -155,30 +147,43 @@ class InfinityController extends BasicController
         }
         $debtor = $this->getDebtorByPhone($telephone);
         if (is_null($debtor)) {
-            //logger('InfinityController.getDebtorTimeByPhone 2 debtor is null', ['tel' => $telephone, 'debtor' => $debtor, 'res' => 0]);
-            Log::info("InfinityController.getDebtorTimeByPhone 2 debtor is null", ['tel' => $telephone, 'debtor' => $debtor, 'res' => 0]);
+            Log::info("InfinityController.getDebtorTimeByPhone 2 debtor is null", [
+                'tel' => $telephone,
+                'debtor' => $debtor,
+                'res' => 0
+            ]);
             return 0;
         }
         if (!isset($debtor->base)) {
-            //logger('InfinityController.getDebtorTimeByPhone 6', ['tel' => $telephone, 'debtor' => $debtor, 'res' => 0]);
-            Log::info("InfinityController.getDebtorTimeByPhone 6", ['tel' => $telephone, 'debtor' => $debtor, 'res' => 0]);
+            Log::info("InfinityController.getDebtorTimeByPhone 6", [
+                'tel' => $telephone,
+                'debtor' => $debtor,
+                'res' => 0
+            ]);
             return 0;
         }
-        if ($debtor->base == 'Архив ЗД' || $debtor->base == 'Архив ОВК') {
-            //logger('InfinityController.getDebtorTimeByPhone 3', ['tel' => $telephone, 'debtor' => $debtor, 'res' => 0]);
-            Log::info("InfinityController.getDebtorTimeByPhone 3", ['tel' => $telephone, 'debtor' => $debtor, 'res' => 0]);
+        if ($debtor->base === 'Архив ЗД' || $debtor->base === 'Архив ОВК') {
+            Log::info("InfinityController.getDebtorTimeByPhone 3", [
+                'tel' => $telephone,
+                'debtor' => $debtor,
+                'res' => 0
+            ]);
             return 0;
         }
         if ($debtor->is_debtor == 1 && $debtor->str_podr == '000000000006') {
-            //logger('InfinityController.getDebtorTimeByPhone 4', ['tel' => $telephone, 'debtor' => $debtor, 'res' => 22]);
-            Log::info("InfinityController.getDebtorTimeByPhone 4", ['tel' => $telephone, 'debtor' => $debtor, 'res' => 22]);
+            Log::info("InfinityController.getDebtorTimeByPhone 4", [
+                'tel' => $telephone,
+                'debtor' => $debtor,
+                'res' => 22
+            ]);
             return 22;
-        } else {
-            //logger('InfinityController.getDebtorTimeByPhone 5', ['tel' => $telephone, 'debtor' => $debtor, 'res' => 0]);
-            Log::info("InfinityController.getDebtorTimeByPhone 5", ['tel' => $telephone, 'debtor' => $debtor, 'res' => 0]);
-            return 0;
         }
-        //return (int) $debtor->qty_delays;
+        Log::info("InfinityController.getDebtorTimeByPhone 5", [
+            'tel' => $telephone,
+            'debtor' => $debtor,
+            'res' => 0
+        ]);
+        return 0;
     }
 
     public function getDebtorTimeByPhoneWithRequest(Request $req)
