@@ -256,9 +256,6 @@ class DebtorsController extends BasicController
 
         $arDebtGroups = \App\DebtGroup::getDebtGroups();
         \PC::debug($arDebtGroups);
-        $data[0]['passport_address'] = Passport::getFullAddress($debtor->passport->first());
-        $data[0]['real_address'] = Passport::getFullAddress($debtor->passport->first(), true);
-        $data[0]['fact_address_region'] = $debtor->passport->first()->fact_address_region;
         $data[0]['debt_group_text'] = (array_key_exists($debtor->debt_group_id,
             $arDebtGroups)) ? $arDebtGroups[$debtor->debt_group_id] : '';
         $data[0]['sms_available'] = (!is_null($user->sms_limit) ? $user->sms_limit : 0) - (!is_null($user->sms_sent) ? $user->sms_sent : 0);
