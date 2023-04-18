@@ -745,8 +745,7 @@ Route::middleware('auth_only')->group(function () {
         Route::get('/setSelfResponsible/{debtor_id}', [DebtorsController::class,'setSelfResponsible']);
         Route::get('/temporary/cron/handle', [DebtorsController::class,'temporaryCronTasksHandling']);
 
-        Route::post('/infinity/incomingCall', [InfinityController::class,'incomingCall']);
-        Route::post('/infinity/closingModals', [InfinityController::class,'closingModals']);
+
 
         Route::get('/emails/list/{user_id}',[EmailController::class,'index']);
         Route::post('/email/send',[EmailController::class,'sendEmail'])->name('email.send');
@@ -792,16 +791,18 @@ Route::middleware('auth_only')->group(function () {
 
     });
 
-    //ИНФИНИТИ
-    Route::prefix('/infinity')->group(function () {
+});
 
-        Route::get('infinity/income', [InfinityController::class,'incoming']);
-        Route::post('/callbacks/{item}/{callback}', [InfinityController::class,'callbacks']);
-        Route::get('/callbacks/{item}/{callback}', [InfinityController::class,'callbacks']);
-        Route::get('/losscall', [InfinityController::class,'fromInfinityLossCalls']);
-        Route::get('/is_debtor_time', [InfinityController::class,'getDebtorTimeByPhoneWithRequest']);
-        Route::get('/is_debtor_time/{telephone}', [InfinityController::class,'getDebtorTimeByPhone']);
-        Route::get('/is_debtor_operator/{telephone}', [InfinityController::class,'getUserInfinityIdByDebtorPhone']);
-    });
+//ИНФИНИТИ
+Route::post('/debtors/infinity/incomingCall', [InfinityController::class,'incomingCall']);
+Route::post('/debtors/infinity/closingModals', [InfinityController::class,'closingModals']);
+Route::prefix('/infinity')->group(function () {
 
+    Route::get('infinity/income', [InfinityController::class,'incoming']);
+    Route::post('/callbacks/{item}/{callback}', [InfinityController::class,'callbacks']);
+    Route::get('/callbacks/{item}/{callback}', [InfinityController::class,'callbacks']);
+    Route::get('/losscall', [InfinityController::class,'fromInfinityLossCalls']);
+    Route::get('/is_debtor_time', [InfinityController::class,'getDebtorTimeByPhoneWithRequest']);
+    Route::get('/is_debtor_time/{telephone}', [InfinityController::class,'getDebtorTimeByPhone']);
+    Route::get('/is_debtor_operator/{telephone}', [InfinityController::class,'getUserInfinityIdByDebtorPhone']);
 });
