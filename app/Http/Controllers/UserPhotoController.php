@@ -62,7 +62,7 @@ class UserPhotoController extends Controller {
                 return $html;
             })
             ->removeColumn('up_id')
-            ->rawColumn(['actions','up_path'])
+            ->rawColumns(['actions','up_path'])
             ->toJson();
     }
     function ajaxListSearch($items,$req){

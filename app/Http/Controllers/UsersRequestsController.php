@@ -310,7 +310,7 @@ class UsersRequestsController extends Controller {
             ->filter(function ($query) use ($request) {
 
             })
-            ->rawColumn(['actions','req_status','req_doc_id'])
+            ->rawColumns(['actions','req_status','req_doc_id'])
             ->toJson();
     }
     /**

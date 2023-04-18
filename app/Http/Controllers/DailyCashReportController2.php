@@ -113,7 +113,7 @@ class DailyCashReportController extends Controller {
             })
             ->removeColumn('subdiv_name')
             ->removeColumn('subdiv_id')
-            ->rawColumn(['actions','username','matches'])
+            ->rawColumns(['actions','username','matches'])
             ->toJson();
     }
 

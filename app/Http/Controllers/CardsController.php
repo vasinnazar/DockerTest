@@ -99,7 +99,7 @@ class CardsController extends Controller {
                     $query->where('card_changes.new_card_number', '=', $req->get('new_card_number'));
                 }
             })
-            ->rawColumn(['actions'])
+            ->rawColumns(['actions'])
             ->toJson();
         return $collection;
     }

@@ -81,7 +81,7 @@ class MaterialsClaimsController extends BasicController {
                     $query->where('materials_claims.subdivision_id', Auth::user()->subdivision_id);
                 }
             })
-            ->rawColumn(['actions'])
+            ->rawColumns(['actions'])
             ->toJson();
         return $collection;
     }

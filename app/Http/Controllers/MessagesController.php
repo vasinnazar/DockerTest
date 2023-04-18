@@ -65,7 +65,7 @@ class MessagesController extends BasicController {
                     $query->where('fio', 'like', "%" . $req->get('fio') . "%");
                 }
             })
-            ->rawColumn(['actions'])
+            ->rawColumns(['actions'])
             ->toJson();
         return $collection;
     }

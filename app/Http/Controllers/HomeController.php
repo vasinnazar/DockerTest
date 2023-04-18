@@ -603,7 +603,7 @@ class HomeController extends Controller {
                 });
             }
         }
-        $collection = $dt->rawColumn([
+        $collection = $dt->rawColumns([
             'actions',
             'remove',
             'userinfo',

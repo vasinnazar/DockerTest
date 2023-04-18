@@ -184,7 +184,7 @@ class DebtorMassSmsController extends BasicController
                     }
                 }
             })
-            ->rawColumn(['links'])
+            ->rawColumns(['links'])
             ->toJson();
         return $collection;
     }

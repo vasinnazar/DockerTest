@@ -100,7 +100,7 @@ class CustomersController extends Controller {
                     $query->where('number', '=', $request->get('number'));
                 }
             })
-            ->rawColumn(['actions'])
+            ->rawColumns(['actions'])
             ->toJson();
         if ($getFrom1cOnFail) {
             if ($request->has('series') && $request->has('number')) {

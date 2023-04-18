@@ -19,7 +19,7 @@
                 }
             },
             columns: [
-                {data: '0', name: 'name'},
+                {data: 'name', name: 'name'},
             ]
         });
         $('#userLogForm').find('[name="from"],[name="to"]').change(function () {

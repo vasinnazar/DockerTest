@@ -143,8 +143,8 @@ class AdminPanelController extends Controller
                                         }%");
                 }
             })
-            ->rawColumn(['name'])
-            ->toJson();
+            ->rawColumns(['name'])
+            ->make();
     }
 
     public function updateUser(Request $request)
@@ -304,7 +304,7 @@ class AdminPanelController extends Controller
                     $query->where('name', 'like', "%" . $request->get('name') . "%");
                 }
             })
-            ->rawColumn(['actions','name'])
+            ->rawColumns(['actions','name'])
             ->toJson();
     }
 

@@ -99,7 +99,7 @@ class TerminalAdminController extends Controller {
                     $query->where('description', 'like', "%" . $req->get('description') . "%");
                 }
             })
-            ->rawColumn(['actions','status','lock_status'])
+            ->rawColumns(['actions','status','lock_status'])
             ->toJson();
     }
 

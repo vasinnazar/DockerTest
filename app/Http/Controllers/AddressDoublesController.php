@@ -42,7 +42,7 @@ class AddressDoublesController extends BasicController
             ->addColumn('action', function ($item) {
                 return '';
             })
-            ->rawColumn(['actions'])
+            ->rawColumns(['actions'])
             ->toJson();
         return $collection;
     }

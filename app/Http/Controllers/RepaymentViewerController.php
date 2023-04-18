@@ -148,7 +148,7 @@ class RepaymentViewerController extends BasicController {
                     $query->where('npf_contracts.subdivision_id', Auth::user()->subdivision_id);
                 }
             })
-            ->rawColumn(['actions'])
+            ->rawColumns(['actions'])
             ->toJson();
         return $collection;
     }

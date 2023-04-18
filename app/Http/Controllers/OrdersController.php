@@ -303,7 +303,7 @@ class OrdersController extends BasicController {
             ->removeColumn('order_claimed_for_remove')
             ->removeColumn('order_plus')
             ->removeColumn('order_repayment_id')
-            ->rawColumn(['actions'])
+            ->rawColumns(['actions'])
             ->toJson();
     }
 

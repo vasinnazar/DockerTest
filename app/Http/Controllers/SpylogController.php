@@ -128,7 +128,7 @@ class SpylogController extends Controller {
                     $query->where('logs.created_at', '<=', new Carbon($request->get('date_to')));
                 }
             })
-            ->rawColumn(['view'])
+            ->rawColumns(['view'])
             ->toJson();
     }
 

@@ -66,7 +66,7 @@ class AdvanceReportController extends BasicController {
                 return $html;
             })
             ->removeColumn('ar_id')
-            ->rawColumn(['actions'])
+            ->rawColumns(['actions'])
             ->toJson();
     }
 

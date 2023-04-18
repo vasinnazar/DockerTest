@@ -561,7 +561,7 @@ class LoanController extends Controller {
                     $query->where('loans.id_1c', 'LIKE', '%' . $request->get('loan_id_1c') . '%');
                 }
             })
-            ->rawColumn(['actions','loans_status'])
+            ->rawColumns(['actions','loans_status'])
             ->toJson();
         //если не найдено договоров, то добавить договора из 1С
         if ($getFrom1cOnFail && (!$request->has('without1c') || !$request->without1c)) {

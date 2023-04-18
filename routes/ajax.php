@@ -141,7 +141,7 @@ Route::prefix('/ajax')->group(function () {
         Route::post('/refreshlastlogin/{user_id}', [AdminPanelController::class, 'refreshUserLastLogin'])
             ->name('ajax.adminpanel.refreshlastlogin');
         Route::post('/users/employment/{user_id}', [UserController::class, 'setEmploymentFields']);
-        Route::get('/subdivisions/list', [AdminPanelController::class, 'etSubdivisionsList'])
+        Route::get('/subdivisions/list', [AdminPanelController::class, 'getSubdivisionsList'])
             ->name('ajax.adminpanel.subdivisions.list');
         Route::post('/users/terminals/grant', [UserController::class, 'grantTerminals']);
         Route::post('/users/mail/add', [UserController::class, 'addEmailAjax']);
