@@ -63,6 +63,7 @@ return [
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
+            'strict' => false,
             'options'    => [PDO::MYSQL_ATTR_LOCAL_INFILE=>true],
         ),
         'debtors' => array(
@@ -81,6 +82,7 @@ return [
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
+            'strict' => false,
         ),
         'armf' => array(
             'read' => array(
@@ -229,7 +231,14 @@ return [
         'client' => 'predis',
 
         'options' => [
-            'cluster' => 'redis',
+            'cluster' => env('REDIS_CLUSTER', 'predis'),
+        ],
+
+        'default' => [
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'password' => env('REDIS_PASSWORD', null),
+            'port' => env('REDIS_PORT', 6379),
+            'database' => env('REDIS_DB', 0),
         ],
 
         'clusters' => [
