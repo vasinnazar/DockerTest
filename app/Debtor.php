@@ -377,6 +377,11 @@ class Debtor extends Model
                 //'hidden_value_field' => 'debtors@loan_id_1c'
             ],
             [
+                'name' => 'passports@fact_timezone',
+                'input_type' => 'text',
+                'label' => 'Разница в часах',
+            ],
+            [
                 'name' => 'debtors@qty_delays_from',
                 'input_type' => 'number',
                 'label' => 'Дней просрочки, от'
