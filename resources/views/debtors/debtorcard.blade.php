@@ -275,7 +275,7 @@
                         <table class="table table-condensed debtor-card-data">
                             <tr class='active'>
                                 <td colspan="3" class='text-center'>
-                                    <span>Паспорт:</span> <span>серия <strong>{{$debtor->series}}</strong> номер <strong>{{$debtor->number}}</strong></span>
+                                    <span>Паспорт:</span> <span>серия <strong>{{$debtor->passport_series}}</strong> номер <strong>{{$debtor->passport_number}}</strong></span>
                                 </td>
                             </tr>
                             <tr>
