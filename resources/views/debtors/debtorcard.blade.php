@@ -802,7 +802,7 @@
                                     <br>
                                 @endif
                                 @if($enableRecurrentButton && !$noRecurrent)
-                                    <a href="/debtor/recurrent/query?debtor_id={{$debtor->id}}&amount={{$loanSellingArm->required_money}}" class="btn btn-primary" id="recurrentButton">Списать (безакцепт)</a>
+                                    <a href="/debtors/recurrent/query?debtor_id={{$debtor->id}}&amount={{$loanSellingArm->required_money}}" class="btn btn-primary" id="recurrentButton">Списать (безакцепт)</a>
                                 @endif
                             </div>
                         </div>
