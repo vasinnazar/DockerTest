@@ -241,7 +241,7 @@ class DebtorTransferController extends BasicController {
                     }
                 }
             })
-            ->make();
+            ->toJson();
     }
 
     public function transferHistory(Request $req) {

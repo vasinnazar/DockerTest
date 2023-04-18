@@ -561,10 +561,9 @@ class LoanController extends Controller {
                     $query->where('loans.id_1c', 'LIKE', '%' . $request->get('loan_id_1c') . '%');
                 }
             })
-            ->setTotalRecords(1000)
-            ->make();
+            ->rawColumn(['actions','loans_status'])
+            ->toJson();
         //если не найдено договоров, то добавить договора из 1С
-        $colObj = $collection->getData();
         if ($getFrom1cOnFail && (!$request->has('without1c') || !$request->without1c)) {
             if ($request->has('series') && $request->has('number') && $request->series != '' && $request->number != '') {
                 if (!is_null($this->updateLoanRepayments($request->get('series'), $request->get('number')))) {

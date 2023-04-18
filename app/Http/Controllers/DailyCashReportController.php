@@ -135,8 +135,8 @@ class DailyCashReportController extends Controller {
             ->removeColumn('report_id_1c')
             ->removeColumn('rsb')
             ->removeColumn('reb')
-            ->setTotalRecords(1000)
-            ->make();
+            ->rawColumn(['actions','matches','sb','eb','created_at','username'])
+            ->toJson();
     }
     /**
      * Установить галочку что отчет совпадает вручную

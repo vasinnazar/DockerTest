@@ -38,12 +38,12 @@
 <script>
     (function () {
         var tableCtrl = new TableController('loans', [
-            {data: '0', name: 'loans_created_at'},
-            {data: '1', name: 'passports_fio'},
-            {data: '2', name: 'loans_money'},
-            {data: '3', name: 'loans_time'},
-            {data: '4', name: 'loans_status'},
-            {data: '5', name: 'actions', searchable: false, orderable: false},
+            {data: 'loans_created_at', name: 'loans_created_at'},
+            {data: 'passports_fio', name: 'passports_fio'},
+            {data: 'loans_money', name: 'loans_money'},
+            {data: 'loans_time', name: 'loans_time'},
+            {data: 'loans_status', name: 'loans_status'},
+            {data: 'actions', name: 'actions', searchable: false, orderable: false},
         ],{
             clearFilterBtn:$('#clearLoansFilterBtn'),
             repeatLastSearchBtn:$('#repeatLastSearchBtn'),

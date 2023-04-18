@@ -100,9 +100,8 @@ class CustomersController extends Controller {
                     $query->where('number', '=', $request->get('number'));
                 }
             })
-            ->setTotalRecords(1000)
-            ->make();
-        $colObj = $collection->getData();
+            ->rawColumn(['actions'])
+            ->toJson();
         if ($getFrom1cOnFail) {
             if ($request->has('series') && $request->has('number')) {
                 if (!is_null($this->findCustomerIn1C($request->get('series'), $request->get('number')))) {

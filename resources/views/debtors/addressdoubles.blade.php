@@ -75,18 +75,18 @@
 <script>
     (function () {
         var tableCtrl = new TableController('addressdoubles', [
-            {data: '0', name: 'debtor_fio'},
-            {data: '1', name: 'debtor_address'},
-            {data: '2', name: 'debtor_telephone'},
-            {data: '3', name: 'debtor_overdue'},
-            {data: '4', name: 'customer_fio'},
-            {data: '5', name: 'customer_address'},
-            {data: '6', name: 'customer_telephone'},
-            {data: '7', name: 'comment'},
-            {data: '8', name: 'date'},
-            {data: '9', name: 'responsible_user_id_1c'},
-            {data: '10', name: 'is_debtor'},
-            {data: '11', name: 'actions', searchable: false, orderable: false},
+            {data: 'debtor_fio', name: 'debtor_fio'},
+            {data: 'debtor_address', name: 'debtor_address'},
+            {data: 'debtor_telephone', name: 'debtor_telephone'},
+            {data: 'debtor_overdue', name: 'debtor_overdue'},
+            {data: 'customer_fio', name: 'customer_fio'},
+            {data: 'customer_address', name: 'customer_address'},
+            {data: 'customer_telephone', name: 'customer_telephone'},
+            {data: 'comment', name: 'comment'},
+            {data: 'date', name: 'date'},
+            {data: 'responsible_user_id_1c', name: 'responsible_user_id_1c'},
+            {data:  'is_debtor', name: 'is_debtor'},
+            {data:  'actions', name: 'actions', searchable: false, orderable: false},
         ], {
             clearFilterBtn: $('#addressdoublesClearFilterBtn'),
         });

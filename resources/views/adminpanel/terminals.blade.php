@@ -111,13 +111,13 @@
 <script>
     (function () {
         var tableCtrl = new TableController('terminals', [
-            {data: '0', name: 'name'},
-            {data: '1', name: 'status'},
-            {data: '2', name: 'dispenser_cash'},
-            {data: '3', name: 'dispenser_count'},
-            {data: '4', name: 'bill_cash'},
-            {data: '5', name: 'lock_status', orderable: false, searchable: false},
-            {data: '6', name: 'actions', orderable: false, searchable: false},
+            {data: 'name', name: 'name'},
+            {data: 'status', name: 'status'},
+            {data: 'dispenser_cash', name: 'dispenser_cash'},
+            {data: 'dispenser_count', name: 'dispenser_count'},
+            {data: 'bill_cash', name: 'bill_cash'},
+            {data: 'lock_status', name: 'lock_status', orderable: false, searchable: false},
+            {data: 'actions', name: 'actions', orderable: false, searchable: false},
         ], {listURL: 'ajax/adminpanel/terminals/list'});
     })(jQuery);
 </script>

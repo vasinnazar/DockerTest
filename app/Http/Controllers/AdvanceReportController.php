@@ -66,8 +66,8 @@ class AdvanceReportController extends BasicController {
                 return $html;
             })
             ->removeColumn('ar_id')
-            ->setTotalRecords(1000)
-            ->make();
+            ->rawColumn(['actions'])
+            ->toJson();
     }
 
     /**

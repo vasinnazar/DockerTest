@@ -2,13 +2,13 @@
     $.issueClaimCtrl = {};
     $.issueClaimCtrl.init = function () {
         $.issueClaimCtrl.issueClaimsTableCtrl = new TableController('issueclaims', [
-            {data: '0', name: 'ic_created_at'},
-            {data: '1', name: 'ot_name'},
-            {data: '2', name: 'ic_number'},
-            {data: '3', name: 'ic_money'},
-            {data: '4', name: 'u_name'},
-            {data: '5', name: 'p_fio'},
-            {data: '6', name: 'actions', searchable: false, orderable: false},
+            {data: 'ic_created_at', name: 'ic_created_at'},
+            {data: 'ot_name', name: 'ot_name'},
+            {data: 'ic_number', name: 'ic_number'},
+            {data: 'ic_money', name: 'ic_money'},
+            {data: 'u_name', name: 'u_name'},
+            {data: 'p_fio', name: 'p_fio'},
+            {data: 'actions', name: 'actions', searchable: false, orderable: false},
         ], {
             listURL: 'ajax/orders/issueclaims/list',
             clearFilterBtn: $('#clearIssueClaimsFilterBtn')

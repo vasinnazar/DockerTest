@@ -3044,6 +3044,7 @@ class DebtorsController extends BasicController
             }, 0)
             ->removeColumn('debtors_id')
             ->removeColumn('debtors_responsible_user_id_1c')
+            ->rawColumn(['links'])
             ->toJson();
     }
 
@@ -3181,7 +3182,7 @@ class DebtorsController extends BasicController
             ->removeColumn('uploaded')
             ->removeColumn('debtors_debt_group')
             ->removeColumn('debtors_responsible_user_id_1c')
-            ->setTotalRecords(1000)
+            ->rawColumn(['links'])
             ->toJson();
     }
 

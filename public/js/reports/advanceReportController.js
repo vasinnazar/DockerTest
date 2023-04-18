@@ -4,10 +4,10 @@
     };
     $.advRepCtrl.initList = function () {
         var tableCtrl = new TableController('advancereports', [
-            {data: '0', name: 'ar_created_at'},
-            {data: '1', name: 'user_name'},
-            {data: '2', name: 'subdiv_name'},
-            {data: '3', name: 'actions', searchable: false, orderable: false},
+            {data: 'ar_created_at', name: 'ar_created_at'},
+            {data: 'user_name', name: 'user_name'},
+            {data: 'subdiv_name', name: 'subdiv_name'},
+            {data: 'actions', name: 'actions', searchable: false, orderable: false},
         ], {order: [[0, "desc"]], listURL: 'ajax/reports/advancereports/list'});
     };
     $.advRepCtrl.initEditor = function () {

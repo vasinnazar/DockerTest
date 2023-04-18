@@ -128,8 +128,8 @@ class SpylogController extends Controller {
                     $query->where('logs.created_at', '<=', new Carbon($request->get('date_to')));
                 }
             })
-            ->setTotalRecords(1000)
-            ->make();
+            ->rawColumn(['view'])
+            ->toJson();
     }
 
 }

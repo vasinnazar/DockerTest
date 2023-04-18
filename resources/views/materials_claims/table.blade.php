@@ -47,12 +47,12 @@
 <script>
 (function () {
     var tableCtrl = new TableController('matclaims', [
-        {data: '0', name: 'matclaim_id'},
-        {data: '1', name: 'matclaim_created_at'},
-        {data: '2', name: 'matclaim_claim_date'},
-        {data: '3', name: 'user_name'},
-        {data: '4', name: 'subdivision_name'},
-        {data: '5', name: 'actions', searchable: false, orderable: false},
+        {data: 'matclaim_id', name: 'matclaim_id'},
+        {data: 'matclaim_created_at', name: 'matclaim_created_at'},
+        {data: 'matclaim_claim_date', name: 'matclaim_claim_date'},
+        {data: 'user_name', name: 'user_name'},
+        {data: 'subdivision_name', name: 'subdivision_name'},
+        {data: 'actions', name: 'actions', searchable: false, orderable: false},
     ], {clearFilterBtn: $('#clearMaterialClaimsFilterBtn')});
 })(jQuery);
 

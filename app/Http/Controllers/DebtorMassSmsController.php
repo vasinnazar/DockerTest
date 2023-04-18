@@ -184,8 +184,8 @@ class DebtorMassSmsController extends BasicController
                     }
                 }
             })
-            ->setTotalRecords(1000)
-            ->make();
+            ->rawColumn(['links'])
+            ->toJson();
         return $collection;
     }
 

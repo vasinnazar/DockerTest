@@ -89,13 +89,13 @@
 <script>
 (function () {
     var tableCtrl = new TableController('cardChanges', [
-        {data: '0', name: 'ccid'},
-        {data: '1', name: 'ccdate'},
-        {data: '2', name: 'ccold'},
-        {data: '3', name: 'ccnew'},
-        {data: '4', name: 'username'},
-        {data: '5', name: 'fio'},
-        {data: '6', name: 'actions', searchable: false, orderable: false},
+        {data: 'ccid', name: 'ccid'},
+        {data: 'ccdate', name: 'ccdate'},
+        {data: 'ccold', name: 'ccold'},
+        {data: 'ccnew', name: 'ccnew'},
+        {data: 'username', name: 'username'},
+        {data: 'fio', name: 'fio'},
+        {data: 'actions', name: 'actions', searchable: false, orderable: false},
     ], {clearFilterBtn: $('#clearCardChangesFilterBtn')});
 })(jQuery);
 

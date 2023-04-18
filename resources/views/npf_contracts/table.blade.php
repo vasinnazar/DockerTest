@@ -47,12 +47,12 @@
 <script>
 (function () {
     var tableCtrl = new TableController('npf', [
-        {data: '0', name: 'npfid'},
-        {data: '1', name: 'npfdate'},
-        {data: '2', name: 'fondname'},
-        {data: '3', name: 'fio'},
-        {data: '4', name: 'snils'},
-        {data: '5', name: 'actions', searchable: false, orderable: false},
+        {data: 'npfid', name: 'npfid'},
+        {data: 'npfdate', name: 'npfdate'},
+        {data: 'fondname', name: 'fondname'},
+        {data: 'fio', name: 'fio'},
+        {data: 'snils', name: 'snils'},
+        {data: 'actions', name: 'actions', searchable: false, orderable: false},
     ], {clearFilterBtn: $('#clearNpfsFilterBtn')});
 })(jQuery);
 

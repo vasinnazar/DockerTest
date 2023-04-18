@@ -99,8 +99,8 @@ class CardsController extends Controller {
                     $query->where('card_changes.new_card_number', '=', $req->get('new_card_number'));
                 }
             })
-            ->setTotalRecords(1000)
-            ->make();
+            ->rawColumn(['actions'])
+            ->toJson();
         return $collection;
     }
 

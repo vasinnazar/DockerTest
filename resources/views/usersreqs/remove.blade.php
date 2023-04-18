@@ -41,13 +41,13 @@
 <script>
     (function () {
         var tableCtrl = new TableController('removeRequests', [
-            {data: '0', name: 'req_status'},
-            {data: '1', name: 'req_created_at'},
-            {data: '2', name: 'req_doc_type'},
-            {data: '3', name: 'req_id_1c'},
-            {data: '4', name: 'req_requester'},
-            {data: '5', name: 'req_comment'},
-            {data: '6', name: 'actions', searchable: false, orderable: false},
+            {data: 'req_status', name: 'req_status'},
+            {data: 'req_created_at', name: 'req_created_at'},
+            {data: 'req_doc_type', name: 'req_doc_type'},
+            {data: 'req_id_1c', name: 'req_id_1c'},
+            {data: 'req_requester', name: 'req_requester'},
+            {data: 'req_comment', name: 'req_comment'},
+            {data: 'actions', name: 'actions', searchable: false, orderable: false},
         ],{order:[[1,"desc"],[0,"asc"]]});
     })(jQuery);
 </script>

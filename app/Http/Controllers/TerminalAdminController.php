@@ -99,8 +99,8 @@ class TerminalAdminController extends Controller {
                     $query->where('description', 'like', "%" . $req->get('description') . "%");
                 }
             })
-            ->setTotalRecords(1000)
-            ->make();
+            ->rawColumn(['actions','status','lock_status'])
+            ->toJson();
     }
 
     public function addCash(Request $req) {

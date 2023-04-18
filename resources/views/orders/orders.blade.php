@@ -122,13 +122,13 @@
 <script>
 (function () {
     var tableCtrl = new TableController('orders', [
-    {data: '0', name: 'order_created_at'},
-    {data: '1', name: 'order_type'},
-    {data: '2', name: 'order_number'},
-    {data: '3', name: 'order_money'},
-    {data: '4', name: 'responsible'},
-    {data: '5', name: 'customer_fio'},
-    {data: '6', name: 'actions', searchable: false, orderable: false},
+    {data: 'order_created_at', name: 'order_created_at'},
+    {data: 'order_type', name: 'order_type'},
+    {data: 'order_number', name: 'order_number'},
+    {data: 'order_money', name: 'order_money'},
+    {data: 'responsible', name: 'responsible'},
+    {data: 'customer_fio', name: 'customer_fio'},
+    {data: 'actions', name: 'actions', searchable: false, orderable: false},
     ],{
         repeatLastSearchBtn:$('#repeatLastSearchBtn')
     });

@@ -310,8 +310,8 @@ class UsersRequestsController extends Controller {
             ->filter(function ($query) use ($request) {
 
             })
-            ->setTotalRecords(1000)
-            ->make();
+            ->rawColumn(['actions','req_status','req_doc_id'])
+            ->toJson();
     }
     /**
      * подать заявку на удаление

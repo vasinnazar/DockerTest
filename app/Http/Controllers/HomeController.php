@@ -603,9 +603,23 @@ class HomeController extends Controller {
                 });
             }
         }
-        $collection = $dt->setTotalRecords(1000)->make();
+        $collection = $dt->rawColumn([
+            'actions',
+            'remove',
+            'userinfo',
+            'claim_id',
+            'telephone',
+            'edit',
+            'photos',
+            'sendclaim',
+            'promocode',
+            'status',
+            'createloan',
+            'print',
+            'enroll',
+            'remove',
+        ])->toJson();
         //если не найдено заявок, то сделать запрос в 1С
-        $colObj = $collection->getData();
         if ($getFrom1cOnFail && $request->without1c == 0) {
             if ($request->has('series') && $request->has('number') && $request->series != '' && $request->number != '') {
                 $loanCtrl = new LoanController();

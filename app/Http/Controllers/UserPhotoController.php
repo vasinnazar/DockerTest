@@ -62,8 +62,8 @@ class UserPhotoController extends Controller {
                 return $html;
             })
             ->removeColumn('up_id')
-            ->setTotalRecords(1000)
-            ->make();
+            ->rawColumn(['actions','up_path'])
+            ->toJson();
     }
     function ajaxListSearch($items,$req){
         /**

@@ -28,9 +28,9 @@
 <script>
     (function () {
         var tableCtrl = new TableController('subdivisions', [
-            {data: '0', name: 'name_id'},
-            {data: '1', name: 'name'},
-            {data: '2', name: 'actions', orderable: false, searchable: false},
+            {data: 'name_id', name: 'name_id'},
+            {data: 'name', name: 'name'},
+            {data: 'actions', name: 'actions', orderable: false, searchable: false},
         ], {listURL: 'ajax/adminpanel/subdivisions/list'});
         
         $('#getSubdivsBtn').click(function(){

@@ -102,14 +102,14 @@
 <script>
 (function () {
     var tableCtrl = new TableController('customers', [
-        {data: '0', name: 'customer_id'},
-        {data: '1', name: 'fio'},
-        {data: '2', name: 'birth_date'},
-        {data: '3', name: 'series'},
-        {data: '4', name: 'number'},
-        {data: '5', name: 'telephone'},
-        {data: '6', name: 'card_number'},
-        {data: '7', name: 'actions', searchable: false, orderable: false},
+        {data: 'customer_id', name: 'customer_id'},
+        {data: 'fio', name: 'fio'},
+        {data: 'birth_date', name: 'birth_date'},
+        {data: 'series', name: 'series'},
+        {data: 'number', name: 'number'},
+        {data: 'telephone', name: 'telephone'},
+        {data: 'card_number', name: 'card_number'},
+        {data: 'actions', name: 'actions', searchable: false, orderable: false},
     ], {clearFilterBtn: $('#clearCustomersFilterBtn')});
 })(jQuery);
 

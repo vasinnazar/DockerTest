@@ -101,8 +101,8 @@ class IssueClaimController extends BasicController {
             })
             ->removeColumn('ic_id')
             ->removeColumn('ic_claimed_for_remove')
-            ->setTotalRecords(1000)
-            ->make();
+            ->rawColumn(['actions'])
+            ->toJson();
     }
 
     /**
