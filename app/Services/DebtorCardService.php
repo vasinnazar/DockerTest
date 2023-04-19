@@ -247,7 +247,7 @@ class DebtorCardService
 
     public function checkRecurrentButtonEnabled(Debtor $debtor, $loan_in_cash, $loan_required_money)
     {
-        if ($loan_in_cash || !$loan_required_money || in_array($debtor->debt_group_id, [1, 2, 3])) {
+        if ($loan_in_cash || !$loan_required_money) {
             return false;
         }
 
@@ -275,7 +275,7 @@ class DebtorCardService
 
         $factTimezone = $debtor->passport()->first()->fact_timezone;
 
-        if (!$factTimezone) {
+        if (is_null($factTimezone)) {
             return false;
         }
 

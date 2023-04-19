@@ -248,7 +248,7 @@ class Debtor extends Model
     
     public function passport()
     {
-        return $this->hasMany('App\Passport', 'number', 'passport_number')->where('series', $this->passport_series);
+        return $this->hasMany(Passport::class, 'number', 'passport_number')->where('series', $this->passport_series)->latest();
     }
     
     public function struct_subdivision()
@@ -375,6 +375,11 @@ class Debtor extends Model
                 'input_type' => 'text',
                 'label' => 'Договор',
                 //'hidden_value_field' => 'debtors@loan_id_1c'
+            ],
+            [
+                'name' => 'passports@fact_timezone',
+                'input_type' => 'text',
+                'label' => 'Разница в часах',
             ],
             [
                 'name' => 'debtors@qty_delays_from',

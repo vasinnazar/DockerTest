@@ -85,9 +85,9 @@
                                 <br>
                                 <a href="http://photo.fterra.ru/photos?customer_external_id={{$debtor->customer_id_1c}}&types[]=7" style="margin-top: 5px;" class="btn btn-default" target="_blank">Мессенджер-фото</a>
                             </div>
-                            @if (isset($regions_timezone[$data[0]['fact_address_region']]))
+                            @if (isset($regions_timezone[$debtor->passport->first()->fact_address_region]))
                             <?php
-                            $region_time = date("H:i", strtotime($regions_timezone[$data[0]['fact_address_region']] . ' hour'));
+                            $region_time = date("H:i", strtotime($regions_timezone[$debtor->passport->first()->fact_address_region] . ' hour'));
                             $arRegionTime = explode(':', $region_time);
                             $weekday = date('N', time());
                             $hour = $arRegionTime[0];
@@ -275,7 +275,7 @@
                     <table class="table table-condensed debtor-card-data">
                         <tr class='active'>
                             <td colspan="3" class='text-center'>
-                                <span>Паспорт:</span> <span>серия <strong>{{$debtor->series}}</strong> номер <strong>{{$debtor->number}}</strong></span>
+                                <span>Паспорт:</span> <span>серия <strong>{{$debtor->passport_series}}</strong> номер <strong>{{$debtor->passport_number}}</strong></span>
                             </td>
                         </tr>
                         <tr>
@@ -299,9 +299,9 @@
                                 <a href="#" data-toggle="modal" data-target="#debtorNoticePersonal" class="btn btn-default btn-xs printaddr notice_personal" data-typeaddr="0"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
                                 @endif
                             </td>
-                            <td id="debtor-passport_address-clip">{{$data[0]['passport_address']}}</td>
+                            <td id="debtor-passport_address-clip">{{$debtor->passport->first()->full_address}}</td>
                             <td>
-                                @if (isset($data[0]['passport_address']) && mb_strlen($data[0]['passport_address']))
+                                @if (mb_strlen($debtor->passport->first()->full_address))
                                 <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-passport_address-clip">
                                     <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
                                 </button>
@@ -329,9 +329,9 @@
                                 <a href="#" data-toggle="modal" data-target="#debtorNoticePersonal" class="btn btn-default btn-xs printaddr notice_personal" data-typeaddr="1"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
                                 @endif
                             </td>
-                            <td id="debtor-real_address-clip">{{$data[0]['real_address']}}</td>
+                            <td id="debtor-real_address-clip">{{$debtor->passport->first()->fact_full_address}}</td>
                             <td>
-                                @if (isset($data[0]['real_address']) && mb_strlen($data[0]['real_address']))
+                                @if (mb_strlen($debtor->passport->first()->fact_full_address))
                                 <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-real_address-clip">
                                     <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
                                 </button>

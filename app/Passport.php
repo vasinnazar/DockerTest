@@ -82,6 +82,64 @@ class Passport extends Model {
         }
         return $str;
     }
+
+    public function getFullAddressAttribute()
+    {
+        $ar = [];
+        $fields = ['zip', 'address_region', 'address_district', 'address_city', 'address_city1', 'address_street', 'address_house', 'address_building', 'address_apartment'];
+
+        foreach ($fields as $field) {
+            if ($this->$field && !empty($this->$field)) {
+                switch($field) {
+                    case 'address_house':
+                        $ar[] = 'д. ' . $this->$field;
+                        break;
+
+                    case 'address_building':
+                        $ar[] = 'к. ' . $this->$field;
+                        break;
+
+                    case 'address_apartment':
+                        $ar[] = 'кв. ' . $this->$field;
+                        break;
+
+                    default:
+                        $ar[] = $this->$field;
+                }
+            }
+        }
+
+        return implode(', ', $ar);
+    }
+
+    public function getFactFullAddressAttribute()
+    {
+        $ar = [];
+        $fields = ['fact_zip', 'fact_address_region', 'fact_address_district', 'fact_address_city', 'fact_address_city1', 'fact_address_street', 'fact_address_house', 'fact_address_building', 'fact_address_apartment'];
+
+        foreach ($fields as $field) {
+            if ($this->$field && !empty($this->$field)) {
+                switch($field) {
+                    case 'fact_address_house':
+                        $ar[] = 'д. ' . $this->$field;
+                        break;
+
+                    case 'fact_address_building':
+                        $ar[] = 'к. ' . $this->$field;
+                        break;
+
+                    case 'fact_address_apartment':
+                        $ar[] = 'кв. ' . $this->$field;
+                        break;
+
+                    default:
+                        $ar[] = $this->$field;
+                }
+            }
+        }
+
+        return implode(', ', $ar);
+    }
     
     /**
      * 
