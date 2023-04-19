@@ -808,7 +808,6 @@
                         </div>
                     </div>
                 </div>
-                Alex № 3, [19.04.2023 10:38]
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         Платежи
@@ -879,8 +878,6 @@
                                 $i = $loop->iteration
                             @endphp
                         @endforeach
-
-                        Alex № 3, [19.04.2023 10:38]
                         @if ($i == 1)
                             <tr>
                                 <td>{{$i}}</td>
