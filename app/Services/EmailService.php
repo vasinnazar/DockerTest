@@ -109,7 +109,7 @@ class EmailService
             'report' => 'Отправленно ' . $client->email . ' сообщение :' . $messageText,
             'refresh_date' => Carbon::now(),
             'overdue_reason_id' => 0,
-            'event_result_id' => 29,
+            'event_result_id' => 17,
             'completed' => 1,
         ]);
         return true;

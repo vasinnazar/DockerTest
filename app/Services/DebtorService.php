@@ -180,6 +180,7 @@ class DebtorService
             'search_field_passports@number',
             'search_field_struct_subdivisions@id_1c',
             'search_field_debt_groups@id',
+            'search_field_passports@fact_timezone',
         ];
 
         $boolSearchAll = false;
@@ -220,6 +221,13 @@ class DebtorService
         if (isset($input['search_field_passports@address_region']) && mb_strlen($input['search_field_passports@address_region'])) {
             $debtors->where('debtors.passports.address_region', 'like',
                 '%' . $input['search_field_passports@address_region'] . '%');
+        }
+
+        if (isset($arrFields['search_field_passports@fact_timezone']) && mb_strlen($arrFields['search_field_passports@fact_timezone']['value'])) {
+            $debtors->where('debtors.passports.fact_timezone',
+                $arrFields['search_field_passports@fact_timezone']['condition'],
+                $arrFields['search_field_passports@fact_timezone']['value']
+            );
         }
 
 
