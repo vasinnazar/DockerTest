@@ -1,129 +1,129 @@
 @extends('app')
 @section('title') Карточка должника @stop
 @section('css')
-<link rel="stylesheet" href="{{asset('css/debtors.css')}}"/>
+    <link rel="stylesheet" href="{{asset('css/debtors.css')}}"/>
 @stop
 @section('content')
-@if(isset($debtor) && !is_null($debtor))
-<div class='hidden debtor-data'>
-    {!! Form::hidden('customer_id_1c',$debtor->customer_id_1c) !!}
-    {!! Form::hidden('loan_id_1c',$debtor->loan_id_1c) !!}
-    {!! Form::hidden('debtor_id',$debtor->id) !!}
-    {!! Form::hidden('passport_series', $debtor->passport_series) !!}
-    {!! Form::hidden('passport_number', $debtor->passport_number) !!}
-    {!! Form::hidden('user_infinity_extension', auth()->user()->infinity_extension) !!}
-    <input type="hidden" name="overall_sum_today" id="overall_sum_today" value="">
-    <input type="hidden" name="overall_sum_onday" id="overall_sum_onday" value="">
-</div>
-@endif
-<div class="row" style="padding-bottom: 15px;">
-    <div class="col-xs-12" style="text-align: center;">
-        @if ($debtor->is_bigmoney == 1)
-        <span style="color: red; font-size: 120%;">Займ "Большие деньги"</span><br>
-        @elseif ($debtor->is_pledge == 1)
-        <span style="color: red; font-size: 120%;">Залоговый займ</span><br>
-        @elseif ($debtor->is_pos == 1)
-        <span style="color: red; font-size: 120%;">Товарный займ</span><br>
-        @endif
-        @if ($user->hasRole('debtors_chief') && $debtor->recommend_created_at == null)
-        <input id="add_recommend" data-toggle="modal" data-target="#debtorRecommend" type="button" class="btn btn-primary" value="Добавить рекомендацию" />
-        @elseif ($user->hasRole('debtors_chief') && $debtor->recommend_created_at != null)
-        <div class="alert alert-warning">
-            <div style="position: absolute; right: 30px;">
-                <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="remove"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
-                <a href="#" data-toggle="modal" data-target="#debtorRecommendEdit" class="btn btn-default btn-xs pull-right"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
-                @if ($debtor->recommend_completed == 1)
-                <a href="#" class="btn btn-primary btn-xs pull-right recommend-ctrl" data-action="complete" disabled><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
-                @else
-                <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="complete"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
-                @endif
-            </div>
-            <h4>
-                Рекомендация от {{date('d.m.Y', strtotime($debtor->recommend_created_at))}}
-            </h4>
-            {{$debtor->recommend_text}}
-            <span class="pull-right"><i>{{$recommend_user_name}}</i></span>
+    @if(isset($debtor) && !is_null($debtor))
+        <div class='hidden debtor-data'>
+            {!! Form::hidden('customer_id_1c',$debtor->customer_id_1c) !!}
+            {!! Form::hidden('loan_id_1c',$debtor->loan_id_1c) !!}
+            {!! Form::hidden('debtor_id',$debtor->id) !!}
+            {!! Form::hidden('passport_series', $debtor->passport_series) !!}
+            {!! Form::hidden('passport_number', $debtor->passport_number) !!}
+            {!! Form::hidden('user_infinity_extension', auth()->user()->infinity_extension) !!}
+            <input type="hidden" name="overall_sum_today" id="overall_sum_today" value="">
+            <input type="hidden" name="overall_sum_onday" id="overall_sum_onday" value="">
         </div>
-        @elseif (!$user->hasRole('debtors_chief') && $debtor->recommend_created_at != null && ($debtor->recommend_completed == 0 || $debtor->recommend_completed == null))
-        <div class="alert alert-warning">
-            <div style="position: absolute; right: 30px;">
-                <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="complete"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
-            </div>
-            <h4>Рекомендация от {{date('d.m.Y', strtotime($debtor->recommend_created_at))}}</h4>
-            {{$debtor->recommend_text}}
-            <span class="pull-right"><i>{{$recommend_user_name}}</i></span>
-        </div>
-        @endif
-    </div>
-</div>
-@if ($credit_vacation_data)
-<div class="alert alert-danger" role="alert">
-    Кредитные каникулы! C <strong>{{date('d.m.Y', strtotime($credit_vacation_data->recalculateDate))}}</strong> по <strong>{{(!is_null($credit_vacation_data->confirmationDate)) ? date('d.m.Y', strtotime($credit_vacation_data->confirmationDate)) : 'не определено' }}</strong>
-</div>
-@endif
-@if (!is_null($blockProlongation))
-<div class="alert alert-danger" role="alert">
-    Достигнута договоренность о закрытии договора {{date('d.m.Y', strtotime($blockProlongation->block_till_date))}} г.
-</div>
-@endif
-<div class='debtor-card'>
-    <div class='row'>
-        <div class='col-xs-12 col-sm-6 col-lg-4'>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <u>{{ $debtor->passport->first()->fio }}</u>
-                    @if(auth()->user()->id==5)
-                    <a target="_blank" href="{{url('customers/edit/'.$debtor->customer->id.'/'.$data[0]['passport_id'])}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span></a>
-                    @endif
+    @endif
+    <div class="row" style="padding-bottom: 15px;">
+        <div class="col-xs-12" style="text-align: center;">
+            @if ($debtor->is_bigmoney == 1)
+                <span style="color: red; font-size: 120%;">Займ "Большие деньги"</span><br>
+            @elseif ($debtor->is_pledge == 1)
+                <span style="color: red; font-size: 120%;">Залоговый займ</span><br>
+            @elseif ($debtor->is_pos == 1)
+                <span style="color: red; font-size: 120%;">Товарный займ</span><br>
+            @endif
+            @if ($user->hasRole('debtors_chief') && $debtor->recommend_created_at == null)
+                <input id="add_recommend" data-toggle="modal" data-target="#debtorRecommend" type="button" class="btn btn-primary" value="Добавить рекомендацию" />
+            @elseif ($user->hasRole('debtors_chief') && $debtor->recommend_created_at != null)
+                <div class="alert alert-warning">
+                    <div style="position: absolute; right: 30px;">
+                        <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="remove"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+                        <a href="#" data-toggle="modal" data-target="#debtorRecommendEdit" class="btn btn-default btn-xs pull-right"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+                        @if ($debtor->recommend_completed == 1)
+                            <a href="#" class="btn btn-primary btn-xs pull-right recommend-ctrl" data-action="complete" disabled><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
+                        @else
+                            <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="complete"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
+                        @endif
+                    </div>
+                    <h4>
+                        Рекомендация от {{date('d.m.Y', strtotime($debtor->recommend_created_at))}}
+                    </h4>
+                    {{$debtor->recommend_text}}
+                    <span class="pull-right"><i>{{$recommend_user_name}}</i></span>
                 </div>
-                <div class="panel-body">
-                    <?php $pBgColor = '#28A93B'; ?>
-                    <div class='row'>
-                        <div class='col-xs-12 col-sm-6 col-lg-4'>
-                            <div class="photo-gallery text-center">
-                                <a href="http://photo.fterra.ru/photos?customer_external_id={{$debtor->customer_id_1c}}" class="btn btn-default" target="_blank">Открыть фото</a>
-                                <br>
-                                <a href="http://photo.fterra.ru/photos?customer_external_id={{$debtor->customer_id_1c}}&types[]=7" style="margin-top: 5px;" class="btn btn-default" target="_blank">Мессенджер-фото</a>
-                            </div>
-                            @if (isset($regions_timezone[$debtor->passport->first()->fact_address_region]))
-                            <?php
-                            $region_time = date("H:i", strtotime($regions_timezone[$debtor->passport->first()->fact_address_region] . ' hour'));
-                            $arRegionTime = explode(':', $region_time);
-                            $weekday = date('N', time());
-                            $hour = $arRegionTime[0];
-                            if ($hour[0] == '0') {
-                                $hour = substr($hour, 1);
-                            }
-                            if ($weekday == 6 || $weekday == 7) {
-                                $pBgColor = ($hour < 9 || $hour >= 20) ? '#DE5454' : '#28A93B';
-                            } else {
-                                $pBgColor = ($hour < 8 || $hour >= 22) ? '#DE5454' : '#28A93B';
-                            }
-                            ?>
-                            <div class="text-center" style="margin-top: 15px;">
+            @elseif (!$user->hasRole('debtors_chief') && $debtor->recommend_created_at != null && ($debtor->recommend_completed == 0 || $debtor->recommend_completed == null))
+                <div class="alert alert-warning">
+                    <div style="position: absolute; right: 30px;">
+                        <a href="#" class="btn btn-default btn-xs pull-right recommend-ctrl" data-action="complete"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
+                    </div>
+                    <h4>Рекомендация от {{date('d.m.Y', strtotime($debtor->recommend_created_at))}}</h4>
+                    {{$debtor->recommend_text}}
+                    <span class="pull-right"><i>{{$recommend_user_name}}</i></span>
+                </div>
+            @endif
+        </div>
+    </div>
+    @if ($credit_vacation_data)
+        <div class="alert alert-danger" role="alert">
+            Кредитные каникулы! C <strong>{{date('d.m.Y', strtotime($credit_vacation_data->recalculateDate))}}</strong> по <strong>{{(!is_null($credit_vacation_data->confirmationDate)) ? date('d.m.Y', strtotime($credit_vacation_data->confirmationDate)) : 'не определено' }}</strong>
+        </div>
+    @endif
+    @if (!is_null($blockProlongation))
+        <div class="alert alert-danger" role="alert">
+            Достигнута договоренность о закрытии договора {{date('d.m.Y', strtotime($blockProlongation->block_till_date))}} г.
+        </div>
+    @endif
+    <div class='debtor-card'>
+        <div class='row'>
+            <div class='col-xs-12 col-sm-6 col-lg-4'>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <u>{{ $debtor->passport->first()->fio }}</u>
+                        @if(auth()->user()->id==5)
+                            <a target="_blank" href="{{url('customers/edit/'.$debtor->customer->id.'/'.$data[0]['passport_id'])}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span></a>
+                        @endif
+                    </div>
+                    <div class="panel-body">
+                        <?php $pBgColor = '#28A93B'; ?>
+                        <div class='row'>
+                            <div class='col-xs-12 col-sm-6 col-lg-4'>
+                                <div class="photo-gallery text-center">
+                                    <a href="http://photo.fterra.ru/photos?customer_external_id={{$debtor->customer_id_1c}}" class="btn btn-default" target="_blank">Открыть фото</a>
+                                    <br>
+                                    <a href="http://photo.fterra.ru/photos?customer_external_id={{$debtor->customer_id_1c}}&types[]=7" style="margin-top: 5px;" class="btn btn-default" target="_blank">Мессенджер-фото</a>
+                                </div>
+                                @if (isset($regions_timezone[$debtor->passport->first()->fact_address_region]))
+                                        <?php
+                                        $region_time = date("H:i", strtotime($regions_timezone[$debtor->passport->first()->fact_address_region] . ' hour'));
+                                        $arRegionTime = explode(':', $region_time);
+                                        $weekday = date('N', time());
+                                        $hour = $arRegionTime[0];
+                                        if ($hour[0] == '0') {
+                                            $hour = substr($hour, 1);
+                                        }
+                                        if ($weekday == 6 || $weekday == 7) {
+                                            $pBgColor = ($hour < 9 || $hour >= 20) ? '#DE5454' : '#28A93B';
+                                        } else {
+                                            $pBgColor = ($hour < 8 || $hour >= 22) ? '#DE5454' : '#28A93B';
+                                        }
+                                        ?>
+                                    <div class="text-center" style="margin-top: 15px;">
                                 <span style="color: #fff;"><p style="margin: 5px; background-color: {{ $pBgColor }};">Время по адресу проживания<br>
                                 
                                 {{ $region_time }}</p>
                                 </span>
-                                @if ($pBgColor == '#DE5454')
-                                <br>
-                                <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
-                                @endif
-                            </div>
-                            @else
-                            <?php
-                            $weekday = date('N', time());
-                            $hour = date("H", time());
-                            if ($hour[0] == '0') {
-                                $hour = substr($hour, 1);
-                            }
-                            if ($weekday == 6 || $weekday == 7) {
-                                $pBgColor = ($hour < 9 || $hour >= 20) ? '#DE5454' : '#28A93B';
-                            } else {
-                                $pBgColor = ($hour < 8 || $hour >= 22) ? '#DE5454' : '#28A93B';
-                            }
-                            ?>
-                            <div class="text-center" style="margin-top: 15px;">
+                                        @if ($pBgColor == '#DE5454')
+                                            <br>
+                                            <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
+                                        @endif
+                                    </div>
+                                @else
+                                        <?php
+                                        $weekday = date('N', time());
+                                        $hour = date("H", time());
+                                        if ($hour[0] == '0') {
+                                            $hour = substr($hour, 1);
+                                        }
+                                        if ($weekday == 6 || $weekday == 7) {
+                                            $pBgColor = ($hour < 9 || $hour >= 20) ? '#DE5454' : '#28A93B';
+                                        } else {
+                                            $pBgColor = ($hour < 8 || $hour >= 22) ? '#DE5454' : '#28A93B';
+                                        }
+                                        ?>
+                                    <div class="text-center" style="margin-top: 15px;">
                                 <span style="color: #fff;"><p style="margin: 5px; background-color: {{ $pBgColor }};">Время по адресу проживания<br>
 
                                 {{ date('H:i', time()) }}</p>
@@ -381,127 +381,6 @@
                                 <td>
                                     @if (mb_strlen($debtor->customer->about_clients->last()->telephonehome))
                                         <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$debtor->customer->about_clients->last()->telephonehome}}">
-                        <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 2px;">
-                            <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
-                        @if ($dataHasPeaceClaim['has_claim'] || $dataHasPeaceClaim['has_peace'])
-                                <a href="javascript:void(0);" class="btn btn-danger">Соглашение о приостановке процентов</a>
-                        @else
-                                <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#newDebtorClaim">Соглашение о приостановке процентов</a>
-                        @endif
-                            </div>
-                        </div>
-                        @endif
-                    </div>
-                    <br>
-                    <table class="table table-condensed debtor-card-data">
-                        <tr class='active'>
-                            <td colspan="3" class='text-center'>
-                                <span>Паспорт:</span> <span>серия <strong>{{$debtor->passport_series}}</strong> номер <strong>{{$debtor->passport_number}}</strong></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>А. регистрации:</td>
-                            <td style='width: 60px;'>
-                                @if ($user->hasRole('debtors_remote'))
-                                @if ($debtor->qty_delays < 61 && str_contains($debtor->loan_id_1c, 'ККЗ'))
-                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote_cc'] . '/'.$debtor->id.'/0/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
-                                @else
-                                @if ($debtor->qty_delays < 71)
-                                @if ($debtor->is_bigmoney == 1)
-                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote_big_money'] . '/'.$debtor->id.'/0/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
-                                @else
-                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote'] . '/'.$debtor->id.'/0/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
-                                @endif
-                                @else
-                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['requirement_personal'] . '/'.$debtor->id.'/' . date('Y-m-d', time()) . '/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
-                                @endif
-                                @endif
-                                @elseif ($user->hasRole('debtors_personal') && !$hasSentNoticePersonal)
-                                <a href="#" data-toggle="modal" data-target="#debtorNoticePersonal" class="btn btn-default btn-xs printaddr notice_personal" data-typeaddr="0"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
-                                @endif
-                            </td>
-                            <td id="debtor-passport_address-clip">{{$debtor->passport->first()->full_address}}</td>
-                            <td>
-                                @if (mb_strlen($debtor->passport->first()->full_address))
-                                <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-passport_address-clip">
-                                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                                </button>
-                                @endif
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>А. проживания:</td>
-                            <td>
-                                @if ($user->hasRole('debtors_remote'))
-                                @if ($debtor->qty_delays < 61 && str_contains($debtor->loan_id_1c, 'ККЗ'))
-                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote_cc'] . '/'.$debtor->id.'/0/0')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
-                                @else
-                                @if ($debtor->qty_delays < 71)
-                                @if ($debtor->is_bigmoney == 1)
-                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote_big_money'] . '/'.$debtor->id.'/0/1')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
-                                @else
-                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['notice_remote'] . '/'.$debtor->id.'/0/1')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
-                                @endif
-                                @else
-                                <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['requirement_personal'] . '/'.$debtor->id.'/' . date('Y-m-d', time()) . '/1')}}" target="_blank" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
-                                @endif
-                                @endif
-                                @elseif ($user->hasRole('debtors_personal') && !$hasSentNoticePersonal)
-                                <a href="#" data-toggle="modal" data-target="#debtorNoticePersonal" class="btn btn-default btn-xs printaddr notice_personal" data-typeaddr="1"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
-                                @endif
-                            </td>
-                            <td id="debtor-real_address-clip">{{$debtor->passport->first()->fact_full_address}}</td>
-                            <td>
-                                @if (mb_strlen($debtor->passport->first()->fact_full_address))
-                                <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-real_address-clip">
-                                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                                </button>
-                                @endif
-                            </td>
-                        </tr>
-                        <tr style="background-color: #5CCDC9;">
-                            <td>Т. моб.:</td>
-                            <td>
-                                @if(isset($debtor) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $user->hasRole('debtors_chief'))
-                                    @if (mb_strlen($debtor->customer->telephone) && $debtor->base != 'Архив ЗД')
-                                        <button type="button" class="btn btn-default btn-xs" data-toggle="modal"
-                                                data-target="#debtorSMS" data-phone="{{$debtor->customer->telephone}}">
-                                            <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-                                        </button>
-                                        @if($whatsApp)
-                                        <a href="whatsapp://send?phone={{$debtor->customer->telephone}}"
-                                           class="btn btn-default btn-xs" target="_blank">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"
-                                                 fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
-                                                <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
-                                            </svg>
-                                        </a>
-                                        @endif
-                                        <a href="https://t.me/+{{$debtor->customer->telephone}}" class="btn btn-default btn-xs"
-                                           target="_blank">
-                                            Т
-                                        </a>
-                                    @endif
-                                @endif
-                            </td>
-                            <td id="debtor-phone-clip">{{$debtor->customer->telephone}}</td>
-                            <td style="display: flex;">
-                                @if(!empty(auth()->user()->infinity_extension))
-                                    <button type="button" class="btn btn-success btn-xs phone-call-btn"
-                                            data-phone="{{$debtor->customer->telephone}}" style="margin-right: 20%">
-                                        <span class="glyphicon glyphicon-earphone"></span>
-                                    </button>
-                                @endif
-                                <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-phone-clip">
-                                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Т. домашний:</td>
-                            <td>
-                                @if (mb_strlen($debtor->customer->about_clients->last()->telephonehome))
-                                <!--button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#debtorSMS" data-phone="{{$debtor->customer->about_clients->last()->telephonehome}}">
                                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 </button-->
                                     @endif
@@ -929,6 +808,7 @@
                         </div>
                     </div>
                 </div>
+                Alex № 3, [19.04.2023 10:38]
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         Платежи
@@ -948,7 +828,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                            @php $i = 1; $day_sum = 0; $payment_date = ''; $cnt_payments = count($datapayments); @endphp
+                        @php $i = 1; $day_sum = 0; $payment_date = ''; $cnt_payments = count($datapayments); @endphp
                         @foreach ($datapayments as $k => $payment)
                             @php
                                 if ($payment->type != 3 && $payment->type != 0) {
@@ -988,18 +868,19 @@
                                     @endif
                                 </td>
                             </tr>
-                                @if($loop->iteration == $cnt_payments)
-                                    <tr>
-                                        <td colspan="6" style="background: #84C9FF;">
-                                            Сумма: {{ number_format($day_sum / 100, 2, '.', '') }} руб.
-                                        </td>
-                                    </tr>
-                                @endif
-                                @php
-                                    $i = $loop->iteration
-                                @endphp
+                            @if($loop->iteration == $cnt_payments)
+                                <tr>
+                                    <td colspan="6" style="background: #84C9FF;">
+                                        Сумма: {{ number_format($day_sum / 100, 2, '.', '') }} руб.
+                                    </td>
+                                </tr>
+                            @endif
+                            @php
+                                $i = $loop->iteration
+                            @endphp
                         @endforeach
 
+                        Alex № 3, [19.04.2023 10:38]
                         @if ($i == 1)
                             <tr>
                                 <td>{{$i}}</td>
@@ -1014,7 +895,6 @@
                     </table>
                 </div>
             </div>
-
             @if(isset($debtor) && (!$user->hasRole('cant_edit_all_debtors') || $user->id_1c == $debtor->responsible_user_id_1c) && !($debtor->non_interaction || $debtor->non_interaction_nf || $debtor->by_agent) || $user->hasRole('debtors_chief'))
 
                 <div class="col-xs-12 col-sm-6 col-lg-8">
