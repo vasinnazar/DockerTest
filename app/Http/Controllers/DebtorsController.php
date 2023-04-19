@@ -157,7 +157,7 @@ class DebtorsController extends BasicController
      * @param int $debtor_id
      * @return type
      */
-    public function debtorcard(DebtorSmsRepository $smsRepository, PaysClient $paysClient,ArmClient $armClient,int $debtor_id)
+    public function debtorcard(DebtorSmsService $smsService, PaysClient $paysClient,ArmClient $armClient,int $debtor_id)
     {
         $user = auth()->user();
         $debtor = Debtor::find($debtor_id);
@@ -263,7 +263,7 @@ class DebtorsController extends BasicController
 
         // определяем группу специалиста удаленного взыскания пользователя в "Должниках" (удаленное и личное)
         if ($user->canSendSms()) {
-            $debtSms = $smsRepository->getSmsForDebtorByUser($user,$debtor);
+            $debtSms = $smsService->getSmsForDebtor($user, $debtor);
         }
 
 

@@ -34,14 +34,25 @@ class DebtorMassSmsController extends BasicController
         $this->debtorEventService = $service;
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public function index(DebtorSmsRepository $smsRepository)
     {
+        if (!Auth::user()) {
+            return redirect()->json([
+                'title' => 'Ошибка',
+                'msg' => 'Не авторизированный пользователь'
+            ]);
+        }
+        if (Auth::user()->isDebtorsPersonal()) {
+            $type = 'personal';
+            $nameGroup = 'Личное взыскание';
+        }
+        if (Auth::user()->isDebtorsRemote()) {
+            $type = 'remote';
+            $nameGroup = 'Удаленное взыскание';
+        }
         return view('debtormasssms.index', [
+            'smsCollect' => $smsRepository->getSms($type),
+            'nameGroup' => $nameGroup,
             'debtorTransferFilterFields' => self::getSearchFields()
         ]);
     }
@@ -218,13 +229,15 @@ class DebtorMassSmsController extends BasicController
             ]);
         }
 
-        $tpl = \App\DebtorSmsTpls::find($input['sms_tpl_id']);
+        try {
+            $tpl = $repository->firstById($input['sms_tpl_id']);
 
-        if (is_null($tpl)) {
+        }catch (\Throwable $exception) {
             return response()->json([
                 'error' => 'Не найден смс шаблон.'
             ]);
         }
+
 
         $debtorsCustomers = Debtor::select('debtors.customer_id_1c')
             ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')

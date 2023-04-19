@@ -7,6 +7,9 @@ use App\Debtor;
 use App\DebtorEvent;
 use App\DebtorSmsTpls;
 use App\Model\DebtorEventSms;
+use App\Repositories\DebtorSmsRepository;
+use App\StrUtils;
+use App\User;
 use App\Utils\SMSer;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -16,12 +19,84 @@ class DebtorSmsService
 {
 
     private $armClient;
+    private $smsRepository;
 
-    public function __construct(ArmClient $armClient)
+    public function __construct(ArmClient $armClient,DebtorSmsRepository $smsRepository)
     {
         $this->armClient = $armClient;
+        $this->smsRepository = $smsRepository;
     }
 
+    public function getSmsForDebtor(User $user, Debtor $debtor): \Illuminate\Support\Collection
+    {
+        $recoveryType = null;
+        $isUbytki = null;
+        if ($user->isDebtorsRemote()) {
+            $recoveryType = 'remote';
+            $isUbytki = ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') ? true : false;
+        }
+        if ($user->isDebtorsPersonal()) {
+            $recoveryType = 'personal';
+            $isUbytki = false;
+        }
+        if (is_null($recoveryType) && is_null($isUbytki)) {
+            return collect();
+        }
+
+        $arDebtorFullName = explode(' ', $debtor->passport->first()->name);
+        $sms = $this->smsRepository->getSms($recoveryType, $isUbytki)->map(function ($item) use (
+            $user,
+            $debtor,
+            $arDebtorFullName
+        ) {
+            $item->text_tpl = str_replace(
+                [
+                    '##spec_phone##',
+                    '##sms_till_date##',
+                    '##sms_loan_info##',
+                    '##sms_debtor_name##'
+                ],
+                [
+                    (mb_strlen($user->phone) < 6) ? '88003014344' : $user->phone,
+                    Carbon::today()->format('d.m.Y'),
+                    $debtor->loan_id_1c . ' от ' . StrUtils::dateToStr($debtor->loan->created_at),
+                    ($arDebtorFullName[1] ?? '') . ' ' . ($arDebtorFullName[2] ?? '')
+                ],
+                $item->text_tpl
+            );
+            return $item;
+        });
+
+        $isSendOnce = $this->smsRepository->checkSmsOnce($debtor, 21);
+        $isFirstCondition = ($debtor->qty_delays != 80 || !in_array($debtor->base, [
+                'Б-3',
+                'Б-риски',
+                'КБ-график',
+                'Б-график'
+            ])
+        );
+        $isSecondCondition = ($debtor->qty_delays != 20 || !in_array($debtor->base, ['Б-МС']));
+        if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
+            $sms = $sms->reject(function ($item) {
+                return $item->id == 21;
+            });
+        }
+        $isSendOnce = $this->smsRepository->checkSmsOnce($debtor, 45);
+        $isFirstCondition = ($debtor->qty_delays != 95 || !in_array($debtor->base, [
+                'Б-3',
+                'Б-риски',
+                'КБ-график',
+                'Б-график'
+            ])
+        );
+        $isSecondCondition = ($debtor->qty_delays != 25 || !in_array($debtor->base, ['Б-МС']));
+        if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
+            $sms = $sms->reject(function ($item) {
+                return $item->id == 45;
+            });
+        }
+        return $sms;
+    }
     public function sendSms(
         Debtor $debtor,
         string $phone,
