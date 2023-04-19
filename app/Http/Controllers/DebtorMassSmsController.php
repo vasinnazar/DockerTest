@@ -6,8 +6,10 @@ use App\Customer;
 use App\DebtorEvent;
 use App\Exceptions\DebtorException;
 use App\Model\DebtorEventSms;
+use App\Repositories\DebtorEventSmsRepository;
 use App\Repositories\DebtorSmsRepository;
 use App\Services\DebtorEventService;
+use App\Services\DebtorSmsService;
 use App\Utils\SMSer;
 use Illuminate\Http\Request;
 use App\Utils\PermLib;
@@ -203,10 +205,13 @@ class DebtorMassSmsController extends BasicController
         return $collection;
     }
 
-    public function sendMassSms(DebtorSmsRepository $repository, Request $request)
+    public function sendMassSms(
+        DebtorSmsRepository $debtorSmsRepository,
+        DebtorSmsService    $debtorSmsService,
+        Request             $request
+    )
     {
         set_time_limit(0);
-
         $input = $request->input();
 
         if (!isset($input['search_field_users@id']) || $input['search_field_users@id'] == '') {
@@ -214,31 +219,24 @@ class DebtorMassSmsController extends BasicController
                 'error' => 'Не указан пользователь.'
             ]);
         }
-
         if (!isset($input['sms_tpl_id']) || $input['sms_tpl_id'] == '') {
             return response()->json([
                 'error' => 'Не выбран шаблон смс.'
             ]);
         }
-
-        $resp_user = User::find($input['search_field_users@id']);
-
-        if (is_null($resp_user)) {
+        $respUser = User::find($input['search_field_users@id']);
+        if (is_null($respUser)) {
             return response()->json([
                 'error' => 'Не найден выбранный ответственный.'
             ]);
         }
-
         try {
-            $tpl = $repository->firstById($input['sms_tpl_id']);
-
-        }catch (\Throwable $exception) {
+            $tpl = $debtorSmsRepository->firstById($input['sms_tpl_id']);
+        } catch (\Throwable $exception) {
             return response()->json([
                 'error' => 'Не найден смс шаблон.'
             ]);
         }
-
-
         $debtorsCustomers = Debtor::select('debtors.customer_id_1c')
             ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
             ->leftJoin('debtors.passports', function ($join) {
@@ -247,18 +245,17 @@ class DebtorMassSmsController extends BasicController
             })
             ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c');
 
-        $debtorsCustomers->where('responsible_user_id_1c', $resp_user->id_1c);
+        $debtorsCustomers->where('responsible_user_id_1c', $respUser->id_1c);
         $debtorsCustomers->where('is_debtor', 1);
 
-        if (isset($input['overdue_from']) && mb_strlen($input['overdue_from'])) {
-            $debtorsCustomers->where('qty_delays', '>=', $input['overdue_from']);
-        }
-        if (isset($input['overdue_till']) && mb_strlen($input['overdue_till'])) {
-            $debtorsCustomers->where('qty_delays', '<=', $input['overdue_till']);
-        }
+        $overdueFrom = empty($input['overdue_from'] ?? null) ? null : $input['overdue_from'];
+        $overdueTill = empty($input['overdue_till'] ?? null) ? null : $input['overdue_till'];
+        $debtorsCustomers->byQty((int)$overdueFrom, (int)$overdueTill);
+
         if (isset($input['passports@fact_address_region']) && mb_strlen($input['passports@fact_address_region'])) {
             $debtorsCustomers->where('passports.fact_address_region', 'like',
-                '%' . $input['passports@fact_address_region'] . '%');
+                '%' . $input['passports@fact_address_region'] . '%'
+            );
         }
         if (isset($input['search_field_debtors@base']) && mb_strlen($input['search_field_debtors@base'])) {
             $debtorsCustomers->where('base', $input['search_field_debtors@base']);
@@ -308,76 +305,47 @@ class DebtorMassSmsController extends BasicController
                 ]);
                 continue;
             }
-
-            if ($tpl->id == 21) {
-                $isSendOnce = $repository->checkSmsOnce($debtor, 21);
-                $isFirstCondition = ($debtor->qty_delays != 80 || !in_array($debtor->base, [
-                        'Б-3',
-                        'Б-риски',
-                        'КБ-график',
-                        'Б-график'
-                    ])
-                );
-                $isSecondCondition = ($debtor->qty_delays != 20 || !in_array($debtor->base, ['Б-МС']));
-                if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
-                    $tpl = $repository->firstById(3);
-                }
-            }
-            if ($tpl->id == 45) {
-                $isSendOnce = $repository->checkSmsOnce($debtor, 45);
-                $isFirstCondition = ($debtor->qty_delays != 95 || !in_array($debtor->base, [
-                        'Б-3',
-                        'Б-риски',
-                        'КБ-график',
-                        'Б-график'
-                    ])
-                );
-                $isSecondCondition = ($debtor->qty_delays != 25 || !in_array($debtor->base, ['Б-МС']));
-                if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
-                    $tpl = $repository->firstById(3);
-                }
+            // проверяем была ли уже такая смс и не нужно ли её заменить на другую
+            if ($debtorSmsService->hasSmsMustBeSentOnce($debtor, $tpl->id)) {
+                $tpl = $this->smsRepository->firstById(3);
             }
 
             $phone = $customer->telephone;
             if (isset($phone[0]) && $phone[0] == '8') {
                 $phone[0] = '7';
             }
-
             if (mb_strlen($phone) == 11) {
-
 
                 $smsText = str_replace([
                     '##sms_till_date##',
                     '##spec_phone##',
                 ], [
                     $input['sms_tpl_date'],
-                    $resp_user->phone,
+                    $respUser->phone,
                 ], $tpl->text_tpl);
 
                 if (SMSer::send($phone, $smsText)) {
                     // увеличиваем счетчик отправленных пользователем смс
-                    $resp_user->increaseSentSms();
+                    $respUser->increaseSentSms();
                     // создаем мероприятие отправки смс
                     $debt = Debtor::where('customer_id_1c', $customer->id_1c)
                         ->where('is_debtor', 1)
                         ->first();
                     $report = $phone . ' SMS: ' . $smsText;
-                    $event = $this->createEventSms($debt, $resp_user, $report);
+                    $event = $this->createEventSms($debt, $respUser, $report);
 
-                    if($tpl->id == 21 || $tpl->id == 45) {
+                    if ($tpl->id == 21 || $tpl->id == 45) {
                         DebtorEventSms::create([
-                            'event_id'=> $event->id,
-                            'sms_id' => $tpl->id ,
+                            'event_id' => $event->id,
+                            'sms_id' => $tpl->id,
                             'customer_id_1c' => $debtor->customer_id_1c,
                             'debtor_base' => $debtor->base
                         ]);
                     }
-
                     $cnt++;
                 }
             }
         }
-
         return response()->json([
             'error' => 'success',
             'cnt' => $cnt
@@ -393,14 +361,9 @@ class DebtorMassSmsController extends BasicController
 
     }
 
-    /**
-     * @param Debtor $debt
-     * @param User $respUser
-     * @param string $report
-     */
-    public function createEventSms($debt, $respUser, $report)
+    public function createEventSms(Debtor $debt, User $respUser, string $report): DebtorEvent
     {
-       return DebtorEvent::create([
+        return DebtorEvent::create([
             'debtor_id' => $debt->id,
             'debtor_id_1c' => $debt->debtor_id_1c,
             'customer_id_1c' => $debt->customer_id_1c,

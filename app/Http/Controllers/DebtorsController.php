@@ -1459,12 +1459,7 @@ class DebtorsController extends BasicController
         }
     }
 
-    /**
-     * Отправляет SMS должнику
-     * @param Request $req
-     * @return \Illuminate\Http\JsonResponse|string
-     */
-    public function sendSmsToDebtor(Request $req,DebtorSmsService $smsService)
+    public function sendSmsToDebtor(Request $req, DebtorSmsService $smsService)
     {
         $debtor = Debtor::where('debtor_id_1c', $req->get('debtor_id_1c'))->first();
         if (is_null($debtor)) {
@@ -1504,7 +1499,6 @@ class DebtorsController extends BasicController
             ]);
         }
 
-
         // приводим номер телефона к виду, для отправки смс
         $phone = preg_replace("/[^0-9]/", "", $req->get('phone'));
         if (isset($phone[0]) && $phone[0] == '8') {
@@ -1522,11 +1516,6 @@ class DebtorsController extends BasicController
 
     }
 
-    /**
-     * История договоров по должнику
-     * @param integer $id
-     * @return type
-     */
     public function debtorHistory($id)
     {
         $debtor = Debtor::find($id);
@@ -1534,45 +1523,12 @@ class DebtorsController extends BasicController
             return $this->backWithErr(StrLib::ERR_NULL);
         }
         $loans = $debtor->getAllLoans();
-//        foreach ($loans as &$loan) {
-//            if(!$loan->closed){
-//                $loan->loan_id_replica = DB::connection('arm')
-//                        ->table('loans')
-//                        ->leftJoin('claims','claims.id','=','loans.claim_id')
-//                        ->leftJoin('customers','customers.id','=','claims.customer_id')
-//                        ->where('loans.id_1c',$loan->loan_id_1c)
-//                        ->where('customers.id_1c',$debtor->customer_id_1c)
-//                        ->limit(1)
-//                        ->value('loans.id');
-//            }
-//        }
-        /* $cnt_opened = 0;
-          foreach ($loans as $loan) {
-          if (!$loan->closed) {
-          $cnt_opened++;
-          }
-          }
-
-          if ($cnt_opened == 0) {
-          $result = file_get_contents(config('services.arm.url')."/debtors/loans/upload?passport_series={$debtor->passport_series}&passport_number={$debtor->passport_number}");
-          $loans = $debtor->getAllLoans();
-          }
-
-          if ($cnt_opened > 1) {
-          foreach ($loans as $loan) {
-          if (!$loan->closed) {
-          $result = file_get_contents(config('services.arm.url')."/debtors/loans/upload?loan_id_1c={$debtor->loan_id_1c}&customer_id_1c={$debtor->customer_id_1c}");
-          }
-          }
-          $loans = $debtor->getAllLoans();
-          } */
-
         return view('debtors.history', ['loans' => $loans, 'debtor_id' => $id]);
     }
 
     public function getLoanSummary($loan_id)
     {
-//        config('database.default') = 'arm';
+
         Config::set('database.default', 'arm');
         $loan = Loan::where('id', $loan_id)->first();
         $claim = DB::connection('arm')->table('claims')->where('id', $loan->claim_id)->first();
@@ -1581,13 +1537,13 @@ class DebtorsController extends BasicController
         $customer = DB::connection('arm')->table('customers')->where('id', $claim->customer_id)->first();
         $loantype = DB::connection('arm')->table('loantypes')->where('id', $loan->loantype_id)->first();
         $liveCondition = DB::connection('arm')->table('live_conditions')->where('id', $about_client->zhusl)->first();
-        $maritalType = DB::connection('arm')->table('marital_types')->where('id',
-            $about_client->marital_type_id)->first();
-        $educationLevel = DB::connection('arm')->table('education_levels')->where('id',
-            $about_client->obrasovanie)->first();
-//        if (is_null($loan) || is_null($loan->claim) || is_null($loan->claim->passport)) {
-//            return redirect('loans')->with('msg_err', StrLib::ERR_NULL);
-//        }
+        $maritalType = DB::connection('arm')->table('marital_types')
+            ->where('id', $about_client->marital_type_id)
+            ->first();
+        $educationLevel = DB::connection('arm')->table('education_levels')
+            ->where('id', $about_client->obrasovanie)
+            ->first();
+
         $photos = DB::connection('arm')->table('photos')->where('claim_id', $claim->id)->get();
         $photo_res = [];
         foreach ($photos as $p) {

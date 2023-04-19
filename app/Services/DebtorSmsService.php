@@ -7,6 +7,7 @@ use App\Debtor;
 use App\DebtorEvent;
 use App\DebtorSmsTpls;
 use App\Model\DebtorEventSms;
+use App\Repositories\DebtorEventSmsRepository;
 use App\Repositories\DebtorSmsRepository;
 use App\StrUtils;
 use App\User;
@@ -20,11 +21,18 @@ class DebtorSmsService
 
     private $armClient;
     private $smsRepository;
+    private $debtorEventSmsRepository;
 
-    public function __construct(ArmClient $armClient,DebtorSmsRepository $smsRepository)
+    public function __construct(
+        ArmClient $armClient,
+        DebtorSmsRepository $smsRepository,
+        DebtorEventSmsRepository $debtorEventSmsRepository
+    )
     {
         $this->armClient = $armClient;
         $this->smsRepository = $smsRepository;
+        $this->debtorEventSmsRepository = $debtorEventSmsRepository;
+
     }
 
     public function getSmsForDebtor(User $user, Debtor $debtor): \Illuminate\Support\Collection
@@ -65,38 +73,52 @@ class DebtorSmsService
                 $item->text_tpl
             );
             return $item;
+        })->reject(function ($item) use ($debtor) {
+            if ($this->hasSmsMustBeSentOnce($debtor, $item->id)) {
+                return $item;
+            }
         });
-
-        $isSendOnce = $this->smsRepository->checkSmsOnce($debtor, 21);
-        $isFirstCondition = ($debtor->qty_delays != 80 || !in_array($debtor->base, [
-                'Б-3',
-                'Б-риски',
-                'КБ-график',
-                'Б-график'
-            ])
-        );
-        $isSecondCondition = ($debtor->qty_delays != 20 || !in_array($debtor->base, ['Б-МС']));
-        if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
-            $sms = $sms->reject(function ($item) {
-                return $item->id == 21;
-            });
-        }
-        $isSendOnce = $this->smsRepository->checkSmsOnce($debtor, 45);
-        $isFirstCondition = ($debtor->qty_delays != 95 || !in_array($debtor->base, [
-                'Б-3',
-                'Б-риски',
-                'КБ-график',
-                'Б-график'
-            ])
-        );
-        $isSecondCondition = ($debtor->qty_delays != 25 || !in_array($debtor->base, ['Б-МС']));
-        if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
-            $sms = $sms->reject(function ($item) {
-                return $item->id == 45;
-            });
-        }
         return $sms;
     }
+
+    public function hasSmsMustBeSentOnce(Debtor $debtor, int $smsTemplateId)
+    {
+        if ($smsTemplateId !== 21 && $smsTemplateId !== 45) {
+            return false;
+        }
+        $isBadBaseOne = in_array($debtor->base, [
+                'Б-3',
+                'Б-риски',
+                'КБ-график',
+                'Б-график'
+            ]
+        );
+        $isBadBaseTwo = $debtor->base === 'Б-МС';
+        $delaysArray = [
+            21 => [
+                'first' => 80,
+                'second' => 20
+            ],
+            45 => [
+                'first' => 95,
+                'second' => 25
+            ]
+        ];
+        $eventSms = $this->debtorEventSmsRepository->findByCustomerAndSmsId($debtor->customer_id_1c, $smsTemplateId);
+        if ($eventSms && $debtor->base === $eventSms->debtor_base) {
+            $isSendOnce = false;
+        } else {
+            $isSendOnce = true;
+        }
+        $isFirstCondition = ($debtor->qty_delays !== $delaysArray[$smsTemplateId]['first'] || !$isBadBaseOne);
+        $isSecondCondition = ($debtor->qty_delays !== $delaysArray[$smsTemplateId]['second'] || !$isBadBaseTwo);
+        if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
+            return true;
+        }
+        return false;
+    }
+
+
     public function sendSms(
         Debtor $debtor,
         string $phone,
