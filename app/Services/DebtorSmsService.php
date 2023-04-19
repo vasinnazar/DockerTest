@@ -6,6 +6,7 @@ use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorEvent;
 use App\DebtorSmsTpls;
+use App\Model\DebtorEventSms;
 use App\Utils\SMSer;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +25,7 @@ class DebtorSmsService
     public function sendSms(
         Debtor $debtor,
         string $phone,
+        $smsId,
         string $smsType = null,
         string $smsText = null,
         int $amount = 0
@@ -90,6 +92,14 @@ class DebtorSmsService
         $debtorEvent->user_id_1c = Auth::user()->id_1c;
         $debtorEvent->save();
 
+        if ($smsId == 21 || $smsId == 45) {
+            DebtorEventSms::create([
+                'event_id'=> $debtorEvent->id,
+                'sms_id' => $smsId,
+                'customer_id_1c' => $debtor->customer_id_1c,
+                'debtor_base' => $debtor->base
+            ]);
+        }
         return response()->json([
             'title' => 'Готово',
             'msg' => 'Сообщение отправленно'

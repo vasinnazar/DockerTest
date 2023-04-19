@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Customer;
 use App\DebtorEvent;
 use App\Exceptions\DebtorException;
+use App\Model\DebtorEventSms;
 use App\Repositories\DebtorSmsRepository;
 use App\Services\DebtorEventService;
 use App\Utils\SMSer;
@@ -348,7 +349,17 @@ class DebtorMassSmsController extends BasicController
                         ->where('is_debtor', 1)
                         ->first();
                     $report = $phone . ' SMS: ' . $smsText;
-                    $this->createEventSms($debt, $resp_user, $report);
+                    $event = $this->createEventSms($debt, $resp_user, $report);
+
+                    if($tpl->id == 21 || $tpl->id == 45) {
+                        DebtorEventSms::create([
+                            'event_id'=> $event->id,
+                            'sms_id' => $tpl->id ,
+                            'customer_id_1c' => $debtor->customer_id_1c,
+                            'debtor_base' => $debtor->base
+                        ]);
+                    }
+
                     $cnt++;
                 }
             }
@@ -373,11 +384,10 @@ class DebtorMassSmsController extends BasicController
      * @param Debtor $debt
      * @param User $respUser
      * @param string $report
-     * @return void
      */
     public function createEventSms($debt, $respUser, $report)
     {
-        DebtorEvent::create([
+       return DebtorEvent::create([
             'debtor_id' => $debt->id,
             'debtor_id_1c' => $debt->debtor_id_1c,
             'customer_id_1c' => $debt->customer_id_1c,

@@ -17,6 +17,7 @@ use App\Loan;
 use App\MassRecurrent;
 use App\MassRecurrentTask;
 use App\Message;
+use App\Model\DebtorEventSms;
 use App\NoticeNumbers;
 use App\Order;
 use App\Passport;
@@ -1463,7 +1464,7 @@ class DebtorsController extends BasicController
      * @param Request $req
      * @return \Illuminate\Http\JsonResponse|string
      */
-    public function sendSmsToDebtor(Request $req)
+    public function sendSmsToDebtor(Request $req,DebtorSmsService $smsService)
     {
         $debtor = Debtor::where('debtor_id_1c', $req->get('debtor_id_1c'))->first();
         if (is_null($debtor)) {
@@ -1503,115 +1504,22 @@ class DebtorsController extends BasicController
             ]);
         }
 
+
         // приводим номер телефона к виду, для отправки смс
         $phone = preg_replace("/[^0-9]/", "", $req->get('phone'));
         if (isset($phone[0]) && $phone[0] == '8') {
             $phone[0] = '7';
         }
-        if (mb_strlen($phone) == 11) {
 
-            $smsLink = '';
-            $smsType = $req->get('sms_type', false);
-            $smsText = $req->get('sms_text', false);
+        return $smsService->sendSms(
+            $debtor,
+            $phone,
+            $sms->id,
+            $req->get('sms_type'),
+            $req->get('sms_text'),
+            $req->get('amount')
+        );
 
-            if ($smsType && $smsType == 'link') {
-                $amount = $req->get('amount', 0);
-                $token = crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai');
-                $amount = $amount * 100;
-                $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
-                $smsLink = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount
-                    . '&loan_1c_id=' . $debtor->loan_id_1c
-                    . '&order_id=&customer_id=' . $debtor->customer_id_1c
-                    . '&phone=' . $phone
-                    . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
-
-                $jsonTinkoffLink = file_get_contents($smsLink);
-                $arJson = json_decode($jsonTinkoffLink, true);
-
-                if (isset($arJson['success']) && $arJson['success']) {
-                    $smsLink = $arJson['url'];
-                } else {
-                    return response()->json([
-                        'title' => 'Ошибка',
-                        'msg' => 'Не удалось сформировать ссылку'
-                    ]);
-                }
-            }
-
-            if ($smsType && $smsType == 'msg') {
-                $amount = $req->get('amount', 0);
-                $token = crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai');
-                $amount = $amount * 100;
-                $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
-                $smsLink = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount
-                    . '&loan_1c_id=' . $debtor->loan_id_1c
-                    . '&order_id=&customer_id=' . $debtor->customer_id_1c
-                    . '&phone=' . $phone
-                    . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
-
-                $jsonTinkoffLink = file_get_contents($smsLink);
-                $arJson = json_decode($jsonTinkoffLink, true);
-
-                if (isset($arJson['success']) && $arJson['success']) {
-                    $smsLink = $arJson['url'];
-                } else {
-                    return response()->json([
-                        'title' => 'Ошибка',
-                        'msg' => 'Не удалось сформировать сообщение'
-                    ]);
-                }
-
-                return $smsText . ' ' . $smsLink;
-            }
-
-            if ($smsType && $smsType == 'props') {
-                $smsText = 'Направляем реквизиты для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344'
-                    . ' путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
-                $smsLink = '';
-            }
-
-            if (mb_strlen($smsLink) > 0) {
-                $smsLink = ' ' . $smsLink;
-            }
-
-            if (Utils\SMSer::send($phone, $smsText . $smsLink)) {
-                // увеличиваем счетчик отправленных пользователем смс
-                $user->increaseSentSms();
-
-                // создаем мероприятие отправки смс
-                $debtorEvent = new DebtorEvent();
-                $data = [];
-                $data['created_at'] = Carbon::now()->format('Y-m-d H:i:s');
-                $data['event_type_id'] = 12;
-                $data['overdue_reason_id'] = 0;
-                if ($smsType && ($smsType == 'link' || $smsType == 'msg' || $smsType == 'props')) {
-                    $data['event_result_id'] = 17;
-                } else {
-                    $data['event_result_id'] = 22;
-                }
-                $data['debt_group_id'] = $req->get('debt_group_id');
-                $data['report'] = $phone . ' SMS: ' . $smsText;
-                $data['completed'] = 1;
-                $debtorEvent->fill($data);
-                $debtorEvent->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
-                $debtorEvent->customer_id_1c = $debtor->customer_id_1c;
-                $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
-                $debtorEvent->debtor_id = $debtor->id;
-                $debtorEvent->user_id = $user->id;
-                $debtorEvent->user_id_1c = $user->id_1c;
-                $debtorEvent->save();
-
-                return response()->json([
-                    'title' => 'Готово',
-                    'msg' => 'Сообщение отправленно'
-                ]);
-            }
-        }
-
-        return response()->json([
-            'title' => 'Ошибка',
-            'msg' => 'Не правильный номер'
-        ]);
     }
 
     /**
