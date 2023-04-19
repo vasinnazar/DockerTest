@@ -3,7 +3,6 @@
 namespace App\Events\Infinity;
 
 use App\Events\Event;
-use App\Services\InfinityService;
 use App\User;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Support\Facades\Cache;
@@ -33,7 +32,6 @@ class IncomingCallEvent extends Event implements ShouldBroadcast
      */
     public function broadcastWith()
     {
-
         $res = [
             'call_id' => $this->callId,
             'number' => $this->number,
@@ -46,13 +44,16 @@ class IncomingCallEvent extends Event implements ShouldBroadcast
                 'call_id' => $this->callId,
                 'number' => $this->number,
                 'extension' => $this->userExtension,
-            ]), 60);
+            ]),
+                60
+            );
         }
         Log::info("InfinityController.incomingCall ", ['arr' => $res]);
         return $res;
     }
     
-    private function getData($number) {
+    private function getData($number)
+    {
         $fio = 'Не удалось определить ФИО';
         $debtorid = 0;
         $customer = \App\Customer::where('telephone', $number)->first();

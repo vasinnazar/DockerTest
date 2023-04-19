@@ -14,6 +14,12 @@ use Illuminate\Support\Facades\Log;
  * Class Debtor
  * @package App
  *
+ * @property int id
+ * @property string customer_id_1c
+ * @property string loan_id_1c
+ * @property string base
+ * @property int is_debtor
+ *
  * @mixin Builder
  * @mixin \Illuminate\Database\Query\Builder
  */
