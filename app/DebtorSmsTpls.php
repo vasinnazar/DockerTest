@@ -43,8 +43,11 @@ class DebtorSmsTpls extends Model {
         }
         return $q->get();
     }
-    public function scopeBySort($query,string $type = null, int $sort = null)
+    public function scopeBySort($query, string $type = null, int $sort = null)
     {
-        return (($sort && $type == 'remote') ? $query->where('sort', 1) : $query);
+        if ($type == 'remote' && $sort) {
+            return $query->where('sort', 1);
+        }
+        return $query->where('sort', null);
     }
 }
