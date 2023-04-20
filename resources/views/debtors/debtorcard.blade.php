@@ -61,6 +61,11 @@
     Кредитные каникулы! C <strong>{{date('d.m.Y', strtotime($credit_vacation_data->recalculateDate))}}</strong> по <strong>{{(!is_null($credit_vacation_data->confirmationDate)) ? date('d.m.Y', strtotime($credit_vacation_data->confirmationDate)) : 'не определено' }}</strong>
 </div>
 @endif
+@if (request()->get('finded_by', false))
+    <div class="alert alert-success" role="alert">
+        Карточка открыта через поиск контактов должника с идентификатором: <a href="/debtors/debtorcard/{{ request()->get('finded_by') }}">{{ request()->get('finded_by') }}</a>
+    </div>
+@endif
 @if (!is_null($blockProlongation))
 <div class="alert alert-danger" role="alert">
     Достигнута договоренность о закрытии договора {{date('d.m.Y', strtotime($blockProlongation->block_till_date))}} г.

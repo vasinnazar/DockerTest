@@ -24,12 +24,12 @@
                 <td colspan="3">Совпадений по телефону не найдено.</td>
             </tr>
         @else
-            @foreach($collectContacts->get('equal_phones') as $debtor)
+            @foreach($collectContacts->get('equal_phones') as $contactDebtor)
                 <tr>
-                    <td>{{ $debtor->passport()->first()->fio }}</td>
-                    <td>{{ $debtor->loan_id_1c }}</td>
+                    <td>{{ $contactDebtor->passport()->first()->fio }}</td>
+                    <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>
-                        <a href="/debtors/debtorcard/{{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
+                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
                         </a>
                     </td>
@@ -47,12 +47,12 @@
                 <td colspan="3">Совпадений по адресу прописки не найдено.</td>
             </tr>
         @else
-            @foreach($collectContacts->get('equal_addresses_register_to_register') as $debtor)
+            @foreach($collectContacts->get('equal_addresses_register_to_register') as $contactDebtor)
                 <tr>
-                    <td>{{ $debtor->passport()->first()->fio }}</td>
-                    <td>{{ $debtor->loan_id_1c }}</td>
+                    <td>{{ $contactDebtor->passport()->first()->fio }}</td>
+                    <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>
-                        <a href="/debtors/debtorcard/{{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
+                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
                         </a>
                     </td>
@@ -70,12 +70,12 @@
                 <td colspan="3">Совпадений по адресу прописки с адресом проживания не найдено.</td>
             </tr>
         @else
-            @foreach($collectContacts->get('equal_addresses_register_to_fact') as $debtor)
+            @foreach($collectContacts->get('equal_addresses_register_to_fact') as $contactDebtor)
                 <tr>
-                    <td>{{ $debtor->passport()->first()->fio }}</td>
-                    <td>{{ $debtor->loan_id_1c }}</td>
+                    <td>{{ $contactDebtor->passport()->first()->fio }}</td>
+                    <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>
-                        <a href="/debtors/debtorcard/{{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
+                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
                         </a>
                     </td>
@@ -93,12 +93,12 @@
                 <td colspan="3">Совпадений по адресу проживания с адресом прописки не найдено.</td>
             </tr>
         @else
-            @foreach($collectContacts->get('equal_addresses_fact_to_register') as $debtor)
+            @foreach($collectContacts->get('equal_addresses_fact_to_register') as $contactDebtor)
                 <tr>
-                    <td>{{ $debtor->passport()->first()->fio }}</td>
-                    <td>{{ $debtor->loan_id_1c }}</td>
+                    <td>{{ $contactDebtor->passport()->first()->fio }}</td>
+                    <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>
-                        <a href="/debtors/debtorcard/{{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
+                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
                         </a>
                     </td>
@@ -116,12 +116,12 @@
                 <td colspan="3">Совпадений по адресу проживания не найдено.</td>
             </tr>
         @else
-            @foreach($collectContacts->get('equal_addresses_fact_to_fact') as $debtor)
+            @foreach($collectContacts->get('equal_addresses_fact_to_fact') as $contactDebtor)
                 <tr>
-                    <td>{{ $debtor->passport()->first()->fio }}</td>
-                    <td>{{ $debtor->loan_id_1c }}</td>
+                    <td>{{ $contactDebtor->passport()->first()->fio }}</td>
+                    <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>
-                        <a href="/debtors/debtorcard/{{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
+                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
                         </a>
                     </td>
