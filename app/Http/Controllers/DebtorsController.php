@@ -17,6 +17,7 @@ use App\Loan;
 use App\MassRecurrent;
 use App\MassRecurrentTask;
 use App\Message;
+use App\Model\DebtorEventSms;
 use App\NoticeNumbers;
 use App\Order;
 use App\Passport;
@@ -24,8 +25,10 @@ use App\Permission;
 use App\PlannedDeparture;
 use App\DebtorEventPromisePay;
 use App\Repayment;
+use App\Repositories\DebtorSmsRepository;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
+use App\Services\DebtorSmsService;
 use App\Services\MassRecurrentService;
 use App\Services\RepaymentOfferService;
 use App\Services\DebtorService;
@@ -154,11 +157,9 @@ class DebtorsController extends BasicController
      * @param int $debtor_id
      * @return type
      */
-    public function debtorcard(PaysClient $paysClient, ArmClient $armClient, int $debtor_id)
+    public function debtorcard(DebtorSmsService $smsService, PaysClient $paysClient,ArmClient $armClient,int $debtor_id)
     {
         $user = auth()->user();
-        $debt_roles = [];
-
         $debtor = Debtor::find($debtor_id);
 
         // проверяем был ли пропущенный звонок от должника и если был - удаляем запись
@@ -186,7 +187,7 @@ class DebtorsController extends BasicController
                 $msg_on_subdivision->save();
             }
         }
-        
+
 
 
         // получаем данные об ответственном
@@ -262,33 +263,9 @@ class DebtorsController extends BasicController
 
         // определяем группу специалиста удаленного взыскания пользователя в "Должниках" (удаленное и личное)
         if ($user->canSendSms()) {
-            if ($user->hasRole('debtors_remote')) {
-                $is_ubytki = ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') ? true : false;
-                $smsTpls = DebtorSmsTpls::getSmsTpls('remote', $is_ubytki);
-                foreach ($smsTpls as $tpl) {
-                    $spec_phone = (mb_strlen($user->phone) < 6) ? '88003014344' : $user->phone;
-                    $tpl->text_tpl = str_replace('##spec_phone##', $spec_phone, $tpl->text_tpl);
-                    $tpl->text_tpl = str_replace('##sms_till_date##', date('d.m.Y', time()), $tpl->text_tpl);
-                    $tpl->text_tpl = str_replace('##sms_loan_info##',
-                        $debtor->loan_id_1c . ' от ' . StrUtils::dateToStr($debtor->loan->created_at),
-                        $tpl->text_tpl);;
-                }
-                $debt_roles['remote'] = $smsTpls;
-            }
-            if ($user->hasRole('debtors_personal')) {
-                $smsTpls = DebtorSmsTpls::getSmsTpls('personal');
-                $arDebtorName = explode(' ', $debtor->passport->first()->name);
-                foreach ($smsTpls as $tpl) {
-                    $spec_phone = (mb_strlen($user->phone) < 6) ? '88003014344' : $user->phone;
-                    $tpl->text_tpl = str_replace('##spec_phone##', $spec_phone, $tpl->text_tpl);
-                    $tpl->text_tpl = str_replace('##sms_till_date##', date('d.m.Y', time()), $tpl->text_tpl);
-                    $tpl->text_tpl = str_replace('##sms_debtor_name##',
-                        (isset($arDebtorName[1]) ? $arDebtorName[1] : '') . ' ' . (isset($arDebtorName[2]) ? $arDebtorName[2] : ''),
-                        $tpl->text_tpl);
-                }
-                $debt_roles['personal'] = $smsTpls;
-            }
+            $debtSms = $smsService->getSmsForDebtor($user, $debtor);
         }
+
 
         $arContractFormsIds = [
             'anketa' => \App\ContractForm::getContractIdByTextId('debtors_anketa'),
@@ -595,7 +572,7 @@ class DebtorsController extends BasicController
             'datapayments' => $datapayments,
             'purposes' => $arPurposes,
             'debtdata' => $arDebtData,
-            'debtroles' => $debt_roles,
+            'debtSms' => $debtSms,
             'debtor' => $debtor,
             'contractforms' => $arContractFormsIds,
             'arPdAgreement' => $arPdAgreement,
@@ -1482,12 +1459,7 @@ class DebtorsController extends BasicController
         }
     }
 
-    /**
-     * Отправляет SMS должнику
-     * @param Request $req
-     * @return \Illuminate\Http\JsonResponse|string
-     */
-    public function sendSmsToDebtor(Request $req)
+    public function sendSmsToDebtor(Request $req, DebtorSmsService $smsService)
     {
         $debtor = Debtor::where('debtor_id_1c', $req->get('debtor_id_1c'))->first();
         if (is_null($debtor)) {
@@ -1532,117 +1504,19 @@ class DebtorsController extends BasicController
         if (isset($phone[0]) && $phone[0] == '8') {
             $phone[0] = '7';
         }
-        if (mb_strlen($phone) == 11) {
 
-            $smsLink = '';
-            $smsType = $req->get('sms_type', false);
-            $smsText = $req->get('sms_text', false);
-
-            if ($smsType && $smsType == 'link') {
-                $amount = $req->get('amount', 0);
-                $token = crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai');
-                $amount = $amount * 100;
-                $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
-                $smsLink = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount
-                    . '&loan_1c_id=' . $debtor->loan_id_1c
-                    . '&order_id=&customer_id=' . $debtor->customer_id_1c
-                    . '&phone=' . $phone
-                    . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
-
-                $jsonTinkoffLink = file_get_contents($smsLink);
-                $arJson = json_decode($jsonTinkoffLink, true);
-
-                if (isset($arJson['success']) && $arJson['success']) {
-                    $smsLink = $arJson['url'];
-                } else {
-                    return response()->json([
-                        'title' => 'Ошибка',
-                        'msg' => 'Не удалось сформировать ссылку'
-                    ]);
-                }
-            }
-
-            if ($smsType && $smsType == 'msg') {
-                $amount = $req->get('amount', 0);
-                $token = crypt('gfhjkmhfplsdfnhb12332hfp.', 'shitokudosai');
-                $amount = $amount * 100;
-                $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
-                $smsLink = 'http://192.168.35.89/api/tinkoff/init?amount=' . $amount
-                    . '&loan_1c_id=' . $debtor->loan_id_1c
-                    . '&order_id=&customer_id=' . $debtor->customer_id_1c
-                    . '&phone=' . $phone
-                    . '&token=' . $token . '&version=2&details=null&order_type_id=&payment_type_id=&paysystem_type_id=&notification_url=https://xn--j1ab.xn--80ajiuqaln.xn--p1ai/api/payments/notification&success_url=';
-
-                $jsonTinkoffLink = file_get_contents($smsLink);
-                $arJson = json_decode($jsonTinkoffLink, true);
-
-                if (isset($arJson['success']) && $arJson['success']) {
-                    $smsLink = $arJson['url'];
-                } else {
-                    return response()->json([
-                        'title' => 'Ошибка',
-                        'msg' => 'Не удалось сформировать сообщение'
-                    ]);
-                }
-
-                return $smsText . ' ' . $smsLink;
-            }
-
-            if ($smsType && $smsType == 'props') {
-                $smsText = 'Направляем реквизиты для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344'
-                    . ' путем оплаты в отделении банка https://финтерра.рф/faq/rekvizity';
-                $smsLink = '';
-            }
-
-            if (mb_strlen($smsLink) > 0) {
-                $smsLink = ' ' . $smsLink;
-            }
-
-            if (Utils\SMSer::send($phone, $smsText . $smsLink)) {
-                // увеличиваем счетчик отправленных пользователем смс
-                $user->increaseSentSms();
-
-                // создаем мероприятие отправки смс
-                $debtorEvent = new DebtorEvent();
-                $data = [];
-                $data['created_at'] = Carbon::now()->format('Y-m-d H:i:s');
-                $data['event_type_id'] = 12;
-                $data['overdue_reason_id'] = 0;
-                if ($smsType && ($smsType == 'link' || $smsType == 'msg' || $smsType == 'props')) {
-                    $data['event_result_id'] = 17;
-                } else {
-                    $data['event_result_id'] = 22;
-                }
-                $data['debt_group_id'] = $req->get('debt_group_id');
-                $data['report'] = $phone . ' SMS: ' . $smsText;
-                $data['completed'] = 1;
-                $debtorEvent->fill($data);
-                $debtorEvent->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
-                $debtorEvent->customer_id_1c = $debtor->customer_id_1c;
-                $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
-                $debtorEvent->debtor_id = $debtor->id;
-                $debtorEvent->user_id = $user->id;
-                $debtorEvent->user_id_1c = $user->id_1c;
-                $debtorEvent->save();
-
-                return response()->json([
-                    'title' => 'Готово',
-                    'msg' => 'Сообщение отправленно'
-                ]);
-            }
-        }
-
-        return response()->json([
-            'title' => 'Ошибка',
-            'msg' => 'Не правильный номер'
-        ]);
+        $result =  $smsService->sendSms(
+            $debtor,
+            $user,
+            $phone,
+            $sms ? $sms->id : null,
+            $req->get('sms_type'),
+            $req->get('sms_text'),
+            $req->get('amount')
+        );
+        return is_array($result) ? response()->json($result) : $result;
     }
 
-    /**
-     * История договоров по должнику
-     * @param integer $id
-     * @return type
-     */
     public function debtorHistory($id)
     {
         $debtor = Debtor::find($id);
@@ -1650,45 +1524,12 @@ class DebtorsController extends BasicController
             return $this->backWithErr(StrLib::ERR_NULL);
         }
         $loans = $debtor->getAllLoans();
-//        foreach ($loans as &$loan) {
-//            if(!$loan->closed){
-//                $loan->loan_id_replica = DB::connection('arm')
-//                        ->table('loans')
-//                        ->leftJoin('claims','claims.id','=','loans.claim_id')
-//                        ->leftJoin('customers','customers.id','=','claims.customer_id')
-//                        ->where('loans.id_1c',$loan->loan_id_1c)
-//                        ->where('customers.id_1c',$debtor->customer_id_1c)
-//                        ->limit(1)
-//                        ->value('loans.id');
-//            }
-//        }
-        /* $cnt_opened = 0;
-          foreach ($loans as $loan) {
-          if (!$loan->closed) {
-          $cnt_opened++;
-          }
-          }
-
-          if ($cnt_opened == 0) {
-          $result = file_get_contents(config('services.arm.url')."/debtors/loans/upload?passport_series={$debtor->passport_series}&passport_number={$debtor->passport_number}");
-          $loans = $debtor->getAllLoans();
-          }
-
-          if ($cnt_opened > 1) {
-          foreach ($loans as $loan) {
-          if (!$loan->closed) {
-          $result = file_get_contents(config('services.arm.url')."/debtors/loans/upload?loan_id_1c={$debtor->loan_id_1c}&customer_id_1c={$debtor->customer_id_1c}");
-          }
-          }
-          $loans = $debtor->getAllLoans();
-          } */
-
         return view('debtors.history', ['loans' => $loans, 'debtor_id' => $id]);
     }
 
     public function getLoanSummary($loan_id)
     {
-//        config('database.default') = 'arm';
+
         Config::set('database.default', 'arm');
         $loan = Loan::where('id', $loan_id)->first();
         $claim = DB::connection('arm')->table('claims')->where('id', $loan->claim_id)->first();
@@ -1697,13 +1538,13 @@ class DebtorsController extends BasicController
         $customer = DB::connection('arm')->table('customers')->where('id', $claim->customer_id)->first();
         $loantype = DB::connection('arm')->table('loantypes')->where('id', $loan->loantype_id)->first();
         $liveCondition = DB::connection('arm')->table('live_conditions')->where('id', $about_client->zhusl)->first();
-        $maritalType = DB::connection('arm')->table('marital_types')->where('id',
-            $about_client->marital_type_id)->first();
-        $educationLevel = DB::connection('arm')->table('education_levels')->where('id',
-            $about_client->obrasovanie)->first();
-//        if (is_null($loan) || is_null($loan->claim) || is_null($loan->claim->passport)) {
-//            return redirect('loans')->with('msg_err', StrLib::ERR_NULL);
-//        }
+        $maritalType = DB::connection('arm')->table('marital_types')
+            ->where('id', $about_client->marital_type_id)
+            ->first();
+        $educationLevel = DB::connection('arm')->table('education_levels')
+            ->where('id', $about_client->obrasovanie)
+            ->first();
+
         $photos = DB::connection('arm')->table('photos')->where('claim_id', $claim->id)->get();
         $photo_res = [];
         foreach ($photos as $p) {

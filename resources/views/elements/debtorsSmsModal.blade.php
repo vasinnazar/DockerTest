@@ -8,11 +8,11 @@
                 <div class="row">
                     <div class="col-xs-12">
                         @if ($user->canSendSms())
-                        @if (count($debtroles))
+                        @if (count($debtSms))
                         <form id="formSendSMS">
                             <input type="hidden" name="sms_phone_number" value="">
                             <input type="hidden" name="debtor_id_1c" value="{{ $debtor->debtor_id_1c }}">
-                            @if (isset($debtroles['remote']))
+                            @if ($user->isDebtorsRemote())
                             <h4>Удаленное взыскание</h4>
                             <table style="margin-bottom: 15px;">
                                 <tr>
@@ -27,7 +27,7 @@
                                         <td><b>Текст SMS</b></td>
                                     </tr>
                                 </thead>
-                                @foreach ($debtroles['remote'] as $row)
+                                @foreach ($debtSms as $row)
                                 <tr>
                                     <td><input type="radio" name="sms_id" value="{{$row['id']}}"></td>
                                     <td class="sms_text" style="text-align: left">{{$row['text_tpl']}}</td>
@@ -36,7 +36,7 @@
                             </table>
                             @endif
 
-                            @if (isset($debtroles['personal']))
+                            @if ($user->isDebtorsPersonal())
                             <h4>Личное взыскание</h4>
                                 <table style="margin-bottom: 15px;">
                                     <tr>
@@ -51,7 +51,7 @@
                                         <td><b>Текст SMS</b></td>
                                     </tr>
                                 </thead>
-                                @foreach ($debtroles['personal'] as $row)
+                                @foreach ($debtSms as $row)
                                 @if ($row['id'] == 21 && $debtor->qty_delays < 80 && $debtor->base != 'Б-МС')
                                 <?php continue; ?>
                                 @endif
@@ -75,7 +75,7 @@
                     </div>
                 </div>
             </div>
-            @if (count($debtroles))
+            @if (count($debtSms))
             <div class="modal-footer">
                 <span class="pull-left">Лимит SMS: {{$data[0]['sms_available']}}</span>
                 <button type="button" class="btn btn-default" id="showSmsProps">Отправить ссылку на реквизиты</button>
@@ -93,7 +93,7 @@
                 <div class="row">
                     <div class="col-xs-12">
                         @if ($user->canSendSms())
-                        @if (count($debtroles))
+                        @if (count($debtSms))
                         <form id="formSendSMSLink">
                             <input type="hidden" name="debtor_id_1c" value="{{ $debtor->debtor_id_1c }}">
                             <h4>Отправка ссылки на оплату</h4>
@@ -134,7 +134,7 @@
                     </div>
                 </div>
             </div>
-            @if (count($debtroles))
+            @if (count($debtSms))
             <div class="modal-footer">
                 <span class="pull-left">Лимит SMS: {{$data[0]['sms_available']}}</span>
                 <button type="button" class="btn btn-default" id="getMessengerText">Текст для мессенджера</button>
@@ -157,7 +157,7 @@
                 <div class="row">
                     <div class="col-xs-12">
                         @if ($user->canSendSms())
-                        @if (count($debtroles))
+                        @if (count($debtSms))
                         <form id="formSendSMSProps">
                             <input type="hidden" name="sms_phone_number" value="">
                             <input type="hidden" name="debtor_id_1c" value="{{ $debtor->debtor_id_1c }}">
@@ -187,7 +187,7 @@
                     </div>
                 </div>
             </div>
-            @if (count($debtroles))
+            @if (count($debtSms))
             <div class="modal-footer">
                 <span class="pull-left">Лимит SMS: {{$data[0]['sms_available']}}</span>
                 <button type="button" class="btn btn-default" data-dismiss="modal" id="closeSendSMSProps">Закрыть</button>

@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Log;
  * Class Debtor
  * @package App
  *
+ * @method byQty(int $qtyStart = null, int $qtyEnd = null)
+ *
  * @mixin Builder
  * @mixin \Illuminate\Database\Query\Builder
  */
