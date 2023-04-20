@@ -15,7 +15,7 @@ class DebtorEventSmsRepository
 
     public function firstById(int $id)
     {
-        return $this->model::query()->findOrFail($id);
+        return $this->model->findOrFail($id);
     }
 
     public function findByCustomerAndSmsId(string $customerId1C, int $smsId): DebtorEventSms
