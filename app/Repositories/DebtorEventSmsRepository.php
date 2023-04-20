@@ -20,7 +20,7 @@ class DebtorEventSmsRepository
 
     public function findByCustomerAndSmsId(string $customerId1C, int $smsId): DebtorEventSms
     {
-        return DebtorEventSms::where('customer_id_1c', $customerId1C)
+        return $this->model->where('customer_id_1c', $customerId1C)
             ->where('sms_id', $smsId)
             ->latest()
             ->first();
