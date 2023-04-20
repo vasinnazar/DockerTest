@@ -27,8 +27,7 @@ class DebtorSmsService
         ArmClient $armClient,
         DebtorSmsRepository $smsRepository,
         DebtorEventSmsRepository $debtorEventSmsRepository
-    )
-    {
+    ) {
         $this->armClient = $armClient;
         $this->smsRepository = $smsRepository;
         $this->debtorEventSmsRepository = $debtorEventSmsRepository;
@@ -39,11 +38,11 @@ class DebtorSmsService
     {
         $recoveryType = null;
         $isUbytki = null;
-        if ($user->isDebtorsRemote()) {
+        if ($user->isDebtorsPersonal()) {
             $recoveryType = 'remote';
             $isUbytki = ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') ? true : false;
         }
-        if ($user->isDebtorsPersonal()) {
+        if ($user->isDebtorsRemote()) {
             $recoveryType = 'personal';
             $isUbytki = false;
         }
@@ -122,7 +121,7 @@ class DebtorSmsService
     public function sendSms(
         Debtor $debtor,
         string $phone,
-        $smsId,
+        $smsId = null,
         string $smsType = null,
         string $smsText = null,
         int $amount = 0
@@ -136,10 +135,10 @@ class DebtorSmsService
             if ($result && $result->success) {
                 $smsLink = $result->url;
             } else {
-                return response()->json([
+                return [
                     'title' => 'Ошибка',
                     'msg' => 'Не удалось сформировать ссылку'
-                ]);
+                ];
             }
 
             if ($smsType == 'msg') {
@@ -158,10 +157,10 @@ class DebtorSmsService
         }
 
         if (!SMSer::send($phone, $smsText . $smsLink)) {
-            return response()->json([
+            return [
                 'title' => 'Ошибка',
                 'msg' => 'Не правильный номер'
-            ]);
+            ];
         }
         // увеличиваем счетчик отправленных пользователем смс
         Auth::user()->increaseSentSms();
@@ -197,10 +196,10 @@ class DebtorSmsService
                 'debtor_base' => $debtor->base
             ]);
         }
-        return response()->json([
+        return [
             'title' => 'Готово',
             'msg' => 'Сообщение отправленно'
-        ]);
+        ];
 
     }
 }

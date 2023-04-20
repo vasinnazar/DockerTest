@@ -1505,15 +1505,15 @@ class DebtorsController extends BasicController
             $phone[0] = '7';
         }
 
-        return $smsService->sendSms(
+        $result =  $smsService->sendSms(
             $debtor,
             $phone,
-            $sms->id,
+            $sms ? $sms->id : null,
             $req->get('sms_type'),
             $req->get('sms_text'),
             $req->get('amount')
         );
-
+        return is_array($result) ? response()->json($result) : $result;
     }
 
     public function debtorHistory($id)
