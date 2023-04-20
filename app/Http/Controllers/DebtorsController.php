@@ -3635,13 +3635,15 @@ class DebtorsController extends BasicController
     public function searchEqualContacts(Request $request) {
         $debtor_id = $request->get('debtor_id', false);
 
+        $debtor = Debtor::find($debtor_id);
+
         $collectContacts = collect();
 
-        if ($debtor_id) {
-            $collectContacts = $this->debtCardService->getEqualContactsDebtors($debtor_id);
+        if ($debtor) {
+            $collectContacts = $this->debtCardService->getEqualContactsDebtors($debtor);
         }
 
-        return view('elements.debtors.searchContactsTable', compact('collectContacts'));
+        return view('elements.debtors.searchContactsTable', compact('collectContacts', 'debtor'));
     }
 
 
