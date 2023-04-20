@@ -129,11 +129,13 @@ class DebtorSmsService
         $smsId = null,
         string $smsType = null,
         string $smsText = null,
-        int $amount = 0
+        int $amount = null
     ) {
         $smsLink = '';
         if ($smsType && ($smsType == 'link' || $smsType == 'msg')) {
-            $amount *= 100;
+            if($amount){
+               $amount *= 100;
+            }
             $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
             $result = $this->armClient->getTinkoffLink($debtor, $amount, $phone);
 
