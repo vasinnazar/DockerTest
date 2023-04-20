@@ -307,7 +307,7 @@ class DebtorMassSmsController extends BasicController
             }
             // проверяем была ли уже такая смс и не нужно ли её заменить на другую
             if ($debtorSmsService->hasSmsMustBeSentOnce($debtor, $tpl->id)) {
-                $tpl = $this->smsRepository->firstById(3);
+                $tpl = $debtorSmsRepository->firstById(3);
             }
 
             $phone = $customer->telephone;

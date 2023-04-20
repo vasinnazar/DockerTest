@@ -38,11 +38,11 @@ class DebtorSmsService
     {
         $recoveryType = null;
         $isUbytki = null;
-        if ($user->isDebtorsPersonal()) {
+        if ($user->isDebtorsRemote()) {
             $recoveryType = 'remote';
             $isUbytki = ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') ? true : false;
         }
-        if ($user->isDebtorsRemote()) {
+        if ($user->isDebtorsPersonal()) {
             $recoveryType = 'personal';
             $isUbytki = false;
         }
@@ -77,6 +77,7 @@ class DebtorSmsService
                 return $item;
             }
         });
+
         return $sms;
     }
 
@@ -108,10 +109,15 @@ class DebtorSmsService
             $isSendOnce = false;
         } else {
             $isSendOnce = true;
+
+            if ($eventSms) {
+                $eventSms->delete();
+            }
+
         }
         $isFirstCondition = ($debtor->qty_delays !== $delaysArray[$smsTemplateId]['first'] || !$isBadBaseOne);
         $isSecondCondition = ($debtor->qty_delays !== $delaysArray[$smsTemplateId]['second'] || !$isBadBaseTwo);
-        if ($isFirstCondition && $isSecondCondition && !$isSendOnce) {
+        if ($isFirstCondition && $isSecondCondition && $isSendOnce) {
             return true;
         }
         return false;
