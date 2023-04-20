@@ -9,7 +9,7 @@ use Illuminate\Database\Query\Builder;
 /**
  * Class Debtor
  * @package App
- * @method bySort(string $type = null,?int $sort = null)
+ * @method bySort(string $type = null,int $sort = null)
  * @mixin Builder
  * @mixin \Illuminate\Database\Query\Builder
  */
