@@ -51,7 +51,7 @@ class DebtorSmsService
         }
 
         $arDebtorFullName = explode(' ', $debtor->passport->first()->name);
-        $sms = $this->smsRepository->getSms($recoveryType, $isUbytki)->map(function ($item) use (
+        return $this->smsRepository->getSms($recoveryType, $isUbytki)->map(function ($item) use (
             $user,
             $debtor,
             $arDebtorFullName
@@ -77,8 +77,6 @@ class DebtorSmsService
                 return $item;
             }
         });
-
-        return $sms;
     }
 
     public function hasSmsMustBeSentOnce(Debtor $debtor, int $smsTemplateId)
@@ -126,6 +124,7 @@ class DebtorSmsService
 
     public function sendSms(
         Debtor $debtor,
+        User $user,
         string $phone,
         $smsId = null,
         string $smsType = null,
@@ -169,7 +168,7 @@ class DebtorSmsService
             ];
         }
         // увеличиваем счетчик отправленных пользователем смс
-        Auth::user()->increaseSentSms();
+        $user->increaseSentSms();
 
         // создаем мероприятие отправки смс
         $debtorEvent = new DebtorEvent();
@@ -190,8 +189,8 @@ class DebtorSmsService
         $debtorEvent->customer_id_1c = $debtor->customer_id_1c;
         $debtorEvent->debtor_id_1c = $debtor->debtor_id_1c;
         $debtorEvent->debtor_id = $debtor->id;
-        $debtorEvent->user_id = Auth::user()->id;
-        $debtorEvent->user_id_1c = Auth::user()->id_1c;
+        $debtorEvent->user_id = $user->id;
+        $debtorEvent->user_id_1c = $user->id_1c;
         $debtorEvent->save();
 
         if ($smsId == 21 || $smsId == 45) {

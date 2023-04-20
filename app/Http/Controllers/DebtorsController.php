@@ -1507,6 +1507,7 @@ class DebtorsController extends BasicController
 
         $result =  $smsService->sendSms(
             $debtor,
+            $user,
             $phone,
             $sms ? $sms->id : null,
             $req->get('sms_type'),
