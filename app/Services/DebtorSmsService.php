@@ -38,11 +38,11 @@ class DebtorSmsService
     {
         $recoveryType = null;
         $isUbytki = null;
-        if ($user->isDebtorsRemote()) {
+        if ($user->isDebtorsPersonal()) {
             $recoveryType = 'remote';
             $isUbytki = ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') ? true : false;
         }
-        if ($user->isDebtorsPersonal()) {
+        if ($user->isDebtorsRemote()) {
             $recoveryType = 'personal';
             $isUbytki = false;
         }
@@ -106,15 +106,28 @@ class DebtorSmsService
         if ($eventSms && $debtor->base === $eventSms->debtor_base) {
             $isSendOnce = false;
         } else {
-            $isSendOnce = true;
 
             if ($eventSms) {
-                $eventSms->delete();
+                $oldBase = in_array($eventSms->debtor_base, [
+                    'Б-3',
+                    'Б-риски',
+                    'КБ-график',
+                    'Б-график',
+                    'Б-МС'
+                ]);
+                $newBase = in_array($debtor->base, [
+                    'З-МС',
+                    'КЗ-график',
+                    'З-график'
+                ]);
+                if ($oldBase && $newBase) {
+                    $eventSms->delete();
+                }
             }
-
+            $isSendOnce = true;
         }
-        $isFirstCondition = ($debtor->qty_delays !== $delaysArray[$smsTemplateId]['first'] || !$isBadBaseOne);
-        $isSecondCondition = ($debtor->qty_delays !== $delaysArray[$smsTemplateId]['second'] || !$isBadBaseTwo);
+        $isFirstCondition = ($debtor->qty_delays < $delaysArray[$smsTemplateId]['first'] || !$isBadBaseOne);
+        $isSecondCondition = ($debtor->qty_delays < $delaysArray[$smsTemplateId]['second'] || !$isBadBaseTwo);
         if ($isFirstCondition && $isSecondCondition && $isSendOnce) {
             return true;
         }
@@ -133,8 +146,8 @@ class DebtorSmsService
     ) {
         $smsLink = '';
         if ($smsType && ($smsType == 'link' || $smsType == 'msg')) {
-            if($amount){
-               $amount *= 100;
+            if ($amount) {
+                $amount *= 100;
             }
             $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
             $result = $this->armClient->getTinkoffLink($debtor, $amount, $phone);
@@ -197,7 +210,7 @@ class DebtorSmsService
 
         if ($smsId == 21 || $smsId == 45) {
             DebtorEventSms::create([
-                'event_id'=> $debtorEvent->id,
+                'event_id' => $debtorEvent->id,
                 'sms_id' => $smsId,
                 'customer_id_1c' => $debtor->customer_id_1c,
                 'debtor_base' => $debtor->base
