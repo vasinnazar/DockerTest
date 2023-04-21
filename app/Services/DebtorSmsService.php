@@ -73,7 +73,7 @@ class DebtorSmsService
             );
             return $item;
         })->reject(function ($item) use ($debtor) {
-            if ($this->hasSmsMustBeSentOnce($debtor, $item->id)) {
+            if (!$this->hasSmsMustBeSentOnce($debtor, $item->id)) {
                 return $item;
             }
         });
@@ -82,13 +82,13 @@ class DebtorSmsService
     public function hasSmsMustBeSentOnce(Debtor $debtor, int $smsTemplateId)
     {
         if ($smsTemplateId !== 21 && $smsTemplateId !== 45) {
-            return false;
+            return true;
         }
         $isBadBaseOne = in_array($debtor->base, [
                 'Б-3',
                 'Б-риски',
-                'КБ-график',
-                'Б-график'
+                'КБ-График',
+                'Б-График'
             ]
         );
         $isBadBaseTwo = $debtor->base === 'Б-МС';
@@ -106,16 +106,29 @@ class DebtorSmsService
         if ($eventSms && $debtor->base === $eventSms->debtor_base) {
             $isSendOnce = false;
         } else {
-            $isSendOnce = true;
 
             if ($eventSms) {
-                $eventSms->delete();
+                $oldBase = in_array($eventSms->debtor_base, [
+                    'Б-3',
+                    'Б-риски',
+                    'КБ-График',
+                    'Б-График',
+                    'Б-МС'
+                ]);
+                $newBase = in_array($debtor->base, [
+                    'З-МС',
+                    'КЗ-График',
+                    'З-График'
+                ]);
+                if ($oldBase && $newBase) {
+                    $eventSms->delete();
+                }
             }
-
+            $isSendOnce = true;
         }
-        $isFirstCondition = ($debtor->qty_delays !== $delaysArray[$smsTemplateId]['first'] || !$isBadBaseOne);
-        $isSecondCondition = ($debtor->qty_delays !== $delaysArray[$smsTemplateId]['second'] || !$isBadBaseTwo);
-        if ($isFirstCondition && $isSecondCondition && $isSendOnce) {
+        $isFirstCondition = ($debtor->qty_delays >= $delaysArray[$smsTemplateId]['first'] && $isBadBaseOne);
+        $isSecondCondition = ($debtor->qty_delays >= $delaysArray[$smsTemplateId]['second'] && $isBadBaseTwo);
+        if (($isFirstCondition || $isSecondCondition) && $isSendOnce) {
             return true;
         }
         return false;
@@ -133,8 +146,8 @@ class DebtorSmsService
     ) {
         $smsLink = '';
         if ($smsType && ($smsType == 'link' || $smsType == 'msg')) {
-            if($amount){
-               $amount *= 100;
+            if ($amount) {
+                $amount *= 100;
             }
             $smsText = 'Направляем ссылку для оплаты долга в ООО МКК"ФИНТЕРРА"88003014344';
             $result = $this->armClient->getTinkoffLink($debtor, $amount, $phone);
@@ -197,7 +210,7 @@ class DebtorSmsService
 
         if ($smsId == 21 || $smsId == 45) {
             DebtorEventSms::create([
-                'event_id'=> $debtorEvent->id,
+                'event_id' => $debtorEvent->id,
                 'sms_id' => $smsId,
                 'customer_id_1c' => $debtor->customer_id_1c,
                 'debtor_base' => $debtor->base
