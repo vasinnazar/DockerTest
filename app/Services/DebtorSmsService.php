@@ -73,7 +73,7 @@ class DebtorSmsService
             );
             return $item;
         })->reject(function ($item) use ($debtor) {
-            if ($this->hasSmsMustBeSentOnce($debtor, $item->id)) {
+            if (!$this->hasSmsMustBeSentOnce($debtor, $item->id)) {
                 return $item;
             }
         });
@@ -82,7 +82,7 @@ class DebtorSmsService
     public function hasSmsMustBeSentOnce(Debtor $debtor, int $smsTemplateId)
     {
         if ($smsTemplateId !== 21 && $smsTemplateId !== 45) {
-            return false;
+            return true;
         }
         $isBadBaseOne = in_array($debtor->base, [
                 'Б-3',
@@ -126,9 +126,9 @@ class DebtorSmsService
             }
             $isSendOnce = true;
         }
-        $isFirstCondition = ($debtor->qty_delays < $delaysArray[$smsTemplateId]['first'] || !$isBadBaseOne);
-        $isSecondCondition = ($debtor->qty_delays < $delaysArray[$smsTemplateId]['second'] && !$isBadBaseTwo);
-        if (($isFirstCondition || $isSecondCondition) || !$isSendOnce) {
+        $isFirstCondition = ($debtor->qty_delays >= $delaysArray[$smsTemplateId]['first'] && $isBadBaseOne);
+        $isSecondCondition = ($debtor->qty_delays >= $delaysArray[$smsTemplateId]['second'] && $isBadBaseTwo);
+        if (($isFirstCondition || $isSecondCondition) && $isSendOnce) {
             return true;
         }
         return false;
