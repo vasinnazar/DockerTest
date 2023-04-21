@@ -38,11 +38,11 @@ class DebtorSmsService
     {
         $recoveryType = null;
         $isUbytki = null;
-        if ($user->isDebtorsPersonal()) {
+        if ($user->isDebtorsRemote()) {
             $recoveryType = 'remote';
             $isUbytki = ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') ? true : false;
         }
-        if ($user->isDebtorsRemote()) {
+        if ($user->isDebtorsPersonal()) {
             $recoveryType = 'personal';
             $isUbytki = false;
         }
@@ -127,8 +127,8 @@ class DebtorSmsService
             $isSendOnce = true;
         }
         $isFirstCondition = ($debtor->qty_delays < $delaysArray[$smsTemplateId]['first'] || !$isBadBaseOne);
-        $isSecondCondition = ($debtor->qty_delays < $delaysArray[$smsTemplateId]['second'] || !$isBadBaseTwo);
-        if ($isFirstCondition && $isSecondCondition && $isSendOnce) {
+        $isSecondCondition = ($debtor->qty_delays < $delaysArray[$smsTemplateId]['second'] && !$isBadBaseTwo);
+        if (($isFirstCondition || $isSecondCondition) || !$isSendOnce) {
             return true;
         }
         return false;
