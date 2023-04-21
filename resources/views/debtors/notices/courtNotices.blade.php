@@ -117,7 +117,8 @@
                                 <td></td>
                                 <td>
                                     <select name="responsible_users_ids[]" multiple="multiple" size="8">
-                                        @foreach (auth()->user()->subordinatedUsers as $subordinated)
+                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                        @foreach ($user->subordinatedUsers as $subordinated)
                                         <option value="{{ $subordinated->id }}">{{ $subordinated->name }}</option>
                                         @endforeach
                                     </select>
