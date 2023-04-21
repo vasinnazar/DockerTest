@@ -38,11 +38,11 @@ class DebtorSmsService
     {
         $recoveryType = null;
         $isUbytki = null;
-        if ($user->isDebtorsRemote()) {
+        if ($user->isDebtorsPersonal()) {
             $recoveryType = 'remote';
             $isUbytki = ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') ? true : false;
         }
-        if ($user->isDebtorsPersonal()) {
+        if ($user->isDebtorsRemote()) {
             $recoveryType = 'personal';
             $isUbytki = false;
         }
@@ -87,8 +87,8 @@ class DebtorSmsService
         $isBadBaseOne = in_array($debtor->base, [
                 'Б-3',
                 'Б-риски',
-                'КБ-график',
-                'Б-график'
+                'КБ-График',
+                'Б-График'
             ]
         );
         $isBadBaseTwo = $debtor->base === 'Б-МС';
@@ -111,14 +111,14 @@ class DebtorSmsService
                 $oldBase = in_array($eventSms->debtor_base, [
                     'Б-3',
                     'Б-риски',
-                    'КБ-график',
-                    'Б-график',
+                    'КБ-График',
+                    'Б-График',
                     'Б-МС'
                 ]);
                 $newBase = in_array($debtor->base, [
                     'З-МС',
-                    'КЗ-график',
-                    'З-график'
+                    'КЗ-График',
+                    'З-График'
                 ]);
                 if ($oldBase && $newBase) {
                     $eventSms->delete();
