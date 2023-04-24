@@ -1,16 +1,15 @@
-<?php
-if (Auth::id() == 69) { ?>
-<p style="text-align: center; color: blue;">Данные из базы 1С: {{ $loans['base_type'] }}</p>
-    <?php
-}
-?>
-<p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Общая сумма долга: <span
-            id="totalSumDebt">{{ number_format($loans['summary'] / 100, '2', '.', '') }}</span> руб.</p>
-<p style="text-align: center; color: blue; font-weight: bold; padding: 0;">
-    Проценты: {{ number_format($loans['total_pc'] / 100, '2', '.', '') }} руб.</p>
-<p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Изменение общей суммы долга: <span
-            id="diffTotalSumChange">0</span> руб.</p>
 @if($loans)
+
+    @if(Auth::id() == 69)
+    <p style="text-align: center; color: blue;">Данные из базы 1С: {{ $loans['base_type'] }}</p>
+    @endif
+
+    <p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Общая сумма долга: <span
+                id="totalSumDebt">{{ number_format($loans['summary'] / 100, '2', '.', '') }}</span> руб.</p>
+    <p style="text-align: center; color: blue; font-weight: bold; padding: 0;">
+        Проценты: {{ number_format($loans['total_pc'] / 100, '2', '.', '') }} руб.</p>
+    <p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Изменение общей суммы долга: <span
+                id="diffTotalSumChange">0</span> руб.</p>
     @php
         foreach ($loans as $id_1c => $mLoan) {
 
