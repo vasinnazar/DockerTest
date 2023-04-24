@@ -88,12 +88,12 @@
         ], {
             dtData: {
                 scrollY: 300,
-                scrollCollapse: false
+                scrollCollapse: false,
+                serverSide: false
             },
             clearFilterBtn: $('#debtorEventsClearFilterBtn'),
             filterBtn: $('#debtorEventsFilterBtn'),
             filterHolder: $('#debtorEventsFilter')
-//            repeatLastSearchBtn: $('#repeatLastSearchBtn'),
         });
         $.debtorsCtrl.selectTotalPlannedColumn($('.planned-table-selected-btn:first'));
     };
@@ -459,42 +459,24 @@
      * @returns {undefined}
      */
     $.debtorsCtrl.initDebtorForgottenTable = function () {
-        /*$.debtorsCtrl.debtorforgotten = new TableController('debtorforgotten', [
-            {data: '0', name: 'links', searchable: false, orderable: false},
-            {data: '1', name: 'debtors_fixation_date'},
-            {data: '2', name: 'passports_fio'},
-            {data: '3', name: 'debtors_loan_id_1c'},
-            {data: '4', name: 'debtors_qty_delays'},
-            {data: '5', name: 'debtors_sum_indebt'},
-            {data: '6', name: 'debtors_od'},
-            {data: '7', name: 'debtors_base'},
-            {data: '8', name: 'customers_telephone'},
-            {data: '9', name: 'debtors_debt_group_id'},
-            {data: '10', name: 'debtors_responsible_user_id_1c'},
-            {data: '11', name: 'debtors_str_podr'},
-        ],*/
         $.debtorsCtrl.debtorforgotten = new TableController('debtorforgotten', [
                 {data: 'links', name: 'links', searchable: false, orderable: false},
                 {data: 'debtors_fixation_date', name: 'debtors_fixation_date'},
                 {data: 'passports_fio', name: 'passports_fio'},
-                {data: 'debtors_username', name: 'debtors_responsible_user_id_1c'},
+                {data: 'debtors_username', name: 'debtors_username'},
                 {data: 'debtor_str_podr', name: 'debtor_str_podr'},
             ],
             {
                 dtData: {
                     scrollY: 600,
                     scrollCollapse: false,
-                    lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
+                    lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]],
+                    serverSide: false
                 },
-                //clearFilterBtn: $('#debtorTransferClearFilterBtn'),
                 filterBtn: $('#forgottenDebtorFilterButton'),
                 filterHolder: $('#forgottenDebtorFilter')
-//            repeatLastSearchBtn: $('#repeatLastSearchBtn'),
             }
         );
-        //$('#allDebtorsCheckToggler').change(function () {
-        //    $('#debtortransferTable input[name="debtor_transfer_id[]"]').prop('checked', $(this).prop('checked')).change();
-        //});
     };
     /**
      * Инициализация таблицы должников с рекомендациями

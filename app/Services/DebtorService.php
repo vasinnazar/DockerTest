@@ -13,10 +13,6 @@ use Illuminate\Support\Facades\Auth;
 
 class DebtorService
 {
-    /**
-     * @param string|null $id1c
-     * @return \Illuminate\Support\Collection
-     */
     public function getForgottenById1c(string $id1c = null)
     {
         $user = Auth::user();
@@ -58,30 +54,23 @@ class DebtorService
         $debtors = $debtors->groupBy('id')->get();
         $collectDebtors = collect();
         foreach ($debtors as $debtor) {
-            $arrDebtors = Debtor::where('customer_id_1c', $debtor->customer_id_1c)
-                ->get()
-                ->pluck('id')
-                ->toArray();
-
-            $event = DebtorEvent::whereIn('debtor_id', $arrDebtors)
+            $event = DebtorEvent::where('customer_id_1c', $debtor->customer_id_1c)
                 ->whereIn('event_result_id', $arGoodResultIds)
                 ->latest()
                 ->first();
 
-            if (!is_null($event)
-                && ($event->created_at->startOfDay()->lessThan($forgottenDate)
-                    || $event->created_at->startOfDay()->equalTo($forgottenDate))
-            ) {
-                $itemCollect = [
-                    'debtors_fixation_date' => $debtor->fixation_date,
-                    'passports_fio' => $debtor->customer->getLastPassport()->fio,
-                    'debtors_id' => $debtor->id,
-                    'debtors_username' => (User::where('id_1c', $debtor->responsible_user_id_1c)->first())->name,
-                    'debtor_str_podr' => $debtor->str_podr,
-                    'debtors_responsible_user_id_1c' => $debtor->responsible_user_id_1c,
-                ];
-                $collectDebtors->push($itemCollect);
+            if ($event && $event->created_at->startOfDay() > $forgottenDate) {
+                continue;
             }
+            $itemCollect = [
+                'debtors_fixation_date' => $debtor->fixation_date,
+                'passports_fio' => $debtor->customer->getLastPassport()->fio,
+                'debtors_id' => $debtor->id,
+                'debtors_username' => (User::where('id_1c', $debtor->responsible_user_id_1c)->first())->name,
+                'debtor_str_podr' => $debtor->str_podr,
+                'debtors_responsible_user_id_1c' => $debtor->responsible_user_id_1c,
+            ];
+            $collectDebtors->push($itemCollect);
         }
         return $collectDebtors;
     }
