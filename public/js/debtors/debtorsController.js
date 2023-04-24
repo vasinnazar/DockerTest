@@ -89,7 +89,6 @@
             dtData: {
                 scrollY: 300,
                 scrollCollapse: false,
-                serverSide: false
             },
             clearFilterBtn: $('#debtorEventsClearFilterBtn'),
             filterBtn: $('#debtorEventsFilterBtn'),
