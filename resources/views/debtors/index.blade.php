@@ -31,15 +31,14 @@
             <a href="{{url('addressdoubles/index')}}" class="btn btn-default">Дубли адресов</a>
             <input type="button" class="btn btn-default" value="Зачет оплат" data-target='#userPaymentsModal' data-toggle='modal' />
             <a class="btn btn-default" href="{{url('reports/paysheet')}}" target="_blank">Расчетный лист</a>
-            @if ($user->id== 69 || $user->id== 916 || $user->id== 885 || $user->id== 3448 || $user->id== 970 || $user->id== 3465)
-            <a href="{{url('debtors/recurrent/massquerytask')}}"  class="btn btn-default">Массовое списание</a>
+            @if ($user->hasRole('debtors_chief') && $user->hasRole('debtors_personal'))
+                <a href="{{url('debtors/recurrent/massquerytask?str_podr=000000000007')}}"  class="btn btn-default">Массовое списание</a>
             @endif
-            @if ($user->id== 69 || $user->id== 916)
-            <a href="{{url('debtors/recurrent/massquerytask?type=olv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
+            @if ($user->hasRole('debtors_chief') && $user->hasRole('debtors_remote'))
+                <a href="{{url('debtors/recurrent/massquerytask?str_podr=000000000006')}}"  class="btn btn-default">Массовое списание</a>
+                <a href="{{url('debtors/recurrent/massquerytask?str_podr=000000000006-1')}}"  class="btn btn-default">Масс. списание Ведущий</a>
             @endif
-            @if ($user->id== 69 || $user->id== 3448)
-            <a href="{{url('debtors/recurrent/massquerytask?type=ouv_chief')}}"  class="btn btn-default">Масс. списание Ведущий</a>
-            @endif
+
             @if (!$user->hasRole('debtors_personal'))
             <a href="{{url('usertests/index')}}" class="btn btn-default" target="_blank">Тесты</a>
             @endif

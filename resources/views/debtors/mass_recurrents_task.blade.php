@@ -1,6 +1,12 @@
 @extends('app')
-@section('title') Массовый безакцепт {{ ($recurrent_type == 'olv_chief' || $recurrent_type == 'ouv_chief') ? 'Ведущий' : '' }}@stop
+@section('title')
+    Массовый безакцепт
+@stop
 @section('content')
+    <input type="hidden" id="str_podr" value="{{ $str_podr }}">
+    @foreach ($collectionTasks->where('completed', 0) as $task)
+        <input type="hidden" class="exec-tasks" name="executing_tasks[]" value="{{ $task->id }}">
+    @endforeach
 
     <div class="container">
         <div class="row">
@@ -112,49 +118,49 @@
 @stop
 
 @section('scripts')
-        <script>
-            $(document).ready(function () {
-                $('button').click(function () {
-                    if (confirm('Вы уверены, что хотите запустить задачу?')) {
-                        $(this).attr('disabled', true);
-                        $(this).html('Задача создается, ожидайте...');
+    <script>
+        $(document).ready(function () {
+            $('button').click(function () {
+                if (confirm('Вы уверены, что хотите запустить задачу?')) {
+                    $(this).attr('disabled', true);
+                    $(this).html('Задача создается, ожидайте...');
 
-                        let timezone = $(this).val();
-                        $.ajax({
-                            url: '/debtors/recurrent/massquerytask',
-                            method: 'post',
-                            data: {start: 1, str_podr: $('#str_podr').val(), timezone: timezone},
-                            success: function (data) {
-                                var json_data = JSON.parse(data);
+                    let timezone = $(this).val();
+                    $.ajax({
+                        url: '/debtor/recurrent/massquerytask',
+                        method: 'post',
+                        data: {start: 1, str_podr: $('#str_podr').val(), timezone: timezone},
+                        success: function (data) {
+                            var json_data = JSON.parse(data);
 
-                                if (json_data.status == 'success') {
-                                    $.ajax({
-                                        url: '/debtors/recurrent/massquery',
-                                        method: 'post',
-                                        data: {
-                                            task_id: json_data.task_id
-                                        },
-                                        success: function (data) {
+                            if (json_data.status == 'success') {
+                                $.ajax({
+                                    url: '/debtor/recurrent/massquery',
+                                    method: 'post',
+                                    data: {
+                                        task_id: json_data.task_id
+                                    },
+                                    success: function (data) {
 
-                                        }
-                                    });
+                                    }
+                                });
 
-                                    location.reload();
-                                } else {
-                                    $('#error-block').show();
-                                }
+                                location.reload();
+                            } else {
+                                $('#error-block').show();
                             }
-                        });
-                    }
-                });
+                        }
+                    });
+                }
             });
-        </script>
-        @if ($collectionTasks->where('completed', 0)->count())
+        });
+    </script>
+    @if ($collectionTasks->where('completed', 0)->count())
         <script>
             $(document).ready(function () {
                 function loop() {
                     $.ajax({
-                        url: '/debtors/recurrent/getstatus',
+                        url: '/debtor/recurrent/getstatus',
                         method: 'post',
                         data: {tasks: $('input[name="executing_tasks[]"]').serializeArray()},
                         success: function (data) {
@@ -176,6 +182,5 @@
                 loop();
             });
         </script>
-        @endif
     @endif
 @stop
