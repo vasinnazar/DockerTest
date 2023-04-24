@@ -56,6 +56,7 @@ class DebtorsNoticesController extends Controller {
                 ->get();
 
         return view('debtors.notices.index', [
+            'user' => $user,
             'taskInProgress' => $taskInProgress,
             'tasks' => $tasks
         ]);
@@ -729,6 +730,7 @@ class DebtorsNoticesController extends Controller {
                 ->get();
 
         return view('debtors.notices.courtNotices', [
+            'user' => $user,
             'taskInProgress' => $taskInProgress,
             'tasks' => $tasks
         ]);

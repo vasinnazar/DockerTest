@@ -149,13 +149,8 @@ class DebtorCardService
         return $arResult;
     }
 
-    public function getEqualContactsDebtors($debtor_id)
+    public function getEqualContactsDebtors($debtor)
     {
-        $debtor = Debtor::find($debtor_id);
-
-        if (!$debtor) {
-            return collect();
-        }
 
         $equalPhones = Customer::where('telephone', $debtor->customer->telephone)
             ->get()

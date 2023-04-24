@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Log;
  * @property string base
  * @property int is_debtor
  *
+ * @method byQty(int $qtyStart = null, int $qtyEnd = null)
+ *
  * @mixin Builder
  * @mixin \Illuminate\Database\Query\Builder
  */

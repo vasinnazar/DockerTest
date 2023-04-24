@@ -3,8 +3,16 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 
 //group_id: 0-admin, 1-user,-1 - superadmin
+/**
+ * Class Debtor
+ * @package App
+ * @method bySort(string $type = null,int $sort = null)
+ * @mixin Builder
+ * @mixin \Illuminate\Database\Query\Builder
+ */
 class DebtorSmsTpls extends Model {
 
     /**
@@ -34,5 +42,12 @@ class DebtorSmsTpls extends Model {
             $q->where('sort', null);
         }
         return $q->get();
+    }
+    public function scopeBySort($query, string $type = null, int $sort = null)
+    {
+        if ($type == 'remote' && $sort) {
+            return $query->where('sort', 1);
+        }
+        return $query->where('sort', null);
     }
 }
