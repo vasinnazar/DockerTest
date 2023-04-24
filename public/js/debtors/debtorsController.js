@@ -477,8 +477,8 @@
                 {data: 'links', name: 'links', searchable: false, orderable: false},
                 {data: 'debtors_fixation_date', name: 'debtors_fixation_date'},
                 {data: 'passports_fio', name: 'passports_fio'},
-                {data: 'debtors_responsible_user_id_1c', name: 'debtors_responsible_user_id_1c'},
-                {data: 'debtors_str_podr', name: 'debtors_str_podr'},
+                {data: 'debtors_username', name: 'debtors_responsible_user_id_1c'},
+                {data: 'debtor_str_podr', name: 'debtor_str_podr'},
             ],
             {
                 dtData: {

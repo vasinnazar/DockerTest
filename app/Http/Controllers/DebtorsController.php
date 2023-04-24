@@ -2881,6 +2881,7 @@ class DebtorsController extends BasicController
                 return $html;
             }, 0)
             ->removeColumn('debtors_id')
+            ->removeColumn('debtors_responsible_user_id_1c')
             ->rawColumns(['links'])
             ->toJson();
     }
