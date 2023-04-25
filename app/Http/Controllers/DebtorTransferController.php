@@ -4,32 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Services\RepaymentOfferService;
 use Illuminate\Http\Request;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
 use App\Utils\PermLib;
 use App\Permission;
 use App\Utils\StrLib;
-use Auth;
 use App\Debtor;
-use App\Order;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
-use App\StrUtils;
-use App\DebtorEvent;
 use App\Utils\HtmlHelper;
 use Carbon\Carbon;
-use App\Photo;
-use Illuminate\Support\Facades\Storage;
-use App\Passport;
-use App\DebtorUsersRef;
-use App\DebtorSmsTpls;
 use App\User;
-use App\Utils;
 use App\MySoap;
 
-class DebtorTransferController extends BasicController {
+class DebtorTransferController extends BasicController
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         if (!Auth::user()->hasPermission(Permission::makeName(PermLib::ACTION_OPEN, PermLib::SUBJ_DEBTOR_TRANSFER))) {
             return redirect('/')->with('msg_err', StrLib::ERR_NOT_ADMIN);
         }
@@ -40,13 +31,15 @@ class DebtorTransferController extends BasicController {
      *
      * @return \Illuminate\Http\Response
      */
-    public function index() {
+    public function index()
+    {
         return view('debtortransfer.index', [
             'debtorTransferFilterFields' => self::getSearchFields()
         ]);
     }
 
-    function getDebtorsTableColumns() {
+    function getDebtorsTableColumns()
+    {
         return [
             'debtors.passports.fio' => 'passports_fio',
             'debtors.od' => 'debtors_od',
@@ -71,10 +64,12 @@ class DebtorTransferController extends BasicController {
      * @param array $input
      * @return boolean
      */
-    function hasFilterFilled($input) {
+    function hasFilterFilled($input)
+    {
         $filled = false;
         foreach ($input as $k => $v) {
-            if (((strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === FALSE) || $k == 'users@login' || $k == 'debtors@base') && !empty($v)) {
+            if (((strpos($k, 'search_field_') === 0 && strpos($k,
+                            '_condition') === false) || $k == 'users@login' || $k == 'debtors@base') && !empty($v)) {
                 $filled = true;
                 return $filled;
             }
@@ -224,7 +219,7 @@ class DebtorTransferController extends BasicController {
             ->removeColumn('passports_fact_address_district')
             ->removeColumn('passports_fact_address_street')
             ->removeColumn('passports_fact_address_house')
-            ->rawColumns(['actions','links','passports_fact_address_city'])
+            ->rawColumns(['actions', 'links', 'passports_fact_address_city'])
             ->filter(function ($query) use ($req) {
                 $input = $req->input();
                 foreach ($input as $k => $v) {
@@ -244,10 +239,12 @@ class DebtorTransferController extends BasicController {
             ->toJson();
     }
 
-    public function transferHistory(Request $req) {
+    public function transferHistory(Request $req)
+    {
         $date = $req->get('date', date('Y-m-d', time()));
 
-        $transfers = \App\DebtorTransferHistory::where('transfer_time', '>=', $date . ' 00:00:00')->where('transfer_time', '<=', $date . ' 23:59:59')->orderBy('row', 'asc')->get();
+        $transfers = \App\DebtorTransferHistory::where('transfer_time', '>=',
+            $date . ' 00:00:00')->where('transfer_time', '<=', $date . ' 23:59:59')->orderBy('row', 'asc')->get();
 
         $arTransfers = [];
 
@@ -257,7 +254,8 @@ class DebtorTransferController extends BasicController {
                     $operation_user = User::find($transfer->operation_user_id);
                     $arTransfers[$transfer->row]['operation_user_name'] = $operation_user->login;
                     $arTransfers[$transfer->row]['operation_number'] = $transfer->row;
-                    $arTransfers[$transfer->row]['transfer_time'] = date('d.m.Y H:i:s', strtotime($transfer->transfer_time));
+                    $arTransfers[$transfer->row]['transfer_time'] = date('d.m.Y H:i:s',
+                        strtotime($transfer->transfer_time));
                 }
                 $arTransfers[$transfer->row]['transfers'][] = $transfer;
             }
@@ -280,7 +278,8 @@ class DebtorTransferController extends BasicController {
      * @param Request $req
      * @return int
      */
-    public function changeResponsibleUser(RepaymentOfferService $repaymentOfferService , Request $req) {
+    public function changeResponsibleUser(RepaymentOfferService $repaymentOfferService, Request $req)
+    {
         $input = $req->input();
 
         $user = User::find($input['new_user_id']);
@@ -291,18 +290,28 @@ class DebtorTransferController extends BasicController {
 
         if ($user->id == 1901 || $user->id == 1135 || $user->id == 2486 || $user->id == 2860 || $user->id == 951 || $user->id == 3654 || $user->id == 4204) {
             $str_podr = '0000000000001';
-        } else if ($user->hasRole('debtors_remote')) {
-            $str_podr = '000000000006';
-        } else if ($user->hasRole('debtors_personal')) {
-            $str_podr = '000000000007';
-        } else if ($user->id == 1894) {
-            $str_podr = '00000000000010';
-        } else if ($user->id == 1029) {
-            $str_podr = '';
-        } else if ($base == 'ХПД') {
-            $str_podr = 'СУЗ';
         } else {
-            return $this->backWithErr("Некорректное структурное подразделение для нового пользователя.");
+            if ($user->hasRole('debtors_remote')) {
+                $str_podr = '000000000006';
+            } else {
+                if ($user->hasRole('debtors_personal')) {
+                    $str_podr = '000000000007';
+                } else {
+                    if ($user->id == 1894) {
+                        $str_podr = '00000000000010';
+                    } else {
+                        if ($user->id == 1029) {
+                            $str_podr = '';
+                        } else {
+                            if ($base == 'ХПД') {
+                                $str_podr = 'СУЗ';
+                            } else {
+                                return $this->backWithErr("Некорректное структурное подразделение для нового пользователя.");
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         $items = []; // массив для передачи id должников в 1С
@@ -326,8 +335,7 @@ class DebtorTransferController extends BasicController {
             $arr_history[$i]['debtor_id_1c'] = $debtor->debtor_id_1c;
             $arr_history[$i]['auto_transfer'] = 0;
 
-            if($debtor->str_podr == '000000000006' && $str_podr == '000000000007')
-            {
+            if ($debtor->str_podr == '000000000006' && $str_podr == '000000000007') {
                 $repaymentOfferService->closeOfferIfExist($debtor);
             }
 
@@ -335,10 +343,12 @@ class DebtorTransferController extends BasicController {
 
             if ($user->id == 951) {
                 $debtor->str_podr = '0000000000001';
-            } else if ($user->id == 1877 || $user->id == 956) {
-                $debtor->str_podr = 'СУЗ';
             } else {
-                $debtor->str_podr = $str_podr;
+                if ($user->id == 1877 || $user->id == 956) {
+                    $debtor->str_podr = 'СУЗ';
+                } else {
+                    $debtor->str_podr = $str_podr;
+                }
             }
 
             $debtor->last_user_id = $last_user_id;
@@ -372,9 +382,9 @@ class DebtorTransferController extends BasicController {
                     $date_order_from = date('Y-m-d H:i:s', strtotime('-30 day'));
 
                     $armf_orders = DB::Table('armf.orders')
-                            ->where('loan_id', $armf_loan->id)
-                            ->where('created_at', '>=', $date_order_from)
-                            ->sum('money');
+                        ->where('loan_id', $armf_loan->id)
+                        ->where('created_at', '>=', $date_order_from)
+                        ->sum('money');
 
                     $armf_orders_sum = $armf_orders / 100;
 
@@ -409,12 +419,14 @@ class DebtorTransferController extends BasicController {
 
                 if ($user->id == 951) {
                     $unclosed->str_podr = '0000000000001';
-                } else if ($user->id == 1877 || $user->id == 956) {
-                    $unclosed->str_podr = 'СУЗ';
                 } else {
-                    $unclosed->str_podr = $str_podr;
+                    if ($user->id == 1877 || $user->id == 956) {
+                        $unclosed->str_podr = 'СУЗ';
+                    } else {
+                        $unclosed->str_podr = $str_podr;
+                    }
                 }
-                
+
                 $unclosed_old_base = $unclosed->base;
 
                 $unclosed->responsible_user_id_1c = $user->id_1c;
@@ -422,18 +434,28 @@ class DebtorTransferController extends BasicController {
                 if (!empty($base)) {
                     if ($user->id_1c == 'Котельникова Е. А.' && $base == 'Б-4' && ($unclosed->base == 'Б-МС' || $unclosed->base == 'Б-риски' || $unclosed->base == 'Б-График' || $unclosed->base == 'КБ-График')) {
                         $unclosed->base = $base;
-                    } else if ($unclosed->base == 'З-ДС' || $unclosed->base == 'Б-КДС') {
-                        $unclosed->base = $base;
-                    } else if ($base == 'КБ-График' && ($unclosed->base == 'Б-1' || $unclosed->base == 'Б-3')) {
-                        $unclosed->base = $unclosed->base;
-                    } else if ($base == 'КБ-График' && $unclosed->base == 'Б-0') {
-                        $unclosed->base = 'Б-1';
-                    } else if ($base == 'Б-1' && $unclosed->base == 'КБ-График') {
-                        $unclosed->base = 'КБ-График';
-                    } else if ($base == 'Б-3' && $unclosed->base == 'КБ-График') {
-                        $unclosed->base = 'КБ-График';
                     } else {
-                        
+                        if ($unclosed->base == 'З-ДС' || $unclosed->base == 'Б-КДС') {
+                            $unclosed->base = $base;
+                        } else {
+                            if ($base == 'КБ-График' && ($unclosed->base == 'Б-1' || $unclosed->base == 'Б-3')) {
+                                $unclosed->base = $unclosed->base;
+                            } else {
+                                if ($base == 'КБ-График' && $unclosed->base == 'Б-0') {
+                                    $unclosed->base = 'Б-1';
+                                } else {
+                                    if ($base == 'Б-1' && $unclosed->base == 'КБ-График') {
+                                        $unclosed->base = 'КБ-График';
+                                    } else {
+                                        if ($base == 'Б-3' && $unclosed->base == 'КБ-График') {
+                                            $unclosed->base = 'КБ-График';
+                                        } else {
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 } else {
                     if ($unclosed->base == 'Б-0') {
@@ -451,9 +473,9 @@ class DebtorTransferController extends BasicController {
                         $date_order_from = date('Y-m-d H:i:s', strtotime('-30 day'));
 
                         $armf_orders = DB::Table('armf.orders')
-                                ->where('loan_id', $armf_loan->id)
-                                ->where('created_at', '>=', $date_order_from)
-                                ->sum('money');
+                            ->where('loan_id', $armf_loan->id)
+                            ->where('created_at', '>=', $date_order_from)
+                            ->sum('money');
 
                         $armf_orders_sum = $armf_orders / 100;
 
@@ -495,7 +517,8 @@ class DebtorTransferController extends BasicController {
         return 1;
     }
 
-    public function getActPdf(Request $req) {
+    public function getActPdf(Request $req)
+    {
         $input = $req->input();
         $html = '<table width="100%" style="border-collapse: collapse;">';
 
@@ -517,20 +540,22 @@ class DebtorTransferController extends BasicController {
         foreach ($input['debtor_transfer_id'] as $debtor_id) {
             $cnt++;
             $debtors = Debtor::select(DB::raw('*, debtors.loans.id_1c as loan_id_1c, debtors.loans.created_at as loan_created_at, debtors.passports.fio as passports_fio'))
-                    ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
-                    ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-                    ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-                    ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
-                    ->where('debtors.id', $debtor_id);
+                ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
+                ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
+                ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
+                ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
+                ->where('debtors.id', $debtor_id);
 
             $debtordata = $debtors->get()->toArray();
 
             $html .= '<tr>';
             $html .= '<td style="border: 1px #000000 solid; text-align: center; vertical-align: middle; padding: 5px;">' . $cnt . '</td>';
             $html .= '<td style="border: 1px #000000 solid; text-align: center; vertical-align: middle; padding: 5px;">' . $debtordata[0]['passports_fio'] . '</td>';
-            $html .= '<td style="border: 1px #000000 solid; text-align: center; vertical-align: middle; padding: 5px;">' . number_format($debtordata[0]['sum_indebt'] / 100, 2, ',', ' ') . '</td>';
+            $html .= '<td style="border: 1px #000000 solid; text-align: center; vertical-align: middle; padding: 5px;">' . number_format($debtordata[0]['sum_indebt'] / 100,
+                    2, ',', ' ') . '</td>';
             $html .= '<td style="border: 1px #000000 solid; text-align: center; vertical-align: middle; padding: 5px;">' . $debtordata[0]['loan_id_1c'] . '</td>';
-            $html .= '<td style="border: 1px #000000 solid; text-align: center; vertical-align: middle; padding: 5px;">' . date('d.m.Y', strtotime($debtordata[0]['loan_created_at'])) . '</td>';
+            $html .= '<td style="border: 1px #000000 solid; text-align: center; vertical-align: middle; padding: 5px;">' . date('d.m.Y',
+                    strtotime($debtordata[0]['loan_created_at'])) . '</td>';
             $html .= '<td style="border: 1px #000000 solid; text-align: center; vertical-align: middle; padding: 5px;">' . $debtordata[0]['base'] . '</td>';
             $html .= '<td style="border: 1px #000000 solid; text-align: center; vertical-align: middle; padding: 5px;">' . $debtordata[0]['qty_delays'] . '</td>';
             $html .= '<td style="border: 1px #000000 solid; text-align: center; vertical-align: middle; padding: 5px;">' . $new_user->login . '</td>';
@@ -563,7 +588,8 @@ class DebtorTransferController extends BasicController {
         return \App\Utils\PdfUtil::getPdf($template);
     }
 
-    public function addTransferHistory($arr_history) {
+    public function addTransferHistory($arr_history)
+    {
         $current_user = auth()->user();
         $data['operation_user_id'] = $current_user->id;
 
@@ -596,63 +622,64 @@ class DebtorTransferController extends BasicController {
         }
     }
 
-    static function getSearchFields() {
+    static function getSearchFields()
+    {
         return [
-                [
+            [
                 'name' => 'debtors@fixation_date',
                 'input_type' => 'date',
                 'label' => 'Дата'
             ],
-                [
+            [
                 'name' => 'users@login',
                 'input_type' => 'text',
                 'label' => 'Старый пользователь',
                 'hidden_value_field' => 'users@id',
                 'field_id' => 'old_user_id'
             ],
-                [
+            [
                 'name' => 'passports@fio',
                 'input_type' => 'text',
                 'label' => 'Должник',
                 'hidden_value_field' => 'passports@id',
                 'field_id' => 'passports_id'
             ],
-                [
+            [
                 'name' => 'passports@fact_address_city',
                 'input_type' => 'text',
                 'label' => 'Город',
                 'hidden_value_field' => 'passports@fact_address_city',
                 'field_id' => ''
             ],
-                [
+            [
                 'name' => 'passports@fact_address_district',
                 'input_type' => 'text',
                 'label' => 'Район',
                 //'hidden_value_field' => 'passports@fact_address_district',
                 'field_id' => ''
             ],
-                [
+            [
                 'name' => 'passports@fact_address_region',
                 'input_type' => 'text',
                 'label' => 'Регион',
                 //'hidden_value_field' => 'passports@fact_address_region',
                 'field_id' => ''
             ],
-                [
+            [
                 'name' => 'debtors@base',
                 'input_type' => 'text',
                 'label' => 'База',
                 'hidden_value_field' => 'debtors@base',
                 'field_id' => ''
             ],
-                [
+            [
                 'name' => 'debt_groups@name',
                 'input_type' => 'text',
                 'label' => 'Группа долга',
                 'hidden_value_field' => 'debt_groups@id',
                 'field_id' => ''
             ],
-                [
+            [
                 'name' => 'struct_subdivisions@name',
                 'input_type' => 'text',
                 'label' => 'Подразделение',
