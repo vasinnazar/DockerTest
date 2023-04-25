@@ -50,7 +50,7 @@ class DebtorSmsService
             return collect();
         }
 
-        $arDebtorFullName = explode(' ', $debtor->passport->first()->name);
+        $arDebtorFullName = explode(' ', $debtor->passport->first()->fio);
         return $this->smsRepository->getSms($recoveryType, $isUbytki)->map(function ($item) use (
             $user,
             $debtor,

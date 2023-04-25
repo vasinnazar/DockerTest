@@ -169,7 +169,6 @@
                                     <button class="btn btn-default" data-toggle="modal" data-target="#debtorSearchContacts">Поиск контактов</button>
                                 </div>
                                 <div class='btn-group btn-group-sm btn-group-vertical'>
-                                    <a class='btn btn-default' href='{{url('debtors/logs/'.$debtor->id)}}'>История изменений</a>
                                     <a id="debtor_history_button" class='btn btn-default' href='{{url('debtors/history/'.$debtor->id)}}' target="_blank" disabled>История заемщика</a>
                                 </div>
                             </div>

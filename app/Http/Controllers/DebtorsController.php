@@ -2212,29 +2212,6 @@ class DebtorsController extends BasicController
             return \App\Utils\FileToPdfUtil::replaceKeys($doc->tplFileName, $arParams, 'debtors');
         }
     }
-
-    /**
-     * История изменений
-     * @param integer $id
-     * @return type
-     */
-    public function debtorLogs($id)
-    {
-        $debtor = Debtor::find($id);
-        if (is_null($debtor)) {
-            return $this->backWithErr(StrLib::ERR_NULL);
-        }
-        $data = $debtor->getAllDebtorLogs();
-        foreach ($data as $d) {
-            \PC::debug([$d->before, $d->after]);
-        }
-        \PC::debug($data);
-        return view('debtors.logs', [
-            'debtor_id' => $id,
-            'logs' => $data
-        ]);
-    }
-
     /**
      * Страница прочих контактов
      * @param integer $id
@@ -2886,15 +2863,6 @@ class DebtorsController extends BasicController
             ->toJson();
     }
 
-    /**
-     * Запрос для "забытых должников"
-     * @param Request $req
-     */
-    public function forgottenQuery(Request $req,DebtorService $service)
-    {
-
-
-    }
 
     /**
      * Возвращает коллекцию по рекомендациям должников

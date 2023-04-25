@@ -15,6 +15,7 @@ class DebtorService
 {
     public function getForgottenById1c(string $id1c = null)
     {
+        set_time_limit(0);
         $user = Auth::user();
         $arGoodResultIds = [0, 1, 6, 9, 10, 11, 12, 13, 22, 24, 27, 29];
 
