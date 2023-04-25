@@ -50,24 +50,15 @@ class DebtorSmsService
             return collect();
         }
 
-        $arDebtorFullName = explode(' ', $debtor->passport->first()->fio);
-        return $this->smsRepository->getSms($recoveryType, $isUbytki)->map(function ($item) use (
-            $user,
-            $debtor,
-            $arDebtorFullName
-        ) {
+        return $this->smsRepository->getSms($recoveryType, $isUbytki)->map(function ($item) use ($debtor) {
             $item->text_tpl = str_replace(
                 [
-                    '##spec_phone##',
                     '##sms_till_date##',
-                    '##sms_loan_info##',
-                    '##sms_debtor_name##'
+                    '##sms_loan_info##'
                 ],
                 [
-                    (mb_strlen($user->phone) < 6) ? '88003014344' : $user->phone,
                     Carbon::today()->format('d.m.Y'),
                     $debtor->loan_id_1c . ' от ' . StrUtils::dateToStr($debtor->loan->created_at),
-                    ($arDebtorFullName[1] ?? '') . ' ' . ($arDebtorFullName[2] ?? '')
                 ],
                 $item->text_tpl
             );
