@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\DebtorsForgotten;
 use App\Console\Commands\DebtorSyncAboutProcess;
 use App\Console\Commands\DebtorSyncSqlProcess;
 use App\Console\Commands\Inspire;
@@ -33,6 +34,7 @@ class Kernel extends ConsoleKernel
         DebtorSyncAboutProcess::class,
         DebtorSyncSqlProcess::class,
         PassportsUpdateTimeZone::class,
+        DebtorsForgotten::class,
     ];
 
     /**
@@ -188,6 +190,7 @@ class Kernel extends ConsoleKernel
         })->dailyAt('07:00');
 
         $schedule->command('passports-update:time-zone');
+        $schedule->command('debtors:forgotten');
         $schedule->command('repayment-offers:auto-peace');
         $schedule->command('debtor-sync:import')->withoutOverlapping();
         $schedule->command('debtor-sync:execute-sql')->withoutOverlapping();

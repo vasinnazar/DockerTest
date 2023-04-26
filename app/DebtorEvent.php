@@ -46,6 +46,20 @@ class DebtorEvent extends Model
         'refresh_date',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+        self::saving(function ($event)
+        {
+            if(in_array($event->event_result_id,[0, 1, 6, 9, 10, 11, 12, 13, 22, 24, 27, 29])) {
+                Debtor::where('customer_id_1c',$event->customer_id_1c)->get()->map(function ($debtor) {
+                        $debtor->forgotten_date = null;
+                        $debtor->save();
+                });
+            }
+        });
+    }
+
     /**
      * Генерирует номер мероприятия для 1с
      * @return string

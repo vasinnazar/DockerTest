@@ -10,11 +10,11 @@ class CreateDebtorEventSmsTable extends Migration
     {
         Schema::create('debtor_event_sms', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('event_id');
+            $table->unsignedInteger('event_id');
             $table->integer('sms_id');
             $table->string('customer_id_1c');
             $table->string('debtor_base');
-            $table->foreign('event_id')->references('id')->on('debtor_event');
+            $table->foreign('event_id')->references('id')->on('debtor_events');
             $table->foreign('sms_id')->references('id')->on('debtor_sms_tpls');
             $table->foreign('customer_id_1c')->references('id_1c')->on('customers');
             $table->softDeletes();
