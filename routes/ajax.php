@@ -202,6 +202,7 @@ Route::prefix('/ajax')->group(function () {
         Route::post('/loans/getmultisum', [DebtorsController::class,'getMultiSum']);
         Route::post('/totalEvents', [DebtorsController::class,'refreshTotalEventTable']);
         Route::post('/overallEvents', [DebtorsController::class,'refreshOverallTable']);
+        Route::post('/searchEqualContacts', [DebtorsController::class,'searchEqualContacts']);
         Route::post('/transfer/changeResponsibleUser', [DebtorTransferController::class,'changeResponsibleUser']);
         Route::get('/transfer/printResponsibleUser', [DebtorTransferController::class,'getActPdf']);
     });

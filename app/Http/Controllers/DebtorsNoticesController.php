@@ -385,8 +385,8 @@ class DebtorsNoticesController extends Controller {
                 $fact_pc = number_format($debt['all_pc'] / 100, 2, ',', ' ');
                 $arFactPc = explode(',', $fact_pc);
 
-                $ur_address = Passport::getFullAddress($passport);
-                $fact_address = Passport::getFullAddress($passport, true);
+                $ur_address = $debtorTmp->passport->full_address;
+                $fact_address = $debtorTmp->passport->fact_full_address;
                 if (!$address_type) {
                     $print_address = $ur_address;
                 } else {
@@ -838,15 +838,11 @@ class DebtorsNoticesController extends Controller {
 
             $i++;
 
-            $passport = Passport::where('series', $debtor->passport_series)
-                    ->where('number', $debtor->passport_number)
-                    ->first();
-
             $activeSheet->appendRow($i, [
                 $debtor->id . '.pdf',
-                Passport::getFullAddress($passport),
+                $debtor->passport->full_address,
                 '0',
-                $passport->fio,
+                $debtor->passport->fio,
                 '',
                 '',
                 $debtor->id,

@@ -184,7 +184,7 @@ class Debtor extends Model
     
     public function passport()
     {
-        return $this->hasMany(Passport::class, 'number', 'passport_number')->where('series', $this->passport_series)->latest();
+        return $this->hasOne(Passport::class, 'number', 'passport_number')->where('series', $this->passport_series);
     }
     
     public function struct_subdivision()

@@ -686,9 +686,6 @@ class DebtorsController extends BasicController
             $debtorEvent->save();
 
             if ($req->hasFile('messenger_photo')) {
-                $passport = Passport::where('series', $debtor->passport_series)
-                    ->where('number', $debtor->passport_number)
-                    ->first();
 
                 $customer_replica = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
 
@@ -712,7 +709,7 @@ class DebtorsController extends BasicController
                     'type_id' => 7,
                     'user_id' => 125,
                     'status_id' => 4,
-                    'customer_name' => ($passport) ? $passport->fio : null,
+                    'customer_name' => $debtor->passport->fio,
                     'customer_id' => ($customer_replica) ? $customer_replica->id : null,
                     'file' => $cFile
                 ];
@@ -1653,20 +1650,6 @@ class DebtorsController extends BasicController
             ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.responsible_user_id_1c')
             ->where('debtors.id', $debtor_id);
 
-//            \PC::debug([$objDebtorData->r_claim_id, $objDebtorData->r_loan_id]);
-//        } else {
-//            $debtorData = Debtor::select(DB::raw('*, armf.passports.id as d_passport_id, armf.loans.id_1c as d_loan_id_1c, armf.loans.created_at as d_loan_created_at, armf.loantypes.name as d_loan_name, armf.claims.created_at as d_claim_created_at, users.login as spec_fio, users.phone as spec_phone, debtors.fine as d_fine, debtors.pc as d_pc, debtors.exp_pc as d_exp_pc, armf.passports.birth_date as birth_date, armf.loans.money as money, armf.customers.id_1c as d_customer_id_1c'))
-//                    ->leftJoin('armf.loans', 'armf.loans.id_1c', '=', 'debtors.loan_id_1c')
-//                    ->leftJoin('armf.claims', 'armf.claims.id', '=', 'armf.loans.claim_id')
-//                    ->leftJoin('armf.customers', 'armf.customers.id_1c', '=', 'debtors.debtors.customer_id_1c')
-//                    ->leftJoin('armf.passports', 'armf.passports.id', '=', 'armf.claims.passport_id')
-//                    ->leftJoin('armf.loantypes', 'armf.loantypes.id', '=', 'armf.loans.loantype_id')
-//                    ->leftJoin('armf.about_clients', 'armf.about_clients.customer_id', '=', 'armf.claims.customer_id')
-//                    ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.responsible_user_id_1c')
-//                    ->where('debtors.id', $debtor_id);
-//        }
-
-
         $objDebtorData = $debtorData->get();
 
         $debtorTmp = Debtor::find($debtor_id);
@@ -1846,8 +1829,8 @@ class DebtorsController extends BasicController
             $fact_pc = number_format($debt['all_pc'] / 100, 2, ',', ' ');
             $arFactPc = explode(',', $fact_pc);
 
-            $ur_address = Passport::getFullAddress($passport);
-            $fact_address = Passport::getFullAddress($passport, true);
+            $ur_address = $debtorTmp->passport->full_address;
+            $fact_address = $debtorTmp->passport->fact_full_address;
             if (!$factAddress) {
                 $print_address = $ur_address;
             } else {
@@ -3111,9 +3094,9 @@ class DebtorsController extends BasicController
                 if (!is_null($passport)) {
                     $data[2] = $passport->fio;
                     if ($notice->is_ur_address) {
-                        $data[3] = \App\Passport::getFullAddress($passport);
+                        $data[3] = $debtor->passport->full_address;
                     } else {
-                        $data[3] = \App\Passport::getFullAddress($passport, true);
+                        $data[3] = $debtor->passport->fact_full_address;
                     }
                 } else {
                     $data[2] = '-';

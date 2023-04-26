@@ -26,7 +26,7 @@
         @else
             @foreach($collectContacts->get('equal_phones') as $contactDebtor)
                 <tr>
-                    <td>{{ $contactDebtor->passport()->first()->fio }}</td>
+                    <td>{{ $contactDebtor->passport->fio }}</td>
                     <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>
                         <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
@@ -49,7 +49,7 @@
         @else
             @foreach($collectContacts->get('equal_addresses_register_to_register') as $contactDebtor)
                 <tr>
-                    <td>{{ $contactDebtor->passport()->first()->fio }}</td>
+                    <td>{{ $contactDebtor->passport->fio }}</td>
                     <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>
                         <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
@@ -72,7 +72,7 @@
         @else
             @foreach($collectContacts->get('equal_addresses_register_to_fact') as $contactDebtor)
                 <tr>
-                    <td>{{ $contactDebtor->passport()->first()->fio }}</td>
+                    <td>{{ $contactDebtor->passport->fio }}</td>
                     <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>
                         <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
@@ -95,7 +95,7 @@
         @else
             @foreach($collectContacts->get('equal_addresses_fact_to_register') as $contactDebtor)
                 <tr>
-                    <td>{{ $contactDebtor->passport()->first()->fio }}</td>
+                    <td>{{ $contactDebtor->passport->fio }}</td>
                     <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>
                         <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
@@ -118,7 +118,7 @@
         @else
             @foreach($collectContacts->get('equal_addresses_fact_to_fact') as $contactDebtor)
                 <tr>
-                    <td>{{ $contactDebtor->passport()->first()->fio }}</td>
+                    <td>{{ $contactDebtor->passport->fio }}</td>
                     <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>
                         <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
