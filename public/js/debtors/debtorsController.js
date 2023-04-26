@@ -162,7 +162,7 @@
                     }
                     $('.debt-' + params[d] + '-ondate').text((val / 100).toFixed(2) + ' руб.');
                 } else {
-                    $('.debt-' + params[d] + '-ondate').text(parseFloat(calc_data[params[d]]).toFixed(2));
+                    $('.debt-' + params[d] + '-ondate').text(calc_data[params[d]]);
                 }
             }
 
