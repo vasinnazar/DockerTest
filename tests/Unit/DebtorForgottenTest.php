@@ -51,6 +51,13 @@ class DebtorForgottenTest extends TestCase
         $this->artisan('debtors:forgotten');
 
         foreach ($debtors as $debtor) {
+            $this->assertDatabaseHas('debtors', [
+                'id' => $debtor->id,
+                'forgotten_date' => Carbon::now(),
+            ]);
+        }
+
+        foreach ($debtors as $debtor) {
             factory(DebtorEvent::class)->create([
                 'debtor_id' => $debtor->id,
                 'customer_id_1c' => $debtor->customer_id_1c,
