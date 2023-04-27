@@ -10,11 +10,10 @@ use App\Services\DebtorService;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use TestCase;
+use Tests\TestCase;
 
 class DebtorForgottenTest extends TestCase
 {
-
     use DatabaseTransactions;
     public function test_get_forgotten_debtors_by_id_1c()
     {

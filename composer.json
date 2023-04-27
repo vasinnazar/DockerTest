@@ -15,8 +15,6 @@
     "h4cc/wkhtmltoimage-amd64": "0.12.x",
     "knplabs/knp-snappy": "^0.4.0",
     "mikehaertl/phpwkhtmltopdf": "^2.1",
-    "php-console/php-console": "^3.1",
-    "php-console/laravel-service-provider": "~5.0",
     "yajra/laravel-datatables-oracle": "8.*",
     "artisaninweb/laravel-soap": "0.2.*",
     "arcanedev/log-viewer": "~3.0",
@@ -52,9 +50,9 @@
     }
   },
   "autoload-dev": {
-    "classmap": [
-      "tests/TestCase.php"
-    ]
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
   },
   "scripts": {
     "post-autoload-dump": [
