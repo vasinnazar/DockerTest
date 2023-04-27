@@ -13,9 +13,8 @@ use Illuminate\Support\Facades\Auth;
 
 class DebtorService
 {
-    public function getForgottenById1c(string $id1c = null)
+    public function getForgottenById1c(User $user,string $id1c = null)
     {
-        $user = Auth::user();
         $structSubdivision = false;
 
         if ($user->isDebtorsPersonal()) {

@@ -51,7 +51,7 @@ $factory->defineAs(Debtor::class,'debtor_forgotten', function (Faker $faker) {
         'qty_delays' => $faker->randomNumber(2),
         'sum_indebt' => $faker->numberBetween(200000, 3000000),
         'overpayments' => 0,
-        'str_podr' => '00000000000010',
+        'str_podr' => $faker->randomElement(['000000000007', '000000000006']),
         'uploaded' => 1,
         'decommissioned' => 0,
         'non_interaction' => 0,

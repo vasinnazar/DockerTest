@@ -2836,7 +2836,7 @@ class DebtorsController extends BasicController
     public function ajaxForgottenList(Request $req, DebtorService $service)
     {
         $id1c = $req->get('search_field_users@id_1c') !== '' ? $req->get('search_field_users@id_1c') : null;
-        $debtors = $service->getForgottenById1c($id1c);
+        $debtors = $service->getForgottenById1c(Auth::user(), $id1c);
         return Datatables::of($debtors)
             ->editColumn('fixation_date', function ($item) {
                 return ($item->fixation_date ? Carbon::parse($item->fixation_date)->format('d.m.Y') : '-');
