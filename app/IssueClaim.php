@@ -65,7 +65,6 @@ class IssueClaim extends Model {
         ];
         if (!is_null($this->data)) {
             $items = json_decode($this->data);
-            \PC::debug($items);
             $data['items'] = [];
             foreach ($items as $item) {
                 $data['items'][] = [

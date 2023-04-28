@@ -96,7 +96,6 @@ class PlanController extends BasicController {
                 ->distinct()
                 ->select('money', 'loans.id')
                 ->get();
-        \PC::debug(count($loans), 'loans');
         $loansSum = 0;
         foreach ($loans as $l) {
             $loansSum+=$l->money;
@@ -115,8 +114,6 @@ class PlanController extends BasicController {
                 ->where('type', \App\OrderType::getRKOid())
                 ->whereNotNull('loan_id')
                 ->sum('money');
-        \PC::debug($ordersSum / 100, 'orders sum');
-        \PC::debug(count($myLoans), 'myloans');
         $myLoansSum = 0;
         foreach ($myLoans as $loan) {
             $myLoansSum += $loan->money;

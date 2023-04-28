@@ -120,7 +120,6 @@ class PhotoController extends Controller {
     }
 
     public function ajaxUpload(Request $req) {
-        \PC::debug($req->all());
 //        (string) $strput = "нет";
         $file = Input::file('file');
         $files = array('image' => Input::file('file'));

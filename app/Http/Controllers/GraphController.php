@@ -48,7 +48,6 @@ class GraphController extends BasicController {
     }
     
     public function getGraphData(Request $req) {
-        //logger("hello world");
 	$graphf = new Graph();
 	$graphg = $graphf->getOrders($req);
         $orders = $graphg['graph'];
@@ -56,7 +55,6 @@ class GraphController extends BasicController {
         $onesumRegion1C = $graphg['onesumRegion1C'];
         $twototal1C = $graphg['twototal1C'];
         $twosumRegion1C = $graphg['twosumRegion1C'];
-        //\PC::debug($sumRegion1C);
 	$tablHTML = $graphf->getOrdersTable($orders,$req->get('OldDate'),$req->get('CurDate'),$onetotal1C,$onesumRegion1C,$twototal1C,$twosumRegion1C);
 
         return ['HTML'=>$tablHTML,'graph'=>$orders];

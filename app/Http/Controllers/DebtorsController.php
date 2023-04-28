@@ -257,6 +257,7 @@ class DebtorsController extends BasicController
         $data[0]['sms_available'] = (!is_null($user->sms_limit) ? $user->sms_limit : 0) - (!is_null($user->sms_sent) ? $user->sms_sent : 0);
 
         // определяем группу специалиста удаленного взыскания пользователя в "Должниках" (удаленное и личное)
+        $debtSms = [];
         if ($user->canSendSms()) {
             $debtSms = $smsService->getSmsForDebtor($user, $debtor);
         }
@@ -313,7 +314,6 @@ class DebtorsController extends BasicController
 
             $bool_pd_agreement = (!$loan_pd_date_cnt) ? false : true;
 
-            \PC::debug($loan_pd_date_cnt);
 
             if ($loan_pd_date_cnt) {
                 $agrClaim = DB::Table('armf.claims')
@@ -1555,7 +1555,6 @@ class DebtorsController extends BasicController
         if (!is_null($loanData) && isset($loanData->spisan) && isset($loanData->spisan->total)) {
             $reqMoneyDet->money = StrUtils::removeNonDigits($loanData->spisan->total);
         }
-        \PC::debug($reqMoneyDet);
 //        if(Auth::user()->id==5){
 //            $repayments = DB::connection('arm')->table('repayments')->where('loan_id', $loan->id)->orderBy('created_at', 'asc')->get();
 //        } else {
@@ -1631,7 +1630,6 @@ class DebtorsController extends BasicController
 
         if (!is_null($objDebtorData)) {
 
-            \PC::debug($objDebtorData);
 
             $doc = \App\ContractForm::where('id', (int)$doc_id)->first();
 
@@ -1691,7 +1689,6 @@ class DebtorsController extends BasicController
 
                 $debtData = $loan->getDebtFrom1cWithoutRepayment(date('Y-m-d', strtotime($date_personal)));
 
-                \PC::debug($debtData);
 
                 //$arDebtData = json_decode($debtData, true);
                 $debt = [];
@@ -1778,7 +1775,6 @@ class DebtorsController extends BasicController
                     }
                 }
 
-                \PC::debug($arrayPays);
             }
 
             $od = number_format($debt['od'] / 100, 2, ',', ' ');
@@ -2200,7 +2196,6 @@ class DebtorsController extends BasicController
             $arDataPhotos = $photos->get();
             $arPhotos = [];
 
-            \PC::debug($loan);
 
             //проверяем "физическое" наличие фото в хранилищах
             if (!config('app.dev')) {
@@ -2490,7 +2485,6 @@ class DebtorsController extends BasicController
             }
         }
 
-        \PC::debug($debtors);
         return view('debtors.departuremap', [
             'debtors' => json_encode($debtors)
         ]);
@@ -2565,8 +2559,6 @@ class DebtorsController extends BasicController
         $json = \App\Utils\HelperUtil::SendPostByCurl(config('services.arm.url') . '/debtors/orders/upload',
             ['data' => json_encode($debtors)]);
         $orders = json_decode($json);
-        \PC::debug($orders, 'orders');
-        \PC::debug($json, 'json');
         $res = [];
         $i = 1;
         foreach ($orders as $o) {
@@ -2699,7 +2691,6 @@ class DebtorsController extends BasicController
             $arForPostPayments["data"] = json_encode($arForPostPayments["data"]);
             $p = Utils\HelperUtil::SendPostByCurl(config('services.arm.url') . '/debtors/orders/upload',
                 $arForPostPayments);
-            \PC::debug($p);
         }
 
         if (!$last_open) {

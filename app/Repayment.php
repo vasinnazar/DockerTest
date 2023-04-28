@@ -173,7 +173,6 @@ class Repayment extends Model {
     public function getEndDate() {
         if ($this->repaymentType->isPeace()) {
             $lastpay = PeacePay::where('repayment_id', $this->id)->orderBy('created_at', 'desc')->first();
-//            \PC::debug($lastpay,'lastssss');
             if (!is_null($lastpay)) {
                 return new Carbon($lastpay->end_date);
             }

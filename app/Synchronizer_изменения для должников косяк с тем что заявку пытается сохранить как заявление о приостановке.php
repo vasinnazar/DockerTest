@@ -100,7 +100,6 @@ class Synchronizer {
             return null;
         }
         $result['contracts1c'] = $contracts1c;
-        \PC::debug($contracts1c,'contracts1c');
 
         if (!is_null($loan_id_1c) && array_key_exists('loan', $contracts1c)) {
             $loan = Loan::where('id_1c', $contracts1c['loan']['loan_id_1c'])->first();
@@ -147,7 +146,6 @@ class Synchronizer {
                     }
                     if (!$about_client->save()) {
                         DB::rollback();
-                        \PC::debug('данные о клиентах не создались');
                         return null;
                     }
                     $claim = Claim::where('customer_id', $customer->id)->first();
@@ -158,7 +156,6 @@ class Synchronizer {
                             $loan = $emptyDocs['loan'];
                         } else {
                             DB::rollback();
-                            \PC::debug('emptydocsfail');
                             return null;
                         }
                     } else {
@@ -180,11 +177,9 @@ class Synchronizer {
             $claim = Synchronizer::updateClaim($contracts1c, $series, $number);
             if (is_null($claim)) {
                 DB::rollback();
-                \PC::debug('claimfail');
                 return null;
             }
         } else {
-//            \PC::debug($claim, 'заявка');
             $passport = $claim->passport;
             $about_client = $claim->about_client;
             $customer = $passport->customer;
@@ -211,11 +206,9 @@ class Synchronizer {
         }
         $result['claim'] = $claim;
         if (array_key_exists("loan", $contracts1c)) {
-//            \PC::debug('loansave');
             $loan = Synchronizer::updateLoan($contracts1c, $claim, (isset($passport)) ? $passport : null);
             if (is_null($loan)) {
                 DB::rollback();
-                \PC::debug('loanfail');
                 return null;
             }
             $result['loan'] = $loan;
@@ -226,7 +219,6 @@ class Synchronizer {
             $repsToSave = Synchronizer::updateRepayments($contracts1c['repayments'], $loan, $contracts1c);
             if (is_null($repsToSave)) {
                 DB::rollback();
-                \PC::debug('repsfail');
                 return null;
             }
             /**
@@ -239,7 +231,6 @@ class Synchronizer {
                 $repsToSave = Synchronizer::updateRepayments($contracts1c, $loan, $contracts1c);
                 if (is_null($repsToSave)) {
                     DB::rollback();
-                    \PC::debug('repsfail2');
                     return null;
                 }
                 $result['repayments'] = $repsToSave;
@@ -269,7 +260,6 @@ class Synchronizer {
     static function addEmptyClaim($passport, $customer, $about_client, $loan_id_1c=null) {
         $emptySubdiv = Subdivision::where('name_id', '113')->first();
         if (is_null($emptySubdiv)) {
-            \PC::debug('пустое подразделение не заведено');
             return null;
         }
         $claim = new Claim();
@@ -397,7 +387,6 @@ class Synchronizer {
             $claim->promocode_id = $promocode->id;
         }
         if (!$claim->save()) {
-            \PC::debug($claim, 'ошибка на сохранении заявки');
             Log::error('Ошибка на сохранении заявки(Synchronizer.updateClaim)', $claim->toArray());
             return null;
         }
@@ -423,10 +412,6 @@ class Synchronizer {
         if (is_null($loan)) {
             if (Loan::where('claim_id', $claim->id)->count() > 0) {
                 Loan::where('claim_id', $claim->id)->delete();
-//                DB::rollback();
-//                \PC::debug(['claim' => $claim], 'Ошибка! уже существует займ на эту заявку(Synchronizer.updateLoan)');
-//                Log::error('Ошибка! уже существует займ на эту заявку(Synchronizer.updateLoan)', ['claim_id' => $claim->id]);
-//                return null;
             }
             $loan = new Loan();
         }
@@ -453,7 +438,6 @@ class Synchronizer {
         if (!isset($loantype) || is_null($loantype)) {
             $loantype = LoanType::where('id_1c', $contracts1c['loan']['loantype_id_1c'])->first();
         }
-//        \PC::debug($loantype);
         $loanSubdivision = Subdivision::where('name_id', $contracts1c['loan']['subdivision_id_1c'])->first();
         $loanUser = User::where('id_1c', 'like', StrUtils::stripWhitespaces($contracts1c['loan']['user_id_1c']) . '%')->first();
         $loan->id_1c = $contracts1c['loan']['loan_id_1c'];
@@ -474,7 +458,6 @@ class Synchronizer {
         $loan->claim_id = $claim->id;
         $loan->money = $contracts1c['loan']['money'];
         $loan->special_percent = (array_key_exists('special_percent', $contracts1c['loan'])) ? str_replace(',', '.', $contracts1c['loan']['special_percent']) : null;
-//        \PC::debug($loan->money, $contracts1c['loan']['money']);
         if (!array_key_exists('card_number', $contracts1c['loan'])) {
             $loan->card_id = null;
             $loan->in_cash = 1;
@@ -504,7 +487,6 @@ class Synchronizer {
             //если вид займа не найден, то ставить неопределенный тип (он должен быть в базе обязательно)
             $loantype = LoanType::where('name', 'UNDEFINED_LOAN')->first();
             if (is_null($loantype)) {
-                \PC::debug($loan, 'ошибка вид займа не найден');
                 Log::error('Ошибка вид займа не найден(Synchronizer.updateLoan)', $loan->toArray());
                 return null;
             }
@@ -545,7 +527,6 @@ class Synchronizer {
             $loan->data = json_encode($loanData);
         }
         if (!$loan->save()) {
-            \PC::debug($loan, 'ошибка на сохранении кредитника');
             Log::error('Ошибка на сохранении кредитника(Synchronizer.updateLoan)', $loan->toArray());
             return null;
         }
@@ -560,7 +541,6 @@ class Synchronizer {
      */
     static function removeUnreceivedRepayments($contracts1c, $loan) {
         $reps = $loan->repayments;
-        \PC::debug($reps);
         foreach ($reps as $rep) {
             if ($rep->repaymentType->isSuzStock()) {
                 return;
@@ -637,13 +617,10 @@ class Synchronizer {
                 if ($repDate->gte(new Carbon(config('options.perm_new_rules_day')))) {
                     $prevRep = Repayment::where('loan_id', $loan->id)->where('id_1c', '<>', $rep1c["Number"])->orderBy('created_at', 'desc')->first();
                     $otherReps = Repayment::where('loan_id', $loan->id)->where('id_1c', '<>', $rep1c["Number"])->get();
-//                    \PC::debug($otherReps, 'otherexpreps');
                     $hasOverdue = false;
                     if ($loan->created_at->gte(new Carbon(config('options.new_rules_day')))) {
                         foreach ($otherReps as $otherRep) {
-//                            \PC::debug($otherRep->getOverdueDays(true),$otherRep->id_1c);
                             if ($otherRep->getOverdueDays(true) > 0) {
-//                                \PC::debug('overdue');
                                 $hasOverdue = true;
                             }
                         }
@@ -853,7 +830,6 @@ class Synchronizer {
             }
 
             if (!$rep->save()) {
-                \PC::debug($rep, 'ошибка на сохранении договора');
                 Log::error('Ошибка на сохранении договора(Synchronizer.updateRepayments)', $rep->toArray());
                 return null;
             }
@@ -878,7 +854,6 @@ class Synchronizer {
                     if (array_key_exists('exp_pc', $pay1c)) {
                         $pay->exp_pc = round((float) str_replace(',', '.', $pay1c['exp_pc']) * 100);
                     }
-//                    \PC::debug(['bfine' => $pay1c['fine'], 'fine' => $pay->fine]);
                     $pay->end_date = with(new Carbon($pay1c['end_date']))->format('Y-m-d H:i:s');
                     $pay->closed = ($pay1c['closed'] == 'Да') ? 1 : 0;
                     if ($pay1c["total"] == 0) {
@@ -889,20 +864,17 @@ class Synchronizer {
                 $rep_exp_pc = $rep->exp_pc;
                 foreach ($pays as $pay) {
                     if (!$pay->save()) {
-                        \PC::debug($pay, 'ошибка на сохранении платежа');
                         Log::error('Ошибка на сохранении платежа по мировому(Synchronizer.updateRepayments)', $pay->toArray());
                         return null;
                     }
                 }
             }
         }
-        \PC::debug($repsToSave, 'repstosave');
         return $repsToSave;
     }
 
     static function addCustomer($series, $number, $failOnEmpty = true) {
         $customer1c = MySoap::passport(['series' => $series, 'number' => $number, 'old_series' => '', 'old_number' => '']);
-        \PC::debug($customer1c, 'sync.addcustomer');
         if ((!(bool) $customer1c['res'] || is_null($customer1c) || $customer1c == '') && $failOnEmpty) {
             return null;
         }
@@ -1001,7 +973,6 @@ class Synchronizer {
         DB::beginTransaction();
         $orders = [];
         foreach ($res1c->orders->children() as $o) {
-            \PC::debug(json_decode(json_encode($o), true), 'order');
             $orderDate = new Carbon((string) $o->date);
             $order = Order::where('number', '=', ((string) $o->number))
 //                    ->where('type', '=', (string) $o->order_type)
@@ -1011,7 +982,6 @@ class Synchronizer {
                         $orderDate->setTime(23, 59, 59)->format('Y-m-d H:i:s')
                     ])
                     ->first();
-            \PC::debug($order,'found order');
             if (is_null($order)) {
                 $order = new Order();
                 $order->number = (string) $o->number;
@@ -1022,9 +992,7 @@ class Synchronizer {
             $item = (string) $o->item;
             $customer_id_1c = (string) $o->customer_id_1c;
             $order->reason = $reason;
-//            \PC::debug(((string) $o->reason) . '|' . ((string) $o->accounting_records) . '|' . ((string) $o->item) . '|' . ((string) $o->date) . '|' . ((string) $o->subdivision_id_1c), $order->number);
             if ((string) $o->type == MySoap::ITEM_RKO) {
-                \PC::debug([$reason, $item, $account], 'rko');
                 if (strstr($reason, 'Самоинкассация') !== FALSE && $account == '57.01') {
                     if (strstr($item, 'СБЕРБАНК') !== FALSE) {
                         $order->type = Synchronizer::getOrderTypeByTextID($orderTypes, 'SBERINCASS');
@@ -1037,7 +1005,6 @@ class Synchronizer {
                 } else
                 if (strstr($item, 'Канцтовары') !== FALSE && $account == '71.01') {
                     $order->type = Synchronizer::getOrderTypeByTextID($orderTypes, 'CANC');
-                    \PC::debug($order->type, 'ordertype');
                 } else
                 if (strstr($reason, 'Коммиссия') !== FALSE && $account == '91.02') {
                     $order->type = Synchronizer::getOrderTypeByTextID($orderTypes, 'COMIS');
@@ -1199,12 +1166,10 @@ class Synchronizer {
 
             if (!$order->save()) {
                 DB::rollback();
-                \PC::debug($order, 'Synchronizer.updateOrders failonordersave');
                 Log::error('Synchronizer.updateOrders failonordersave', ['order' => $order]);
                 return null;
             }
             $orders[] = $order;
-//            \PC::debug($order->toArray(), 'order');
         }
         DB::commit();
         return $orders;

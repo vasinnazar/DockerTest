@@ -143,7 +143,7 @@
 </div>
 @stop
 @section('scripts')
-<script src="{{asset('js/debtors/debtorsController.js?6')}}"></script>
+<script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
 <script>
 $(document).ready(function () {
     $.debtorsCtrl.init();

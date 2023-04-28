@@ -9,7 +9,6 @@ $_SESSION['onetotal1C'] = $onetotal1C;
 $_SESSION['twosumRegion1C'] = $twosumRegion1C;
 $_SESSION['twototal1C'] = $twototal1C;
 
-\PC::debug($_SESSION);
 ?>
 <table class="table table-bordered regions-table" id="myFCKtabl">
     <thead>

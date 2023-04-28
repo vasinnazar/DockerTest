@@ -50,7 +50,6 @@ class HelpController extends Controller {
         ];
         if (!is_null($id)) {
             $data['video'] = HelpFile::find($id);
-            \PC::debug([$id, $data['video']]);
         }
         return view('help.videos', $data);
     }

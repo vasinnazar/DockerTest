@@ -29,7 +29,6 @@ class SmsInbox extends Model {
         }
         $res = [];
         foreach ($inbox as $sms) {
-            \PC::debug($sms);
             $smsInbox = new SmsInbox([
                 'sent' => with(new Carbon($sms->sent))->format('Y-m-d H:i:s'),
                 'received' => with(new Carbon($sms->received))->format('Y-m-d H:i:s'),
@@ -79,7 +78,6 @@ class SmsInbox extends Model {
         $maxdate = (empty($maxdate)) ? '2017-05-24' : $maxdate;
         $inbox = DB::connection('goip')->table('receive')->where('time', '>', with(new Carbon($maxdate))->format('Y-m-d H:i:s'))->get();
         $res = [];
-        \PC::debug($inbox, 'uploaded');
         Log::info('SmsInbox', ['uploaded' => $inbox]);
         foreach ($inbox as $sms) {
             $smsInbox = new SmsInbox([
@@ -179,14 +177,11 @@ class SmsInbox extends Model {
 //            return;
 //        }
         $lastValidClaimSms = SmsInbox::getLastValidClaimSms($this->phone, $this->created_at->subHours(24));
-        \PC::debug([$lastValidClaimSms, $this]);
         if (is_null($lastValidClaimSms)) {
-            \PC::debug('no valid claim sms');
             Log::info('SmsInbox', ['error' => 'no valid claim sms', 'sms' => $this]);
             return $this->handleNoValidClaimSms();
         }
         if (!$lastValidClaimSms->isValidAmount()) {
-            \PC::debug('no valid amount');
             Log::info('SmsInbox', ['error' => 'no valid amount', 'sms' => $this]);
             return $this->sendValidAmountSms();
         }
@@ -208,46 +203,28 @@ class SmsInbox extends Model {
             return $this->sendUnavaliableSms();
         }
         if ($checkKData['postclient'] != 'Да') {
-            \PC::debug($checkKData['postclient'], 'not postclient');
             Log::info('SmsInbox', ['error' => 'not postclient', 'sms' => $this, 'passport' => $passport, 'checkk' => $checkKData]);
             return $this->sendUnavaliableSms();
         }
         if ($passport->fio != $checkKData['fio'] || with(new Carbon($passport->birth_date))->ne(new Carbon($checkKData['birth_date']))) {
 //        if($passport->fio != $checkKData['fio']){
             Log::info('SmsInbox', ['error' => 'bad passport2', 'sms' => $this, 'passport' => $passport, 'checkk' => $checkKData]);
-            \PC::debug([$passport->fio, $checkKData['fio'], $passport->birth_date, $checkKData['birth_date']]);
             return $this->sendUnavaliableSms();
         }
 
-//        $lastValidPassportSms = SmsInbox::getLastValidPassportSms($this->phone, $this->created_at->subHours(24));
-//        if (is_null($lastValidPassportSms)) {
-//            \PC::debug('no valid passport sms');
-//            return $this->sendPassportSms();
-//        }
-//        $passport_series = substr($lastValidPassportSms->message, 0, 4);
-//        $passport_number = substr($lastValidPassportSms->message, 4, 6);
-//        $passport = Passport::where('series', $passport_series)->where('number', $passport_number)->first();
-//        if (is_null($passport)) {
-//            \PC::debug('no passport');
-//            Log::error('no passport');
-//            return $this->sendUnavaliableSms();
-//        }
         $card = Card::where('customer_id', $passport->customer_id)->where('status', Card::STATUS_ACTIVE)->orderBy('created_at', 'desc')->first();
         if (is_null($card)) {
-            \PC::debug('no card');
             Log::error('no card');
             Log::info('SmsInbox', ['error' => 'no card', 'sms' => $this]);
             return $this->sendUnavaliableSms();
         }
         $loanKData = Synchronizer::updateLoanRepayments($passport->series, $passport->number);
         if (!is_array($loanKData)) {
-            \PC::debug('no loan_k_data');
             Log::error('no loan_k_data');
             Log::info('SmsInbox', ['error' => 'no card', 'sms' => $this, 'loank' => $loanKData]);
             return $this->sendUnavaliableSms();
         }
         if (array_key_exists('loan', $loanKData) && !$loanKData['loan']->closed) {
-            \PC::debug('unclosed loan');
             Log::error('unclosed loan');
             Log::info('SmsInbox', ['error' => 'unclosed loan', 'sms' => $this, 'loank' => $loanKData]);
             return $this->sendUnclosedLoanSms($loanKData['loan']);
@@ -255,15 +232,12 @@ class SmsInbox extends Model {
         $lastClaim = Claim::where('passport_id', $passport->id)
                 ->orderBy('claims.created_at', 'desc')
                 ->first();
-        \PC::debug($lastClaim, 'lastclaim');
         if (!is_null($lastClaim)) {
             $lastClaimLoan = Loan::where('claim_id', $lastClaim->id)->first();
-            \PC::debug($lastClaimLoan, 'last claim loan');
             if (!is_null($lastClaimLoan)) {
                 if ($lastClaimLoan->closed) {
                     $lastClaim = null;
                 } else {
-                    \PC::debug('unclosed loan 2');
                     Log::error('unclosed loan 2');
                     Log::info('SmsInbox', ['error' => 'unclosed loan 2', 'sms' => $this, 'loank' => $loanKData]);
                     return $this->sendUnclosedLoanSms($lastClaimLoan);
@@ -273,7 +247,6 @@ class SmsInbox extends Model {
                 if ($lastClaim->created_at->lt(Carbon::today())) {
                     $lastClaim = null;
                 } else {
-                    \PC::debug('claim declined');
                     Log::error('SmsInbox', ['error' => 'claim declined', 'claim' => $lastClaim, 'sms' => $this]);
                     return $this->sendDeclineSms();
                 }
@@ -290,12 +263,10 @@ class SmsInbox extends Model {
         }
 //        if (is_null($claim) || empty($claim->id_1c) || $claim->status != Claim::STATUS_ACCEPTED) {
         if (is_null($claim) || empty($claim->id_1c)) {
-            \PC::debug('no claim');
             Log::info('SmsInbox', ['error' => 'no claim', 'sms' => $this]);
             return $this->sendUnavaliableSms();
         }
         if ($claim->status == Claim::STATUS_DECLINED) {
-            \PC::debug('claim declined 2');
             Log::error('SmsInbox', ['error' => 'claim declined', 'claim' => $claim, 'sms' => $this]);
             return $this->sendDeclineSms();
         }
@@ -304,12 +275,10 @@ class SmsInbox extends Model {
         if (!is_null($lastAcceptSms) && $lastAcceptSms->created_at->gte($lastValidClaimSms->created_at)) {
             $loan = $this->createLoanAndEnroll($claim, $card);
             if (!is_null($loan)) {
-                \PC::debug('send loan sms');
                 Log::info('SmsInbox', ['info' => 'creating loan', 'sms' => $this, 'loan' => $loan]);
                 return $this->sendLoanSms($loan);
             }
         } else {
-            \PC::debug('no approve sms');
             Log::info('SmsInbox', ['error' => 'no approve sms', 'sms' => $this, 'claim' => $claim]);
             return $this->sendClaimApprovedSms($claim);
         }

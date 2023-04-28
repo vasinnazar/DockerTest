@@ -222,7 +222,6 @@ class EmploymentDocsController extends BasicController {
         if($req->has('trud')){
             $contractData['trud'] = ($req->get('trud'))?'Трудовая книжка '.Auth::user()->name:'Заявление на трудовую книжку '.Auth::user()->name;
         }
-        \PC::debug($contractData);
         if (array_key_exists('result', $contractData) && $contractData['result'] == 0) {
             return $this->backWithErr('Пользователь с такими параметрами не найден. Обратитесь в тех. поддержку');
         }

@@ -84,7 +84,6 @@ class LoanController extends Controller {
                 return redirect('home')->with('msg_err', "Нельзя создать договор на карту с суммой менее 2000 рублей.");
             }
             $card = Card::firstOrNew(['card_number' => Input::get('card_number')]);
-            \PC::debug($card->id);
             if (!is_null($card->id) && $card->card_number == Input::get('card_number') && $card->customer_id != Input::get('customer_id')) {
                 return redirect('home')->with('msg_err', StrLib::ERR_CARD_EXISTS);
             }
@@ -241,7 +240,6 @@ class LoanController extends Controller {
         if (!$sendTo1c) {
             $order->sync = 0;
         }
-        \PC::debug($order, 'order');
         if (!$order->save()) {
             DB::rollback();
             Log::error('enrollLoan.order.cash', ['res1c' => $res1c, 'loan_id' => $loan_id, 'order' => $order]);
@@ -427,7 +425,6 @@ class LoanController extends Controller {
             'promocode_number' => (int) $promocode,
             'uki' => $loan->uki
         ];
-        \PC::debug($data);
         return MySoap::updateLoan($data);
     }
 
@@ -557,7 +554,6 @@ class LoanController extends Controller {
                     $query->where('loans.created_at', '<', $dateStart->setTime(23, 59, 59)->format('Y-m-d H:i:s'));
                 }
                 if ($request->has('loan_id_1c')) {
-                    \PC::debug($request->all(), 'loan_id_1c');
                     $query->where('loans.id_1c', 'LIKE', '%' . $request->get('loan_id_1c') . '%');
                 }
             })
@@ -649,7 +645,6 @@ class LoanController extends Controller {
         if (!is_null($loanData) && isset($loanData->spisan->total)) {
             $reqMoneyDet->money = StrUtils::removeNonDigits($loanData->spisan->total);
         }
-        \PC::debug($reqMoneyDet);
         $repayments = Repayment::where('loan_id', $loan->id)->orderBy('created_at', 'asc')->get();
         $repsNum = count($repayments);
         $debtorData = null;
@@ -667,7 +662,6 @@ class LoanController extends Controller {
                 $debtorData = $repsUpdateData['debtor'];
             }
         }
-        \PC::debug($importantMoneyData, 'importantmoneydata');
 
         if ($loan->hasOverdue()) {
             $lastRep = $loan->getLastRepayment();
@@ -676,7 +670,6 @@ class LoanController extends Controller {
                 $exDopnikDataArray = (!is_null($exDopnikData) && (int) $exDopnikData->result == 1) ? json_decode(json_encode($exDopnikData), true) : null;
                 if (is_array($exDopnikDataArray)) {
                     $exDopnikDataArray['dopnik_create_date'] = ($repsNum > 0) ? $repayments[$repsNum - 1]->getEndDate()->format('Y-m-d') : $loan->getEndDate()->format('Y-m-d');
-                    \PC::debug($exDopnikDataArray, 'exdopnikdata');
                 }
             }
         }
@@ -1002,8 +995,6 @@ class LoanController extends Controller {
         $loan->order_id = $order->id;
         $loan->enrolled = 1;
         if ($loan->save()) {
-            \PC::debug($loan, 'loan');
-            \PC::debug($order, 'order');
             DB::commit();
             Spylog::log(Spylog::ACTION_ENROLLED, 'loans', $loan->id);
             return redirect('home')->with('msg_suc', (($loan->in_cash) ? 'РКО сформирован' : 'Средства по займу зачислены.'));

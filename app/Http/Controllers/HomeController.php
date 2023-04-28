@@ -245,7 +245,6 @@ class HomeController extends Controller {
                 $claims->whereIn('claims.subdivision_id', $terminal_subdivs);
             } else {
                 if (Auth::user()->id == 5) {
-                    \PC::debug($request->all(), 'noparams');
                 }
                 if (!config('app.dev')) {
                     $claims->whereIn('claims.subdivision_id', [Auth::user()->subdivision_id]);

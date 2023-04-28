@@ -79,7 +79,6 @@ class DopCommissionCalculation {
 //                        Synchronizer::updateOrders($lastRep->created_at->format('Y-m-d H:i:s'), $loan->claim->passport->series, $loan->claim->passport->number);
 //                        $lastRepPaidMoney = $lastRep->getPaidMoneyWithTypeAndPurpose([\App\OrderType::getPKOid()],[\App\Order::P_COMMISSION,  \App\Order::P_COMMISSION_NDS]);
 //                    }
-                    \PC::debug($lastRepPaidMoney,'lastreppaidmoney');
 //                } else {
 //                    $lastRepPaidMoney = $lastRep->getPaidMoney();
 //                }
@@ -97,14 +96,12 @@ class DopCommissionCalculation {
                 $lastDopComPercent = $newDopComPercent;
             }
             $lastOD = $lastRepPaidMoney/($lastRepTime*$lastDopComPercent);
-            \PC::debug($lastOD,'lastod');
             //основной долг предыдущего допника
             $odRounded = floor($lastOD/100000)*100000;
             if($odRounded<=100000){
                 $odRounded = 100000;
             }
-            \PC::debug($odRounded,'odrounded');
-            
+
             $this->money_to_return = round($odRounded * $unusedDays * $newDopComPercent);
             $this->money_spent = $lastRepPaidMoney-$this->money_to_return;
         }
@@ -113,7 +110,6 @@ class DopCommissionCalculation {
         } else {
             $this->msg = $this->getMsg();
         }
-        \PC::debug($this, 'calcdopcom');
         return $this;
     }
 }

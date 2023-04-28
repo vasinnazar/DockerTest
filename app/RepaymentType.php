@@ -25,7 +25,6 @@ class RepaymentType extends Model {
                 $paymentsOrder = $json;
             }
         } catch (Exception $exc) {
-            \PC::debug($exc);
         }
         return $paymentsOrder;
     }

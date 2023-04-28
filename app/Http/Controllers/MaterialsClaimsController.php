@@ -49,8 +49,6 @@ class MaterialsClaimsController extends BasicController {
             'users.name as user_name',
             'subdivisions.name as subdivision_name'
         ];
-        \PC::debug('$cols');
-        \PC::debug(MaterialsClaim::all());
         $items = MaterialsClaim::select($cols)
             ->leftJoin('users', 'users.id', '=', 'materials_claims.user_id')
             ->leftJoin('subdivisions', 'subdivisions.id', '=', 'materials_claims.subdivision_id');

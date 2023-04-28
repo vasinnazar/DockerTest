@@ -62,7 +62,6 @@ class AdvanceReport extends Model {
             }
         }
         $issue_text_ids = array_merge(IssueClaim::getIssueOrderTypesTextIds(), [OrderType::PODOTCHET]);
-        \PC::debug($issue_text_ids);
         $orderTypes = OrderType::whereIn('text_id', $issue_text_ids)->pluck('id')->toArray();
         $orders = Order::whereIn('type', $orderTypes)
                 ->where('subdivision_id', $subdiv->id)
@@ -72,7 +71,6 @@ class AdvanceReport extends Model {
         if (!is_null($orders) && !is_null($report)) {
             $orders->merge($report->getOrdersFromReport());
         }
-        \PC::debug($orders);
         if ($handle) {
             $res = [];
             foreach ($orders as $order) {
@@ -125,7 +123,6 @@ class AdvanceReport extends Model {
             'advance_id_1c' => (is_null($this->id_1c)) ? '' : $this->id_1c,
             'created_at' => $this->created_at->format('YmdHis')
         ];
-        \PC::debug([$tableData, $this->data]);
         foreach ($tableData as &$item) {
             if (is_array($item)) {
                 foreach ($item as &$row) {
@@ -174,7 +171,6 @@ class AdvanceReport extends Model {
         if ((int) $res1c->result == 0 && isset($res1c->error)) {
             return (string) $res1c->error;
         }
-        \PC::debug($res1c);
         $advRep = AdvanceReport::where('id_1c', $advance_id_1c)->first();
         if (is_null($advRep)) {
             $advRep = new AdvanceReport();
@@ -195,7 +191,6 @@ class AdvanceReport extends Model {
             }
         }
         $advRep->data = json_encode($data);
-        \PC::debug($advRep, 'advrep');
         $advRep->save();
         return $advRep;
     }

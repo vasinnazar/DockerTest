@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8538bf916334801ad0cfc3c4864988d8",
+    "content-hash": "bbafa7e127ce4079dbb37d8f8534a730",
     "packages": [
         {
             "name": "arcanedev/log-viewer",
@@ -1953,6 +1953,7 @@
                 "issues": "https://github.com/LaravelCollective/html/issues",
                 "source": "https://github.com/LaravelCollective/html"
             },
+            "abandoned": "spatie/laravel-html",
             "time": "2018-06-18T15:04:16+00:00"
         },
         {
@@ -2909,126 +2910,6 @@
                 "source": "https://github.com/PhenX/php-svg-lib/tree/master"
             },
             "time": "2015-05-06T18:49:49+00:00"
-        },
-        {
-            "name": "php-console/laravel-service-provider",
-            "version": "5.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/barbushin/php-console-laravel.git",
-                "reference": "762cddcc6c17c08a2e499a1bd0dd575899fbec06"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/barbushin/php-console-laravel/zipball/762cddcc6c17c08a2e499a1bd0dd575899fbec06",
-                "reference": "762cddcc6c17c08a2e499a1bd0dd575899fbec06",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/support": "5.*",
-                "php": ">=5.3.0",
-                "php-console/php-console": ">=3.1.4 <4.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "5.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-0": {
-                    "PhpConsole\\Laravel\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD 3-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Barbushin Sergey",
-                    "email": "barbushin@gmail.com",
-                    "homepage": "http://linkedin.com/in/barbushin"
-                },
-                {
-                    "name": "Wemerson Januario",
-                    "email": "wemerson.januario@gmail.com",
-                    "homepage": "http://linkedin.com/in/wemersonjanuario",
-                    "role": "Laravel 5 support"
-                }
-            ],
-            "description": "Laravel service provider to handle PHP errors, dump variables, execute PHP code remotely in Google Chrome",
-            "homepage": "https://github.com/barbushin/php-console-laravel",
-            "keywords": [
-                "chrome",
-                "debug",
-                "error handler",
-                "errors",
-                "google chrome",
-                "laravel",
-                "php",
-                "php-console"
-            ],
-            "support": {
-                "issues": "https://github.com/barbushin/php-console-laravel/issues?state=open",
-                "source": "https://github.com/barbushin/php-console-laravel/tree/master"
-            },
-            "time": "2015-06-30T08:05:02+00:00"
-        },
-        {
-            "name": "php-console/php-console",
-            "version": "3.1.8",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/barbushin/php-console.git",
-                "reference": "aa1d71d4ea3dc91e126edc9aa4f3c10eb8559cff"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/barbushin/php-console/zipball/aa1d71d4ea3dc91e126edc9aa4f3c10eb8559cff",
-                "reference": "aa1d71d4ea3dc91e126edc9aa4f3c10eb8559cff",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.0"
-            },
-            "require-dev": {
-                "ext-mbstring": "*",
-                "phpunit/phpunit": "^4.8",
-                "psr/log": "^1.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "PhpConsole\\": "src/PhpConsole"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Sergey Barbushin",
-                    "email": "barbushin@gmail.com",
-                    "homepage": "http://linkedin.com/in/barbushin"
-                }
-            ],
-            "description": "PHP library for Google Chrome extension \"PHP Console\".",
-            "homepage": "https://github.com/barbushin/php-console",
-            "keywords": [
-                "chrome",
-                "debug",
-                "error handler",
-                "errors",
-                "google chrome",
-                "php"
-            ],
-            "support": {
-                "issues": "https://github.com/barbushin/php-console/issues",
-                "source": "https://github.com/barbushin/php-console/tree/master"
-            },
-            "time": "2019-07-25T03:43:28+00:00"
         },
         {
             "name": "phpoffice/phpspreadsheet",
@@ -6799,16 +6680,16 @@
         },
         {
             "name": "phpstan/phpdoc-parser",
-            "version": "1.20.2",
+            "version": "1.20.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpdoc-parser.git",
-                "reference": "90490bd8fd8530a272043c4950c180b6d0cf5f81"
+                "reference": "6c04009f6cae6eda2f040745b6b846080ef069c2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/90490bd8fd8530a272043c4950c180b6d0cf5f81",
-                "reference": "90490bd8fd8530a272043c4950c180b6d0cf5f81",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/6c04009f6cae6eda2f040745b6b846080ef069c2",
+                "reference": "6c04009f6cae6eda2f040745b6b846080ef069c2",
                 "shasum": ""
             },
             "require": {
@@ -6838,9 +6719,9 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https://github.com/phpstan/phpdoc-parser/issues",
-                "source": "https://github.com/phpstan/phpdoc-parser/tree/1.20.2"
+                "source": "https://github.com/phpstan/phpdoc-parser/tree/1.20.3"
             },
-            "time": "2023-04-22T12:59:35+00:00"
+            "time": "2023-04-25T09:01:03+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -8072,7 +7953,8 @@
         "php": "~7.4",
         "ext-json": "*",
         "ext-pdo": "*",
-        "ext-soap": "*"
+        "ext-soap": "*",
+        "ext-curl": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.3.0"
