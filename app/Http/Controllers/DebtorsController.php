@@ -260,6 +260,7 @@ class DebtorsController extends BasicController
         $data[0]['sms_available'] = (!is_null($user->sms_limit) ? $user->sms_limit : 0) - (!is_null($user->sms_sent) ? $user->sms_sent : 0);
 
         // определяем группу специалиста удаленного взыскания пользователя в "Должниках" (удаленное и личное)
+        $debtSms = [];
         if ($user->canSendSms()) {
             $debtSms = $smsService->getSmsForDebtor($user, $debtor);
         }
