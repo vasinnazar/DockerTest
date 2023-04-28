@@ -254,10 +254,6 @@ class DebtorsController extends BasicController
             $datapayments = [];
         }
 
-        $arDebtGroups = \App\DebtGroup::getDebtGroups();
-        \PC::debug($arDebtGroups);
-        $data[0]['debt_group_text'] = (array_key_exists($debtor->debt_group_id,
-            $arDebtGroups)) ? $arDebtGroups[$debtor->debt_group_id] : '';
         $data[0]['sms_available'] = (!is_null($user->sms_limit) ? $user->sms_limit : 0) - (!is_null($user->sms_sent) ? $user->sms_sent : 0);
 
         // определяем группу специалиста удаленного взыскания пользователя в "Должниках" (удаленное и личное)
@@ -1592,34 +1588,6 @@ class DebtorsController extends BasicController
             $viewData['spisan'] = $loanData->spisan->total;
         }
         return view('debtors.summary.summary', $viewData);
-    }
-
-    public function getLastRepayment($loan_id_1c, $customer_id_1c)
-    {
-
-        $loans_id = DB::connection('arm')->table('loans')
-            ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-            ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
-            ->where('loans.id_1c', $loan_id_1c)
-            ->where('customers.id_1c', $customer_id_1c)
-            ->value('loans.id');
-
-        if (is_null($loans_id)) {
-            return false;
-        }
-
-        $repayment_arm = DB::connection('arm')->table('repayments')
-            ->select(['repayments.created_at as created_at', 'repayment_types.name as name'])
-            ->leftJoin('repayment_types', 'repayment_types.id', '=', 'repayments.repayment_type_id')
-            ->where('loan_id', $loan_id_1c)
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        if (is_null($repayment_arm)) {
-            return false;
-        }
-
-        return $repayment_arm;
     }
 
     /**

@@ -196,6 +196,11 @@ class Debtor extends Model
     {
         return $this->hasMany(NoticeNumbers::class, 'debtor_id_1c', 'debtor_id_1c');
     }
+
+    public function debtGroup()
+    {
+        return $this->hasOne(DebtGroup::class, 'id', 'debt_group_id');
+    }
     
     public function getLoanEndDate()
     {
