@@ -100,7 +100,6 @@ class AdvanceReportController extends BasicController {
      */
     public function update(Request $req) {
         $advRep = AdvanceReport::findOrNew($req->get('id'));
-        \PC::debug($req->input());
         $input = $req->input();
         if(empty($input['created_at'])){
             $input['created_at'] = Carbon::now()->format('Y-m-d H:i:s');
@@ -123,7 +122,6 @@ class AdvanceReportController extends BasicController {
                     ->where('birth_date',$advRep->user->birth_date)
                     ->value('customer_id')]);
         }
-        \PC::debug([$advRep->customer_id,$advRep->customer],'customer');
         if(is_null($advRep->customer)){
             return $this->backWithErr('Не заполнен контрагент');
         }

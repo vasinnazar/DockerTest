@@ -301,7 +301,6 @@ class HelperUtil {
         // executes after the command finishes
         if (!$process->isSuccessful()) {
 //            throw new ProcessFailedException($process);
-            \PC::debug(new ProcessFailedException($process), 'error');
             return FALSE;
         }
         return $process->getOutput();

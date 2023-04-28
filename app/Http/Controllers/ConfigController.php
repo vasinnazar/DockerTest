@@ -88,8 +88,6 @@ class ConfigController extends BasicController {
     public function killAllMysql($param) {
         $myid = with(DB::select('SELECT CONNECTION_ID()'))[0]->{'CONNECTION_ID()'};
         $result = DB::select("SHOW FULL PROCESSLIST");
-//        \PC::debug($result);
-//return $this->backWithSuc();
         foreach ($result as $r) {
             if ($r->Id != $myid) {
                 switch ($param) {
@@ -162,7 +160,6 @@ class ConfigController extends BasicController {
             $end_time = explode(':', $req->end_time);
             $end_date->setTime($end_time[0], $end_time[1], 0);
         }
-//        \PC::debug([$req->all(),$start_date,$end_date]);
 //        \App\MysqlThread::selectRaw()
         $res = \App\MysqlThread::where('created_at', '>', $start_date->format('Y-m-d H:i:s'))
                 ->where('created_at', '<', $end_date->format('Y-m-d H:i:s'))
@@ -469,7 +466,6 @@ class ConfigController extends BasicController {
 //                    ->first();
 //            
 //            if (is_null($last_event)) {
-//                \PC::debug([$debtor->id, $last_event]);
 //                continue;
 //            }
 //
@@ -481,7 +477,6 @@ class ConfigController extends BasicController {
 //                $debtor->save();
 //            }
 //            
-//            \PC::debug([$debtor->id, $last_resp, $last_event->user_id_1c]);
 //
 //            $debtor_log = \App\DebtorLog::where('debtor_id', $debtor->id)->where('created_at', '>=', '2018-12-31 09:00:00')->where('created_at', '<=', '2018-12-31 23:00:00')->orderBy('id', 'desc')->limit(1)->first();
 //            if (is_null($debtor_log)) {
@@ -496,7 +491,6 @@ class ConfigController extends BasicController {
 //                $debtor->str_podr = $debtor_log->before->str_podr;
 //                $debtor->save();
 //                
-//                \PC::debug([$debtor->id, $debtor_log->before->responsible_user_id_1c, $debtor_log->after->responsible_user_id_1c]);
 //            //}
 //                
 //            $another_debtors = \App\Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();

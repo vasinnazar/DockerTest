@@ -71,7 +71,6 @@ class BackupController extends BasicController {
         }
         $json = json_decode($data, true);
         if (is_null($json)) {
-            \PC::debug($json, 'error on decode');
             return 0;
         }
 

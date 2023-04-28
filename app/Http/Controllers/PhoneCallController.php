@@ -20,8 +20,6 @@ class PhoneCallController extends BasicController {
     }
 
     public function getView(Request $req) {
-//        \PC::debug('getview');
-//        \PC::debug($req->all(), 'req');
         if (is_null(Auth::user())) {
             return redirect()->back()->with('msg_err', 'Попробуйте еще раз');
         }
@@ -35,7 +33,6 @@ class PhoneCallController extends BasicController {
             }
         }
         if ($req->has('id')) {
-//            \PC::debug($req->id, 'id');
             $callToSave = PhoneCall::find($req->id);
             if ($callToSave->comment != Input::get('comment') || $callToSave->call_Result != Input::get('call_Result')) {
                 $callToSave->fill(Input::all());
@@ -45,7 +42,6 @@ class PhoneCallController extends BasicController {
             return $this->goToNextPhonecallId(null, $req->phone_call_type, $callToSave);
         }
         if ($req->has('phone_call_type')) {
-//            \PC::debug($req->phone_call_type, 'phonecalltype');
             if ($this->countTodayCalls($req->phone_call_type) == 0) {
                 $this->getDataFrom1c($req->get('phone_call_type', 1));
             }
@@ -58,9 +54,7 @@ class PhoneCallController extends BasicController {
         if (is_null(Auth::user())) {
             return redirect()->back()->with('msg_err', 'Попробуйте еще раз');
         }
-//        \PC::debug($req->all(), 'save');
         $callToSave = PhoneCall::find($req->id);
-//        \PC::debug($callToSave, 'calltosave');
         if (is_null($callToSave)) {
             return $this->getFrom1cIfNoDataAndGoToNext($req->phone_call_type);
         } else {
@@ -115,7 +109,6 @@ class PhoneCallController extends BasicController {
                     ->whereNull('comment')
                     ->whereRaw('(updated_at <="' . Carbon::now()->subMinutes(30)->format('Y-m-d H:i:s') . '" or created_at = updated_at)')
                     ->first();
-            \PC::debug('1');
             if (is_null($phonecall)) {
                 $phonecall = PhoneCall::where('created_at', '>=', Carbon::now()->setTime(0, 0, 0)->format('Y-m-d H:i:s'))
                         ->where('subdivision_id', Auth::user()->subdivision_id)
@@ -124,7 +117,6 @@ class PhoneCallController extends BasicController {
                         ->whereNull('comment')
                         ->whereRaw('(updated_at <="' . Carbon::now()->subMinutes(30)->format('Y-m-d H:i:s') . '" or created_at = updated_at)')
                         ->first();
-                \PC::debug('2');
             }
             if (is_null($phonecall)) {
                 $phonecall = PhoneCall::where('created_at', '>=', Carbon::now()->setTime(0, 0, 0)->format('Y-m-d H:i:s'))
@@ -133,7 +125,6 @@ class PhoneCallController extends BasicController {
                         ->where('id', '<>', $curCall->id)
                         ->whereRaw('(updated_at <="' . Carbon::now()->subMinutes(30)->format('Y-m-d H:i:s') . '" or created_at = updated_at)')
                         ->first();
-                \PC::debug('3');
             }
         } else {
             $phonecall = PhoneCall::where('created_at', '>=', Carbon::now()->setTime(0, 0, 0)->format('Y-m-d H:i:s'))
@@ -142,14 +133,12 @@ class PhoneCallController extends BasicController {
                     ->whereRaw('(updated_at <="' . Carbon::now()->subMinutes(30)->format('Y-m-d H:i:s') . '" or created_at = updated_at)')
                     ->whereNull('comment')
                     ->first();
-            \PC::debug('4');
             if (is_null($phonecall)) {
                 $phonecall = PhoneCall::where('created_at', '>=', Carbon::now()->setTime(0, 0, 0)->format('Y-m-d H:i:s'))
                         ->where('subdivision_id', Auth::user()->subdivision_id)
                         ->where('phone_call_type', $type)
                         ->whereRaw('(updated_at <="' . Carbon::now()->subMinutes(30)->format('Y-m-d H:i:s') . '" or created_at = updated_at)')
                         ->first();
-                \PC::debug('5');
             }
         }
         Log::info('PhonecallController', ['phonecall' => $phonecall, 'user' => Auth::user(), 'curcall' => $curCall, 'place' => $place]);
@@ -250,7 +239,6 @@ class PhoneCallController extends BasicController {
         DB::beginTransaction();
         foreach ($res1c->Tablo->stroka as $stroka) {
             try {
-//                \PC::debug($stroka);
                 $json = json_decode(json_encode($stroka), true);
             } catch (Exception $ex) {
                 continue;
@@ -264,9 +252,7 @@ class PhoneCallController extends BasicController {
             $phonecall->phone_call_type = $type;
             $phonecall->user_id = Auth::user()->id;
             $phonecall->subdivision_id = Auth::user()->subdivision_id;
-//            $phonecall->fill($json);
             $phonecall->fio = (string) $stroka->customer;
-//            \PC::debug($phonecall);
             if (!$phonecall->save()) {
                 DB::rollback();
             }

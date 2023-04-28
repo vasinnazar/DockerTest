@@ -94,7 +94,6 @@ class DailyCashReport extends Model {
             $balanceEnd = $this->end_balance;
         }
         $moneyRes = $this->calculateReportEndBalance($balanceStart);
-        \PC::debug(['mres' => $moneyRes, 'balance' => $balanceEnd, 'start' => $balanceStart], 'matchWithCashbook');
         Log::info('match with cashbook: ', ['mres' => $moneyRes, 'balance' => $balanceEnd, 'start' => $balanceStart]);
         return ((int) $moneyRes == (int) $balanceEnd);
     }

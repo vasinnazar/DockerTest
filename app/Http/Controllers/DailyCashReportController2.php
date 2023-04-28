@@ -233,7 +233,6 @@ class DailyCashReportController extends Controller {
             $dcrb = $this->getDailyCashReportBalance($report);
             $report->start_balance = $dcrb['start'];
             $report->end_balance = $dcrb['end'];
-            \PC::debug(['matches' => $report->matches, 'start_bal' => $balance['start'], 'end_Bal' => $balance['end']], 'matchwithcashbookid');
             return ($report->save()) ? $report->matches : 0;
         }
     }
@@ -269,10 +268,8 @@ class DailyCashReportController extends Controller {
                 $rm = (is_array($row['money'])) ? $row['money'][0] : $row['money'];
                 $rm = number_format((float) str_replace(',', '.', $rm), 2, '.', '') * $m * 100;
                 $moneyRes += $rm;
-                \PC::debug(['rm' => $rm, 'mres' => $moneyRes], 'reportdata');
             }
         }
-        \PC::debug(['mres' => $moneyRes, 'balance' => $balance['end'], 'start' => $balance['start']], 'matchWithCashbook');
         Log::info('match with cashbook: ', ['mres' => $moneyRes, 'balance' => $balance['end'], 'start' => $balance['start']]);
         return ($moneyRes == $balance['end']) ? 1 : 0;
     }
@@ -327,7 +324,6 @@ class DailyCashReportController extends Controller {
                     'report' => html_entity_decode($this->generateReportXML($report->data)),
                     'id_1c' => (!is_null($report->id_1c)) ? $report->id_1c : ''
         ]);
-        \PC::debug($res1c);
         if ($res1c['res']) {
             $report->id_1c = $res1c['value'];
         } else {
@@ -574,7 +570,6 @@ class DailyCashReportController extends Controller {
             $subdiv = $report->subdivision;
         } else if (!is_null($subdivision_id)) {
             $subdiv = \App\Subdivision::find($subdivision_id);
-            \PC::debug($subdiv);
         }
         if (!is_null($report_id)) {
             $report = DailyCashReport::find($report_id);
@@ -834,19 +829,14 @@ class DailyCashReportController extends Controller {
     }
 
     public function cashbookSyncer($date, $subdiv) {
-        \PC::debug('cashbook syncer here');
         if (is_null($subdiv)) {
-            \PC::debug('no subdiv', $subdiv);
             return 0;
         }
         $res1c = MySoap::getCashbookBalance($date->format('Ymd'), $subdiv->name_id);
-        \PC::debug($res1c);
         if (!$res1c['res']) {
-            \PC::debug($res1c, 'ошибка');
             return 0;
         }
         $balanceStart = $this->getCashbookDayBalance($subdiv->id, $date->format('Y-m-d H:i:s'));
-        \PC::debug($balanceStart, 'balanceStart');
 
         $orderStart = new Order();
         $orderEnd = new Order();
@@ -854,7 +844,6 @@ class DailyCashReportController extends Controller {
         DB::beginTransaction();
         if ($balanceStart['start'] != $res1c['cashStart'] * 100) {
             $diffStart = round($res1c['cashStart'] * 100 - $balanceStart['start']);
-            \PC::debug($diffStart, 'start diff');
             if ($diffStart != 0) {
                 $orderStart->created_at = with(new Carbon($date))->subDay();
                 $orderStart->money = abs($diffStart);
@@ -869,14 +858,11 @@ class DailyCashReportController extends Controller {
                     return 0;
                 }
                 Spylog::logModelAction(Spylog::ACTION_CREATE, Spylog::TABLE_ORDERS, $orderStart);
-                \PC::debug($orderStart->toArray(), 'order start');
             }
         }
         $balanceEnd = $this->getCashbookDayBalance($subdiv->id, $date->format('Y-m-d H:i:s'));
-        \PC::debug($balanceStart, 'balanceEnd');
         if ($balanceEnd['end'] != $res1c['cashEnd'] * 100) {
             $diffEnd = round($res1c['cashEnd'] * 100 - $balanceEnd['end']);
-            \PC::debug($diffEnd, 'end');
             if ($diffEnd != 0) {
                 $orderEnd->created_at = with(new Carbon($date))->setTime(12, 0, 0);
                 $orderEnd->money = abs($diffEnd);
@@ -891,7 +877,6 @@ class DailyCashReportController extends Controller {
                     return 0;
                 }
                 Spylog::logModelAction(Spylog::ACTION_CREATE, Spylog::TABLE_ORDERS, $orderEnd);
-                \PC::debug($orderEnd->toArray(), 'order end');
             }
         }
         Spylog::log(Spylog::ACTION_SYNC_CASHBOOK, null, null, json_encode(['orderStart' => $orderStart, 'orderEnd' => $orderEnd, 'res1c' => $res1c, 'balanceEnd' => $balanceEnd, 'balanceStart' => $balanceStart]));
@@ -902,7 +887,6 @@ class DailyCashReportController extends Controller {
     public function getCashbookBalanceFrom1c($date, $subdiv) {
         $res1c = MySoap::getCashbookBalance($date->format('Ymd'), $subdiv->name_id);
         if (!$res1c['res']) {
-            \PC::debug($res1c, 'ошибка');
             return null;
         }
         return $res1c;

@@ -213,7 +213,6 @@ class ContractEditorController extends Controller {
 
     static public function replaceConfigVars($html) {
         $vars = Config::get('vars');
-        \PC::debug($vars);
         foreach ($vars as $k => $v) {
             $html = str_replace('{{config.' . $k . '}}', $v, $html);
         }
@@ -252,7 +251,6 @@ class ContractEditorController extends Controller {
             } else {
                 $mDet = $loan->getRequiredMoneyDetails();
             }
-            \PC::debug($mDet, 'mdet');
             $loanrate = $loan->getLoanRate();
             $objects['mDet'] = ['od' => $mDet->od / 100, 'pc' => $mDet->pc / 100, 'exp_pc' => $mDet->exp_pc / 100, 'money' => $mDet->money / 100];
             $objects['loans'] = $loan->toArray();
@@ -343,8 +341,6 @@ class ContractEditorController extends Controller {
                 }
                 $objects['repayments']['was_req_money'] = $objects['repayments']['was_od'] + $objects['repayments']['was_pc'] + $objects['repayments']['was_exp_pc'] + $objects['repayments']['was_fine'] + $objects['repayments']['was_tax'];
                 $objects['repayments']['end_date'] = $rep->getEndDate();
-                \PC::debug([$objects['repayments']['end_date'],$rep],'end_date');
-                \PC::debug(PeacePay::where('repayment_id', $rep->id)->orderBy('created_at', 'desc')->first(),'last_');
                 if ($rep->repaymentType->isClaim()) {
 //                    $objects['repayments']['commission_money'] = number_format(round($objects['mDet']['od'] * 0.3), 2, '.', '');
                     $objects['repayments']['end_date'] = $rep->getEndDate();
@@ -472,7 +468,6 @@ class ContractEditorController extends Controller {
                             $dopComCalc = new \App\Utils\DopCommissionCalculation($loan, $rep->time, $rep->od, $prevRep, $rep->created_at);
                         }
                     }
-                    \PC::debug($dopComCalc, 'contracteditordopcomcalc');
                     if ($rep->created_at->lt(new Carbon('2017-01-30'))) {
                         $objects['repayments']['commission_money'] = StrUtils::kopToRub(round($mDet->od * 0.3));
                     } else {
@@ -721,7 +716,6 @@ class ContractEditorController extends Controller {
                     'pc' => $suzStock->pc,
                     'od' => $suzStock->od,
                 ];
-                \PC::debug($total, 'total suz');
 
                 foreach ($suzdata->pays as $p) {
                     $pay = [
@@ -751,7 +745,6 @@ class ContractEditorController extends Controller {
                         }
                     }
                     $pays[] = $pay;
-                    \PC::debug($pays);
                 }
             }
             foreach ($pays as $p) {
@@ -784,7 +777,6 @@ class ContractEditorController extends Controller {
         }
         if (!is_null($suzStock->data)) {
             $suzStockData = json_decode($suzStock->data);
-            \PC::debug($suzStockData, 'suzstockdata');
             if (isset($suzStockData->stockName) && $suzStockData->stockName == 'akcsuzst46') {
                 $html = str_replace('{{suz_stock_was_tax}}', ((!is_null($suzStock->was_tax)) ? StrUtils::kopToRub($suzStock->was_tax) : '0.00') . $tax_label, $html);
                 $html = str_replace('{{suz_stock_tax}}', StrUtils::kopToRub($suzStock->tax) . $tax_label, $html);
@@ -909,7 +901,6 @@ class ContractEditorController extends Controller {
         $rep = Repayment::find($repaymentID);
         $pays = \App\PeacePay::where('repayment_id', $repaymentID)->get();
         $i = 1;
-        \PC::debug($rep->data);
 //        if(!is_null($rep->data)){
 //            $repData = json_decode($rep->data);
 //            if(!is_null($repData) && isset($repData->create_pays)){
@@ -930,7 +921,6 @@ class ContractEditorController extends Controller {
                 'fine' => $mDet->fine
             ];
 //        }
-        \PC::debug($mDet, 'total');
 
         foreach ($pays as $pay) {
 //            $pay = $pays[$j];
@@ -957,7 +947,6 @@ class ContractEditorController extends Controller {
                 }
             }
             if ($rep->repaymentType->text_id != config('options.rtype_peace')) {
-                \PC::debug([$pay,$res],'res');
                 $html .= '<tr class="R45">'
                         . '<td class="R60C0"><SPAN STYLE="white-space:nowrap">' . $i . '</SPAN></TD>'
                         . '<TD CLASS=R60C0 COLSPAN=2><SPAN STYLE="white-space:nowrap">' . (with(new Carbon($pay->end_date))->format('d.m.Y')) . '</SPAN></TD>'
@@ -980,7 +969,6 @@ class ContractEditorController extends Controller {
             }
             $i++;
         }
-        \PC::debug($html, 'peacepays');
         return $html;
     }
 
@@ -1173,7 +1161,6 @@ class ContractEditorController extends Controller {
                     $html = str_replace('{{num2str(' . $objName . '.' . $col . ')}}', StrUtils::percentsToStr($v), $html);
                 }
                 if (in_array($col, $money_cols) && !is_null($v)) {
-                    \PC::debug($v,$col);
                     $html = str_replace('{{rubkop(' . $objName . '.' . $col . ')}}', StrUtils::sumToRubAndKop($v), $html);
                 }
                 if (in_array($col, $pc2str_cols) && !is_null($v)) {

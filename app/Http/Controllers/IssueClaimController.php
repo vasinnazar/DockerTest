@@ -178,7 +178,6 @@ class IssueClaimController extends BasicController {
         }
         $ic->fill($req->input());
         $ic->save();
-        \PC::debug($ic);
         return 1;
     }
 

@@ -66,7 +66,6 @@ class MassiveChangeController extends Controller {
                         $changed++;
                     }
                 }
-                \PC::debug($user->name . ' ' . $user->doc);
             } else {
                 $notfound++;
             }

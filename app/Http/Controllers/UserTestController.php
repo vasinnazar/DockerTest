@@ -57,7 +57,6 @@ class UserTestController extends BasicController {
         } else {
             $session_id = $req->session()->get('usertest_session_id');
         }
-        \PC::debug($session_id, 'session_id');
         $data = [
             'session_id' => $session_id,
             'questions' => $test->questions,
@@ -127,7 +126,6 @@ class UserTestController extends BasicController {
         $testSessionsList = $test->getSessionsList($user);
         foreach ($testSessionsList as $tsid) {
             $results[] = $test->getResultForSession($user, $tsid);
-            \PC::debug($results[count($results) - 1], $tsid);
         }
         $data = [
             'test' => $test,
@@ -190,7 +188,6 @@ class UserTestController extends BasicController {
 //                'answers' => $answers
 //            ];
 //        }
-        \PC::debug($data);
         return view('usertests.usertest_stat_all', $data);
     }
 
@@ -211,7 +208,6 @@ class UserTestController extends BasicController {
                 ->distinct()
                 ->pluck('user_id')
                 ->toArray();
-        \PC::debug(count($answered_users_id), 'answered users');
         $users = \App\User::whereNotIn('users.id', $answered_users_id)
                 ->leftJoin('subdivisions', 'subdivisions.id', '=', 'users.subdivision_id')
                 ->leftJoin('cities', 'subdivisions.city_id', '=', 'cities.id')

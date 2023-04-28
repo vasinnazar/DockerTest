@@ -74,7 +74,6 @@ class Customer extends Model {
     public static function getFrom1c($series, $number) {
         $res1c = \App\MySoap::passport(['series' => $series, 'number' => $number, 'old_series' => '', 'old_number' => '']);
         if (!$res1c['res'] || !array_key_exists('id', $res1c)) {
-            \PC::debug($res1c['res'], 'findcustomerin1c');
             return null;
         }
         DB::beginTransaction();

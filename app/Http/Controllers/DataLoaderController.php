@@ -80,7 +80,6 @@ class DataLoaderController extends Controller {
                     $item->employment_agree = with(new Carbon('2000-01-01 00:00:00'))->format('Y-m-d H:i:s');
                     $item->employment_docs_track_number = 'testfill';
                     $unfound++;
-                    \PC::debug($item);
                 } else {
                     $found++;
                 }
@@ -92,7 +91,6 @@ class DataLoaderController extends Controller {
             }
             fclose($handle);
         }
-        \PC::debug(['found' => $found, 'unfound' => $unfound, 'total' => $total]);
         echo '<hr>' . $row;
     }
 

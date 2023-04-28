@@ -319,11 +319,8 @@ class Order extends Model {
     public function getNextNumber($isPko = 1) {
         $number = 'А0000000001';
         $lastOrder = DB::select('select orders.number,orders.created_at from orders,order_types where order_types.id=orders.type and order_types.plus=' . $isPko . ' and number<>\'!!УДАЛИТЬ!!\' and YEAR(orders.created_at)=' . Carbon::now()->year . ' order by SUBSTRING(orders.number, 2) desc limit 1');
-        \PC::debug($lastOrder, 'lastorder');
         $intNumber = intval(StrUtils::removeNonDigits($lastOrder[0]->number));
-        \PC::debug($intNumber, 'int number');
         $number = 'А' . StrUtils::addChars(strval($intNumber + 1), 10, '0', false);
-        \PC::debug($number, 'number');
         return $number;
     }
     /**

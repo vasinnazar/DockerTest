@@ -93,9 +93,6 @@ class RnkoController extends BasicController {
         $today_stat = DB::table('rnko')->select(DB::raw('count(*) as asd, users.name as fio, users.id as uid'))->leftJoin('users', 'users.id', '=', 'rnko.check_user_id')->where('start_check', '>', $today)->groupBy('uid')->orderBy('asd', 'desc')->whereNotIn('users.id', $this->it)->get();
 //        $yesterday_stat = DB::select('select count(*) as asd,users.name as fio,users.id as uid from rnko left join users on users.id=rnko.check_user_id where end_check >' . $yesterday . ' and end_check <' . $today . ' group by users.id order by asd desc');
         $yesterday_stat = DB::table('rnko')->select(DB::raw('count(*) as asd, users.name as fio, users.id as uid'))->leftJoin('users', 'users.id', '=', 'rnko.check_user_id')->where('start_check', '>', $yesterday)->where('end_check', '<', $today)->groupBy('uid')->orderBy('asd', 'desc')->whereNotIn('users.id', $this->it)->get();
-        \PC::debug($stat, 'all');
-        \PC::debug($today_stat, $today);
-        \PC::debug($yesterday_stat, $yesterday);
         $statlist = [];
         $total_stat_today = 0;
         $total_stat_yesterday = 0;
@@ -325,7 +322,6 @@ class RnkoController extends BasicController {
         if (HelperUtil::FtpFolderExists($folderName, 'ftp222')) {
             if ($with_claim_date) {
                 $photos = Storage::disk('ftp222')->files($folderName);
-                \PC::debug('strange');
             } else {
                 $dirs = HelperUtil::FtpFolderList($folderName, 'ftp222');
                 foreach ($dirs as $dir) {
@@ -415,7 +411,6 @@ class RnkoController extends BasicController {
                 $rnko->save();
             }
         }
-//        \PC::debug($count);
     }
 
     public function refreshChecked() {
@@ -429,8 +424,6 @@ class RnkoController extends BasicController {
             $rnko->user_id = null;
             $rnko->subdivision_id = null;
             $rnko->save();
-//            \PC::debug($rnko);
-//            break;
         }
     }
 
@@ -438,7 +431,6 @@ class RnkoController extends BasicController {
         $html = '<table>';
         $cols = ['users.name as name', 'rnko.card_number', 'rnko.fio', 'rnko.passport_series', 'rnko.passport_number', 'rnko.comment'];
         $items = Rnko::where('prev_status', Rnko::STATUS_CHANGED)->leftJoin('users', 'users.id', '=', 'rnko.prev_user_id')->select($cols)->orderBy('users.name')->get();
-        \PC::debug(count($items));
         $rows = 0;
         $html .= '<thead>';
         $html .= '<tr>';
@@ -559,7 +551,6 @@ class RnkoController extends BasicController {
 //            }
         }
         foreach ($users as $user) {
-            \PC::debug($user->toArray(), $user->id);
         }
         echo '<br>' . $cards_count;
         echo '<br>' . $xml_per_user;
@@ -574,8 +565,6 @@ class RnkoController extends BasicController {
         $html = '<table>';
         $cols = ['rnko.card_number', 'rnko.fio', 'rnko.comment', 'rnko.passport_series', 'rnko.passport_number', 'rnko.claim_date'];
         $items = Rnko::whereRaw('(prev_status is null or prev_status in(0,3)) and info=1 and check_user_id is null')->select($cols)->get();
-        \PC::debug(count($items));
-        \PC::debug(Carbon::now()->format('Y-m-d H:i:s'));
         $rows = 0;
         $html .= '<thead>';
         $html .= '<tr>';
@@ -612,15 +601,12 @@ class RnkoController extends BasicController {
             } else {
                 $absent++;
                 if ($absent < 50) {
-                    \PC::debug($folder2);
                 }
             }
 //            if ($rows == 500) {
 //                break;
 //            }
         }
-        \PC::debug(Carbon::now()->format('Y-m-d H:i:s'));
-        \PC::debug($absent);
         $html.='</tbody>';
         $html.='</table>';
         return $html;
@@ -647,7 +633,6 @@ class RnkoController extends BasicController {
         $html .= '</thead>';
         $html .= '<tbody>';
         $absent = 0;
-        \PC::debug(Carbon::now()->format('Y-m-d H:i:s'), 'started');
         foreach ($items as $item) {
             $rows++;
             $html .= '<tr>';
@@ -663,8 +648,6 @@ class RnkoController extends BasicController {
             $html .= '<td>' . @Rnko::getStatusList()[$item->status] . '</td>';
             $html .= '</tr>';
         }
-        \PC::debug(Carbon::now()->format('Y-m-d H:i:s'), 'finished');
-        \PC::debug($rows, 'rows');
         $html.='</tbody>';
         $html.='</table>';
         return $html;

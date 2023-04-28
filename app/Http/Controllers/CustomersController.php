@@ -161,61 +161,9 @@ class CustomersController extends Controller {
         if (is_null($passport->id) && Passport::where('series', $passport->series)->where('number', $passport->number)->count() > 0) {
             return redirect()->back()->withInput($input)->with('msg_err', StrLib::ERR_DUPLICATE_PASSPORT);
         }
-//        CreateFL(issued_date, issued, subdivision_code, number, series, address_reg_date, address_region, address_city, address_street, 
-//        address_house, address_apartment, fact_address_region, fact_address_city, fact_address_street, fio, Struct, zip, address_district, 
-//        address_city1, address_building, fact_zip, fact_address_district, fact_address_city1, fact_address_house, fact_address_building, fact_address_apartment)
-//        $address_city1 = (str_replace('г.', '', $passport->address_city) == $passport->address_city) ? $passport->address_city : '';
-//        $fact_address_city1 = (str_replace('г.', '', $passport->fact_address_city) == $passport->fact_address_city) ? $passport->fact_address_city : '';
-//        $address_city1 = (str_replace('г.', '', $passport->address_city) == $passport->address_city) ? $passport->address_city1 : '';
-//        $fact_address_city1 = (str_replace('г.', '', $passport->fact_address_city) == $passport->fact_address_city) ? $passport->fact_address_city1 : '';
-
-//        $checkRes1c = MySoap::passport(['series' => $passport->series, 'number' => $passport->number, 'old_series' => '', 'old_number' => '']);
-//        \PC::debug($checkRes1c,'checkres1c');
-//        if (!is_null($checkRes1c['res']) && !$checkRes1c['res']) {
-//            return redirect()->back()->withInput($input)->with('msg_err', StrLib::ERR_1C);
-//        }
-//        if(!is_null($checkRes1c) && array_key_exists('customer_id_1c', $checkRes1c)){
-//            $customer->id_1c = $checkRes1c['customer_id_1c'];
-//        }
 
         DB::beginTransaction();
-//        $res1c = MySoap::addCustomer([
-////                    'issued_date' => with(new Carbon($passport->issued_date))->format('Ymd'),
-//                    'issued_date' => with(new Carbon($passport->issued_date))->format('Y-m-d'),
-//                    'issued' => $passport->issued,
-//                    'subdivision_code' => $passport->subdivision_code,
-//                    'number' => $passport->number,
-//                    'series' => $passport->series,
-//                    'address_reg_date' => with(new Carbon($passport->address_reg_date))->format('Y-m-d'),
-//                    'address_region' => $passport->address_region,
-//                    'address_city' => $passport->address_city,
-//                    'address_street' => $passport->address_street,
-//                    'address_house' => $passport->address_house,
-//                    'address_apartment' => $passport->address_apartment,
-//                    'fact_address_region' => $passport->fact_address_region,
-//                    'fact_address_city' => $passport->fact_address_city,
-//                    'fact_address_street' => $passport->fact_address_street,
-//                    'fio' => $passport->fio,
-//                    'zip' => $passport->zip,
-//                    'address_district' => $passport->address_district,
-//                    'address_city1' => $address_city1,
-//                    'address_building' => $passport->address_building,
-//                    'fact_zip' => $passport->fact_zip,
-//                    'fact_address_district' => $passport->fact_address_district,
-//                    'fact_address_city1' => $fact_address_city1,
-//                    'fact_address_house' => $passport->fact_address_house,
-//                    'fact_address_building' => $passport->fact_address_building,
-//                    'fact_address_apartment' => $passport->fact_address_apartment,
-//                    'telephone' => $customer->telephone,
-//                    'birth_city' => $passport->birth_city,
-//                    'birth_date' => with(new Carbon($passport->birth_date))->format('Y-m-d'),
-//                    'customer_id_1c' => (is_null($customer->id_1c)) ? '' : $customer->id_1c
-//        ]);
-//        \PC::debug($res1c);
-//        if (!$res1c['res']) {
-//            return redirect('customers')->with('msg_err', StrLib::ERR_1C);
-//        }
-//        $customer->id_1c = $res1c['value'];
+
         if (!$customer->save()) {
             DB::rollback();
             return redirect()->back()->with('msg_err', StrLib::ERR);
@@ -306,7 +254,6 @@ class CustomersController extends Controller {
             return ['customer' => $passport->customer, 'passport' => $passport];
         }
         $data = Customer::getFrom1c($series, $number);
-        \PC::debug($data, 'cust');
         return $data;
     }
 

@@ -31,7 +31,6 @@ class AddressDoublesController extends BasicController
     {
         $items = AddressDouble::whereNotNull('id');
         $this->addSearchConditionsToQuery($items, $req->input());
-        \PC::debug($items->toSql());
         $collection = Datatables::of($items)
             ->removeColumn('id')
             ->removeColumn('created_at')

@@ -105,7 +105,6 @@ class OrdersController extends BasicController {
         }
         if ($request->has('created_at_min')) {
             $orders->where('orders.created_at', '>=', with(new Carbon($request->get('created_at_min')))->format('Y-m-d'));
-            \PC::debug('date');
             if (!$request->has('fio') && !$request->has('series') && !$request->has('number') && !$request->has('responsible')) {
                 if ($request->has('subdivision_id')) {
                     $subdiv = Subdivision::find($request->subdivision_id);
@@ -113,7 +112,6 @@ class OrdersController extends BasicController {
                     $subdiv = Auth::user()->subdivision;
                 }
                 if (!is_null($subdiv)) {
-                    \PC::debug($subdiv, 'search');
                     \App\Synchronizer::updateOrders($request->created_at_min, null, null, $subdiv->name_id);
                 }
             }
@@ -173,10 +171,8 @@ class OrdersController extends BasicController {
         ];
         if (Auth::user()->hasPermission(Permission::makeName(Permission::ACTION_SELECT, 'orders', Permission::COND_ALL,
             Permission::TIME_ALL))) {
-            \PC::debug('wow');
             $subdiv_id = ($request->has('subdivision_id')) ? (($request->subdivision_id == Auth::user()->subdivision_id) ? null : $request->subdivision_id) : null;
         } else {
-            \PC::debug('no');
             $subdiv_id = Auth::user()->subdivision_id;
         }
         if ($request->has('created_at_min')) {
@@ -621,7 +617,6 @@ class OrdersController extends BasicController {
      */
     public function createIssueClaim(Request $req){
         $input = $req->input();
-        \PC::debug($input);
         $issueClaim = new \App\IssueClaim();
         $issueClaim->fill($input);
         $issueClaim->money = StrUtils::rubToKop($req->get('money',0));
@@ -660,8 +655,6 @@ class OrdersController extends BasicController {
             }
             $issueClaim->money = $total*100;
         }
-        \PC::debug($issueClaim);
-//        $issueClaim->azaza();
         $res = $issueClaim->saveThrough1c(true);
         if($res->result){
             return redirect()->back()->with('msg_suc',  StrLib::SUC_SAVED);

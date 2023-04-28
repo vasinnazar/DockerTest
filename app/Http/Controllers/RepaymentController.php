@@ -58,7 +58,6 @@ class RepaymentController extends Controller {
 
         //если введена дата и специалист и подразделение
         if ($req->has('create_date') && !empty($req->create_date) && $repayment->repaymentType->isExDopnik()) {
-            \PC::debug("creating on date");
             return $this->createOnDate($req);
         }
 
@@ -333,7 +332,6 @@ class RepaymentController extends Controller {
                     //то платеж ставить на последний день месяца
                     $payday->day = 1;
                     $payday->addMonths($m + 1);
-                    \PC::debug([$repayment->created_at, $payday]);
                     if ($repayment->created_at->day > $payday->daysInMonth) {
                         $payday = $payday->endOfMonth();
                     } else {
@@ -468,7 +466,6 @@ class RepaymentController extends Controller {
                 return redirect()->back()->with('msg_err', 'Задвоение договора. Обратитесь в поддержку.');
             }
             if (!$repayment->save()) {
-                \PC::debug($repayment, 'repayment');
                 DB::rollback();
                 return redirect()->back()->with('msg_err', 'Ошибка на сохранении договора! Договор не был сохранён.');
             }
@@ -477,7 +474,6 @@ class RepaymentController extends Controller {
             foreach ($peacePays as $peacePay) {
                 $peacePay->repayment_id = $repayment->id;
                 if (!$peacePay->save()) {
-                    \PC::debug($peacePay, 'peace pay');
                     DB::rollback();
                     return redirect()->back()->with('msg_err', 'Ошибка при сохранении мировых платежей! Договор не был сохранён.');
                 }
@@ -559,12 +555,10 @@ class RepaymentController extends Controller {
             $order->repayment_id = $repayment->id;
             if ($repayment->repaymentType->isClaim() && !$repayment->repaymentType->isDopCommission()) {
                 if (!$order->saveThrough1cWithRegister($date)) {
-                    \PC::debug($order, 'unsaved order');
                     return false;
                 }
             } else {
                 if (!$order->saveThrough1c($date)) {
-                    \PC::debug($order, 'unsaved order');
                     return false;
                 }
             }
@@ -611,7 +605,6 @@ class RepaymentController extends Controller {
         $reconstrSogl->time = 1;
         $reconstrSogl->data = json_encode(['stockType' => $stockType, 'stockName' => $stockName]);
         $reconstrSogl->save();
-        \PC::debug($reconstrSogl, 'reconstr');
         return $reconstrSogl;
     }
 
@@ -889,7 +882,6 @@ class RepaymentController extends Controller {
 
         if ($rep->repaymentType->isDopnik()) {
             $res1c = MySoap::createRepayment($rep1cParams);
-            \PC::debug($res1c, 'результат');
             if ($res1c['res'] == 0) {
                 DB::rollback();
                 return redirect()->back()->with('msg', 'Ошибка связи с 1с.')->with('class', 'alert-danger');
@@ -897,7 +889,6 @@ class RepaymentController extends Controller {
         } else if ($rep->repaymentType->isClaim()) {
             $rep1cParams['time'] = '';
             $res1c = MySoap::createClaimRepayment($rep1cParams);
-            \PC::debug($res1c, 'результат');
             if ($res1c['res'] == 0) {
                 DB::rollback();
                 return redirect()->back()->with('msg', 'Ошибка связи с 1с.')->with('class', 'alert-danger');
@@ -945,14 +936,12 @@ class RepaymentController extends Controller {
             $rep1cParams['pays'] = json_encode($paysList);
 
             $res1c = MySoap::createPeaceRepayment($rep1cParams);
-            \PC::debug($res1c, 'результат');
             if ($res1c['res'] == 0) {
                 DB::rollback();
                 return redirect()->back()->with('msg', 'Ошибка связи с 1с.')->with('class', 'alert-danger');
             }
         } else if ($rep->repaymentType->isSUZ()) {
             $res1c = MySoap::createSuzRepayment($rep1cParams);
-            \PC::debug($res1c, 'результат');
             if ($res1c['res'] == 0) {
                 DB::rollback();
                 return redirect()->back()->with('msg', 'Ошибка связи с 1с.')->with('class', 'alert-danger');
@@ -1109,7 +1098,6 @@ class RepaymentController extends Controller {
                 $pred = 1;
                 $cur_pay_id = 0;
                 $last_payday = Carbon::now()->format('Y-m-d');
-                \PC::debug($pays);
                 foreach ($pays as $pay) {
                     $rep1cParams['fine'] += $pay['fine'];
 //                    $rep1cParams['fine'] += $pay['fine'] + $pay['exp_pc'];
@@ -1165,7 +1153,6 @@ class RepaymentController extends Controller {
                                 $moneyForBigOrders += $paidMoney;
                                 $paidMoney = 0;
                                 $sled = 0;
-                                \PC::debug([$lastPay->total, $paidMoney, $lastPay->end_date], 'pay1');
                                 break;
                             } else {
                                 $pay->last_payday = $last_payday;
@@ -1175,7 +1162,6 @@ class RepaymentController extends Controller {
                                 $lastPay->closed = 1;
                                 $pred = $pred + 1;
                                 $sled = 1;
-                                \PC::debug([$lastPay->total, $paidMoney, $lastPay->end_date], 'pay2');
                             }
                         }
                     }
@@ -1186,7 +1172,6 @@ class RepaymentController extends Controller {
                                 $pay->total -= $paidMoney;
                                 $moneyForBigOrders += $paidMoney;
                                 $paidMoney = 0;
-                                \PC::debug([$pay->total, $paidMoney, $pay->end_date], 'pay3');
                                 break;
                             } else {
                                 $pay->last_payday = $last_payday;
@@ -1195,7 +1180,6 @@ class RepaymentController extends Controller {
                                 $pay->total = 0;
                                 $pay->closed = 1;
                                 $sled = 1;
-                                \PC::debug([$pay->total, $paidMoney, $pay->end_date], 'pay4');
                             }
                         }
                         $per = 0;
@@ -1310,7 +1294,6 @@ class RepaymentController extends Controller {
                 if ($rep->getOverdueDays() == 0) {
                     $rep1cParams['time'] = '';
                     $res1c = MySoap::createClaimRepayment($rep1cParams);
-                    \PC::debug($res1c, 'результат');
                     if ($res1c['res'] == 0) {
                         DB::rollback();
                         return redirect()->back()->with('msg_err', StrLib::ERR_1C);
@@ -1330,7 +1313,6 @@ class RepaymentController extends Controller {
 //                }
 
                 $res1c = MySoap::createPeaceRepayment($rep1cParams);
-                \PC::debug($res1c, 'результат');
 //                if((config('app.dev') && (int)$res1c->result==0)||(!config('app.dev') && $res1c['res']==0)){
 //                if ($res1c['res'] == 0) {
                 if ((int) $res1c->result == 0) {
@@ -1989,7 +1971,6 @@ class RepaymentController extends Controller {
                 return redirect()->back()->with('msg_err', 'Задвоение договора. Обратитесь в поддержку.');
             }
             if (!$repayment->save()) {
-                \PC::debug($repayment, 'repayment');
                 DB::rollback();
                 return redirect()->back()->with('msg_err', 'Ошибка на сохранении договора! Договор не был сохранён.');
             }
@@ -1999,7 +1980,6 @@ class RepaymentController extends Controller {
             foreach ($orders as $order) {
                 $order->repayment_id = $repayment->id;
                 if (!$order->saveThrough1c($repayment->created_at->subSecond()->format('Y-m-d H:i:s'))) {
-                    \PC::debug($order, 'order');
                     DB::rollback();
                     return redirect()->back()->with('msg_err', 'Ошибка на сохранении ордера! Договор не был сохранён.');
                 }
