@@ -96,11 +96,8 @@ return [
       |
      */
     'providers' => [
-        'PhpConsole\Laravel\ServiceProvider',
-//        'Artisaninweb\SoapWrapper\ServiceProvider',
         'Arcanedev\LogViewer\LogViewerServiceProvider',
         'Intervention\Image\ImageServiceProvider',
-//        'GrahamCampbell\Flysystem\FlysystemServiceProvider',
         /*
          * Laravel Framework Service Providers...
          */
