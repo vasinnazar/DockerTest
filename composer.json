@@ -32,7 +32,8 @@
     "fideloper/proxy" : "~4.0",
     "ext-soap": "*",
     "maatwebsite/excel": "*",
-    "illuminate/database": "*"
+    "illuminate/database": "*",
+    "ext-curl": "*"
   },
   "require-dev": {
     "symfony/dom-crawler": "~3.1",
