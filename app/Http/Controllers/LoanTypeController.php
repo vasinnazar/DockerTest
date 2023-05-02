@@ -64,7 +64,6 @@ class LoanTypeController extends Controller {
         $loantype = LoanType::findOrNew($input['id']);
         $input['basic'] = (array_key_exists('basic', $input)) ? $input['basic'] : 0;
         $input['show_in_terminal'] = (array_key_exists('show_in_terminal', $input)) ? $input['show_in_terminal'] : 0;
-        \PC::debug($input);
         if (!is_null($loantype->id)) {
             Spylog::logModelChange('loantypes', $loantype, $input);
             $loantype->fill($input);
@@ -157,7 +156,6 @@ class LoanTypeController extends Controller {
         }
         $sql = sprintf('customer_id=(SELECT customer_id FROM claims WHERE id=%s) AND status=%s', $claim_id, Card::STATUS_ACTIVE);
         $card = Card::whereRaw($sql)->first();
-        \PC::debug($loanTypes, 'all loantypes');
         //проходим по всем видам в базе
         foreach ($loanTypes as $type) {
             if ($onlyCredityStory) {
@@ -204,9 +202,6 @@ class LoanTypeController extends Controller {
                     if (!is_null($claimsCount2Req) && count($claimsCount2Req) > 0 && isset($claimsCount2Req[0]->num)) {
                         $claimsCount2 = (int) $claimsCount2Req[0]->num;
                     }
-                    \PC::debug($claimsCount, 'claimscount 70%');
-                    \PC::debug($claimsCount2, 'claimscount2 70%');
-                    \PC::debug($loanMinDate, 'loanmindate');
                     if ($claimsCount2 >= 9) {
                         $res[] = $type->toArray();
                     }

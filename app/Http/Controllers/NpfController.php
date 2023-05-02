@@ -200,7 +200,6 @@ class NpfController extends BasicController {
                     'user_id_1c' => $item->user->id_1c,
                     'subdivision_id_1c' => $item->subdivision->name_id
         ]);
-        \PC::debug($res1c, 'npf res1c');
         if (!$res1c['res'] || $res1c['value'] == "false") {
             DB::rollback();
             Log::error('NpfController.updateItem НПФ не сохранился', ['npf' => $item, 'req' => $req->all(), 'res1c' => $res1c]);
@@ -211,10 +210,8 @@ class NpfController extends BasicController {
         if ($item->save()) {
             DB::commit();
             if (!array_key_exists('id', $model) || is_null($model['id'])) {
-                \PC::debug($item, 'item');
                 Spylog::logModelAction(Spylog::ACTION_CREATE, 'npf_contracts', $item->toArray());
             } else {
-                \PC::debug($model, 'model');
                 Spylog::logModelChange($this->table, $model, $item->toArray());
             }
             return redirect('npf')->with('msg_suc', StrLib::$SUC_SAVED);

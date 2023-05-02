@@ -54,7 +54,6 @@ class RepaymentsEditorController extends Controller {
                 return redirect('adminpanel/repaymenttypes')->with('msg', 'Ошибка. Тип гашения не был удален')->with('class', 'alert-danger');
             }
         } catch (Exception $exc) {
-            \PC::debug($exc);
             return redirect('adminpanel/repaymenttypes')->with('msg', 'Исключение. Тип гашения не был удален')->with('class', 'alert-danger');
         }
     }

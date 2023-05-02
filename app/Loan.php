@@ -216,7 +216,6 @@ class Loan extends Model {
 
             //А ЗДЕСЬ ВНЕЗАПНО МЕНЯЕМ ТИП ПОСЛЕДНЕГО ДОПНИКА ЕСЛИ ВДРУГ ПРОЦЕНТ ПРИШЕЛ 2.2 НА ПРОСРОЧЕННЫЙ ДОПНИК
             //лежит здесь чтобы не плодить запросы с расчетом суммы, нужно будет убрать как только с 1с будут приходить типы допников
-            \PC::debug($pc, 'percents');
             if (config('app.version_type') != 'debtors') {
                 if ($repsNum > 0 && $lastActiveRep->repaymentType->text_id != config('options.rtype_dopnik5') && $pc['pc'] > 2) {
                     if ($lastActiveRep->repaymentType->isDopnik()) {
@@ -367,7 +366,6 @@ class Loan extends Model {
     public function calculateFine($lastPayday, $mDet, $fine_percent) {
         $res = 0;
         $loanFineDays = $lastPayday->diffInDays(Carbon::now());
-        \PC::debug($loanFineDays, 'loanfinedays');
         $res += ((($mDet->od + $mDet->pc + $mDet->exp_pc) * ($fine_percent / 100)) / (365 + date("L"))) * $loanFineDays;
         return round($res);
     }
@@ -558,14 +556,11 @@ class Loan extends Model {
         if (is_null($loan)) {
             $loan = $this;
         }
-        \PC::debug($loan);
-        \PC::debug($date, 'date1');
         if (empty($date)) {
             $date = Carbon::now()->format('YmdHis');
         } else {
             $date = Carbon::createFromFormat('Y-m-d', $date)->format('YmdHis');
         }
-        \PC::debug($date, 'date2');
         $xml = ['type' => '4', 'loan_id_1c' => $loan->id_1c, 'customer_id_1c' => $loan->claim->customer->id_1c, 'repayment_id_1c' => '0', 'repayment_type' => '0', 'created_at' => $date];
         if (!is_null($repayment)) {
             if ($repayment->repaymentType->isPeace()) {
@@ -767,11 +762,8 @@ class Loan extends Model {
     static function getNextNumber() {
         $number = 'А0000000001';
         $lastLoan = DB::select('select loans.id_1c from loans order by SUBSTRING(loans.id_1c, 2) desc limit 1');
-        \PC::debug($lastLoan, 'lastloan');
         $intNumber = intval(StrUtils::removeNonDigits($lastLoan[0]->id_1c));
-        \PC::debug($intNumber, 'int number');
         $number = 'А' . StrUtils::addChars(strval($intNumber + 1), 10, '0', false);
-        \PC::debug($number, 'number');
         return $number;
     }
 

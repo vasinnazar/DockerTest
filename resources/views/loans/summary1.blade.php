@@ -393,7 +393,6 @@ use App\StrUtils;
                         } else if (!$repayments[$i]->repaymentType->isClosing()) {
                             $repDays = with(new Carbon($repayments[$i]->created_at))->setTime(0, 0, 0)->diffInDays(Carbon::now());
                         }
-                        \PC::debug($i, 'i');
                         ?>
                         <tr class="contract-header-row">
                             <td colspan="10">

@@ -19,13 +19,6 @@ use App\MySoap;
 class DebtorTransferController extends BasicController
 {
 
-    public function __construct()
-    {
-        if (!Auth::user()->hasPermission(Permission::makeName(PermLib::ACTION_OPEN, PermLib::SUBJ_DEBTOR_TRANSFER))) {
-            return redirect('/')->with('msg_err', StrLib::ERR_NOT_ADMIN);
-        }
-    }
-
     /**
      * Display a listing of the resource.
      *
@@ -88,9 +81,6 @@ class DebtorTransferController extends BasicController
         $input = $req->input();
 
         $debtors = Debtor::select($cols)
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
             ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
             ->leftJoin('debtors.passports', function ($join) {
                 $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
@@ -98,8 +88,6 @@ class DebtorTransferController extends BasicController
             })
             ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
             ->leftJoin('struct_subdivisions', 'struct_subdivisions.id_1c', '=', 'debtors.str_podr')
-//                ->where('armf.passports.fio', '<>', '')
-//                ->whereNotNull('armf.passports.fio')
             ->groupBy('debtors.id');
 
         if (!$this->hasFilterFilled($input)) {
@@ -156,7 +144,20 @@ class DebtorTransferController extends BasicController
                 }
             });
         }
-
+        foreach ($input as $k => $v) {
+            if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
+                $fieldName = str_replace('search_field_', '', $k);
+                $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
+                $colName = substr($fieldName, strlen($tableName) + 1);
+                $condColName = $k . '_condition';
+                $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
+                if ($condition == 'like') {
+                    $v = '%' . $v . '%';
+                }
+                $debtors->where($tableName . '.' . $colName, $condition, $v);
+            }
+        }
+        $debtors = $debtors->get();
         return DataTables::of($debtors)
             ->editColumn('debtors_fixation_date', function ($item) {
                 return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
@@ -220,22 +221,6 @@ class DebtorTransferController extends BasicController
             ->removeColumn('passports_fact_address_street')
             ->removeColumn('passports_fact_address_house')
             ->rawColumns(['actions', 'links', 'passports_fact_address_city'])
-            ->filter(function ($query) use ($req) {
-                $input = $req->input();
-                foreach ($input as $k => $v) {
-                    if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
-                        $fieldName = str_replace('search_field_', '', $k);
-                        $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
-                        $colName = substr($fieldName, strlen($tableName) + 1);
-                        $condColName = $k . '_condition';
-                        $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
-                        if ($condition == 'like') {
-                            $v = '%' . $v . '%';
-                        }
-                        $query->where($tableName . '.' . $colName, $condition, $v);
-                    }
-                }
-            })
             ->toJson();
     }
 
@@ -655,14 +640,12 @@ class DebtorTransferController extends BasicController
                 'name' => 'passports@fact_address_district',
                 'input_type' => 'text',
                 'label' => 'Район',
-                //'hidden_value_field' => 'passports@fact_address_district',
                 'field_id' => ''
             ],
             [
                 'name' => 'passports@fact_address_region',
                 'input_type' => 'text',
                 'label' => 'Регион',
-                //'hidden_value_field' => 'passports@fact_address_region',
                 'field_id' => ''
             ],
             [

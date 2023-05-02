@@ -129,7 +129,6 @@ class Graph {
             $tmpStartDate = with(new Carbon($req->get('CurDate')))->format('Y-m-d');  
         }
         /* КОНЕЦ запроса в 1С */
-        \PC::debug([$twosumRegion1C],'twosum');
         return [
             'graph' => $graph,
             'onetotal1C' => $onetotal1C,

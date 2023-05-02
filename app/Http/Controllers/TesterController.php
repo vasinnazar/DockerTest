@@ -106,21 +106,17 @@ class TesterController extends BasicController {
     function solveDebtorNoClaim($debtor_id){
         $debtor = \App\Debtor::find($debtor_id);
         if(is_null($debtor)){
-            \PC::debug('no debtor');
             return;
         }
         $customer = \App\Customer::where('id_1c',$debtor->customer_id_1c)->first();
         if(is_null($customer)){
-            \PC::debug('no customer');
             return;
         }
         $passport = Passport::where('series',$debtor->passport_series)->where('number',$debtor->passport_number)->first();
         if(is_null($passport)){
-            \PC::debug('no passport');
             return;
         }
         $res1c = \App\Synchronizer::getContractsFrom1c($passport->series, $passport->number);
-        \PC::debug($res1c);
         $loan = Loan::where('id_1c',$debtor->loan_id_1c)->first();
         if(is_null($loan) && isset($res1c['loan'])){
             $loan = new Loan();
@@ -167,7 +163,6 @@ class TesterController extends BasicController {
             }
             $loan->claim_id = $claim->id;
             $loan->save();
-            \PC::debug(['loan'=>$loan,'claim'=>$claim]);
         }
         $debtor->uploaded = 1;
         $debtor->save();
@@ -181,7 +176,6 @@ class TesterController extends BasicController {
             $sd = new Carbon($date);
             $ed = $sd->copy()->addDay();
             $period = [$sd->format('Y-m-d H:i:s'), $ed->format('Y-m-d H:i:s')];
-            \PC::debug($period);
             $sql = \App\Claim::where('subdivision_id', '721')->whereBetween('created_at', $period);
             $claims_num = $sql->count();
             $claims_start_date = $sql->min('created_at');
@@ -242,7 +236,6 @@ class TesterController extends BasicController {
             } else if ($claim->teleport_status == 'cancel') {
                 $status = \App\UnicomData::STATUS_DECLINED;
             }
-            \PC::debug(\App\Utils\Unicom::sendAndUpdateStatus($claim->id_teleport, $status));
         }
     }
 
@@ -272,14 +265,12 @@ class TesterController extends BasicController {
             $date = new Carbon($datestr);
             if ($date->lt(new Carbon('2017-03-21'))) {
                 $ndoc = $doc_params[0] . ' от 21 марта 2017 г.';
-                \PC::debug(['user' => $u->name, 'doc_was' => $u->doc, 'doc_new' => $ndoc]);
                 $u->doc = $ndoc;
                 $u->save();
                 $changed++;
             }
             $i++;
         }
-        \PC::debug(['total' => count($users), 'changed' => $changed]);
     }
 
     function resendWorkTime() {
@@ -301,7 +292,6 @@ class TesterController extends BasicController {
             'birth_date' => (is_null($user->birth_date)) ? '' : with(new Carbon($user->birth_date))->format('Ymd')
         ];
         $res1c = MySoap::saveWorkTime($data);
-        \PC::debug($res1c);
     }
 
     public function JSONtoXML($json, $date = null) {
@@ -351,7 +341,6 @@ class TesterController extends BasicController {
         $date = Carbon::now()->subMinute()->format('Y-m-d H:i:s');
 //        $claims = \App\Claim::where('agrid', 'agrid5a584a6c6e144')->get();
         $claims = \App\Claim::whereNotNull('agrid')->where('created_at', '>=', '2018-01-01')->whereNull('scorista_decision')->get();
-        \PC::debug(count($claims));
 //        $claims = Claim::whereRaw('agrid is not null and (scorista_status is null or scorista_status not in("ERROR","DONE")) and updated_at<\'' . $date . '\'')->orderBy('created_at', 'desc')->limit(50)->get();
         foreach ($claims as $claim) {
             $nonce = sha1(uniqid(true));
@@ -364,7 +353,6 @@ class TesterController extends BasicController {
                 Log::error('Scorista', ['response' => $response]);
                 continue;
             }
-            \PC::debug($data);
             Log::info('Scorista', ['nonce' => $nonce, 'params' => $params, 'headers' => $headers, 'requestid' => $claim->agrid, 'data' => $data]);
             if (isset($data->status)) {
                 $claim->scorista_status = $data->status;
@@ -405,12 +393,10 @@ class TesterController extends BasicController {
         $created_at = '';
         $loan = Loan::where('claim_id', $creditID)->first();
         if (is_null($loan)) {
-            \PC::debug('no loan');
             return false;
         }
         $terminal = Terminal::find($PayPointID);
         if (is_null($terminal)) {
-            \PC::debug('no terminal');
             return false;
         }
         $terminal->dispenser_count -= $ExtInt;
@@ -456,7 +442,6 @@ class TesterController extends BasicController {
             'password' => 'Dune25',
             'absolute_url' => true
         ];
-        \PC::debug(MySoap::call1C('main_payture', ['params' => MySoap::createXML($fields)], false, false, $connection));
     }
 
     function sendDerealization() {
@@ -475,7 +460,6 @@ class TesterController extends BasicController {
             'subdivision_id_1c' => $subdiv->name_id,
             'user_id_1c' => $user->id_1c
         ];
-        \PC::debug($xml);
 
 //        if ($dopComCalc->money_spent <= 0) {
 //            Log::error('RepaymentController.createDopCommissionDerealization dopcomcalc.money_spent<=0', ['dopcomcalc' => $dopComCalc, 'repayment' => $repayment]);
@@ -487,7 +471,6 @@ class TesterController extends BasicController {
 
     function sendAspForOneClient() {
         $customer = \App\Customer::where('id_1c', 'П00029018')->first();
-        \PC::debug($customer->generateAspKey());
         $customer->asp_key = $customer->generateAspKey();
         $customer->asp_generated_at = $customer->asp_approved_at->copy()->subMinute();
         $customer->save();
@@ -541,7 +524,6 @@ class TesterController extends BasicController {
             $actionTerminal = \App\Terminal::where('pay_point_id', $a->PayPointID)->first();
             if (!is_null($actionTerminal) && !is_null($actionTerminal->user) && !is_null($actionTerminal->user->subdivision) && !is_null($loan) && !is_null($loan->order) && !is_null($loan->order->subdivision)) {
                 if ($actionTerminal->user->subdivision->id != $loan->order->subdivision->id) {
-                    \PC::debug(['action' => $a->toArray(), 'fio' => $loan->claim->passport->fio, 'action_subdiv' => $actionTerminal->user->subdivision->name, 'order_subdiv' => $loan->order->subdivision->name, 'order' => $loan->order->toArray()]);
 //                    MySoap::sendExchangeArm(MySoap::createXML(['type' => 'ChangeOrderSubdivision', 'order_number' => $loan->order->number, 'subdivision_id_1c' => $actionTerminal->user->subdivision->name_id]));
                 }
             }
@@ -566,12 +548,10 @@ class TesterController extends BasicController {
     public function resendTeleportclaims() {
         $teleportCtrl = new TeleportController();
         $claims = \App\Claim::whereNull('id_1c')->where('created_at', '>', '2017-12-01')->where('subdivision_id', 658)->limit(307)->get();
-        \PC::debug(count($claims), 'claims num');
         foreach ($claims as $claim) {
             $res = $teleportCtrl->sendClaimTo1c($claim);
             sleep(15);
         }
-        \PC::debug('ready');
     }
 
     public function rewriteDateForCustomersApprovedAt() {
@@ -625,7 +605,6 @@ class TesterController extends BasicController {
 //        $resp = ['start_time'=>'10:00:00','end_time'=>'19:00:00','break_time'=>'14:00:00','schedule'=>['time'=>'10:00:00','customer_id_1c'=>'-','fio'=>'фыв фыв фыв']];
 //        \PC::debug(MySoap::createXML($resp));
         $resp = ['id_1c' => '-', 'result' => 1];
-        \PC::debug(MySoap::createXML($resp));
     }
 
     function setResponsiblesOnDebtors() {
@@ -657,7 +636,6 @@ class TesterController extends BasicController {
                 $debtor->str_podr = '000000000007';
                 $debtor->fixation_date = '2017-09-26 01:02:04';
                 $debtor->debt_group_id = $lastevent->debt_group_id;
-                \PC::debug($debtor->toArray());
                 $debtor->save();
                 $s++;
 //                \PC::debug($str);
@@ -668,7 +646,6 @@ class TesterController extends BasicController {
 //            \PC::debug($str);
             $i++;
         }
-        \PC::debug(['total' => count($debtors22), 'success' => $s, 'fail' => $f]);
     }
 
     public function index(Request $req) {
@@ -754,7 +731,6 @@ class TesterController extends BasicController {
 
         /* Check for 404 (file not found). */
         $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-        \PC::debug([$res, $httpCode]);
         if ($httpCode == 200) {
             return true;
         } else {
@@ -825,7 +801,6 @@ class TesterController extends BasicController {
                 $passportsOnClaim = \App\Claim::where('passport_id', $customer->id)->where('id', '<>', $d->id)->count();
                 $claimsOnCustomer = \App\Claim::where('customer_id', $customer->id)->where('id', '<>', $d->id)->count();
                 if ($ordersOnPassport == 0 && $passportsOnClaim == 0 && $claimsOnCustomer == 1) {
-                    \PC::debug(['cust' => $customer->toArray(), 'passport' => $passport->toArray(), 'oop' => $ordersOnPassport, 'coc' => $claimsOnCustomer, 'd' => $d->toArray(), 'claim' => $claim->toArray()], 'delete');
                     $claim->passport->delete();
                     $claim->customer->delete();
                 }
@@ -839,7 +814,6 @@ class TesterController extends BasicController {
             }
         }
 
-        \PC::debug(['dupl' => $duplicates]);
     }
 
     function createUserCertificate() {
@@ -864,17 +838,13 @@ class TesterController extends BasicController {
             );
             $req_csr = openssl_csr_new($sign_config, $req_key);
 
-            \PC::debug($req_csr, 'req_csr');
             $ca_cert = openssl_x509_read(file_get_contents('/var/www/armff.ru/storage/app/ssl/ca/root.pem'));
 //            $ca_cert = file_get_contents('/var/www/armff.ru/storage/app/ssl/ca/root.pem');
 //            \PC::debug($ca_cert,'ca_cert');
             $priv_key = openssl_pkey_get_private(file_get_contents('/var/www/armff.ru/storage/app/ssl/ca/root.key'));
 //            $priv_key = file_get_contents('/var/www/armff.ru/storage/app/ssl/ca/root.key');
-            \PC::debug($priv_key);
             $req_cert = openssl_csr_sign($req_csr, $ca_cert, $priv_key, 3650, ['config' => $sign_config]);
-            \PC::debug($req_cert, 'req_cert');
             if ($req_cert === FALSE) {
-                \PC::debug('FAIL TO SIGN');
                 return;
             }
             $cert_exported = openssl_x509_export($req_cert, $out_cert);
@@ -926,7 +896,6 @@ class TesterController extends BasicController {
             $r->save();
             sleep(1);
         }
-        \PC::debug('ready');
     }
 
     function updateDailyCashReports($subdiv_id, $start_date, $end_date) {
@@ -1060,7 +1029,6 @@ class TesterController extends BasicController {
                 $debtor = \App\Debtor::where('debtor_id_1c', $event->debtor_id_1c)->first();
                 $passport = Passport::where('series', $debtor->passport_series)->where('number', $debtor->passport_number)->first();
                 if ($dupl->report == $event->report || (empty($dupl->report) && empty($event->report))) {
-                    \PC::debug([$event->toArray(), $dupl->toArray(), $passport->fio], 'event' . $i);
                     $dupl->delete();
                 }
                 $i++;
@@ -1081,7 +1049,6 @@ where role_user.role_id = 11'));
                 $user->save();
             }
         }
-        \PC::debug(count($users));
     }
 
     /**
@@ -1118,7 +1085,6 @@ where role_user.role_id = 11'));
 //            $tstatus = $claim->teleport_status;
             $tstatus = 'sell';
             $claim->update(['teleport_status' => null]);
-            \PC::debug(TeleportController::sendStatusToTeleport($claim, $tstatus));
         }
     }
 
@@ -1310,13 +1276,11 @@ where role_user.role_id = 11'));
         while ($offset < 10) {
             $debtors = DB::connection('debtors')->select(DB::raw('SELECT * FROM debtors.debtors where is_debtor = 1 and (debt_group_id = 32 or decommissioned = 1) limit ' . $limit . ' offset ' . $offset));
             foreach ($debtors as $d) {
-                \PC::debug($d);
                 $loan = \App\Loan::where('id_1c', $d->loan_id_1c)->first();
                 \App\Synchronizer::getContractsFrom1c($d->passport_series, $d->passport_number);
                 if (is_null($loan)) {
                     $loan = \App\Loan::where('id_1c', $d->loan_id_1c)->first();
                 }
-                \PC::debug($loan);
                 if (!is_null($loan)) {
                     try {
                         \App\Synchronizer::updateOrders($loan->created_at->format('Y-m-d'), $d->passport_series, $d->passport_number, null, $loan, '2018-02-08', ['url' => '192.168.1.23:8080/111SPD/ws/Mole/?wsdl', 'absolute_url' => true]);
@@ -1332,7 +1296,6 @@ where role_user.role_id = 11'));
 
     function checkPayturePaymentStatus() {
         $res = file_get_contents('https://sandbox.payture.com/apim/PayStatus?Key=FinterraAFTPSB&OrderId=4a789ed366d8c8102be57a79a2f33457');
-        \PC::debug($res);
     }
 
     function changeAdminRole(Request $req) {

@@ -97,8 +97,6 @@ class DebtorsReportsController extends BasicController {
                     $arReturn[$userdata['group']][$uid] = $arData[$uid];
                 }
             }
-
-            \PC::debug($arReturn);
         }
 
         return view('debtorsreports.dzcollect', [
@@ -222,10 +220,6 @@ class DebtorsReportsController extends BasicController {
                             $loan_id_1c = $arLoanId1c[0];
                         }
                         $debtor = \App\Debtor::where('customer_id_1c', $payment->customer_id_1c)->where('loan_id_1c', $loan_id_1c)->first();
-                        /* if (!$debtor) {
-                          \PC::debug($payment);
-                          continue;
-                          } */
                         $payment->debtor_id = $debtor->id;
                     }
                     $res['payments'][] = $payment;
@@ -277,7 +271,6 @@ class DebtorsReportsController extends BasicController {
             }
         }
         $data = ['items' => json_decode(json_encode($items)), 'user' => Auth::user(), 'start_date' => $startDate->format('d.m.Y'), 'end_date' => $endDate->format('d.m.Y')];
-        \PC::debug($data['items']);
         return view('reports.debtorsreports.ovz', $data);
     }
 

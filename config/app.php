@@ -96,7 +96,6 @@ return [
       |
      */
     'providers' => [
-
         'Arcanedev\LogViewer\LogViewerServiceProvider',
         'Intervention\Image\ImageServiceProvider',
         /*

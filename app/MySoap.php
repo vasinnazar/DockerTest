@@ -52,12 +52,6 @@ class MySoap {
                 $base_url = '192.168.1.21:443/PersonaArea1';
             }
         }
-//        if (config('app.version_type') == 'debtors' && !config('app.dev')) {
-//            if (!MySoap::checkWsdl('http://192.168.1.31/11SPD34/ws/ARM/?wsdl&AspxAutoDetectCookieSupport=1')) {
-//                \PC::debug($base_url);
-//                $base_url = '192.168.1.34:81/PersonaArea1';
-//            }
-//        }
         return $base_url . $url;
     }
 
@@ -115,9 +109,6 @@ class MySoap {
         $str = str_replace("@,@", '","', $str);
         $str = str_replace("@}", '"}', $str);
 
-//        Log::info($str);
-//        \PC::debug(substr($str,0,5000));
-        //************************************
         try {
             $json = json_decode($str, true);
         } catch (Exception $exc) {
@@ -182,12 +173,10 @@ class MySoap {
      */
     static function checkWsdl($url) {
         $handle = curl_init($url);
-        \PC::debug($url, 'url to curl');
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($handle, CURLOPT_USERPWD, config('1c.login') . ":" . config('1c.password'));
         $res = curl_exec($handle);
         $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-        \PC::debug([$res, $httpCode]);
         if ($httpCode == 200) {
             return true;
         } else {
@@ -243,13 +232,9 @@ class MySoap {
                     $params[$k] = "";
                 }
             }
-            \PC::debug($params, 'call1c_params');
             $start_req_date = Carbon::now();
             $client = new SoapClient('http://' . $url, ['login' => $login, 'password' => $pass, 'cache_wsdl' => WSDL_CACHE_NONE, 'trace' => 1]);
             $response = $client->__soapCall($name, [$params]);
-            \PC::debug($response, 'MySoap.call1c.response');
-//            \PC::debug($client->__getLastRequest(),'lastresponse');
-//            Log::info('MySoap.call1c', ['name' => $name, 'params' => $params, 'response' => $response]);
 
             $end_req_date = Carbon::now();
 
@@ -271,13 +256,11 @@ class MySoap {
                 ]));
             }
         } catch (\SoapFault $exc) {
-            \PC::debug($exc, 'SoapFault');
             Log::error('MySoap.call1c.SoapFault', ['name' => $name, 'params' => $params, 'exception' => $exc]);
             Spylog::logError(json_encode(['name' => $name, 'params' => $params, 'exception' => $exc]));
             Session::flash('error_1c', json_encode(['name' => $name, 'params' => $params, 'exception' => $exc]));
             return MySoap::error(MySoap::MSG_NORESPONSE);
         } catch (\Exception $exc) {
-            \PC::debug($exc, 'Exception');
             Log::error('MySoap.call1c.Exception', ['name' => $name, 'params' => $params, 'exception' => $exc]);
             Spylog::logError(json_encode(['name' => $name, 'params' => $params, 'exception' => $exc]));
             Session::flash('error_1c', json_encode(['name' => $name, 'params' => $params, 'exception' => $exc]));
@@ -447,7 +430,6 @@ class MySoap {
             if (!strpos($res1c['value'], 'loan') && strpos($res1c['value'], 'claim') > 0) {
                 $res1c['value'] .= '}';
             }
-            \PC::debug(MySoap::parseResponse($res1c['value']), 'parseresponse');
             return MySoap::parseResponse($res1c['value']);
         } else {
             return ['res' => 0, 'err_msg' => 'Не пришло данных'];
@@ -547,8 +529,6 @@ class MySoap {
     }
 
     static function saveMaterialsClaim($params) {
-//        \PC::debug($params);
-//        return ['res'=>'0'];
         return MySoap::call1C('SaveMatClaim', $params, true, true, ['url' => config('1c.matclaim_url')]);
     }
 
@@ -593,7 +573,6 @@ class MySoap {
         }
         $res = MySoap::call1C($module_1c, ['params' => $xml], false, false, $connectionParams, false, true);
         $end_req = Carbon::now();
-        \PC::Debug($res);
         if (array_key_exists('value', $res)) {
             $resXml = simplexml_load_string($res["value"]);
             if (!$resXml->result) {

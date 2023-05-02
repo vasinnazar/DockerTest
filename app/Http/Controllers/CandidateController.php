@@ -46,7 +46,7 @@ class CandidateController extends BasicController {
         }
     }
 
-    /*     * \PC::debug($res1c);
+    /*
      * Открывает список кандидатов
      *
      * @return \Illuminate\Http\Response

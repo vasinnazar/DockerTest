@@ -101,8 +101,6 @@ class DebtorEvent extends Model
                 }
             }
         }
-        \PC::debug($toupload, 'toupload');
-        \PC::debug($uploaded, 'uploaded');
     }
 
     public function update(array $attributes = array(),array $options = array())
@@ -249,7 +247,6 @@ class DebtorEvent extends Model
     static function saveEventsIn1c($debtor_id_1c, $dateStart)
     {
         $connection = (config('app.version_type') == 'debtors') ? 'mysql' : 'debtors';
-        \PC::debug($debtor_id_1c);
         $events = DB::connection($connection)->table('debtor_events')->where('refresh_date', '>=',
             $dateStart)->whereNull('id_1c')->where('debtor_id_1c', $debtor_id_1c)->get();
         Log::info('DebtorEvent.saveEventsIn1c events to send', ['events' => $events]);
@@ -261,7 +258,6 @@ class DebtorEvent extends Model
             'events' => [],
             'type' => 'EditDebtorCreateEvent'
         ];
-        \PC::debug($events);
         foreach ($events as $event) {
             $e = json_decode(json_encode($event), true);
             foreach (['created_at', 'date', 'refresh_date'] as $d) {
@@ -269,8 +265,7 @@ class DebtorEvent extends Model
             }
             $xml['events'][] = $e;
         }
-        \PC::debug($events, 'events');
-        \PC::debug($xml, 'xml');
+
         $res1c = MySoap::sendExchangeArm(MySoap::createXML($xml));
         return ((int)$res1c->result == 1);
     }

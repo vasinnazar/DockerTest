@@ -373,7 +373,6 @@ class Claim extends Model {
         } else {
             $input['sex'] = 0;
         }
-        \PC::debug($input, 'input');
         $about_client->fill($input);
         $about_client->customer_id = $customer->id;
         if (!$about_client->save()) {
@@ -400,7 +399,6 @@ class Claim extends Model {
         }
         DB::commit();
         Log::info('Claim.updateByData Сохранено', $data);
-        \PC::debug($claim, 'claim updated from Claim.updateByData');
         return ['res' => 1, 'claim' => $claim];
     }
 
@@ -506,7 +504,6 @@ class Claim extends Model {
     public function sendTo1c() {
         $claimCtrl = new ClaimController();
         $res = $claimCtrl->sendClaimTo1c($this);
-        \PC::debug($res, 'send res');
         if (is_array($res) && array_key_exists('res', $res) && $res['res'] == 1) {
             return true;
         }

@@ -1123,7 +1123,7 @@
     @endif
 @stop
 @section('scripts')
-    <script src="{{asset('js/debtors/debtorsController.js?7')}}"></script>
+    <script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
     <script src="{{asset('js/libs/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js')}}"></script>
     <script src="{{asset('js/libs/clipboard/clipboard.min.js')}}"></script>
     <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>

@@ -259,7 +259,6 @@ class ClaimController extends Controller {
                 }
             }
         }
-        \PC::debug($res);
         return (is_array($res)) ? $res : [];
     }
 
@@ -896,7 +895,6 @@ class ClaimController extends Controller {
         //если ид_1с пустой, то заявка в первый раз отправляется 
         $isNewClaim = is_null($claim->id_1c);
         if ($isNewClaim && !is_null($oldclaim)) {
-            \PC::debug($oldclaim);
             return ['res' => 0, 'msg_err' => 'У контрагента уже была заявка за сегодня'];
         }
         $claim->id_1c = $res1c["id_1c"];
@@ -1169,7 +1167,6 @@ class ClaimController extends Controller {
         $item->addAttribute('claim_id_1c', $req->claim_id_1c);
         $item->addAttribute('closing_id_1c', $req->closing_id_1c);
         $item->addAttribute('customer_id_1c', $req->customer_id_1c);
-        \PC::debug($xml->asXML(), 'autoapprove xml');
         $res1c = MySoap::sendToAutoApprove($xml->asXML());
         return $res1c;
     }
@@ -1180,7 +1177,6 @@ class ClaimController extends Controller {
             $hlr_id = \App\StrUtils::removeNonDigits($req->hlr_id);
             $res = \App\Utils\SMSer::checkStatus($tel, $hlr_id);
             $json = json_decode($res);
-            \PC::debug($json, 'check_hlr');
             if (!is_null($json) && $json->status > 0) {
                 \App\HlrLog::create([
                     'telephone' => $tel,
@@ -1201,7 +1197,6 @@ class ClaimController extends Controller {
         } else {
             $res = \App\Utils\SMSer::sendHLR($tel);
             $json = json_decode($res);
-            \PC::debug($res, 'send hlr');
             if (isset($json->id)) {
                 return ['result' => 1, 'hlr_id' => $json->id];
             } else {
@@ -1233,7 +1228,6 @@ class ClaimController extends Controller {
     public function updateFrom1C($claim_id) {
         $claim = Claim::find($claim_id);
         $res = $claim->updateFrom1c();
-        \PC::debug($res, 'update result');
         return redirect()->back()->with('msg_suc', StrLib::SUC);
     }
 
@@ -1292,15 +1286,11 @@ class ClaimController extends Controller {
         $sql .= "AND fact_address_apartment='".$customerPassport->fact_address_apartment."') ";
         $sql .= "OR customers.telephone='".$customerPassport->customer->telephone."'";
         $sql .= ')';
-        \PC::debug($sql);
         $passports = DB::select(DB::raw($sql));
-        \PC::debug($passports);
-        
+
         foreach($passports as $p){
             $dsql = "SELECT debtor_id_1c,responsible_user_id_1c,qty_delays,is_debtor FROM debtors.debtors WHERE customer_id_1c='".$p->customer_id_1c."' AND passport_series='".$p->series."' AND passport_number='".$p->number."'";
-            \PC::debug($dsql);
             $debtors = DB::connection('debtors215')->select(DB::raw($dsql));
-            \PC::debug($debtors);
             foreach($debtors as $d){
                 # id, debtor_fio, debtor_address, debtor_telephone, debtor_overdue, customer_fio, customer_address, customer_telephone, comment, date, responsible_user_id_1c, is_debtor, created_at, updated_at
                 $isql = "INSERT INTO debtors.address_doubles";
@@ -1337,9 +1327,7 @@ class ClaimController extends Controller {
                 $isql .= ",'".Carbon::now()->format('Y-m-d H:i:s')."'";
                 $isql .= ",'".Carbon::now()->format('Y-m-d H:i:s')."'";
                 $isql .= ")";
-                \PC::debug($isql);
                 $res = DB::connection('debtors215')->select(DB::raw($isql));
-                \PC::debug($res);
             }
         }
         

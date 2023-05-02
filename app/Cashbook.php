@@ -41,7 +41,6 @@ class Cashbook extends Model {
 
     static function makeFromOrder($order) {
         $cb_params = ['money' => $order->money, 'action' => Cashbook::PLUS, 'order_id' => $order->id];
-        \PC::debug($order);
         if (!$order->orderType->plus) {
             $cb_params['money']*=-1;
             $cb_params['action'] = Cashbook::MINUS;

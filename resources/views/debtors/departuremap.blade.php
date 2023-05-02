@@ -11,7 +11,7 @@
 </div>
 @stop
 @section('scripts')
-<script src="{{asset('js/debtors/debtorsController.js')}}"></script>
+<script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
 <script src="{{asset('js/libs/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js')}}"></script>
 <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
 <script>

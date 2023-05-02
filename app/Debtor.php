@@ -170,10 +170,8 @@ class Debtor extends Model
             ->where('customers.id_1c', $this->customer_id_1c)
             ->orderBy('loans.created_at', 'desc')
             ->get();
-        \PC::debug($loansList, 'loanslist');
 //        $loans = json_decode(json_encode($loansList),true);
 //        $loans = DB::connection('arm')->table('loans')->whereIn('id', $loansList)->orderBy('created_at', 'desc')->get();
-//        \PC::debug($loans,'loans');
         return $loansList;
     }
 
@@ -431,7 +429,6 @@ class Debtor extends Model
             ->where('orders.created_at', '>=', $after)
             ->get();
         foreach ($arm_orders as $order) {
-            \PC::debug($order);
             $debtor = Debtor::where('passport_series', $order->passport_series)->where('passport_number',
                 $order->passport_number)->where('loan_id_1c', $order->loan_id_1c)->first();
             if (!is_null($debtor)) {

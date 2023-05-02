@@ -145,7 +145,6 @@ class PaySheetController extends Controller {
         $startDate = new Carbon($req->year . '-' . $req->month . '-01');
         $endDate = new Carbon($req->year . '-' . $req->month . '-' . $startDate->daysInMonth);
         $res1c = MySoap::getPaysheet($endDate->format('Ymd'), $endDate->format('Ymd'), $user->name);
-        \PC::debug($res1c);
         if (!$res1c['res']) {
             return redirect()->back()->with('msg_err', StrLib::ERR_1C . '(2)');
         }
@@ -178,7 +177,6 @@ class PaySheetController extends Controller {
         $connection = config('admin.zup_connection');
         $res1c = MySoap::call1C('get_calc_list', ['getFIO' => $user->name, 'birthDate' => with(new Carbon($user->birth_date))->format('Ymd'), 'startDate' => $endDate->format('Ymd'), 'typeResult' => 0, 'advance'=>$advance], false, false, $connection);
 //        $res1c = MySoap::call1C('get_calc_list', ['Responsible' => 'Колесников Владислав','DateStart' => $startDate->format('Ymd'), 'DateFinish' => $endDate->format('Ymd')], false, false, $connection);
-        \PC::debug($res1c);
         return $res1c['value'];
     }
 

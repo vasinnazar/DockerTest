@@ -83,13 +83,10 @@ class TeleportController extends BasicController {
             'status' => $claim->teleport_status,
             'secret' => TeleportController::TELEPORT_SECRET
         ];
-        \PC::debug($claim, 'claim');
-        \PC::debug($data, 'data');
 //        $contents = HelperUtil::SendPostByCurl(TeleportController::TELEPORT_SEND_STATUS_URL, $data);
 
         $contents = TeleportController::sendCustomPost($data);
 
-        \PC::debug($contents, 'res');
         return redirect()->back()->with('msg_suc', StrLib::SUC);
     }
 
@@ -111,10 +108,7 @@ class TeleportController extends BasicController {
                 'status' => $claim->teleport_status,
                 'secret' => TeleportController::TELEPORT_SECRET
             ];
-            \PC::debug($claim->toArray(), 'claim');
-            \PC::debug($data, 'data');
             $contents = TeleportController::sendCustomPost($data);
-            \PC::debug($contents, 'res');
             sleep(1);
         }
     }
