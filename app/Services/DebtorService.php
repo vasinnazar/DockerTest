@@ -31,7 +31,6 @@ class DebtorService
         }
 
         $arrIdsForgotten = DebtorsForgotten::pluck('debtor_id');
-        logger($arrIdsForgotten);
         $debtors = Debtor::whereIn('id',$arrIdsForgotten)->where('str_podr', $structSubdivision);
 
         if ($id1c && $user->hasRole('debtors_chief')) {
