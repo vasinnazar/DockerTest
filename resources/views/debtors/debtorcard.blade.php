@@ -696,7 +696,7 @@
                                         <span>Просроченных дней:</span> <span class="debt-exp_days-ondate">{{$debtor->qty_delays}}</span>
                                     </li>
                                     <li class='list-group-item'>
-                                        <span>База:</span> {{$debtor->base}} | Группа долга: {{$debtor->debtGroup->name}}
+                                        <span>База:</span> {{$debtor->base}} | Группа долга: {{$debtor->debtGroup->name ?? ''}}
                                     </li>
                                     @if ($data_pos)
                                         <li class='list-group-item'>
