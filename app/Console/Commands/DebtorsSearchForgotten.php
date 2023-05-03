@@ -4,10 +4,11 @@ namespace App\Console\Commands;
 
 use App\Debtor;
 use App\DebtorEvent;
+use App\Model\DebtorsForgotten;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-class DebtorsForgotten extends Command
+class DebtorsSearchForgotten extends Command
 {
 
     /**
@@ -42,8 +43,10 @@ class DebtorsForgotten extends Command
                 ->first();
 
             if ($event && $event->created_at->lte($forgottenDate)) {
-                $debtor->forgotten_date = Carbon::now();
-                $debtor->save();
+                DebtorsForgotten::create([
+                    'debtor_id' => $debtor->id,
+                    'forgotten_date' => Carbon::now(),
+                ]);
             }
         }
     }

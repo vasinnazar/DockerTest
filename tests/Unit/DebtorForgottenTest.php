@@ -4,6 +4,7 @@ namespace Unit;
 
 use App\Debtor;
 use App\DebtorEvent;
+use App\Model\DebtorsForgotten;
 use App\Role;
 use App\RoleUser;
 use App\Services\DebtorService;
@@ -26,11 +27,14 @@ class DebtorForgottenTest extends TestCase
         ]);
 
         $debtors = factory(Debtor::class, 'debtor_forgotten')->create([
-            'forgotten_date' => now(),
             'str_podr' => $user->isDebtorsPersonal() ? '000000000007' : '000000000006',
             'responsible_user_id_1c' => $user->id_1c
         ]);
 
+        DebtorsForgotten::create([
+            'debtor_id'=> $debtors->first()->id,
+            'forgotten_date' => Carbon::now()
+        ]);
         $result = app(DebtorService::class)->getForgottenById1c($user, $user->id_1c);
         $this->assertCount(1, $result);
         $this->assertEquals($debtors->first()->id, $result->first()->id);
@@ -51,8 +55,8 @@ class DebtorForgottenTest extends TestCase
         $this->artisan('debtors:forgotten');
 
         foreach ($debtors as $debtor) {
-            $this->assertDatabaseHas('debtors', [
-                'id' => $debtor->id,
+            $this->assertDatabaseHas('debtors_forgottens', [
+                'debtor_id' => $debtor->id,
                 'forgotten_date' => Carbon::now(),
             ]);
         }
@@ -66,9 +70,9 @@ class DebtorForgottenTest extends TestCase
         }
 
         foreach ($debtors as $debtor) {
-            $this->assertDatabaseHas('debtors', [
-                'id' => $debtor->id,
-                'forgotten_date' => null,
+            $this->assertDatabaseHas('debtors_forgottens', [
+                'debtor_id' => $debtor->id,
+                'deleted_at' => Carbon::now(),
             ]);
         }
     }

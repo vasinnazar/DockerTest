@@ -6,6 +6,7 @@ use App\Customer;
 use App\Debtor;
 use App\DebtorEvent;
 use App\DebtorUsersRef;
+use App\Model\DebtorsForgotten;
 use App\Passport;
 use App\User;
 use Carbon\Carbon;
@@ -29,9 +30,9 @@ class DebtorService
             return redirect()->backWithErr('Вы не привязаны к структурным подразделениям взыскания.');
         }
 
-        $debtors = Debtor::where('is_debtor', 1)
-            ->whereNotNull('forgotten_date')
-            ->where('str_podr', $structSubdivision);
+        $arrIdsForgotten = DebtorsForgotten::pluck('debtor_id');
+        logger($arrIdsForgotten);
+        $debtors = Debtor::whereIn('id',$arrIdsForgotten)->where('str_podr', $structSubdivision);
 
         if ($id1c && $user->hasRole('debtors_chief')) {
             $debtors->where('responsible_user_id_1c', $id1c);

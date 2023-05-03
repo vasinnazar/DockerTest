@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Model\DebtorsForgotten;
 use Log;
 
 /**
@@ -52,10 +53,7 @@ class DebtorEvent extends Model
         self::saving(function ($event)
         {
             if(in_array($event->event_result_id,[0, 1, 6, 9, 10, 11, 12, 13, 22, 24, 27, 29])) {
-                Debtor::where('customer_id_1c',$event->customer_id_1c)->get()->map(function ($debtor) {
-                        $debtor->forgotten_date = null;
-                        $debtor->save();
-                });
+                DebtorsForgotten::where('debtor_id',$event->debtor_id)->delete();
             }
         });
     }

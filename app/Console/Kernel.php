@@ -2,7 +2,7 @@
 
 namespace App\Console;
 
-use App\Console\Commands\DebtorsForgotten;
+use App\Console\Commands\DebtorsSearchForgotten;
 use App\Console\Commands\DebtorSyncAboutProcess;
 use App\Console\Commands\DebtorSyncSqlProcess;
 use App\Console\Commands\Inspire;
@@ -34,7 +34,7 @@ class Kernel extends ConsoleKernel
         DebtorSyncAboutProcess::class,
         DebtorSyncSqlProcess::class,
         PassportsUpdateTimeZone::class,
-        DebtorsForgotten::class,
+        DebtorsSearchForgotten::class,
     ];
 
     /**
