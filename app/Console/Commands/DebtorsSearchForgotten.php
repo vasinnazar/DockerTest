@@ -33,11 +33,17 @@ class DebtorsSearchForgotten extends Command
     public function handle()
     {
         $arGoodResultIds = [0, 1, 6, 9, 10, 11, 12, 13, 22, 24, 27, 29];
-        $forgottenDate = Carbon::now()->startOfDay()->subDays(12)->format('Y-m-d 00:00:00');
+        $forgottenDate = Carbon::now()->startOfDay()->subDays(10)->format('Y-m-d 00:00:00');
         $arrIdsDebtorsForgotten = DebtorsForgotten::pluck('debtor_id');
         $debtors = Debtor::where('is_debtor', 1)
-            ->whereIn('id', '!=', $arrIdsDebtorsForgotten)
-            ->get();
+            ->whereIn('str_podr', ['000000000006','000000000007'])
+            ->whereNotIn('base', ['Б-смерть','Архив ЗД']);
+
+        if(!empty($arrIdsDebtorsForgotten)){
+            $debtors->whereNotIn('id', $arrIdsDebtorsForgotten);
+        }
+        $debtors = $debtors->get();
+
         foreach ($debtors as $debtor) {
             $event = DebtorEvent::where('customer_id_1c', $debtor->customer_id_1c)
                 ->whereIn('event_result_id', $arGoodResultIds)
