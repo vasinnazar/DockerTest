@@ -85,11 +85,11 @@ class DebtorSmsService
         $isBadBaseTwo = $debtor->base === 'Б-МС';
         $delaysArray = [
             21 => [
-                'first' => 80,
+                'first' => 95,
                 'second' => 20
             ],
             45 => [
-                'first' => 95,
+                'first' => 103,
                 'second' => 25
             ]
         ];
