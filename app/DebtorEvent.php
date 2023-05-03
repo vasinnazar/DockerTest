@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Model\DebtorsForgotten;
 use Log;
 
 /**
@@ -45,6 +46,17 @@ class DebtorEvent extends Model
         'user_id_1c',
         'refresh_date',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        self::saving(function ($event)
+        {
+            if(in_array($event->event_result_id,[0, 1, 6, 9, 10, 11, 12, 13, 22, 24, 27, 29])) {
+                DebtorsForgotten::where('debtor_id',$event->debtor_id)->delete();
+            }
+        });
+    }
 
     /**
      * Генерирует номер мероприятия для 1с

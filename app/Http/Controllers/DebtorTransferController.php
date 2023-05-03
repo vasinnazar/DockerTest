@@ -72,7 +72,6 @@ class DebtorTransferController extends BasicController
 
     public function ajaxList(Request $req)
     {
-        logger('start' . Carbon::now()->format('H:i:s'));
         $cols = [];
         $tCols = $this->getDebtorsTableColumns();
         foreach ($tCols as $k => $v) {
@@ -159,7 +158,6 @@ class DebtorTransferController extends BasicController
             }
         }
         $debtors = $debtors->get();
-        logger('end' . Carbon::now()->format('H:i:s'));
         return DataTables::of($debtors)
             ->editColumn('debtors_fixation_date', function ($item) {
                 return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',

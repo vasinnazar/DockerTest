@@ -4,6 +4,7 @@ namespace App\Export\Excel;
 
 use App\DebtGroup;
 use App\Debtor;
+use App\User;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -37,13 +38,12 @@ class DebtorsForgottenExport implements FromCollection, WithHeadings
     public function collection()
     {
         $collectdebtor = collect();
-        foreach ($this->debtors as $debtorItem) {
+        foreach ($this->debtors as $debtor) {
 
-            $debtor = Debtor::find($debtorItem['debtors_id']);
             $nameDebtorGroup = DebtGroup::where('id', $debtor->debt_group_id)->first();
             $item = collect([
-                Carbon::parse($debtorItem['debtors_fixation_date'])->format('d.m.Y'),
-                $debtorItem['passports_fio'],
+                Carbon::parse($debtor->fixation_date)->format('d.m.Y'),
+                $debtor->passport->fio,
                 $debtor->loan_id_1c,
                 $debtor->qty_delays,
                 $debtor->sum_indebt / 100,
@@ -51,8 +51,8 @@ class DebtorsForgottenExport implements FromCollection, WithHeadings
                 $debtor->base,
                 $debtor->customer->telephone,
                 $nameDebtorGroup ? $nameDebtorGroup->name : '',
-                $debtorItem['debtors_username'],
-                $debtorItem['debtor_str_podr']
+                (User::where('id_1c', $debtor->responsible_user_id_1c)->first())->name,
+                $debtor->str_podr
             ]);
             $collectdebtor->push($item);
         }

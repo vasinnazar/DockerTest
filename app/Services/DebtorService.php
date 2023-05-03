@@ -6,6 +6,7 @@ use App\Customer;
 use App\Debtor;
 use App\DebtorEvent;
 use App\DebtorUsersRef;
+use App\Model\DebtorsForgotten;
 use App\Passport;
 use App\User;
 use Carbon\Carbon;
@@ -13,29 +14,25 @@ use Illuminate\Support\Facades\Auth;
 
 class DebtorService
 {
-    public function getForgottenById1c(string $id1c = null)
+    public function getForgottenById1c(User $user,string $id1c = null)
     {
-        set_time_limit(0);
-        $user = Auth::user();
-        $arGoodResultIds = [0, 1, 6, 9, 10, 11, 12, 13, 22, 24, 27, 29];
-
         $structSubdivision = false;
 
         if ($user->isDebtorsPersonal()) {
             $structSubdivision = '000000000007';
-            $forgottenDate = Carbon::now()->startOfDay()->subDays(10)->format('Y-m-d 00:00:00');
         }
 
         if ($user->isDebtorsRemote()) {
             $structSubdivision = '000000000006';
-            $forgottenDate = Carbon::now()->startOfDay()->subDays(12)->format('Y-m-d 00:00:00');
         }
 
         if (!$structSubdivision) {
             return redirect()->backWithErr('Вы не привязаны к структурным подразделениям взыскания.');
         }
 
-        $debtors = Debtor::where('is_debtor', 1)->where('str_podr', $structSubdivision);
+        $arrIdsForgotten = DebtorsForgotten::pluck('debtor_id');
+        $debtors = Debtor::whereIn('id',$arrIdsForgotten)->where('str_podr', $structSubdivision);
+
         if ($id1c && $user->hasRole('debtors_chief')) {
             $debtors->where('responsible_user_id_1c', $id1c);
         } else {
@@ -52,28 +49,7 @@ class DebtorService
                 $debtors->where('debtors.responsible_user_id_1c', $user->id_1c);
             }
         }
-        $debtors = $debtors->groupBy('id')->get();
-        $collectDebtors = collect();
-        foreach ($debtors as $debtor) {
-            $event = DebtorEvent::where('customer_id_1c', $debtor->customer_id_1c)
-                ->whereIn('event_result_id', $arGoodResultIds)
-                ->latest()
-                ->first();
-
-            if ($event && $event->created_at->startOfDay() > $forgottenDate) {
-                continue;
-            }
-            $itemCollect = [
-                'debtors_fixation_date' => $debtor->fixation_date,
-                'passports_fio' => $debtor->customer->getLastPassport()->fio,
-                'debtors_id' => $debtor->id,
-                'debtors_username' => (User::where('id_1c', $debtor->responsible_user_id_1c)->first())->name,
-                'debtor_str_podr' => $debtor->str_podr,
-                'debtors_responsible_user_id_1c' => $debtor->responsible_user_id_1c,
-            ];
-            $collectDebtors->push($itemCollect);
-        }
-        return $collectDebtors;
+        return $debtors->get();
     }
 
     private function getTableColumns($forPersonalDepartment = false)

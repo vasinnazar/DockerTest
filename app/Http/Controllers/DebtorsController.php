@@ -65,13 +65,6 @@ class DebtorsController extends BasicController
         MassRecurrentService $massRecurrentService
     )
     {
-        $this->middleware('auth');
-        if (is_null(Auth::user())) {
-            return redirect('auth/login');
-        }
-        if (!Auth::user()->hasPermission(Permission::makeName(PermLib::ACTION_OPEN, PermLib::SUBJ_DEBTORS))) {
-            return redirect('/')->with('msg_err', StrLib::ERR_NOT_ADMIN);
-        }
 
         $this->debtCardService = $debtService;
         $this->debtEventService = $eventService;
@@ -748,7 +741,7 @@ class DebtorsController extends BasicController
                 }
             }
         }
-        
+
         if ($savePlanned && $data['event_type_id_plan']) {
             $planEvent = new DebtorEvent();
             $planEvent->date = $datePlanned;
@@ -775,7 +768,7 @@ class DebtorsController extends BasicController
 //            $planEvent->id_1c = DebtorEvent::getNextNumber();
             $planEvent->completed = 0;
             $planEvent->save();
-            
+
             if ($data['event_type_id_plan'] == 26) {
                 $promisePay = new DebtorEventPromisePay();
                 $promisePay->debtor_id = $debtor->id;
@@ -789,7 +782,7 @@ class DebtorsController extends BasicController
             //$planEvent->id_1c = 'М' . StrUtils::addChars(strval($planEvent->id), 9, '0', false);
             //$planEvent->save();
         } else {
-            
+
         }
 
         if ($saveProlongationBlock) {
@@ -2830,25 +2823,26 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function ajaxForgottenList(Request $req,DebtorService $service)
+    public function ajaxForgottenList(Request $req, DebtorService $service)
     {
-        set_time_limit(0);
         $id1c = $req->get('search_field_users@id_1c') !== '' ? $req->get('search_field_users@id_1c') : null;
-        $debtors =  $service->getForgottenById1c($id1c);
-
+        $debtors = $service->getForgottenById1c(Auth::user(), $id1c);
         return Datatables::of($debtors)
-            ->editColumn('debtors_fixation_date', function ($item) {
-                return (!is_null($item['debtors_fixation_date'])) ? date('d.m.Y',
-                    strtotime($item['debtors_fixation_date'])) : '-';
+            ->editColumn('fixation_date', function ($item) {
+                return ($item->fixation_date ? Carbon::parse($item->fixation_date)->format('d.m.Y') : '-');
             })
             ->addColumn('links', function ($item) {
                 $html = '';
-                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item['debtors_id']),
+                $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->id),
                     ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
                 return $html;
             }, 0)
-            ->removeColumn('debtors_id')
-            ->removeColumn('debtors_responsible_user_id_1c')
+            ->addColumn('debtors_username', function ($debtor) {
+                return (User::where('id_1c', $debtor->responsible_user_id_1c)->first())->name;
+            })
+            ->addColumn('passports_fio', function ($debtor) {
+                return $debtor->passport->fio;
+            })
             ->rawColumns(['links'])
             ->toJson();
     }
@@ -3456,11 +3450,11 @@ class DebtorsController extends BasicController
 
         return redirect()->back();
     }
-    
+
     public function temporaryCronTasksHandling(Request $request) {
         $action = $request->get('action', false);
         $message = false;
-        
+
         if ($action && $action == 'omicron') {
             $omicron_tasks = \App\OmicronTask::where('id', '>', 930)->where('result_recieved', 0)->get();
 
@@ -3565,23 +3559,23 @@ class DebtorsController extends BasicController
                     $task->save();
                 }
             }
-            
+
             $message = 'Задачи Автоинформатора обновлены.';
         }
-        
+
         if ($action && $action == 'od_closing') {
             Debtor::where('closed_at', '<=', date('Y-m-d 00:00:00', time()))->update([
                 'od_after_closing' => 0
             ]);
-            
+
             $message = 'Реестр по закрытиям исправлен.';
         }
-        
+
         if ($action && $action == 'base_b0') {
             Debtor::where('str_podr', '000000000006')->where('base', 'Б-0')->update([
                 'base' => 'Б-1'
             ]);
-            
+
             $message = 'Базы исправлены с Б-0 на Б-1.';
         }
 

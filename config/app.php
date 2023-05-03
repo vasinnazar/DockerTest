@@ -120,8 +120,7 @@ return [
         'Illuminate\Redis\RedisServiceProvider',
         'Illuminate\Auth\Passwords\PasswordResetServiceProvider',
         'Illuminate\Session\SessionServiceProvider',
-//        'Rairlie\LockingSession\LockingSessionServiceProvider',
-        
+
         'Illuminate\Translation\TranslationServiceProvider',
         'Illuminate\Validation\ValidationServiceProvider',
         'Illuminate\View\ViewServiceProvider',
@@ -153,8 +152,7 @@ return [
     'aliases' => [
         'SoapWrapper' => 'Artisaninweb\SoapWrapper\Facades\SoapWrapper',
         'Image' => 'Intervention\Image\Facades\Image',
-//        'Flysystem' => 'GrahamCampbell\Flysystem\Facades\Flysystem',
-        
+
         'App' => 'Illuminate\Support\Facades\App',
         'Artisan' => 'Illuminate\Support\Facades\Artisan',
         'Auth' => 'Illuminate\Support\Facades\Auth',
