@@ -76,7 +76,7 @@
             <div class='col-xs-12 col-sm-6 col-lg-4'>
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <u>{{ $debtor->passport->first()->fio }}</u>
+                        <u>{{ $debtor->passport->fio }}</u>
                         @if(auth()->user()->id==5)
                             <a target="_blank" href="{{url('customers/edit/'.$debtor->customer->id.'/'.$data[0]['passport_id'])}}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span></a>
                         @endif
@@ -90,9 +90,9 @@
                                     <br>
                                     <a href="http://photo.fterra.ru/photos?customer_external_id={{$debtor->customer_id_1c}}&types[]=7" style="margin-top: 5px;" class="btn btn-default" target="_blank">Мессенджер-фото</a>
                                 </div>
-                                @if (isset($regions_timezone[$debtor->passport->first()->fact_address_region]))
+                                @if (isset($regions_timezone[$debtor->passport->fact_address_region]))
                                         <?php
-                                        $region_time = date("H:i", strtotime($regions_timezone[$debtor->passport->first()->fact_address_region] . ' hour'));
+                                        $region_time = date("H:i", strtotime($regions_timezone[$debtor->passport->fact_address_region] . ' hour'));
                                         $arRegionTime = explode(':', $region_time);
                                         $weekday = date('N', time());
                                         $hour = $arRegionTime[0];
@@ -303,9 +303,9 @@
                                         <a href="#" data-toggle="modal" data-target="#debtorNoticePersonal" class="btn btn-default btn-xs printaddr notice_personal" data-typeaddr="0"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
                                     @endif
                                 </td>
-                                <td id="debtor-passport_address-clip">{{$debtor->passport->first()->full_address}}</td>
+                                <td id="debtor-passport_address-clip">{{$debtor->passport->full_address}}</td>
                                 <td>
-                                    @if (mb_strlen($debtor->passport->first()->full_address))
+                                    @if (mb_strlen($debtor->passport->full_address))
                                         <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-passport_address-clip">
                                             <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
                                         </button>
@@ -333,9 +333,9 @@
                                         <a href="#" data-toggle="modal" data-target="#debtorNoticePersonal" class="btn btn-default btn-xs printaddr notice_personal" data-typeaddr="1"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a>
                                     @endif
                                 </td>
-                                <td id="debtor-real_address-clip">{{$debtor->passport->first()->fact_full_address}}</td>
+                                <td id="debtor-real_address-clip">{{$debtor->passport->fact_full_address}}</td>
                                 <td>
-                                    @if (mb_strlen($debtor->passport->first()->fact_full_address))
+                                    @if (mb_strlen($debtor->passport->fact_full_address))
                                         <button class="btn btn-default btn-xs btn-clipboard" data-clipboard-target="#debtor-real_address-clip">
                                             <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
                                         </button>
@@ -643,7 +643,7 @@
             <div class="col-xs-12 col-sm-12 col-lg-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        {{ $debtor->passport->first()->fio }}
+                        {{ $debtor->passport->fio }}
                     </div>
                 </div>
             </div>
@@ -696,7 +696,7 @@
                                         <span>Просроченных дней:</span> <span class="debt-exp_days-ondate">{{$debtor->qty_delays}}</span>
                                     </li>
                                     <li class='list-group-item'>
-                                        <span>База:</span> {{$debtor->base}} | Группа долга: {{$data[0]['debt_group_text']}}
+                                        <span>База:</span> {{$debtor->base}} | Группа долга: {{$debtor->debtGroup->name}}
                                     </li>
                                     @if ($data_pos)
                                         <li class='list-group-item'>

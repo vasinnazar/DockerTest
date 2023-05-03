@@ -159,23 +159,21 @@ class DebtorCardService
 
         $equalPhonesDebtors = Debtor::whereIn('customer_id_1c', $equalPhones)->get();
 
-        $passport = $debtor->passport->first();
-
         $equalAddressesRegisterToRegister = Debtor::select('debtors.*')
             ->leftJoin('passports', function ($join) {
                 $join->on('passports.series', '=', 'debtors.debtors.passport_series');
                 $join->on('passports.number', '=', 'debtors.debtors.passport_number');
             })
-            ->where('passports.zip', $passport->zip)
-            ->where('passports.address_region', $passport->address_region)
-            ->where('passports.address_district', $passport->address_district)
-            ->where('passports.address_city', $passport->address_city)
-            ->where('passports.address_street', $passport->address_street)
-            ->where('passports.address_house', $passport->address_house)
-            ->where('passports.address_building', $passport->address_building)
-            ->where('passports.address_apartment', $passport->address_apartment)
-            ->where('passports.address_city1', $passport->address_city1)
-            ->where('passports.id', '<>', $passport->id)
+            ->where('passports.zip', $debtor->passport->zip)
+            ->where('passports.address_region', $debtor->passport->address_region)
+            ->where('passports.address_district', $debtor->passport->address_district)
+            ->where('passports.address_city', $debtor->passport->address_city)
+            ->where('passports.address_street', $debtor->passport->address_street)
+            ->where('passports.address_house', $debtor->passport->address_house)
+            ->where('passports.address_building', $debtor->passport->address_building)
+            ->where('passports.address_apartment', $debtor->passport->address_apartment)
+            ->where('passports.address_city1', $debtor->passport->address_city1)
+            ->where('passports.id', '<>', $debtor->passport->id)
             ->get();
 
         $equalAddressesRegisterToFact = Debtor::select('debtors.*')
@@ -183,16 +181,16 @@ class DebtorCardService
                 $join->on('passports.series', '=', 'debtors.debtors.passport_series');
                 $join->on('passports.number', '=', 'debtors.debtors.passport_number');
             })
-            ->where('passports.fact_zip', $passport->zip)
-            ->where('passports.fact_address_region', $passport->address_region)
-            ->where('passports.fact_address_district', $passport->address_district)
-            ->where('passports.fact_address_city', $passport->address_city)
-            ->where('passports.fact_address_street', $passport->address_street)
-            ->where('passports.fact_address_house', $passport->address_house)
-            ->where('passports.fact_address_building', $passport->address_building)
-            ->where('passports.fact_address_apartment', $passport->address_apartment)
-            ->where('passports.fact_address_city1', $passport->address_city1)
-            ->where('passports.id', '<>', $passport->id)
+            ->where('passports.fact_zip', $debtor->passport->zip)
+            ->where('passports.fact_address_region', $debtor->passport->address_region)
+            ->where('passports.fact_address_district', $debtor->passport->address_district)
+            ->where('passports.fact_address_city', $debtor->passport->address_city)
+            ->where('passports.fact_address_street', $debtor->passport->address_street)
+            ->where('passports.fact_address_house', $debtor->passport->address_house)
+            ->where('passports.fact_address_building', $debtor->passport->address_building)
+            ->where('passports.fact_address_apartment', $debtor->passport->address_apartment)
+            ->where('passports.fact_address_city1', $debtor->passport->address_city1)
+            ->where('passports.id', '<>', $debtor->passport->id)
             ->get();
 
         $equalAddressesFactToRegister = Debtor::select('debtors.*')
@@ -200,16 +198,16 @@ class DebtorCardService
                 $join->on('passports.series', '=', 'debtors.debtors.passport_series');
                 $join->on('passports.number', '=', 'debtors.debtors.passport_number');
             })
-            ->where('zip', $passport->zip)
-            ->where('address_region', $passport->fact_address_region)
-            ->where('address_district', $passport->fact_address_district)
-            ->where('address_city', $passport->fact_address_city)
-            ->where('address_street', $passport->fact_address_street)
-            ->where('address_house', $passport->fact_address_house)
-            ->where('address_building', $passport->fact_address_building)
-            ->where('address_apartment', $passport->fact_address_apartment)
-            ->where('address_city1', $passport->fact_address_city1)
-            ->where('passports.id', '<>', $passport->id)
+            ->where('zip', $debtor->passport->zip)
+            ->where('address_region', $debtor->passport->fact_address_region)
+            ->where('address_district', $debtor->passport->fact_address_district)
+            ->where('address_city', $debtor->passport->fact_address_city)
+            ->where('address_street', $debtor->passport->fact_address_street)
+            ->where('address_house', $debtor->passport->fact_address_house)
+            ->where('address_building', $debtor->passport->fact_address_building)
+            ->where('address_apartment', $debtor->passport->fact_address_apartment)
+            ->where('address_city1', $debtor->passport->fact_address_city1)
+            ->where('passports.id', '<>', $debtor->passport->id)
             ->get();
 
         $equalAddressesFactToFact = Debtor::select('debtors.*')
@@ -217,16 +215,16 @@ class DebtorCardService
                 $join->on('passports.series', '=', 'debtors.debtors.passport_series');
                 $join->on('passports.number', '=', 'debtors.debtors.passport_number');
             })
-            ->where('fact_zip', $passport->fact_zip)
-            ->where('fact_address_region', $passport->fact_address_region)
-            ->where('fact_address_district', $passport->fact_address_district)
-            ->where('fact_address_city', $passport->fact_address_city)
-            ->where('fact_address_street', $passport->fact_address_street)
-            ->where('fact_address_house', $passport->fact_address_house)
-            ->where('fact_address_building', $passport->fact_address_building)
-            ->where('fact_address_apartment', $passport->fact_address_apartment)
-            ->where('fact_address_city1', $passport->fact_address_city1)
-            ->where('passports.id', '<>', $passport->id)
+            ->where('fact_zip', $debtor->passport->fact_zip)
+            ->where('fact_address_region', $debtor->passport->fact_address_region)
+            ->where('fact_address_district', $debtor->passport->fact_address_district)
+            ->where('fact_address_city', $debtor->passport->fact_address_city)
+            ->where('fact_address_street', $debtor->passport->fact_address_street)
+            ->where('fact_address_house', $debtor->passport->fact_address_house)
+            ->where('fact_address_building', $debtor->passport->fact_address_building)
+            ->where('fact_address_apartment', $debtor->passport->fact_address_apartment)
+            ->where('fact_address_city1', $debtor->passport->fact_address_city1)
+            ->where('passports.id', '<>', $debtor->passport->id)
             ->get();
 
         $collection = collect([
@@ -268,7 +266,7 @@ class DebtorCardService
             return false;
         }
 
-        $factTimezone = $debtor->passport()->first()->fact_timezone;
+        $factTimezone = $debtor->passport->fact_timezone;
 
         if (is_null($factTimezone)) {
             return false;

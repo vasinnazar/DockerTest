@@ -182,7 +182,7 @@ class Debtor extends Model
     
     public function passport()
     {
-        return $this->hasMany(Passport::class, 'number', 'passport_number')->where('series', $this->passport_series)->latest();
+        return $this->hasOne(Passport::class, 'number', 'passport_number')->where('series', $this->passport_series);
     }
     
     public function struct_subdivision()
@@ -193,6 +193,11 @@ class Debtor extends Model
     public function notices()
     {
         return $this->hasMany(NoticeNumbers::class, 'debtor_id_1c', 'debtor_id_1c');
+    }
+
+    public function debtGroup()
+    {
+        return $this->hasOne(DebtGroup::class, 'id', 'debt_group_id');
     }
     
     public function getLoanEndDate()
