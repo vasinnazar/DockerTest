@@ -718,8 +718,6 @@ Route::middleware('auth_only')->group(function () {
         Route::get('/debtorcard/createPdf/{doc_id}/{debtor_id}/{date}', [DebtorsController::class,'createPdf']);
         Route::get('/courtorder/{debtor_id}',[PdfController::class,'getCourtOrderPdf'])->name('debtor.courtorder');
         Route::get('/contacts/{debtor_id}', [DebtorsController::class,'contacts']);
-        Route::get('/departuremap', [DebtorsController::class,'departureMap']);
-        Route::get('/departureprint', [DebtorsController::class,'departurePrint']);
         Route::get('/report/countcustomers', [DebtorsReportsController::class,'countDebtCustomersForRespUser']);
         Route::post('/peaceclaim/new', [DebtorsController::class,'addNewRepaymentOffer']);
         Route::get('/omicron/gettask', [CronController::class,'getOmicronTask']);

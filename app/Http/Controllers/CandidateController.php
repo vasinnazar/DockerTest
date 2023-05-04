@@ -24,7 +24,6 @@ use App\Passport;
 use App\User;
 use App\Utils;
 use Image;
-use App\PlannedDeparture;
 use App\Loan;
 use App\Claim;
 use App\Repayment;

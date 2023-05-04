@@ -22,8 +22,6 @@ use Illuminate\Support\Facades\Storage;
 use App\User;
 use App\Utils;
 use Image;
-use App\PlannedDeparture;
-use App\DebtorGeocode;
 use App\Loan;
 use App\Claim;
 use App\Repayment;

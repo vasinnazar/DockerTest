@@ -186,7 +186,6 @@ Route::prefix('/ajax')->group(function () {
 
         Route::get('/event/data', [DebtorsController::class,'getDebtorEventData']);
         Route::get('/search/autocomplete', [DebtorsController::class,'ajaxColumnAutocomplete']);
-        Route::post('/changePlanDeparture/{debtor_id}/{action}', [DebtorsController::class,'changePlanDeparture']);
         Route::post('/changePersonalData/{debtor_id}/{action}', [DebtorsController::class,'changePersonalData']);
         Route::post('/changeRecommend', [DebtorsController::class,'changeRecommend']);
         Route::get('/userpayments', [DebtorsReportsController::class,'getPaymentsForUser']);

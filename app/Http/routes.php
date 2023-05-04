@@ -737,11 +737,8 @@ Route::get('debtor/courtorder/{debtor_id}','PdfController@getCourtOrderPdf')->na
 Route::get('debtors/contacts/{debtor_id}', ['uses' => 'DebtorsController@contacts']);
 Route::get('debtors/logs/{debtor_id}', ['uses' => 'DebtorsController@debtorLogs']);
 Route::get('ajax/debtors/userpayments', ['uses' => 'DebtorsReportsController@getPaymentsForUser']);
-Route::post('ajax/debtors/changePlanDeparture/{debtor_id}/{action}', ['uses' => 'DebtorsController@changePlanDeparture']);
 Route::post('ajax/debtors/changePersonalData/{debtor_id}/{action}', ['uses' => 'DebtorsController@changePersonalData']);
 Route::post('ajax/debtors/changeRecommend', ['uses' => 'DebtorsController@changeRecommend']);
-Route::get('debtors/departuremap', ['uses' => 'DebtorsController@departureMap']);
-Route::get('debtors/departureprint', ['uses' => 'DebtorsController@departurePrint']);
 Route::get('addressdoubles/index', ['uses' => 'AddressDoublesController@index']);
 Route::get('ajax/addressdoubles/list', ['uses' => 'AddressDoublesController@ajaxList']);
 Route::post('ajax/debtors/oldevents/upload', ['uses' => 'DebtorsController@uploadOldDebtorEvents']);

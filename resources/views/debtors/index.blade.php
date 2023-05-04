@@ -184,7 +184,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <!--span class="pull-left"><input type="checkbox" name="search_field_planned_departures@debtor_id" value="1">&nbsp;&nbsp;Запланированные к выезду</span-->
                 <div class="pull-left" style="text-align: left;">
                 <span><input type="checkbox" name="search_field_debtors@is_bigmoney" value="1">&nbsp;Большие деньги</span>
                 <br>

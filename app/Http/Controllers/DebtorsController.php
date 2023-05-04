@@ -7,7 +7,6 @@ use App\Clients\PaysClient;
 use App\DebtGroup;
 use App\Debtor;
 use App\DebtorEvent;
-use App\DebtorGeocode;
 use App\DebtorsInfo;
 use App\DebtorSmsTpls;
 use App\DebtorUsersRef;
@@ -22,7 +21,6 @@ use App\NoticeNumbers;
 use App\Order;
 use App\Passport;
 use App\Permission;
-use App\PlannedDeparture;
 use App\DebtorEventPromisePay;
 use App\Repayment;
 use App\Repositories\DebtorSmsRepository;
@@ -2236,25 +2234,6 @@ class DebtorsController extends BasicController
     }
 
     /**
-     * Меняет метку запланированного выезда к должнику
-     * @param string $debtor_id
-     * @param string $action
-     * @return int
-     */
-    public function changePlanDeparture($debtor_id, $action)
-    {
-        if ($action == 'add') {
-            PlannedDeparture::addPlanDeparture($debtor_id);
-        }
-
-        if ($action == 'remove') {
-            PlannedDeparture::removePlanDeparture($debtor_id);
-        }
-
-        return 1;
-    }
-
-    /**
      * Меняет флаг для различных отказов от взаимодействия должника
      * @param string $debtor_id
      * @param string $action
@@ -2331,214 +2310,6 @@ class DebtorsController extends BasicController
         }
 
         return 1;
-    }
-
-    /**
-     * Карта планирования выездов к должникам
-     * @return resource
-     */
-    public function departureMap()
-    {
-        $cols = [
-            'debtors.passports.address_region',
-            'debtors.passports.address_district',
-            'debtors.passports.address_city',
-            'debtors.passports.address_street',
-            'debtors.passports.address_building',
-            'debtors.passports.address_apartment',
-            'debtors.debtors_geocodes.geocode',
-            'debtors.passports.fio',
-            'debtors.debtors.debtor_id_1c',
-            'debtors.planned_departures.debtor_id as planned',
-            'debtors.debtors.id as debtor_id',
-            'debtors.debtor_events.completed as completed',
-            'debtors.debtor_events.event_type_id as event_type_id'
-        ];
-//        $debtors = Debtor::select($cols)
-//                ->leftJoin('armf.loans', 'armf.loans.id_1c', '=', 'debtors.loan_id_1c')
-//                ->leftJoin('armf.claims', 'armf.claims.id', '=', 'armf.loans.claim_id')
-//                ->leftJoin('armf.customers', 'armf.claims.customer_id', '=', 'armf.customers.id')
-//                ->leftJoin('armf.passports', 'armf.passports.id', '=', 'armf.claims.passport_id')
-//                ->limit(50)
-//                ->whereNotNull('armf.passports.address_region')
-//                ->groupBy('debtors.id')
-//                ->get();
-//        \PC::debug($debtors);
-//        return view('debtors.departuremap', [
-//            'debtors' => json_encode($debtors)
-//        ]);
-
-        $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
-        $usersDebtors = User::select('users.id_1c')
-            ->whereIn('id', $arResponsibleUserIds);
-
-        $arUsersDebtors = $usersDebtors->get()->toArray();
-        $arIn = [];
-        foreach ($arUsersDebtors as $tmpUser) {
-            $arIn[] = $tmpUser['id_1c'];
-        }
-
-        if (!count($arIn)) {
-            die("Нет ответственных пользователей.");
-        }
-
-        $debtor_vars = config('debtors');
-
-        $debtorsGeo = Debtor::select(array(
-            'debtors.debtors.id as d_id',
-            'debtors.passports.address_region as region',
-            'debtors.passports.address_district as district',
-            'debtors.passports.address_city as city',
-            'debtors.passports.address_street as street',
-            'debtors.passports.address_house as house'
-        ))
-            ->leftJoin('debtors.debtors_geocodes', 'debtors.debtors_geocodes.debtor_id', '=', 'debtors.debtors.id')
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
-            ->whereIn('debtors.responsible_user_id_1c', $arIn)
-            ->whereNotNull('debtors.passports.address_region')
-            ->get();
-
-        foreach ($debtorsGeo as $debtor) {
-            if (!DebtorGeocode::geocodeExists($debtor->d_id)) {
-                $arAddress = [];
-                if (!is_null($debtor->region) && mb_strlen($debtor->region)) {
-                    $arAddress[0] = $debtor->region;
-                } else {
-                    continue;
-                }
-                if (!is_null($debtor->district) && mb_strlen($debtor->district)) {
-                    $arAddress[1] = $debtor->district;
-                }
-                if (!is_null($debtor->city) && mb_strlen($debtor->city)) {
-                    $arAddress[2] = $debtor->city;
-                } else {
-                    continue;
-                }
-                if (!is_null($debtor->street) && mb_strlen($debtor->street)) {
-                    $arAddress[3] = $debtor->street;
-                }
-                if (!is_null($debtor->house) && mb_strlen($debtor->house)) {
-                    $arAddress[4] = $debtor->house;
-                } else {
-                    continue;
-                }
-                $address_string = implode(', ', $arAddress);
-                $address_string = str_replace(' ', '+', $address_string);
-
-                $xml = simplexml_load_string(file_get_contents('https://geocode-maps.yandex.ru/1.x/?geocode=' . $address_string));
-                if (!isset($xml->GeoObjectCollection->featureMember)) {
-                    continue;
-                }
-                $point = $xml->GeoObjectCollection->featureMember->GeoObject->Point->pos;
-
-                if (!is_null($point)) {
-                    $arPoint = explode(' ', $point);
-                    $point = $arPoint[1] . ',' . $arPoint[0];
-                }
-
-                DebtorGeocode::addGeocode($debtor->d_id, (!is_null($point)) ? $point : 'n/a');
-            }
-        }
-
-        $today = with(new Carbon())->today();
-
-        $debtors = Debtor::select($cols)
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
-            ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
-            ->leftJoin('debtors.debtors_geocodes', 'debtors.debtors_geocodes.debtor_id', '=', 'debtors.debtors.id')
-            ->leftJoin('debtors.planned_departures', 'debtors.planned_departures.debtor_id', '=', 'debtors.debtors.id')
-            ->leftJoin('debtors.debtor_events', 'debtors.debtor_events.debtor_id', '=', 'debtors.debtors.id')
-            ->whereIn('debtors.responsible_user_id_1c', $arIn)
-            ->whereNotNull('debtors.passports.address_region')
-            ->where('debtors.debtors_geocodes.geocode', '<>', 'n/a')
-            ->groupBy('debtors.id')
-            ->get()
-            ->toArray();
-
-        foreach ($debtors as $k => $debtor) {
-            $row = DebtorEvent::select('*')
-                ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
-                ->leftJoin('planned_departures', 'planned_departures.debtor_id', '=', 'debtors.id')
-                ->whereNotNull('planned_departures.debtor_id')
-                ->where('completed', 1)
-                ->whereIn('event_type_id', array(0, 1, 2, 3))
-                ->where('debtor_events.debtor_id', $debtor['debtor_id'])
-                ->groupBy('planned_departures.debtor_id')
-                ->first();
-            //$row = DebtorEvent::where('completed', 1)->whereIn('event_type_id', array(0, 1, 2, 3))->where('debtor_id', $debtor->id)->first();
-
-            if (!is_null($row)) {
-                $debtors[$k]['execDeparture'] = true;
-            } else {
-                $debtors[$k]['execDeparture'] = false;
-            }
-        }
-
-        return view('debtors.departuremap', [
-            'debtors' => json_encode($debtors)
-        ]);
-    }
-
-    /**
-     * Печать анкет и уведомлений для запланированных к выезду должникам
-     * @return resource
-     */
-    public function departurePrint()
-    {
-        $cols = [
-            'debtors.passports.fio',
-            'debtors.debtors.debtor_id_1c',
-            'debtors.planned_departures.debtor_id as planned',
-            'debtors.debtors.id as debtor_id',
-            'debtors.loans.id_1c as loan_id_1c',
-            'debtors.customers.id_1c as customer_id_1c'
-        ];
-
-        $today = with(new Carbon())->today();
-
-        $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
-        $usersDebtors = User::select('users.id_1c')
-            ->whereIn('id', $arResponsibleUserIds);
-
-        $arUsersDebtors = $usersDebtors->get()->toArray();
-        $arIn = [];
-        foreach ($arUsersDebtors as $tmpUser) {
-            $arIn[] = $tmpUser['id_1c'];
-        }
-
-        if (!count($arIn)) {
-            die("Нет ответственных пользователей.");
-        }
-
-        $debtors = Debtor::select($cols)
-            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
-            ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
-            ->leftJoin('debtors.customers', 'debtors.claims.customer_id', '=', 'debtors.customers.id')
-            ->leftJoin('debtors.passports', 'debtors.passports.id', '=', 'debtors.claims.passport_id')
-            ->leftJoin('debtors.planned_departures', 'debtors.planned_departures.debtor_id', '=', 'debtors.debtors.id')
-            ->whereNotNull('debtors.planned_departures.debtor_id')
-            ->whereIn('debtors.responsible_user_id_1c', $arIn)
-            ->whereBetween('debtors.planned_departures.created_at', array(
-                $today->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
-                $today->setTime(23, 59, 59)->format('Y-m-d H:i:s')
-            ))
-            ->groupBy('debtors.id')
-            ->get();
-
-        $arContractFormsIds = [
-            'anketa' => \App\ContractForm::getContractIdByTextId('debtors_anketa'),
-            'notice_personal' => \App\ContractForm::getContractIdByTextId('debtors_notice_personal'),
-            'notice_remote' => \App\ContractForm::getContractIdByTextId('debtors_notice_remote')
-        ];
-
-        return view('debtors.departureprint', [
-            'debtors' => $debtors,
-            'contractforms' => $arContractFormsIds
-        ]);
     }
 
     public function uploadOrdersFrom1c(Request $req)
