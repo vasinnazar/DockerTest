@@ -103,39 +103,4 @@ class DataLoaderController extends Controller {
         }
     }
 
-    public function loadCsvFile() {
-        $row = 1;
-        $cols = [];
-        if (($handle = fopen(storage_path() . '/app/debtors_doubles.csv', "r")) !== FALSE) {
-            while (($data = fgetcsv($handle, 1000, "\t")) !== FALSE) {
-                $num = count($data);
-                if ($row > 1) {
-                    $double = new \App\AddressDouble();
-                }
-                for ($c = 0; $c < $num; $c++) {
-                    if ($row == 1) {
-                        $cols[$c] = $data[$c];
-                    } else {
-                        if ($cols[$c] == 'date') {
-                            $double->{$cols[$c]} = with(new Carbon($data[$c]))->format('Y-m-d H:i:s');
-                        } else if ($cols[$c] == 'is_debtor') {
-                            $double->{$cols[$c]} = ($data[$c] == 'Да') ? 1 : 0;
-                        } else {
-                            $double->{$cols[$c]} = $data[$c];
-                        }
-                    }
-                }
-                if (isset($double)) {
-                    $double->save();
-                }
-                $row++;
-//                if ($row > 20) {
-//                    break;
-//                }
-            }
-            fclose($handle);
-        }
-        echo '<hr>' . $row;
-    }
-
 }

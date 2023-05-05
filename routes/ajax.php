@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AddressDoublesController;
 use App\Http\Controllers\AdminPanelController;
 use App\Http\Controllers\AdvanceReportController;
 use App\Http\Controllers\AjaxController;
@@ -226,7 +225,6 @@ Route::prefix('/ajax')->group(function () {
     Route::get('/matclaims/list', [MaterialsClaimsController::class,'getList'])->name('matclaims.list');
     Route::get('/work_times/list', [WorkTimeController::class,'getList'])->middleware('admin_only');
     Route::get('/messages/list', [MessagesController::class,'getList'])->name('messages.list');
-    Route::get('/addressdoubles/list', [AddressDoublesController::class,'ajaxList']);
     Route::get('/userphotos/list', [UserPhotoController::class,'ajaxList']);
     Route::get('/userphotos/list2', [UserPhotoController::class,'ajaxBasicList']);
     Route::get('/infinity', [InfinityController::class,'main']);

@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AddressDoublesController;
 use App\Http\Controllers\AdminPanelController;
 use App\Http\Controllers\AdvanceReportController;
 use App\Http\Controllers\BlanksController;
@@ -108,7 +107,6 @@ Route::middleware('auth_only')->group(function () {
     Route::get('spylog/list', [SpylogController::class, 'index'])
         ->middleware('admin_only')
         ->name('spylog.list');
-    Route::get('addressdoubles/index', [AddressDoublesController::class,'index']);
 
     //ГРАФИК ПРОДАЖ
     Route::get('graph/index', [GraphController::class,'index']);

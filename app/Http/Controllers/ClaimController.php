@@ -630,8 +630,6 @@ class ClaimController extends Controller {
                 }
             }
             if ($claim->save()) {
-//                $this->checkForDebtor($claim);
-//                Spylog::log(Spylog::ACTION_STATUS_CHANGE, 'claims', $claim_id, $old_status . '->' . $status);
                 return redirect()->back()->with('msg_suc', 'Статус заявки изменён');
             } else {
                 return redirect()->back()->with('msg_err', 'Ошибка при смене статуса, попробуйте еще раз.');
@@ -933,8 +931,6 @@ class ClaimController extends Controller {
             }
             Spylog::log(Spylog::ACTION_ID1C_CHANGE, 'claims', $claim->id, $old_id_1c . '->' . $claim->id_1c);
             DB::commit();
-            
-//            $this->checkForDebtor($passport);
             
             return ['res' => 1];
         } else {
@@ -1239,99 +1235,6 @@ class ClaimController extends Controller {
         $claim->status = Claim::STATUS_ONEDIT;
         $claim->save();
         return redirect()->back()->with('msg_suc', StrLib::SUC);
-    }
-    
-    public function checkForDebtor($claim){
-        $customerPassport = $claim->passport;
-        $address_fields = ['zip','address_region','address_district','address_city','address_city1','address_street','address_building','address_apartment'];
-        $address_fields_count = count($address_fields);
-        $sql = 'SELECT passports.id,passports.customer_id,customers.telephone,customers.id_1c as customer_id_1c, passports.series, passports.number, passports.fio as fio, ';
-        for($i=0;$i<$address_fields_count;$i++){
-            $sql .= $address_fields[$i];
-            if($i<$address_fields_count-1){
-                $sql .= ',';
-            }
-        }
-        $sql .= ' FROM passports ';
-        $sql .= 'LEFT JOIN customers on customers.id=passports.customer_id ';
-        $sql .= 'WHERE ';
-        $sql .= "customer_id <> '".$customerPassport->customer_id."' AND (";
-        $sql .= "(address_region='".$customerPassport->address_region."' ";
-        $sql .= "AND address_district='".$customerPassport->address_district."' ";
-        $sql .= "AND address_city='".$customerPassport->address_city."' ";
-        $sql .= "AND address_city1='".$customerPassport->address_city1."' ";
-        $sql .= "AND address_street='".$customerPassport->address_street."' ";
-        $sql .= "AND address_building='".$customerPassport->address_building."' ";
-        $sql .= "AND address_apartment='".$customerPassport->address_apartment."') ";
-        $sql .= "OR (fact_address_region='".$customerPassport->address_region."' ";
-        $sql .= "AND fact_address_district='".$customerPassport->address_district."' ";
-        $sql .= "AND fact_address_city='".$customerPassport->address_city."' ";
-        $sql .= "AND fact_address_city1='".$customerPassport->address_city1."' ";
-        $sql .= "AND fact_address_street='".$customerPassport->address_street."' ";
-        $sql .= "AND fact_address_building='".$customerPassport->address_building."' ";
-        $sql .= "AND fact_address_apartment='".$customerPassport->address_apartment."') ";
-        $sql .= "OR (address_region='".$customerPassport->fact_address_region."' ";
-        $sql .= "AND address_district='".$customerPassport->fact_address_district."' ";
-        $sql .= "AND address_city='".$customerPassport->fact_address_city."' ";
-        $sql .= "AND address_city1='".$customerPassport->fact_address_city1."' ";
-        $sql .= "AND address_street='".$customerPassport->fact_address_street."' ";
-        $sql .= "AND address_building='".$customerPassport->fact_address_building."' ";
-        $sql .= "AND address_apartment='".$customerPassport->fact_address_apartment."') ";
-        $sql .= "OR (fact_address_region='".$customerPassport->fact_address_region."' ";
-        $sql .= "AND fact_address_district='".$customerPassport->fact_address_district."' ";
-        $sql .= "AND fact_address_city='".$customerPassport->fact_address_city."' ";
-        $sql .= "AND fact_address_city1='".$customerPassport->fact_address_city1."' ";
-        $sql .= "AND fact_address_street='".$customerPassport->fact_address_street."' ";
-        $sql .= "AND fact_address_building='".$customerPassport->fact_address_building."' ";
-        $sql .= "AND fact_address_apartment='".$customerPassport->fact_address_apartment."') ";
-        $sql .= "OR customers.telephone='".$customerPassport->customer->telephone."'";
-        $sql .= ')';
-        $passports = DB::select(DB::raw($sql));
-
-        foreach($passports as $p){
-            $dsql = "SELECT debtor_id_1c,responsible_user_id_1c,qty_delays,is_debtor FROM debtors.debtors WHERE customer_id_1c='".$p->customer_id_1c."' AND passport_series='".$p->series."' AND passport_number='".$p->number."'";
-            $debtors = DB::connection('debtors215')->select(DB::raw($dsql));
-            foreach($debtors as $d){
-                # id, debtor_fio, debtor_address, debtor_telephone, debtor_overdue, customer_fio, customer_address, customer_telephone, comment, date, responsible_user_id_1c, is_debtor, created_at, updated_at
-                $isql = "INSERT INTO debtors.address_doubles";
-                $isql .= "(debtor_fio, debtor_address, debtor_telephone, debtor_overdue, customer_fio, customer_address, customer_telephone, comment, date, responsible_user_id_1c, is_debtor, created_at, updated_at) ";
-                $isql .= "VALUES (";
-                $isql .= "'".$p->fio."'";
-                $isql .= ",'";
-                for($i=0;$i<$address_fields_count;$i++){
-                    $af = $address_fields[$i];
-                    if(!empty($p->{$af}) && $i>0){
-                        $isql.=", ";
-                    }
-                    $isql.=$p->{$af};
-                    
-                }
-                $isql .= "'";
-                $isql .= ",'".$p->telephone."'";
-                $isql .= ",'".$d->qty_delays."'";
-                $isql .= ",'".$customerPassport->fio."'";
-                $isql .= ",'";
-                for($i=0;$i<$address_fields_count;$i++){
-                    $af = $address_fields[$i];
-                    if(!empty($customerPassport->{$af}) && $i>0){
-                        $isql.=", ";
-                    }
-                    $isql.=$customerPassport->{$af};
-                }
-                $isql .= "'";
-                $isql .= ",'".$claim->customer->telephone."'";
-                $isql .= ",'".$claim->comment."'";
-                $isql .= ",'".$claim->created_at->format('Y-m-d H:i:s')."'";
-                $isql .= ",'".$d->responsible_user_id_1c."'";
-                $isql .= ",'".$d->is_debtor."'";
-                $isql .= ",'".Carbon::now()->format('Y-m-d H:i:s')."'";
-                $isql .= ",'".Carbon::now()->format('Y-m-d H:i:s')."'";
-                $isql .= ")";
-                $res = DB::connection('debtors215')->select(DB::raw($isql));
-            }
-        }
-        
-        return $passports;
     }
 
 }
