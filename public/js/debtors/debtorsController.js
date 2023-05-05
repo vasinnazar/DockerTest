@@ -364,8 +364,8 @@
                 {data:'passports_fact_address_city', name: 'passports_fact_address_city'},
                 {data:'debtors_fixation_date', name: 'debtors_fixation_date'},
                 {data:'debtors_qty_delays', name: 'debtors_qty_delays'},
-                {data:'debtors_last_user_id', name: 'debtors_last_user_id'},
                 {data:'debtors_responsible_user_id_1c', name: 'debtors_responsible_user_id_1c'},
+                {data:'debtors_last_user_id', name: 'debtors_last_user_id'},
                 {data: 'debtors_debt_group_id', name: 'debtors_debt_group_id'},
                 {data: 'debtors_str_podr', name: 'debtors_str_podr'}
             ],
