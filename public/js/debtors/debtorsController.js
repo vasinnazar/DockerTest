@@ -5,7 +5,6 @@
         $.debtorsCtrl.initDebtorsTableSearchForm();
         $.debtorsCtrl.changeResponsibleUser();
         $.debtorsCtrl.changeDebtorTransferTable();
-        $.debtorsCtrl.changePlanDeparture();
         $.debtorsCtrl.submitEventsFilter();
         $.debtorsCtrl.changeLoadStatus();
         $.debtorsCtrl.changePersonalData();
@@ -552,38 +551,6 @@
             $.get(window.open($.app.url + '/ajax/debtors/transfer/printResponsibleUser/?new_user_id=' + $('#new_user_id').val() + '&old_user_id=' + $('#old_user_id').val() + '&act_number=' + $('input[name="act_number"]').val() + '&' + serialized), {}).done(function (data) {
 
             });
-            return false;
-        });
-    };
-
-    /**
-     * Изменение флага флага планирования выезда к должнику
-     * @returns boolean
-     */
-    $.debtorsCtrl.changePlanDeparture = function () {
-        $(document).on('click', '#planDepartureLink', function () {
-            var elem = $(this);
-            var action = elem.data('action');
-            var link = elem.data('link');
-
-            $.post(link + '/' + action).done(function () {
-                if (action === 'add') {
-                    elem.removeClass('btn-default');
-                    elem.addClass('btn-danger');
-                    elem.text('Выезд запланирован');
-                    elem.data('action', 'remove');
-                    elem.attr('style', 'color: #ffffff');
-                }
-
-                if (action === 'remove') {
-                    elem.removeClass('btn-danger');
-                    elem.addClass('btn-default');
-                    elem.text('Запланировать выезд');
-                    elem.data('action', 'add');
-                    elem.removeAttr('style');
-                }
-            });
-
             return false;
         });
     };

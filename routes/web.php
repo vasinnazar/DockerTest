@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AddressDoublesController;
 use App\Http\Controllers\AdminPanelController;
 use App\Http\Controllers\AdvanceReportController;
 use App\Http\Controllers\BlanksController;
@@ -108,7 +107,6 @@ Route::middleware('auth_only')->group(function () {
     Route::get('spylog/list', [SpylogController::class, 'index'])
         ->middleware('admin_only')
         ->name('spylog.list');
-    Route::get('addressdoubles/index', [AddressDoublesController::class,'index']);
 
     //ГРАФИК ПРОДАЖ
     Route::get('graph/index', [GraphController::class,'index']);
@@ -718,8 +716,6 @@ Route::middleware('auth_only')->group(function () {
         Route::get('/debtorcard/createPdf/{doc_id}/{debtor_id}/{date}', [DebtorsController::class,'createPdf']);
         Route::get('/courtorder/{debtor_id}',[PdfController::class,'getCourtOrderPdf'])->name('debtor.courtorder');
         Route::get('/contacts/{debtor_id}', [DebtorsController::class,'contacts']);
-        Route::get('/departuremap', [DebtorsController::class,'departureMap']);
-        Route::get('/departureprint', [DebtorsController::class,'departurePrint']);
         Route::get('/report/countcustomers', [DebtorsReportsController::class,'countDebtCustomersForRespUser']);
         Route::post('/peaceclaim/new', [DebtorsController::class,'addNewRepaymentOffer']);
         Route::get('/omicron/gettask', [CronController::class,'getOmicronTask']);

@@ -28,7 +28,6 @@
             <a href="{{url('debtors/recommends')}}" class="btn {{($recommends_count > 0) ? 'btn-danger' : 'btn-default'}}"{{($recommends_count > 0) ? '' : ' disabled'}}>Рекомендации ({{$recommends_count}})</a>
             <a href="##" class="btn btn-default" onclick="$.debtorsCtrl.debtorsTotalPlanned({{$user->id}})">Общее количество запланированных</a>
             <a href="{{url('debtors/forgotten')}}" class="btn btn-default" target="_blank">"Забытые" должники</a>
-            <a href="{{url('addressdoubles/index')}}" class="btn btn-default">Дубли адресов</a>
             <input type="button" class="btn btn-default" value="Зачет оплат" data-target='#userPaymentsModal' data-toggle='modal' />
             <a class="btn btn-default" href="{{url('reports/paysheet')}}" target="_blank">Расчетный лист</a>
             @if ($user->hasRole('debtors_chief') && $user->hasRole('debtors_personal'))
@@ -184,7 +183,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <!--span class="pull-left"><input type="checkbox" name="search_field_planned_departures@debtor_id" value="1">&nbsp;&nbsp;Запланированные к выезду</span-->
                 <div class="pull-left" style="text-align: left;">
                 <span><input type="checkbox" name="search_field_debtors@is_bigmoney" value="1">&nbsp;Большие деньги</span>
                 <br>

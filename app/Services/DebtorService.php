@@ -199,14 +199,6 @@ class DebtorService
 
         if ($boolSearchAll) {
             foreach ($arrFields as $key => $arrField) {
-                if ($key == 'search_field_planned_departures@debtor_id') {
-
-                    $debtors->leftJoin('debtors.planned_departures', 'debtors.planned_departures.debtor_id', '=',
-                        'debtors.debtors.id');
-                    $debtors->whereNotNull('debtors.planned_departures.debtor_id');
-                    $debtors->whereIn('debtors.responsible_user_id_1c', $usersId1c);
-                    continue;
-                }
                 if ($key == 'search_field_debtors@qty_delays_from') {
                     $debtors->where('debtors.debtors.qty_delays', '>=', $arrField['value']);
                     continue;

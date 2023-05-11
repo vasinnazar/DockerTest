@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AddressDoublesController;
 use App\Http\Controllers\AdminPanelController;
 use App\Http\Controllers\AdvanceReportController;
 use App\Http\Controllers\AjaxController;
@@ -186,7 +185,6 @@ Route::prefix('/ajax')->group(function () {
 
         Route::get('/event/data', [DebtorsController::class,'getDebtorEventData']);
         Route::get('/search/autocomplete', [DebtorsController::class,'ajaxColumnAutocomplete']);
-        Route::post('/changePlanDeparture/{debtor_id}/{action}', [DebtorsController::class,'changePlanDeparture']);
         Route::post('/changePersonalData/{debtor_id}/{action}', [DebtorsController::class,'changePersonalData']);
         Route::post('/changeRecommend', [DebtorsController::class,'changeRecommend']);
         Route::get('/userpayments', [DebtorsReportsController::class,'getPaymentsForUser']);
@@ -227,7 +225,6 @@ Route::prefix('/ajax')->group(function () {
     Route::get('/matclaims/list', [MaterialsClaimsController::class,'getList'])->name('matclaims.list');
     Route::get('/work_times/list', [WorkTimeController::class,'getList'])->middleware('admin_only');
     Route::get('/messages/list', [MessagesController::class,'getList'])->name('messages.list');
-    Route::get('/addressdoubles/list', [AddressDoublesController::class,'ajaxList']);
     Route::get('/userphotos/list', [UserPhotoController::class,'ajaxList']);
     Route::get('/userphotos/list2', [UserPhotoController::class,'ajaxBasicList']);
     Route::get('/infinity', [InfinityController::class,'main']);
