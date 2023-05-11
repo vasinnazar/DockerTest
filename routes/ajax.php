@@ -192,7 +192,6 @@ Route::prefix('/ajax')->group(function () {
         Route::post('/orders/upload', [DebtorsController::class,'uploadOrdersFrom1c']);
         Route::get('/total-planned',[DebtorsController::class,'totalNumberPlaned']);
         Route::post('/calc/creditcard', [DebtorsController::class,'getCalcDataForCreditCard']);
-        Route::get('/masssms/list', [DebtorMassSmsController::class,'ajaxList']);
         Route::post('/masssms/send', [DebtorMassSmsController::class,'sendMassSms']);
         Route::get('/changeloadstatus/{debtor_id}', [DebtorsController::class,'changeLoadStatus']);
         Route::post('/getallpayments/{debtor_id}', [DebtorsController::class,'getAllPayments']);
@@ -204,7 +203,7 @@ Route::prefix('/ajax')->group(function () {
         Route::post('/transfer/changeResponsibleUser', [DebtorTransferController::class,'changeResponsibleUser']);
         Route::get('/transfer/printResponsibleUser', [DebtorTransferController::class,'getActPdf']);
     });
-
+    Route::get('/debtormasssms/list', [DebtorMassSmsController::class,'ajaxList']);
     Route::get('/removeRequests/list', [UsersRequestsController::class,'removeRequestsList'])
         ->middleware('office_only')
         ->name('usersreqs.remove.list');

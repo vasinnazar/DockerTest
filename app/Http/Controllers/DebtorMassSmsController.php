@@ -115,6 +115,7 @@ class DebtorMassSmsController extends BasicController
             ->leftJoin('struct_subdivisions', 'struct_subdivisions.id_1c', '=', 'debtors.str_podr')
             ->groupBy('debtors.id');
 
+        logger($input);
         if (!$this->hasFilterFilled($input)) {
             $debtors->where('debtors.debtors.id', 0);
         }
@@ -136,7 +137,22 @@ class DebtorMassSmsController extends BasicController
                 '%' . $input['passports@fact_address_region'] . '%');
         }
 
-        $collection = Datatables::of($debtors)
+        foreach ($input as $k => $v) {
+            if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
+                $fieldName = str_replace('search_field_', '', $k);
+                $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
+                $colName = substr($fieldName, strlen($tableName) + 1);
+                $condColName = $k . '_condition';
+                $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
+                if ($condition == 'like') {
+                    $v = '%' . $v . '%';
+                }
+                $debtors->where($tableName . '.' . $colName, $condition, $v);
+            }
+        }
+        $debtors = $debtors->get();
+
+        return Datatables::of($debtors)
             ->editColumn('debtors_fixation_date', function ($item) {
                 return (!is_null($item->debtors_fixation_date)) ? Carbon::parse($item->debtors_fixation_date)->format('d.m.Y') : '-';
             })
@@ -179,38 +195,15 @@ class DebtorMassSmsController extends BasicController
                     ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
                 return $html;
             }, 1)
-            ->removeColumn('debtors_id')
-            ->removeColumn('passports_fact_address_city1')
-            ->removeColumn('passports_fact_address_district')
-            ->removeColumn('passports_fact_address_street')
-            ->removeColumn('passports_fact_address_house')
-            ->filter(function ($query) use ($req) {
-                $input = $req->input();
-                foreach ($input as $k => $v) {
-                    if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
-                        $fieldName = str_replace('search_field_', '', $k);
-                        $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
-                        $colName = substr($fieldName, strlen($tableName) + 1);
-                        $condColName = $k . '_condition';
-                        $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
-                        if ($condition == 'like') {
-                            $v = '%' . $v . '%';
-                        }
-                        $query->where($tableName . '.' . $colName, $condition, $v);
-                    }
-                }
-            })
-            ->rawColumns(['links'])
+            ->rawColumns(['links','passports_fact_address_city'])
             ->toJson();
-        return $collection;
     }
 
     public function sendMassSms(
         DebtorSmsRepository $debtorSmsRepository,
-        DebtorSmsService    $debtorSmsService,
-        Request             $request
-    )
-    {
+        DebtorSmsService $debtorSmsService,
+        Request $request
+    ) {
         set_time_limit(0);
         $input = $request->input();
 
