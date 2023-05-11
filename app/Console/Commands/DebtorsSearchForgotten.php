@@ -39,7 +39,7 @@ class DebtorsSearchForgotten extends Command
             ->whereIn('str_podr', ['000000000006','000000000007'])
             ->whereNotIn('base', ['Б-смерть','Архив ЗД']);
 
-        if(!empty($arrIdsDebtorsForgotten)){
+        if(!empty($arrIdsDebtorsForgotten)) {
             $debtors->whereNotIn('id', $arrIdsDebtorsForgotten);
         }
         $debtors = $debtors->get();

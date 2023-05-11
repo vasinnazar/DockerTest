@@ -3136,6 +3136,7 @@ class DebtorsController extends BasicController
 
                 $event = new DebtorEvent();
                 $event->event_type_id = 9;
+                $event->customer_id_1c = $debtor->customer_id_1c;
                 $event->debt_group_id = $debtor->debt_group_id;
                 $event->event_result_id = ($repaymentTypeId == 14) ? 19 : 18;
                 $event->report = $report;

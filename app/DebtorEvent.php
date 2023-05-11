@@ -50,10 +50,13 @@ class DebtorEvent extends Model
     protected static function boot()
     {
         parent::boot();
-        self::saving(function ($event)
-        {
-            if(in_array($event->event_result_id,[0, 1, 6, 9, 10, 11, 12, 13, 22, 24, 27, 29])) {
-                DebtorsForgotten::where('debtor_id',$event->debtor_id)->delete();
+        self::saving(function ($event) {
+            if (in_array($event->event_result_id, [0, 1, 6, 9, 10, 11, 12, 13, 22, 24, 27, 29])) {
+                $debtorsIds = Debtor::where('customer_id_1c', $event->customer_id_1c)
+                    ->get()
+                    ->pluck('id')
+                    ->toArray();
+                DebtorsForgotten::whereIn('debtor_id', $debtorsIds)->delete();
             }
         });
     }

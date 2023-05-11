@@ -8,7 +8,7 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class DebtorsExport implements FromCollection,WithHeadings
+class DebtorsExport implements FromCollection, WithHeadings
 {
     private $debtors;
 
@@ -52,14 +52,17 @@ class DebtorsExport implements FromCollection,WithHeadings
         foreach ($this->debtors as $debtor) {
 
             $isOnline = $debtor->debtor_is_online ? 'Да' : 'Нет';
-            $passport = Passport::find($debtor->passport_id);
             $typeClaim = '';
+
             try {
                 $debtGroup = $arDebtGroups[$debtor->debtors_debt_group];
             } catch (\Exception $xception) {
                 $debtGroup = '';
             }
 
+            $passport = Passport::find($debtor->passport_id);
+            $address = isset($passport) ? $passport->full_address : '';
+            $factAddress = isset($passport) ? $passport->fact_full_address : '';
 
             if ($debtor->debtor_is_bigmoney) {
                 $typeClaim = 'Б.деньги';
@@ -85,8 +88,8 @@ class DebtorsExport implements FromCollection,WithHeadings
                 $debtGroup,
                 $debtor->debtors_username,
                 $debtor->debtor_str_podr,
-                Passport::getFullAddress($passport),
-                Passport::getFullAddress($passport, true),
+                $address,
+                $factAddress,
                 $debtor->debtor_is_bigmoney,
                 $debtor->debtor_is_pledge,
                 $debtor->debtor_is_pos,

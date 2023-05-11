@@ -173,6 +173,7 @@ class FromSellingARMController extends Controller {
                     $plan_event->created_at = $current_time;
                     $plan_event->event_type_id = 6;
                     $plan_event->debtor_id = $debtor->id;
+                    $plan_event->customer_id_1c = $debtor->customer_id_1c;
                     $plan_event->user_id = $userTo->id;
                     $plan_event->completed = 0;
                     $plan_event->debtor_id_1c = $debtor->debtor_id_1c;

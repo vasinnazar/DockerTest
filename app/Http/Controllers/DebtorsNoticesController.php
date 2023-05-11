@@ -2,29 +2,28 @@
 
 namespace App\Http\Controllers;
 
+
+use App\DebtorEvent;
 use App\Http\Requests\StartCourtTaskRequest;
+use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
-use Input,
-    Auth,
-    App\Debtor,
-    App\Passport,
-    App\DebtorNotice,
-    App\DebtorUsersRef,
-    App\User,
-    App\NoticeNumbers,
-    App\ContractForm,
-    App\Loan,
-    App\StrUtils,
-    App\DebtorEvent,
-    App\CourtOrder,
-    App\CourtOrderTasks;
+use App\Debtor;
+use App\Passport;
+use App\DebtorNotice;
+use App\User;
+use App\NoticeNumbers;
+use App\Loan;
+use App\StrUtils;
+use App\CourtOrder;
+use App\CourtOrderTasks;
 use App\Services\PdfService;
 use App\Utils\PdfUtil;
+use App\Export\Excel\CourtExport;
+use App\Export\Excel\NoticeExport;
 
 class DebtorsNoticesController extends Controller {
 
@@ -125,29 +124,8 @@ class DebtorsNoticesController extends Controller {
 
     public function createPdf($debtors, $address_type, $task_id, $str_podr) {
         $user = auth()->user();
-
         $i = 1;
-
-        $excel = \Excel::create($task_id);
-        $sheet = $excel->sheet('page1');
-
-        $activeSheet = $excel->getActiveSheet();
-
-        $activeSheet->appendRow(1, [
-            'FILE_NAME',
-            'ADDRESSLINE_TO',
-            'RECIPIENT_TYPE',
-            'RECIPIENT',
-            'INN',
-            'KPP',
-            'LETTER_REG_NUMBER',
-            'LETTER_TITLE',
-            'MAILCATEGORY',
-            'ADDRESSLINE_RETURN',
-            'WOMAILRANK',
-            'ADDITIONAL_INFO',
-            'LETTER_COMMENT'
-        ]);
+        $rows = [];
 
         foreach ($debtors as $debtor) {
 
@@ -525,7 +503,7 @@ class DebtorsNoticesController extends Controller {
                     ];
 
                     $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_URL, 'http://192.168.35.59/ajax/loans/get/debt');
+                    curl_setopt($ch, CURLOPT_URL, 'http://192.168.35.102/ajax/loans/get/debt');
                     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
                     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
                     curl_setopt($ch, CURLOPT_POST, true);
@@ -551,17 +529,13 @@ class DebtorsNoticesController extends Controller {
                 }
 
                 if (mb_strlen($html) > 200) {
-
                     $pic = '';
                     $arParams['pic'] = $pic;
-
                     foreach ($arParams as $param => $value) {
                         $html = str_replace("{{" . $param . "}}", $value, $html);
                     }
-
-                    return Utils\PdfUtil::getPdf($html);
+                    return PdfUtil::getPdf($html);
                 }
-
                 $cUser = auth()->user();
 
                 if ($doc_id == 140 || $doc_id == 141 || $doc_id == 144 || $doc_id == 145 || $doc_id == 146 || $doc_id == 147 || $doc_id == 148 || $doc_id == 149) {
@@ -619,7 +593,6 @@ class DebtorsNoticesController extends Controller {
                         $pdfEvent->debtor_id_1c = $debtorTmp->debtor_id_1c;
                         $pdfEvent->user_id_1c = $eventUser->id_1c;
                         $pdfEvent->refresh_date = date('Y-m-d H:i:s', time());
-
                         $pdfEvent->save();
                     }
 
@@ -642,51 +615,40 @@ class DebtorsNoticesController extends Controller {
 
                 \App\Utils\FileToPdfUtil::replaceKeys($doc->tplFileName, $arParams, 'debtors', $arMassTask);
 
-                $activeSheet->appendRow($i, [
-                    $arMassTask['filename'] . '.pdf',
-                    $arParams['print_address'],
-                    '0',
-                    $arParams['debtor_fio'],
-                    '',
-                    '',
-                    $notice_number->id,
-                    '',
-                    '0',
-                    '650000, г. Кемерово, пр. Советский, 2/6',
-                    '',
-                    '',
-                    ''
-                ]);
-
+                $rows[] = [
+                    'name' => $arMassTask['filename'] . '.pdf',
+                    'address' => $arParams['print_address'],
+                    'fio' => $arParams['debtor_fio'],
+                    'notice_id' => $notice_number->id,
+                    'address_company' => '650000, г. Кемерово, пр. Советский, 2/6',
+                ];
                 sleep(5);
             }
         }
 
         $path = storage_path() . '/app/public/postPdfTasks/' . $task_id;
+        config()->set('filesystems.disks.local.root',$path);
 
-        $excel->store('xls', $path);
+        Excel::store(new NoticeExport($rows), $task_id . '.xls', 'local_notice');
 
         $arDir = scandir($path);
-
         $zip = new \ZipArchive();
-        if ($zip->open($path . '/' . $task_id . '.zip', \ZipArchive::CREATE) === TRUE) {
+        if ($zip->open($path . '/' . $task_id . '.zip', \ZipArchive::CREATE) === true) {
             foreach ($arDir as $k => $pdfFile) {
                 if ($k == 0 || $k == 1) {
                     continue;
                 }
-
                 if (str_contains($pdfFile, '.xls')) {
                     continue;
                 }
-
                 $zip->addFile($path . '/' . $pdfFile, $pdfFile);
             }
-
             $zip->close();
         }
     }
 
-    public function getFile($type, $task_id) {
+    public function getFile($type, $task_id)
+    {
         $path = storage_path('app/public/postPdfTasks/') . $task_id;
 
         if ($type == 'zip') {
@@ -695,8 +657,6 @@ class DebtorsNoticesController extends Controller {
         } else if ($type == 'xls') {
             $path .= '/' . $task_id . '.xls';
             $ext = 'attachment; filename="' . $task_id . '.xls"';
-        } else {
-
         }
 
         $file = File::get($path);
@@ -709,7 +669,8 @@ class DebtorsNoticesController extends Controller {
         return $response;
     }
 
-    public function courtNotices(Request $request) {
+    public function courtNotices(Request $request)
+    {
         $user = auth()->user();
 
         if ($user->hasRole('debtors_personal')) {
@@ -798,34 +759,11 @@ class DebtorsNoticesController extends Controller {
         return redirect()->back();
     }
 
-    public function createCourtPdf($debtors, $task_id, $str_podr) {
-        $user = auth()->user();
-
-        $i = 1;
-
-        $excel = \Excel::create($task_id);
-        $sheet = $excel->sheet('page1');
-
-        $activeSheet = $excel->getActiveSheet();
-
-        $activeSheet->appendRow(1, [
-            'FILE_NAME',
-            'ADDRESSLINE_TO',
-            'RECIPIENT_TYPE',
-            'RECIPIENT',
-            'INN',
-            'KPP',
-            'LETTER_REG_NUMBER',
-            'LETTER_TITLE',
-            'MAILCATEGORY',
-            'ADDRESSLINE_RETURN',
-            'WOMAILRANK',
-            'ADDITIONAL_INFO',
-            'LETTER_COMMENT'
-        ]);
-
+    public function createCourtPdf($debtors, $task_id, $str_podr)
+    {
         $path = storage_path() . '/app/public/courtPdfTasks/' . $task_id;
 
+        $rows = [];
         foreach ($debtors as $debtor) {
             $courtOrder = CourtOrder::where('debtor_id', $debtor->id)->first();
 
@@ -836,28 +774,17 @@ class DebtorsNoticesController extends Controller {
             $html = $this->pdfService->getCourtOrder($debtor);
             PdfUtil::savePdfFromPrintServer($html, $path . '/' . $debtor->id . '.pdf');
 
-            $i++;
-
-            $activeSheet->appendRow($i, [
-                $debtor->id . '.pdf',
-                $debtor->passport->full_address,
-                '0',
-                $debtor->passport->fio,
-                '',
-                '',
-                $debtor->id,
-                '',
-                '0',
-                '650000, г. Кемерово, пр. Советский, 2/6',
-                '',
-                '',
-                ''
-            ]);
-
+            $rows[] =  [
+                'name' => $debtor->id . '.pdf',
+                'address' => $debtor->passport->full_address,
+                'fio' =>$debtor->passport->fio,
+                'debtor_id' =>$debtor->id,
+                'address_company' =>'650000, г. Кемерово, пр. Советский, 2/6',
+            ];
             sleep(5);
         }
-
-        $excel->store('xls', $path);
+        config()->set('filesystems.disks.local.root',$path);
+        Excel::store(new CourtExport($rows),$task_id . '.xls','local_courts');
 
         $arDir = scandir($path);
 
@@ -879,7 +806,8 @@ class DebtorsNoticesController extends Controller {
         }
     }
 
-    public function getCourtFile($type, $task_id) {
+    public function getCourtFile($type, $task_id)
+    {
         $path = storage_path('app/public/courtPdfTasks/') . $task_id;
 
         if ($type == 'zip') {
@@ -888,8 +816,6 @@ class DebtorsNoticesController extends Controller {
         } else if ($type == 'xls') {
             $path .= '/' . $task_id . '.xls';
             $ext = 'attachment; filename="' . $task_id . '.xls"';
-        } else {
-
         }
 
         $file = File::get($path);
@@ -901,5 +827,4 @@ class DebtorsNoticesController extends Controller {
 
         return $response;
     }
-
 }

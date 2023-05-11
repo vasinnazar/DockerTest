@@ -33,7 +33,8 @@
     "ext-soap": "*",
     "maatwebsite/excel": "*",
     "illuminate/database": "*",
-    "ext-curl": "*"
+    "ext-curl": "*",
+    "ext-zip": "*"
   },
   "require-dev": {
     "symfony/dom-crawler": "~3.1",
