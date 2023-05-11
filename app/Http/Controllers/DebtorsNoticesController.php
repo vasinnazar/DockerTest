@@ -629,7 +629,7 @@ class DebtorsNoticesController extends Controller {
         $path = storage_path() . '/app/public/postPdfTasks/' . $task_id;
         config()->set('filesystems.disks.local.root',$path);
 
-        Excel::store(new NoticeExport($rows), $task_id . '.xls', 'local_notice');
+        Excel::store(new NoticeExport($rows), $task_id . '.xls', 'local');
 
         $arDir = scandir($path);
         $zip = new \ZipArchive();
@@ -784,12 +784,12 @@ class DebtorsNoticesController extends Controller {
             sleep(5);
         }
         config()->set('filesystems.disks.local.root',$path);
-        Excel::store(new CourtExport($rows),$task_id . '.xls','local_courts');
+        Excel::store(new CourtExport($rows),$task_id . '.xls','local');
 
         $arDir = scandir($path);
 
         $zip = new \ZipArchive();
-        if ($zip->open($path . '/' . $task_id . '.zip', \ZipArchive::CREATE) === TRUE) {
+        if ($zip->open($path . '/' . $task_id . '.zip', \ZipArchive::CREATE) === true) {
             foreach ($arDir as $k => $pdfFile) {
                 if ($k == 0 || $k == 1) {
                     continue;
