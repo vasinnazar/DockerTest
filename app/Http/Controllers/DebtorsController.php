@@ -3180,9 +3180,9 @@ class DebtorsController extends BasicController
         $message = false;
 
         if ($action && $action == 'omicron') {
-            $omicron_tasks = \App\OmicronTask::where('id', '>', 930)->where('result_recieved', 0)->get();
+            $omicronTasks = \App\OmicronTask::where('id', '>', 930)->where('result_recieved', 0)->get();
 
-            foreach ($omicron_tasks as $task) {
+            foreach ($omicronTasks as $task) {
 
                 $today = date('Y-m-d', strtotime($task->created_at));
 
@@ -3198,7 +3198,6 @@ class DebtorsController extends BasicController
                     'username' => 'admin@pdengi.ru',
                     'password' => md5('73218696'),
                     'taskid' => $task->omicron_task_id
-                        //'taskid' => 23775828
                 ];
 
                 $ch = curl_init();
@@ -3217,8 +3216,6 @@ class DebtorsController extends BasicController
 
                     $events = \App\DebtorEvent::where('date', '>=', $today . ' 00:00:00')
                             ->where('date', '<=', $today . ' 23:59:59')
-                            //where('date', '>=', '2022-11-21 00:00:00')
-                            //->where('date', '<=', '2022-11-21 23:59:59')
                             ->where('event_type_id', 22)
                             ->where('completed', 0)
                             ->get();
@@ -3245,13 +3242,13 @@ class DebtorsController extends BasicController
                         if (isset($arEventData[$phone])) {
                             $now = date('Y-m-d H:i:s', time());
 
-                            $planned_event = \App\DebtorEvent::find($arEventData[$phone]['event_id']);
-                            $planned_event->completed = 1;
-                            $planned_event->refresh_date = $now;
-                            $planned_event->save();
+                            $plannedEvent = \App\DebtorEvent::find($arEventData[$phone]['event_id']);
+                            $plannedEvent->completed = 1;
+                            $plannedEvent->refresh_date = $now;
+                            $plannedEvent->save();
 
-                            $debtor = \App\Debtor::where('debtor_id_1c', $arEventData[$phone]['debtor_id_1c'])->first();
-                            $resp_user = \App\User::where('id_1c', $debtor->responsible_user_id_1c)->first();
+                            $debtor = Debtor::where('debtor_id_1c', $arEventData[$phone]['debtor_id_1c'])->first();
+                            $resp_user = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
 
                             if ((string) $call['jobstatus'] == '3') {
                                 $call_result = 24;
@@ -3264,10 +3261,11 @@ class DebtorsController extends BasicController
                                 $report .= ' или абонент сбросил вызов';
                             }
 
-                            $newEvent = new \App\DebtorEvent();
+                            $newEvent = new DebtorEvent();
                             $newEvent->event_type_id = 22;
                             $newEvent->event_result_id = $call_result;
                             $newEvent->debt_group_id = $debtor->debt_group_id;
+                            $newEvent->customer_id_1c = $debtor->customer_id_1c;
                             $newEvent->report = $report;
                             $newEvent->debtor_id = $debtor->id;
                             $newEvent->user_id = (!is_null($resp_user)) ? $resp_user->id : 1029;

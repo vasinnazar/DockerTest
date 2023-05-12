@@ -127,15 +127,15 @@
 
                     let timezone = $(this).val();
                     $.ajax({
-                        url: '/debtor/recurrent/massquerytask',
+                        url: '/debtors/recurrent/massquerytask',
                         method: 'post',
                         data: {start: 1, str_podr: $('#str_podr').val(), timezone: timezone},
                         success: function (data) {
-                            var json_data = JSON.parse(data);
+                            let json_data = JSON.parse(data);
 
-                            if (json_data.status == 'success') {
+                            if (json_data.status === 'success') {
                                 $.ajax({
-                                    url: '/debtor/recurrent/massquery',
+                                    url: '/debtors/recurrent/massquery',
                                     method: 'post',
                                     data: {
                                         task_id: json_data.task_id
@@ -160,12 +160,12 @@
             $(document).ready(function () {
                 function loop() {
                     $.ajax({
-                        url: '/debtor/recurrent/getstatus',
+                        url: '/debtors/recurrent/getstatus',
                         method: 'post',
                         data: {tasks: $('input[name="executing_tasks[]"]').serializeArray()},
                         success: function (data) {
-                            var json_data = JSON.parse(data);
-                            if (json_data.status == 'completed') {
+                            let json_data = JSON.parse(data);
+                            if (json_data.status === 'completed') {
                                 location.reload();
                             } else {
                                 $.each(json_data.tasks, function(task_id, count) {

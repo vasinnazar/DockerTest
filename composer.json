@@ -8,7 +8,7 @@
   "license": "MIT",
   "type": "project",
   "require": {
-    "php" : "~7.4",
+    "php": "~7.4",
     "laravel/framework": "5.6.*",
     "illuminate/html": "5.*",
     "h4cc/wkhtmltopdf-amd64": "0.12.x",
@@ -25,23 +25,24 @@
     "deployer/recipes": "^6.2",
     "deployer/deployer": "^6.0",
     "fzaninotto/faker": "^1.9",
-    "ext-json": "*",
-    "ext-pdo": "*",
     "barryvdh/laravel-debugbar": "*",
     "laravelcollective/html": "^5.2.0",
-    "fideloper/proxy" : "~4.0",
-    "ext-soap": "*",
+    "fideloper/proxy": "~4.0",
     "maatwebsite/excel": "*",
     "illuminate/database": "*",
+    "ext-json": "*",
+    "ext-pdo": "*",
     "ext-curl": "*",
-    "ext-zip": "*"
+    "ext-zip": "*",
+    "ext-simplexml": "*",
+    "ext-soap": "*"
   },
   "require-dev": {
     "symfony/dom-crawler": "~3.1",
     "symfony/css-selector": "~3.1",
     "phpunit/phpunit": "~7.0",
     "phpspec/phpspec": "^7.3",
-    "filp/whoops" : "~2.0"
+    "filp/whoops": "~2.0"
   },
   "autoload": {
     "classmap": [
