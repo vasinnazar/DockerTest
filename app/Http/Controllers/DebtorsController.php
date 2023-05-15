@@ -544,9 +544,14 @@ class DebtorsController extends BasicController
                     time()));
             $arDataCcCard = json_decode($json_string_cc, true);
         }
-        $noRecurrent = $paysClient->getInfoByCustomerId1c($debtor->customer_id_1c)->first();
-        if($noRecurrent) {
-            $noRecurrent = (bool)$noRecurrent->no_recurrent;
+
+        try {
+            $noRecurrent = (bool)$paysClient
+                ->getInfoByCustomerId1c($debtor->customer_id_1c)
+                ->first()
+                ->no_recurrent;
+        }catch (\Throwable $exception) {
+            $noRecurrent = false;
         }
 
         return view('debtors.debtorcard', [

@@ -30,9 +30,6 @@ class DebtorMassSmsController extends BasicController
 
     public function __construct(DebtorEventService $service)
     {
-        if (!Auth::user()->hasPermission(Permission::makeName(PermLib::ACTION_OPEN, PermLib::SUBJ_DEBTOR_TRANSFER))) {
-            return redirect('/')->with('msg_err', StrLib::ERR_NOT_ADMIN);
-        }
         $this->debtorEventService = $service;
     }
 
@@ -114,8 +111,7 @@ class DebtorMassSmsController extends BasicController
             ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
             ->leftJoin('struct_subdivisions', 'struct_subdivisions.id_1c', '=', 'debtors.str_podr')
             ->groupBy('debtors.id');
-
-        logger($input);
+        
         if (!$this->hasFilterFilled($input)) {
             $debtors->where('debtors.debtors.id', 0);
         }
