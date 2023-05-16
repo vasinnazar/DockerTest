@@ -176,7 +176,7 @@ class MassRecurrentService
                 ->where('qty_delays', '>=', 22)
                 ->where('qty_delays', '<=', 69)
                 ->where('base', '<>', 'ХПД')
-                ->whereIn('debt_group_id', [2, 4, 5, 6]);
+                ->whereIn('debt_group_id', [2, 4, 5, 6, 8]);
         }
 
         if ($str_podr == '000000000007') {
@@ -193,6 +193,7 @@ class MassRecurrentService
                     'Осипова Е. А.                                ',
                     'Ленева Алина Андреевна                      '
                 ])
+                ->whereIn('debt_group_id', [8])
                 ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График']);
         }
 

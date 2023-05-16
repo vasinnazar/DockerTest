@@ -535,10 +535,6 @@
                                         Отдел личного взыскания
                                     @endif
                                     )
-
-                                    @if ($responsibleUser && $responsibleUser && $user->hasRole('debtors_remote') && ($user->id != $responsibleUser->id))
-                                        <br><a class="btn btn-primary" href="/debtors/setSelfResponsible/{{$debtor->id}}">Закрепить за собой</a>
-                                    @endif
                                 </td>
                                 <td></td>
                             </tr>

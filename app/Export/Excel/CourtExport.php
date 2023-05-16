@@ -44,6 +44,7 @@ class CourtExport implements FromCollection, WithHeadings
         foreach ($this->rows as $row) {
 
             $item = collect([
+                $row['name'],
                 $row['address'],
                 '0',
                 $row['fio'],
