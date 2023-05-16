@@ -193,7 +193,6 @@ class MassRecurrentService
                     'Осипова Е. А.                                ',
                     'Ленева Алина Андреевна                      '
                 ])
-                ->whereIn('debt_group_id', [8])
                 ->whereIn('base', ['Б-1', 'Б-МС', 'Б-риски', 'Б-График']);
         }
 
