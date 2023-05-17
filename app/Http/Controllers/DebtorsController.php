@@ -1966,7 +1966,7 @@ class DebtorsController extends BasicController
                 ];
 
                 $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, 'http://192.168.35.59/ajax/loans/get/debt');
+                curl_setopt($ch, CURLOPT_URL, 'http://192.168.35.102/ajax/loans/get/debt');
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 30);
                 curl_setopt($ch, CURLOPT_POST, true);

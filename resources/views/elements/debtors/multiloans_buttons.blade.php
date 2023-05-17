@@ -1,7 +1,7 @@
 @if($loans)
 
     @if(Auth::id() == 69)
-    <p style="text-align: center; color: blue;">Данные из базы 1С: {{ $loans['base_type'] }}</p>
+        <p style="text-align: center; color: blue;">Данные из базы 1С: {{ $loans['base_type'] }}</p>
     @endif
 
     <p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Общая сумма долга: <span
@@ -38,21 +38,21 @@
         <?php
     }
         ?>
+    <script>
+        $(document).ready(function () {
+            if ($('#overall_sum_today').val() == '') {
+                $('#overall_sum_today').val({{ number_format($loans['summary'] / 100, '2', '.', '') }});
+            } else {
+
+            }
+            $('#overall_sum_onday').val({{ number_format($loans['summary'] / 100, '2', '.', '') }});
+
+            var sumToday = parseFloat($('#overall_sum_today').val());
+            var sumOnDay = parseFloat($('#overall_sum_onday').val());
+
+            var diffOverallSum = sumOnDay - sumToday;
+
+            $('#diffTotalSumChange').text(diffOverallSum.toFixed(2));
+        });
+    </script>
 @endif
-<script>
-    $(document).ready(function () {
-        if ($('#overall_sum_today').val() == '') {
-            $('#overall_sum_today').val({{ number_format($loans['summary'] / 100, '2', '.', '') }});
-        } else {
-
-        }
-        $('#overall_sum_onday').val({{ number_format($loans['summary'] / 100, '2', '.', '') }});
-
-        var sumToday = parseFloat($('#overall_sum_today').val());
-        var sumOnDay = parseFloat($('#overall_sum_onday').val());
-
-        var diffOverallSum = sumOnDay - sumToday;
-
-        $('#diffTotalSumChange').text(diffOverallSum.toFixed(2));
-    });
-</script>

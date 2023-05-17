@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Export\Excel\DebtorsLoginSiteExport;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Spylog\Spylog;
@@ -16,6 +17,7 @@ use DB;
 use App\User;
 use App\DebtorsPayments;
 use App\MySoap;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DebtorsReportsController extends BasicController {
 
@@ -304,7 +306,8 @@ class DebtorsReportsController extends BasicController {
         ]);
     }
 
-    public function exportToExcelDebtorsLoginLog(Request $request) {
+    public function exportToExcelDebtorsLoginLog(Request $request)
+    {
         $user = auth()->user();
 
         $dateStart = $request->get('dateStart', '');
@@ -312,75 +315,28 @@ class DebtorsReportsController extends BasicController {
         $mode = $request->get('mode', 'uv');
 
         if (!mb_strlen($dateStart) || !mb_strlen($dateEnd)) {
-            $dateStart = date('Y-m-d 00:00:00', time());
-            $dateEnd = date('Y-m-d 23:59:59', time());
+            $dateStart = Carbon::now()->startOfDay();
+            $dateEnd = Carbon::now()->endOfDay();
         } else {
-            $dateStart = date('Y-m-d 00:00:00', strtotime($dateStart));
-            $dateEnd = date('Y-m-d 23:59:59', strtotime($dateEnd));
+            $dateStart = Carbon::parse($dateStart)->startOfDay();
+            $dateEnd = Carbon::parse($dateEnd)->endOfDay();
         }
-
-        $debtGroups = \App\DebtGroup::get()->toArray();
-
-        $excel = \Excel::create("report_site_login_" . date('dmY', strtotime($dateStart)) . "_" . date('dmY', strtotime($dateEnd)));
-        $sheet = $excel->sheet('page1');
-
-        $activeSheet = $excel->getActiveSheet();
-
-        $activeSheet->appendRow(1, [
-            'ФИО',
-            'Код контрагента',
-            'Ответственный',
-            'Общая сумма задолженности',
-            'Кол-во договоров',
-            'Группа долга'
-        ]);
-
-        $debtorsLog = \App\DebtorsSiteLoginLog::whereBetween('created_at', [$dateStart, $dateEnd]);
+        $debtors = \App\DebtorsSiteLoginLog::whereBetween('created_at', [$dateStart, $dateEnd]);
 
         if ($mode == 'lv') {
-            $debtorsLog->where('str_podr', '000000000007');
+            $debtors->where('str_podr', '000000000007');
         } else {
-            $debtorsLog->where('str_podr', '000000000006');
+            $debtors->where('str_podr', '000000000006');
         }
 
         if (!$user->hasRole('debtors_chief')) {
-            $debtorsLog->where('responsible_user_id', $user->id);
+            $debtors->where('responsible_user_id', $user->id);
         }
-
-        $debtorsLog = $debtorsLog->get();
-        
-        $row = 2;
-        foreach ($debtorsLog as $logRow) {
-            $customer = \App\Customer::where('id_1c', $logRow->customer_id_1c)->first();
-            if (is_null($customer)) {
-                continue;
-            }
-
-            $passport = \App\Passport::where('customer_id', $customer->id)->first();
-            if (is_null($passport)) {
-                continue;
-            }
-
-            $debtor = \App\Debtor::where('customer_id_1c', $customer->id_1c)->where('is_debtor', 1)->first();
-            if (is_null($debtor)) {
-                continue;
-            }
-
-            $responsible = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
-
-            $activeSheet->appendRow($row, [
-                $passport->fio,
-                $customer->id_1c,
-                (!is_null($responsible) ? $responsible->name : ''),
-                number_format($logRow->sum_loans_debt / 100, 2, '.', ''),
-                $logRow->debt_loans_count,
-                (isset($debtGroups[$logRow->debt_group_id]) ? $debtGroups[$logRow->debt_group_id]['name'] : '-')
-            ]);
-            
-            $row++;
-        }
-
-        $excel->download('xls');
+        $debtors = $debtors->get();
+        return Excel::download(
+            new DebtorsLoginSiteExport($debtors),
+            "report_site_login_" . $dateStart->format('dmY') . "_" . $dateEnd->format('dmY') . '.xlsx',
+            \Maatwebsite\Excel\Excel::XLSX
+        );
     }
-
 }

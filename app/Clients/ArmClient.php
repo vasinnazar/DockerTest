@@ -101,7 +101,7 @@ class ArmClient
         return json_decode($response->getBody()->getContents());
     }
 
-    public function getTinkoffLink(Debtor $debtor, int $amount, string $phone)
+    public function getTinkoffLink(Debtor $debtor, float $amount, string $phone)
     {
         $response = $this->client->get($this->url . '/api/tinkoff/init?amount=' . $amount
             . '&loan_1c_id=' . $debtor->loan_id_1c

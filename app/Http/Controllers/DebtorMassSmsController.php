@@ -226,7 +226,7 @@ class DebtorMassSmsController extends BasicController
                 'error' => 'Не найден смс шаблон.'
             ]);
         }
-        $debtorsCustomers = Debtor::select('debtors.customer_id_1c')
+        $debtorsCustomers = Debtor::select(['debtors.customer_id_1c','debtors.id'])
             ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
             ->leftJoin('debtors.passports', function ($join) {
                 $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
@@ -271,17 +271,13 @@ class DebtorMassSmsController extends BasicController
                 $debtorsCustomers->where($tableName . '.' . $colName, $condition, $v);
             }
         }
-
-        $customersIds = $debtorsCustomers->groupBy('customer_id_1c')->get();
-        $customers = $this->getCustomersToArray($customersIds);
-
+        $debtors = $debtorsCustomers->get();
         $cnt = 0;
-        foreach ($customers as $customer) {
-
+        foreach ($debtors as $debtor) {
             try {
-                $debtors = Debtor::where('customer_id_1c', $customer->id_1c)->get();
-                foreach ($debtors as $debtor) {
-                    $this->debtorEventService->checkLimitEvent($debtor);
+                $debtorsChecks = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
+                foreach ($debtorsChecks as $debtorCheck) {
+                    $this->debtorEventService->checkLimitEvent($debtorCheck);
                 }
             } catch (DebtorException $e) {
                 Log::error("$e->errorName:", [
@@ -294,12 +290,13 @@ class DebtorMassSmsController extends BasicController
                 ]);
                 continue;
             }
+            $debt = Debtor::find($debtor->id);
             // проверяем была ли уже такая смс и не нужно ли её заменить на другую
-            if (!$debtorSmsService->hasSmsMustBeSentOnce($debtor, $tpl->id)) {
+            if (!$debtorSmsService->hasSmsMustBeSentOnce($debt, $tpl->id)) {
                 $tpl = $debtorSmsRepository->firstById(3);
             }
 
-            $phone = $customer->telephone;
+            $phone = $debt->customer->telephone;
             if (isset($phone[0]) && $phone[0] == '8') {
                 $phone[0] = '7';
             }
@@ -317,9 +314,6 @@ class DebtorMassSmsController extends BasicController
                     // увеличиваем счетчик отправленных пользователем смс
                     $respUser->increaseSentSms();
                     // создаем мероприятие отправки смс
-                    $debt = Debtor::where('customer_id_1c', $customer->id_1c)
-                        ->where('is_debtor', 1)
-                        ->first();
                     $report = $phone . ' SMS: ' . $smsText;
                     $event = $this->createEventSms($debt, $respUser, $report);
 
@@ -327,8 +321,8 @@ class DebtorMassSmsController extends BasicController
                         DebtorEventSms::create([
                             'event_id' => $event->id,
                             'sms_id' => $tpl->id,
-                            'customer_id_1c' => $debtor->customer_id_1c,
-                            'debtor_base' => $debtor->base
+                            'customer_id_1c' => $debt->customer_id_1c,
+                            'debtor_base' => $debt->base
                         ]);
                     }
                     $cnt++;
@@ -339,15 +333,6 @@ class DebtorMassSmsController extends BasicController
             'error' => 'success',
             'cnt' => $cnt
         ]);
-    }
-
-    public function getCustomersToArray($customersIds)
-    {
-        foreach ($customersIds as $customerId) {
-            $customers[] = $customerId['customer_id_1c'];
-        }
-        return Customer::whereIn('id_1c', $customers)->get();
-
     }
 
     public function createEventSms(Debtor $debt, User $respUser, string $report): DebtorEvent

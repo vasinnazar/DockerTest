@@ -31,7 +31,7 @@ class RepaymentOfferService
     {
         $debtors = Debtor::where('is_debtor', 1)
             ->where('str_podr', '000000000006')
-            ->whereIn('debt_group_id', [2, 4, 5])
+            ->whereIn('debt_group_id', [2, 4, 5, 8])
             ->where('qty_delays', 36)
             ->where('base', 'Б-1')
             ->get();
