@@ -133,7 +133,7 @@ class DebtorSmsService
         $smsId = null,
         string $smsType = null,
         string $smsText = null,
-        int $amount = null
+        float $amount = null
     ) {
         $smsLink = '';
         if ($smsType && ($smsType == 'link' || $smsType == 'msg')) {

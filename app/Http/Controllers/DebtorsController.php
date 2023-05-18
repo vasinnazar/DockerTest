@@ -1259,7 +1259,7 @@ class DebtorsController extends BasicController
         // формирование коллекции для заполнения таблицы
         return DataTables::of($events)
             ->editColumn('de_date', function ($item) {
-                return date('d.m.Y', strtotime($item->de_date));
+                return date('d.m.Y H:i', strtotime($item->de_date));
             })
             ->editColumn('de_created_at', function ($item) {
                 return date('d.m.Y', strtotime($item->de_created_at));

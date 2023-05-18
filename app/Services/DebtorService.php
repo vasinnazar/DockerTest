@@ -188,11 +188,11 @@ class DebtorService
             $debtors->where('debtors.passports.address_region', 'like',
                 '%' . $input['search_field_passports@address_region'] . '%');
         }
-
-        if (isset($arrFields['search_field_passports@fact_timezone']) && mb_strlen($arrFields['search_field_passports@fact_timezone']['value'])) {
+        $timezone = $req->get('search_field_passports@fact_timezone');
+        if (isset($timezone) && mb_strlen($timezone)) {
             $debtors->where('debtors.passports.fact_timezone',
-                $arrFields['search_field_passports@fact_timezone']['condition'],
-                $arrFields['search_field_passports@fact_timezone']['value']
+                $req->get('search_field_passports@fact_timezone_condition'),
+                $timezone
             );
         }
 
@@ -223,7 +223,6 @@ class DebtorService
                 }
                 if ($key == 'search_field_debtors_events_promise_pays@promise_date') {
                     if ($arrField['condition'] == '=') {
-                        logger(1);
                         $sDate = new Carbon($arrField['value']);
                         $debtors->whereBetween('debtors.debtors_events_promise_pays.promise_date', array(
                             $sDate->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
