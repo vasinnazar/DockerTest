@@ -14,6 +14,26 @@ use Log;
  * Class DebtorEvent
  * @package App
  *
+ * @property \DateTime date
+ * @property \DateTime created_at
+ * @property \DateTime updated_at
+ * @property string customer_id_1c
+ * @property string loan_id_1c
+ * @property int event_type_id
+ * @property int debt_group_id
+ * @property int overdue_reason_id
+ * @property int event_result_id
+ * @property string report
+ * @property int amount
+ * @property int debtor_id
+ * @property int user_id
+ * @property int completed
+ * @property string id_1c
+ * @property int last_user_id
+ * @property string debtor_id_1c
+ * @property string user_id_1c
+ * @property \DateTime refresh_date
+ *
  * @mixin Builder
  * @mixin \Illuminate\Database\Query\Builder
  */

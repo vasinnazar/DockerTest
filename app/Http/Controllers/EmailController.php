@@ -41,13 +41,9 @@ class EmailController extends Controller
         ];
 
         $customer = (Debtor::find($request->debtor_id))->customer;
-        $debtors = Debtor::where('customer_id_1c', $customer->id_1c)->get();
-
 
         try {
-            foreach ($debtors as $debt) {
-                $this->debtorEventService->checkLimitEvent($debt);
-            }
+            $this->debtorEventService->checkLimitEventByCustomerId1c($customer->id_1c);
 
             if ($this->emailService->sendEmailDebtor($arrayParam)) {
                 return redirect()->back()->with('msg_suc', 'Email сообщение отправленно,мероприятие создано');
@@ -60,10 +56,10 @@ class EmailController extends Controller
 
         } catch (DebtorException $e) {
             Log::error("$e->errorName:", [
-                'customer'=>$customer->id_1c,
-                'file'=> __FILE__,
-                'method'=> __METHOD__,
-                'line'=> __LINE__,
+                'customer' => $customer->id_1c,
+                'file' => __FILE__,
+                'method' => __METHOD__,
+                'line' => __LINE__,
                 'id' => $e->errorId,
                 'message' => $e->errorMessage,
             ]);

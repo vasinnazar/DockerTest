@@ -192,9 +192,8 @@ class DebtorsController extends BasicController
         $arDebtData = config('debtors');
         $whatsAppEvent = true;
         try {
-            foreach ($all_debts as $debt) {
-                $this->debtEventService->checkLimitEvent($debt);
-            }
+            $this->debtEventService->checkLimitEventByCustomerId1c($debtor->customer_id_1c);
+
         } catch (DebtorException $e) {
             Log::error("$e->errorName:", [
                 'customer' => $debtor->customer_id_1c,
@@ -1460,10 +1459,7 @@ class DebtorsController extends BasicController
         $sms = DebtorSmsTpls::where('id', $req->sms_id)->first();
         if ($sms && is_null($sms->is_excluded)) {
             try {
-                $debtors = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
-                foreach ($debtors as $debt) {
-                    $this->debtEventService->checkLimitEvent($debt);
-                }
+                $this->debtEventService->checkLimitEventByCustomerId1c($debtor->customer_id_1c);
             } catch (DebtorException $e) {
                 Log::error("$e->errorName:", [
                     'customer' => $debtor->customer_id_1c,
