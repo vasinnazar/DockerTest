@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Customer;
 use App\DebtorEvent;
 use App\Exceptions\DebtorException;
+use App\Http\Requests\SendMassSmsRequest;
 use App\Model\DebtorEventSms;
 use App\Repositories\DebtorEventSmsRepository;
 use App\Repositories\DebtorEventsRepository;
@@ -192,6 +193,9 @@ class DebtorMassSmsController extends BasicController
                     ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
                 return $html;
             }, 1)
+            ->addColumn('DT_RowId', function ($item) {
+                return $item->debtors_id;
+            }, 1)
             ->rawColumns(['links','passports_fact_address_city'])
             ->toJson();
     }
@@ -201,111 +205,35 @@ class DebtorMassSmsController extends BasicController
         DebtorEventSmsRepository $debtorEventSmsRepository,
         DebtorEventsRepository $debtorEventsRepository,
         DebtorSmsService $debtorSmsService,
-        Request $request
+        SendMassSmsRequest $request
     ) {
-        set_time_limit(0);
-        $input = $request->input();
+        $input = $request->validated();
 
-        if (!isset($input['search_field_users@id']) || $input['search_field_users@id'] == '') {
-            return response()->json([
-                'error' => 'Не указан пользователь.'
-            ]);
-        }
-        if (!isset($input['sms_tpl_id']) || $input['sms_tpl_id'] == '') {
-            return response()->json([
-                'error' => 'Не выбран шаблон смс.'
-            ]);
-        }
-        $respUser = User::find($input['search_field_users@id']);
-        if (is_null($respUser)) {
-            return response()->json([
-                'error' => 'Не найден выбранный ответственный.'
-            ]);
-        }
         try {
-            $smsTpl = $debtorSmsRepository->firstById($input['sms_tpl_id']);
+            $sms = $debtorSmsRepository->firstById((int)$input['smsId']);
+            $respUser = User::findOrFail($input['responsibleUserId']);
+
         } catch (\Throwable $exception) {
             return response()->json([
-                'error' => 'Не найден смс шаблон.'
+                'error' => 'Не выбран шаблон смс или не удалось определить ответственного'
             ]);
         }
-        $debtorsCustomers = Debtor::select(['debtors.customer_id_1c', 'debtors.id'])
-            ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
-            ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c');
 
-        $debtorsCustomers->where('responsible_user_id_1c', $respUser->id_1c)->where('is_debtor', 1);
-
-        $overdueFrom = empty($input['overdue_from'] ?? null) ? null : $input['overdue_from'];
-        $overdueTill = empty($input['overdue_till'] ?? null) ? null : $input['overdue_till'];
-        $debtorsCustomers->byQty((int)$overdueFrom, (int)$overdueTill);
-
-        if (isset($input['passports@fact_address_region']) && mb_strlen($input['passports@fact_address_region'])) {
-            $debtorsCustomers->where('passports.fact_address_region', 'like',
-                '%' . $input['passports@fact_address_region'] . '%'
-            );
-        }
-        if (isset($input['search_field_debtors@base']) && mb_strlen($input['search_field_debtors@base'])) {
-            $debtorsCustomers->where('base', $input['search_field_debtors@base']);
-        }
-        if (isset($input['search_field_debt_groups@id']) && mb_strlen($input['search_field_debt_groups@id'])) {
-            $debtorsCustomers->where('debt_group_id', $input['search_field_debt_groups@id']);
-        }
-        if (isset($input['fixation_date']) && mb_strlen($input['fixation_date'])) {
-            $debtorsCustomers->whereBetween('fixation_date', [
-                Carbon::parse($input['fixation_date'])->startOfDay(),
-                Carbon::parse($input['fixation_date'])->endOfDay()
-            ]);
-        }
-        foreach ($input as $k => $v) {
-            if (strpos($k, 'search_field_') === 0 && strpos($k, '_condition') === false && !empty($v)) {
-                $fieldName = str_replace('search_field_', '', $k);
-                $tableName = substr($fieldName, 0, strpos($fieldName, '@'));
-                $colName = substr($fieldName, strlen($tableName) + 1);
-                $condColName = $k . '_condition';
-                $condition = (array_key_exists($condColName, $input)) ? $input[$condColName] : '=';
-                if ($condition == 'like') {
-                    $v = '%' . $v . '%';
-                }
-                $debtorsCustomers->where($tableName . '.' . $colName, $condition, $v);
-            }
-        }
-
-        $debtors = $debtorsCustomers->get();
         $cnt = 0;
-        $arrayParams = [];
-        if ($smsTpl->id === 21 || $smsTpl->id === 45) {
-            foreach ($debtors as $debtor) {
-                $debt = Debtor::find($debtor->id);
-                // проверяем была ли уже такая смс и не нужно ли её заменить на другую
-                if (!$debtorSmsService->hasSmsMustBeSentOnce($debt, $smsTpl->id)) {
-                    $smsTpl = $debtorSmsRepository->firstById(3);
-                    $arrayParams[] = [
-                        'customer_id_1c' => $debtor->customer_id_1c,
-                        'smsText' => str_replace([
-                            '##sms_till_date##',
-                            '##spec_phone##',
-                        ], [
-                            $input['sms_tpl_date'],
-                            $respUser->phone,
-                        ], $smsTpl->text_tpl)
-                    ];
-                }
-            }
-            $debtors = collect($arrayParams);
-        }
-        $debtors = $debtors->groupBy('customer_id_1c');
-
+        $sendCustomers = [];
+        $debtors = Debtor::whereIn('id', $input['debtorsIds'])->get();
         foreach ($debtors as $debtor) {
+
+            if (in_array($debtor->customer_id_1c, $sendCustomers)) {
+                continue;
+            }
+
             try {
                 $this->debtorEventService->checkLimitEventByCustomerId1c($debtor->customer_id_1c);
 
             } catch (DebtorException $e) {
                 Log::error("$e->errorName:", [
-                    'customer' => $debtor->customer_id_1c,
+                    'customer' => $debtor['customer_id_1c'],
                     'file' => __FILE__,
                     'method' => __METHOD__,
                     'line' => __LINE__,
@@ -314,37 +242,48 @@ class DebtorMassSmsController extends BasicController
                 ]);
                 continue;
             }
-            $debt = Debtor::where('customer_id_1c', $debtor->customer_id_1c)
-                ->where('is_debtor', 1)
-                ->first();
-            $phone = $debt->customer->telephone;
-            if (mb_strlen($phone) < 11 || mb_strlen($phone) > 11) {
+            if (!$debtorSmsService->hasSmsMustBeSentOnce($debtor, $sms->id)) {
+                $sms = $debtorSmsRepository->firstById(3);
+            }
+
+            $sms->text_tpl = str_replace([
+                '##sms_till_date##',
+                '##spec_phone##',
+            ], [
+                $input['smsDate'],
+                $respUser->phone,
+            ], $sms->text_tpl);
+            $phone = $debtor->customer->telephone;
+
+            if (mb_strlen($phone) !== 11) {
                 continue;
             }
-            if (isset($phone[0]) && $phone[0] == '8') {
+            if ($phone[0] === '8') {
                 $phone[0] = '7';
             }
 
-            if (SMSer::send($phone, $debtors->smsText)) {
-                // увеличиваем счетчик отправленных пользователем смс
-                $respUser->increaseSentSms();
-                // создаем мероприятие отправки смс
-                $report = $phone . ' SMS: ' . $debtors->smsText;
-                $event = $debtorEventsRepository->createEvent(
-                    $debt,
-                    $respUser,
-                    $report,
-                    DebtorEvent::SMS_EVENT,
-                    0,
-                    22,
-                    1
-                );
-
-                if ($smsTpl->id == 21 || $smsTpl->id == 45) {
-                    $debtorEventSmsRepository->create($event->id, $smsTpl->id, $debt->customer_id_1c, $debt->base);
-                }
-                $cnt++;
+            if (!SMSer::send($phone, $sms->text_tpl)) {
+                continue;
             }
+            // увеличиваем счетчик отправленных пользователем смс
+            $respUser->increaseSentSms();
+            // создаем мероприятие отправки смс
+            $report = $phone . ' SMS: ' . $debtors->smsText;
+            $event = $debtorEventsRepository->createEvent(
+                $debtor,
+                $respUser,
+                $report,
+                DebtorEvent::SMS_EVENT,
+                0,
+                22,
+                1
+            );
+
+            if (in_array($sms->id, [21, 45])) {
+                $debtorEventSmsRepository->create($event->id, $sms->id, $debtor->customer_id_1c, $debtor->base);
+            }
+            $sendCustomers[] =  $debtor->customer_id_1c;
+            $cnt++;
 
         }
         return response()->json([
