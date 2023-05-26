@@ -519,9 +519,6 @@ class DebtorsController extends BasicController
         curl_close($ch);
 
         $dataHasPeaceClaim = json_decode($resultPeace, true);
-
-        $enableRecurrentButton = $this->debtCardService->checkRecurrentButtonEnabled($debtor, $repl_loan->in_cash, $repl_loan->required_money);
-
         $blockProlongation = \App\DebtorBlockProlongation::where('debtor_id', $debtor->id)->orderBy('id', 'desc')
             ->where('block_till_date', '>=', date('Y-m-d', time()) . ' 00:00:00')
             ->first();
@@ -578,7 +575,6 @@ class DebtorsController extends BasicController
             'credit_vacation_data' => $credit_vacation_data,
             'third_people_agreement' => $third_people_agreement,
             'dataHasPeaceClaim' => $dataHasPeaceClaim,
-            'enableRecurrentButton' => $enableRecurrentButton,
             'blockProlongation' => $blockProlongation,
             'arDataCcCard' => $arDataCcCard,
             'whatsApp' => $whatsAppEvent,

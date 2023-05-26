@@ -460,7 +460,7 @@
     $.debtorsCtrl.initDebtorForgottenTable = function () {
         $.debtorsCtrl.debtorforgotten = new TableController('debtorforgotten', [
                 {data: 'links', name: 'links', searchable: false, orderable: false},
-                {data: 'fixation_date', name: 'debtors_fixation_date'},
+                {data: 'fixation_date', name: 'fixation_date'},
                 {data: 'passports_fio', name: 'passports_fio'},
                 {data: 'debtors_username', name: 'debtors_username'},
                 {data: 'str_podr', name: 'str_podr'},

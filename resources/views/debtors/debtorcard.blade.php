@@ -801,7 +801,7 @@
                                     <a href="{{url('adminpanel/tester/solvedebtornoclaim/'.$debtor->id)}}">Подгрузить заявку</a>
                                     <br>
                                 @endif
-                                @if($enableRecurrentButton && !$noRecurrent)
+                                @if(Auth::user()->isChiefSpecialist())
                                     <a href="/debtors/recurrent/query?debtor_id={{$debtor->id}}&amount={{$loanSellingArm->required_money}}" class="btn btn-primary" id="recurrentButton">Списать (безакцепт)</a>
                                 @endif
                             </div>
