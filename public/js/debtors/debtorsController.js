@@ -438,7 +438,7 @@
                 {data: 'debtors_qty_delays', name: 'debtors_qty_delays'},
                 {data: 'debtors_responsible_user_id_1c', name: 'debtors_responsible_user_id_1c'},
                 {data: 'debtors_debt_group_id', name: 'debtors_debt_group_id'},
-                {data: 'debtors_str_podr', name: 'debtors_str_podr'}
+                {data: 'debtors_str_podr', name: 'debtors_str_podr'},
             ],
             {
                 dtData: {
@@ -446,6 +446,7 @@
                     scrollCollapse: false,
                     lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
                 },
+                rowId : 'DT_RowID',
                 clearFilterBtn: $('#debtorMassSmsClearFilterBtn'),
                 filterBtn: $('#debtorMassSmsFilterButton'),
                 filterHolder: $('#debtorMassSmsFilter')
@@ -459,7 +460,7 @@
     $.debtorsCtrl.initDebtorForgottenTable = function () {
         $.debtorsCtrl.debtorforgotten = new TableController('debtorforgotten', [
                 {data: 'links', name: 'links', searchable: false, orderable: false},
-                {data: 'fixation_date', name: 'debtors_fixation_date'},
+                {data: 'fixation_date', name: 'fixation_date'},
                 {data: 'passports_fio', name: 'passports_fio'},
                 {data: 'debtors_username', name: 'debtors_username'},
                 {data: 'str_podr', name: 'str_podr'},

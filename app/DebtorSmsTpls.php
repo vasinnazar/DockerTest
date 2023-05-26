@@ -21,6 +21,7 @@ class DebtorSmsTpls extends Model {
      * @var string
      */
     protected $table = 'debtors.debtor_sms_tpls';
+    public $timestamps = false;
 
     /**
      * The attributes that are mass assignable.

@@ -192,9 +192,8 @@ class DebtorsController extends BasicController
         $arDebtData = config('debtors');
         $whatsAppEvent = true;
         try {
-            foreach ($all_debts as $debt) {
-                $this->debtEventService->checkLimitEvent($debt);
-            }
+            $this->debtEventService->checkLimitEventByCustomerId1c($debtor->customer_id_1c);
+
         } catch (DebtorException $e) {
             Log::error("$e->errorName:", [
                 'customer' => $debtor->customer_id_1c,
@@ -520,9 +519,6 @@ class DebtorsController extends BasicController
         curl_close($ch);
 
         $dataHasPeaceClaim = json_decode($resultPeace, true);
-
-        $enableRecurrentButton = $this->debtCardService->checkRecurrentButtonEnabled($debtor, $repl_loan->in_cash, $repl_loan->required_money);
-
         $blockProlongation = \App\DebtorBlockProlongation::where('debtor_id', $debtor->id)->orderBy('id', 'desc')
             ->where('block_till_date', '>=', date('Y-m-d', time()) . ' 00:00:00')
             ->first();
@@ -579,7 +575,6 @@ class DebtorsController extends BasicController
             'credit_vacation_data' => $credit_vacation_data,
             'third_people_agreement' => $third_people_agreement,
             'dataHasPeaceClaim' => $dataHasPeaceClaim,
-            'enableRecurrentButton' => $enableRecurrentButton,
             'blockProlongation' => $blockProlongation,
             'arDataCcCard' => $arDataCcCard,
             'whatsApp' => $whatsAppEvent,
@@ -1460,10 +1455,7 @@ class DebtorsController extends BasicController
         $sms = DebtorSmsTpls::where('id', $req->sms_id)->first();
         if ($sms && is_null($sms->is_excluded)) {
             try {
-                $debtors = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
-                foreach ($debtors as $debt) {
-                    $this->debtEventService->checkLimitEvent($debt);
-                }
+                $this->debtEventService->checkLimitEventByCustomerId1c($debtor->customer_id_1c);
             } catch (DebtorException $e) {
                 Log::error("$e->errorName:", [
                     'customer' => $debtor->customer_id_1c,

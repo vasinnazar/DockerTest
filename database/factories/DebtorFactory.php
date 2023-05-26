@@ -3,7 +3,6 @@
 use App\Debtor;
 use Faker\Generator as Faker;
 
-/** @var \Illuminate\Database\Eloquent\Factory $factory */
 $factory->defineAs(Debtor::class,'debtor', function (Faker $faker) {
 
     return [

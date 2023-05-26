@@ -18,7 +18,7 @@ class DebtorSmsRepository
 
     public function firstById(int $id): Model
     {
-        return $this->model::query()->findOrFail($id);
+        return $this->model->findOrFail($id);
     }
 
     public function getSms(string $recoveryType, bool $isUbytki = false): Collection

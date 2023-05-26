@@ -1,6 +1,6 @@
 <?php
 
-namespace Unit;
+namespace Services;
 
 use App\Debtor;
 use App\DebtorEvent;

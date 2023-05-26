@@ -1,6 +1,7 @@
 <?php
 
 use App\DebtorEvent;
+use Carbon\Carbon;
 use Faker\Generator as Faker;
 
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
@@ -19,5 +20,19 @@ $factory->define(DebtorEvent::class, function (Faker $faker) {
         'debtor_id' => $faker->randomElement($idsDebtor),
         'user_id' => $faker->randomElement($idsUser),
         'completed' => 0,
+    ];
+});
+$factory->defineAs(DebtorEvent::class,'event_limit',function (Faker $faker){
+
+    return [
+        'event_type_id' => $faker->randomElement([
+                DebtorEvent::SMS_EVENT,
+                DebtorEvent::AUTOINFORMER_OMICRON_EVENT,
+                DebtorEvent::WHATSAPP_EVENT,
+                DebtorEvent::EMAIL_EVENT
+            ]),
+        'report' => $faker->text,
+        'debt_group_id' => $faker->numberBetween(0,69),
+        'event_result_id' => $faker->randomElement([0, 1, 6, 9, 10, 11, 12, 13, 22, 24, 27, 29]),
     ];
 });

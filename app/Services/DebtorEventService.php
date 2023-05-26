@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use phpDocumentor\Reflection\DocBlock\Tags\Throws;
 
 
 class DebtorEventService
@@ -22,62 +23,48 @@ class DebtorEventService
     const LIMIT_PER_MONTH = 16;
 
     /**
-     * @param Debtor $debtor
-     * @param int $typeEvent
-     * @return void
      * @throws DebtorException
      */
-    public function checkLimitEvent(Debtor $debtor)
+    public function checkLimitEventByCustomerId1c(string $customerId1c):void
     {
-        $stringFormatDate = 'Y-m-d H:i:s';
-        $countEventDay = DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
-            ->where('created_at', '>=', Carbon::now()->startOfDay())
-            ->where('created_at', '<=', Carbon::now()->endOfDay())
-            ->whereIn('event_type_id', [
-                DebtorEvent::SMS_EVENT,
-                DebtorEvent::AUTOINFORMER_OMICRON_EVENT,
-                DebtorEvent::WHATSAPP_EVENT,
-                DebtorEvent::EMAIL_EVENT
-            ])
-            ->count();
+        $arrayEventsLimit = [
+            DebtorEvent::SMS_EVENT,
+            DebtorEvent::AUTOINFORMER_OMICRON_EVENT,
+            DebtorEvent::WHATSAPP_EVENT,
+            DebtorEvent::EMAIL_EVENT
+        ];
+        $startDate = Carbon::now()->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+        $countEventDay = $this->getCountEventsByDate($startDate, $endDate, $customerId1c, $arrayEventsLimit);
 
         if ($countEventDay >= DebtorEventService::LIMIT_PER_DAY) {
             throw new DebtorException('limit_per_day');
         }
 
-        $startWeek = Carbon::now()->startOfWeek(Carbon::MONDAY)->format($stringFormatDate);
-        $endWeek = Carbon::now()->endOfWeek(Carbon::SUNDAY)->format($stringFormatDate);
-        $countEventWeek = DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
-            ->where('created_at', '>=', $startWeek)
-            ->where('created_at', '<=', $endWeek)
-            ->whereIn('event_type_id', [
-                DebtorEvent::SMS_EVENT,
-                DebtorEvent::AUTOINFORMER_OMICRON_EVENT,
-                DebtorEvent::WHATSAPP_EVENT,
-                DebtorEvent::EMAIL_EVENT
-            ])
-            ->count();
+        $startWeek = Carbon::now()->startOfWeek();
+        $endWeek = Carbon::now()->endOfWeek();
+        $countEventWeek = $this->getCountEventsByDate($startWeek, $endWeek, $customerId1c, $arrayEventsLimit);
 
         if ($countEventWeek >= DebtorEventService::LIMIT_PER_WEEK) {
             throw new DebtorException('limit_per_week');
         }
-        $startMonth = Carbon::now()->startOfMonth()->format($stringFormatDate);
-        $endMonth = Carbon::now()->endOfMonth()->format($stringFormatDate);
 
-        $countEventMonth = DebtorEvent::where('debtor_id_1c', $debtor->debtor_id_1c)
-            ->where('created_at', '>=', $startMonth)
-            ->where('created_at', '<=', $endMonth)
-            ->whereIn('event_type_id', [
-                DebtorEvent::SMS_EVENT,
-                DebtorEvent::AUTOINFORMER_OMICRON_EVENT,
-                DebtorEvent::WHATSAPP_EVENT,
-                DebtorEvent::EMAIL_EVENT
-            ])
-            ->count();
+        $startMonth = Carbon::now()->startOfMonth();
+        $endMonth = Carbon::now()->endOfMonth();
+        $countEventMonth = $this->getCountEventsByDate($startMonth, $endMonth, $customerId1c, $arrayEventsLimit);
 
         if ($countEventMonth >= DebtorEventService::LIMIT_PER_MONTH) {
             throw new DebtorException('limit_per_month');
         }
+    }
+
+    public function getCountEventsByDate(Carbon $startDate, Carbon $endDate, string $customerId1c, array $eventsType)
+    {
+        return DebtorEvent::where('customer_id_1c', $customerId1c)
+            ->where('created_at', '>=', $startDate)
+            ->where('created_at', '<=', $endDate)
+            ->whereIn('event_type_id', $eventsType)
+            ->count();
     }
 
     public function getPlannedForUser($user, $firstDate, $daysNum = 10)

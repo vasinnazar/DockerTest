@@ -25,4 +25,14 @@ class DebtorEventSmsRepository
             ->latest()
             ->first();
     }
+
+    public function create(int $eventId,int $smsId,string $customerId1c,string $debtorBase): DebtorEventSms
+    {
+        return DebtorEventSms::create([
+            'event_id' => $eventId,
+            'sms_id' => $smsId,
+            'customer_id_1c' => $customerId1c,
+            'debtor_base' => $debtorBase
+        ]);
+    }
 }

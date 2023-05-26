@@ -104,4 +104,16 @@ class Customer extends Model {
         return ['customer' => $customer, 'passport' => $passport];
     }
 
+    public function getPhone(): ?string
+    {
+        if ($this->telephone && mb_strlen($this->telephone) === 11) {
+            $phone = $this->telephone;
+            if ($phone[0] !== '7') {
+                $phone[0] = '7';
+            }
+            return $phone;
+        }
+        return null;
+    }
+
 }
