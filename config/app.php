@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'dev'=>0,
+    'dev'=>env('APP_DEBUG',true),
     'centos'=>1,
     'version_type'=>'debtors',
     /*
