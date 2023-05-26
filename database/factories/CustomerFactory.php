@@ -7,7 +7,7 @@ use Faker\Factory as Faker;
 $factory->define(Customer::class, function () {
     $faker = Faker::create('ru_RU');
     return [
-        'telephone' => $faker->phoneNumber,
+        'telephone' => $faker->e164PhoneNumber,
         'id_1c' => $faker->swiftBicNumber,
         'balance' => 0,
     ];

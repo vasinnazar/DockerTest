@@ -253,13 +253,10 @@ class DebtorMassSmsController extends BasicController
                 $input['smsDate'],
                 $respUser->phone,
             ], $sms->text_tpl);
-            $phone = $debtor->customer->telephone;
+            $phone = $debtor->customer->getPhone();
 
-            if (mb_strlen($phone) !== 11) {
+            if (!$phone) {
                 continue;
-            }
-            if ($phone[0] === '8') {
-                $phone[0] = '7';
             }
 
             if (!SMSer::send($phone, $sms->text_tpl)) {
@@ -268,7 +265,7 @@ class DebtorMassSmsController extends BasicController
             // увеличиваем счетчик отправленных пользователем смс
             $respUser->increaseSentSms();
             // создаем мероприятие отправки смс
-            $report = $phone . ' SMS: ' . $debtors->smsText;
+            $report = $phone . ' SMS: ' . $sms->text_tpl;
             $event = $debtorEventsRepository->createEvent(
                 $debtor,
                 $respUser,
