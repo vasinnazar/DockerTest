@@ -549,6 +549,9 @@ class DebtorsController extends BasicController
         }catch (\Throwable $exception) {
             $noRecurrent = false;
         }
+        $enableRecurrentButton = $this
+            ->debtCardService
+            ->checkRecurrentButtonEnabled($debtor, $repl_loan->in_cash, $repl_loan->required_money);
 
         return view('debtors.debtorcard', [
             'user' => $user,
@@ -579,6 +582,7 @@ class DebtorsController extends BasicController
             'arDataCcCard' => $arDataCcCard,
             'whatsApp' => $whatsAppEvent,
             'noRecurrent' => $noRecurrent,
+            'enableRecurrentButton' => $enableRecurrentButton,
         ]);
     }
 
