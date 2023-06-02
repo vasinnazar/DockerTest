@@ -27,8 +27,8 @@ class DebtorEventsRepository
         string $report,
         int $eventTypeId,
         int $overdueReasonId,
-        int $eventResultId,
-        int $completed
+        int $eventResultId = null,
+        int $completed = 0
     ): DebtorEvent {
 
         return DebtorEvent::create([

@@ -17,34 +17,30 @@ class PassportsUpdateTimeZone extends Command
      *
      * @var string
      */
-    protected $description = 'обновление тайм зоны по региону';
+    protected $description = 'обновление тайм-зоны по региону';
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
+
     public function handle()
     {
-        try {
-            $timezones = DebtorRegionTimezone::get();
-            foreach ($timezones as $tz) {
+        $timezones = DebtorRegionTimezone::get();
+        foreach ($timezones as $tz) {
+            try {
                 if ($tz->id == 65) {
                     Passport::where('fact_address_region', 'like', $tz->root_word . '%')
                         ->where('fact_timezone', '!=', $tz->timezone)
+                        ->orWhereNull('fact_timezone')
                         ->update(['fact_timezone' => $tz->timezone]);
                     continue;
                 }
-
                 Passport::where('fact_address_region', 'like', '%' . $tz->root_word . '%')
                     ->where('fact_timezone', '!=', $tz->timezone)
+                    ->orWhereNull('fact_timezone')
                     ->update(['fact_timezone' => $tz->timezone]);
+
+            } catch (Throwable $exception) {
+                Log::error('Error update timezone : ' . $exception->getMessage());
             }
-        } catch (Throwable $exception) {
-            Log::error('Error update timezone : ' . $exception->getMessage());
-            return false;
         }
-        return true;
     }
 
 }

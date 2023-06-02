@@ -7,7 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class Message extends BasicModel {
 
     protected $table = 'messages';
-    protected $fillable = ['text', 'caption', 'type'];
+    protected $fillable = [
+        'text',
+        'caption',
+        'type',
+        'user_id',
+        'recepient_id',
+        'message_type'
+    ];
 
     public function user() {
         $this->belongsTo('App\User');

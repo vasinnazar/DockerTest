@@ -2,6 +2,7 @@
 
 namespace Services;
 
+
 use App\Debtor;
 use App\DebtorEvent;
 use App\Model\DebtorsForgotten;
@@ -26,18 +27,18 @@ class DebtorForgottenTest extends TestCase
             'role_id' => $role->id,
         ]);
 
-        $debtors = factory(Debtor::class, 'debtor_forgotten')->create([
+        $debtor = factory(Debtor::class, 'debtor_forgotten')->create([
             'str_podr' => $user->isDebtorsPersonal() ? '000000000007' : '000000000006',
             'responsible_user_id_1c' => $user->id_1c
         ]);
 
         DebtorsForgotten::create([
-            'debtor_id'=> $debtors->first()->id,
+            'debtor_id'=> $debtor->id,
             'forgotten_date' => Carbon::now()
         ]);
         $result = app(DebtorService::class)->getForgottenById1c($user, $user->id_1c);
         $this->assertCount(1, $result);
-        $this->assertEquals($debtors->first()->id, $result->first()->id);
+        $this->assertEquals($debtor->id, $result->first()->id);
     }
 
     public function test_debtors_are_marked_forgotten()
