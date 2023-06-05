@@ -352,7 +352,7 @@
                                                 <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                             </button>
                                             @if($whatsApp)
-                                                <a href="https://wa.me/{{$debtor->customer->telephone}}"
+                                                <a href="https://web.whatsapp.com/send/?phone={{$debtor->customer->telephone}}"
                                                    class="btn btn-default btn-xs" target="_blank">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"
                                                          fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
