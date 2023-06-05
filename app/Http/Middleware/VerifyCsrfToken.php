@@ -8,6 +8,9 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as LaravelsVerifyCsrfT
 
 class VerifyCsrfToken extends LaravelsVerifyCsrfToken {
     private $openRoutes = [
+        'api/debtors/msg/on-subdivision',
+        'api/debtors/onsite',
+        'api/debtors/events/without-accept',
         '1c/users/add',
         '1c/claims/update',
         '1c/claims/update/status',
@@ -49,8 +52,6 @@ class VerifyCsrfToken extends LaravelsVerifyCsrfToken {
         'debtors/getResponsibleUser',
         'debtors/events/from1c',
         'debtors/loan/closing',
-        'debtors/msg/debtoronsubdivision',
-        'debtors/onsite',
         'finterra/claim/create',
         'finterra/loan/create',
         'finterra/asp/secret',
