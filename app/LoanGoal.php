@@ -8,4 +8,5 @@ class LoanGoal extends Model {
     protected $table = 'loan_goals';
     protected $id;
     protected $name;
+    public $timestamps = false;
 }

@@ -14,6 +14,7 @@ class DebtGroup extends Model
 
     protected $table = 'debtors.debt_groups';
     protected $fillable = ['name'];
+    public $timestamps = false;
 
     /**
      * Возвращает массив всех групп должников

@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
         factory(\App\Passport::class,15)->create();
         factory(\App\Order::class,15)->create();
         factory(\App\Claim::class,15)->create();
-        factory(\App\Debtor::class,10)->create();
+        factory(\App\Debtor::class, 'debtor', 10)->create();
         factory(\App\DebtorEvent::class,100)->create();
     }
 

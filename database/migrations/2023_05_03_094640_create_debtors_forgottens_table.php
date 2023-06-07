@@ -10,7 +10,7 @@ class CreateDebtorsForgottensTable extends Migration
     {
         Schema::create('debtors_forgottens', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('debtor_id');
+            $table->unsignedInteger('debtor_id');
             $table->dateTime('forgotten_date');
             $table->foreign('debtor_id')->references('id')->on('debtors');
             $table->softDeletes();
