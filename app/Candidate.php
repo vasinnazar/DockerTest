@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class Candidate extends Model {
 
-    protected $table = 'debtors.candidate_list';
+    protected $table = 'candidate_list';
     protected $fillable = ['id', 'fio', 'city', 'tel_candidate', 'call_date', 'interview_date', 'reach', 'interview_result', 'decision', 'approval_date', 'comment', 'training', 'result', 'region', 'mentor', 'headman', 'responsible','comment_ruk'];
 		
 	public static function getReach() {

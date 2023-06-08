@@ -8,7 +8,7 @@ use Auth;
 
 class DebtorsLossBase extends Model
 {
-    protected $table = 'debtors.debtors_loss_base';
+    protected $table = 'debtors_loss_base';
     protected $fillable = ['debtor_id_1c', 'is_loaded'];
     
     /**

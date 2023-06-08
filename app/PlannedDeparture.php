@@ -10,7 +10,7 @@ use App\StrUtils;
 
 class PlannedDeparture extends Model {
 
-    protected $table = 'debtors.planned_departures';
+    protected $table = 'planned_departures';
     protected $fillable = ['created_at', 'debtor_id'];
     
     /**

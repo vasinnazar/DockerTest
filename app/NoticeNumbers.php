@@ -8,7 +8,7 @@ use Auth;
 
 class NoticeNumbers extends Model
 {
-    protected $table = 'debtors.notice_numbers';
+    protected $table = 'notice_numbers';
     protected $fillable = ['date_sent', 'debtor_id_1c', 'customer_id_1c', 'loan_id_1c', 'str_podr', 'user_id_1c', 'is_ur_address'];
     
     /**

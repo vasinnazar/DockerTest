@@ -46,7 +46,7 @@ class DebtorEvent extends Model
     const WHATSAPP_EVENT = 23;
     const EMAIL_EVENT = 24;
 
-    protected $table = 'debtors.debtor_events';
+    protected $table = 'debtor_events';
     protected $fillable = [
         'date',
         'created_at',

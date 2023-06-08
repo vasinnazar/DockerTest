@@ -7,7 +7,7 @@ use Auth;
 
 class DebtorsSiteLoginLog extends Model
 {
-    protected $table = 'debtors.debtors_site_login_log';
+    protected $table = 'debtors_site_login_log';
     protected $fillable = [
         'customer_id_1c',
         'str_podr',

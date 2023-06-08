@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class UnfindCustomersPassports extends Model {
 
-    protected $table = 'debtors.unfind_customers_passports';
+    protected $table = 'unfind_customers_passports';
     protected $fillable = ['series', 'number', 'fio'];
 
 }

@@ -10,7 +10,7 @@ use App\StrUtils;
 
 class DebtorGeocode extends Model {
 
-    protected $table = 'debtors.debtors_geocodes';
+    protected $table = 'debtors_geocodes';
     protected $fillable = ['debtor_id', 'geocode'];
     
     /**

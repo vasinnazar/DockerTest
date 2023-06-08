@@ -12,7 +12,7 @@ class UsersRegions extends Model {
      *
      * @var string
      */
-    protected $table = 'debtors.users_regions';
+    protected $table = 'users_regions';
 
     /**
      * The attributes that are mass assignable.

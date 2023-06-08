@@ -9,7 +9,7 @@ use Config;
 
 class DebtorNotice extends Model {
 
-    protected $table = 'debtors.debtors_notices';
+    protected $table = 'debtors_notices';
     protected $fillable = ['struct_subdivision', 'in_progress', 'completed'];
     
 }

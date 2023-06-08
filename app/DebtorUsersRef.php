@@ -13,7 +13,7 @@ class DebtorUsersRef extends Model {
      *
      * @var string
      */
-    protected $table = 'debtors.debtor_users_ref';
+    protected $table = 'debtor_users_ref';
 
     /**
      * The attributes that are mass assignable.
