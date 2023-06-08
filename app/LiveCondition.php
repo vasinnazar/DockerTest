@@ -9,6 +9,7 @@ class LiveCondition extends Model {
     protected $table = 'live_conditions';
     protected $id;
     protected $name;
+    public $timestamps = false;
 
 //    public function zhusl() {
 //        return $this->morphTo('zhusl','id');

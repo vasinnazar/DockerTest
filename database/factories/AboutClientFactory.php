@@ -9,6 +9,7 @@ $factory->define(about_client::class, function () {
     $idsCustomer = \App\Customer::all()->pluck('id')->toArray();
     $idAdsource = \App\AdSource::all()->pluck('id')->toArray();
     $idsEducation = \App\EducationLevel::all()->pluck('id')->toArray();
+
     return [
         'customer_id' => $faker->randomElement($idsCustomer),
         'sex' => $faker->numberBetween(0, 10),
@@ -43,10 +44,8 @@ $factory->define(about_client::class, function () {
         'other' => $faker->numberBetween(0, 1),
         'watch' => $faker->numberBetween(0, 1),
         'anothertelephone' => $faker->phoneNumber,
-        'marital_type_id' => $faker->numberBetween(1 ,5),
+        'marital_type_id' => $faker->numberBetween(1, 5),
         'dohod_husband' => $faker->phoneNumber,
         'pension' => $faker->phoneNumber,
-
-
     ];
 });
