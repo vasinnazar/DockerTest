@@ -15,4 +15,9 @@ return [
         'message' => 'Превышен лимит за месяц',
         'code' => 400
     ],
+    'synchronize_exception'=> [
+        'id' => 3,
+        'message' => 'Ошибка синхронизации должника',
+        'code' => 400
+    ],
 ];
