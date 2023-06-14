@@ -17,3 +17,4 @@ yarn-error.log
 deploy-config.yml
 /.build/
 laravel-echo-server.lock
+/.env.testing

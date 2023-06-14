@@ -31,10 +31,27 @@
                         <br><br>
                         <div class="collapse" id="userPaymentsModalUsers">
                             <div class="list-group">
-                                @foreach($user->subordinatedUsers->sortBy('login') as $subordinated)
                                 <li class='list-group-item'>
-                                    <label><input name='debtor_id_1c[]' class="{{($subordinated->user_group_id == '1541') ? 'remote_user' : ''}}" type='checkbox' value="{{$subordinated->id}}" @if($subordinated->id == auth()->user()->id) checked @endif /> {{$subordinated->name}}</label>
+                                    <label>
+                                        <input name='debtor_id_1c[]'
+                                               class="{{(auth()->user()->user_group_id == '1541') ? 'remote_user' : ''}}"
+                                               type='checkbox'
+                                               value="{{auth()->user()->id}}"
+                                        />
+                                        {{auth()->user()->name}}
+                                    </label>
                                 </li>
+                                @foreach($user->subordinatedUsers->sortBy('login') as $subordinated)
+                                    <li class='list-group-item'>
+                                        <label>
+                                            <input name='debtor_id_1c[]'
+                                                   class="{{($subordinated->user_group_id == '1541') ? 'remote_user' : ''}}"
+                                                   type='checkbox'
+                                                   value="{{$subordinated->id}}"
+                                            />
+                                            {{$subordinated->name}}
+                                        </label>
+                                    </li>
                                 @endforeach
                             </div>
                         </div>
