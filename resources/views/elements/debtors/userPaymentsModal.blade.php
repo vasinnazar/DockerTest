@@ -9,7 +9,6 @@
                 <div class="row">
                     <div class="col-xs-12">
                         {!!Form::open(['class'=>'form-inline','id'=>'userPaymentsForm'])!!}
-                        <input name="debtor_id_1c[]" value="{{ auth()->user()->id }}">
                         <div class='input-group'>
                             <span class='input-group-addon'>Начало периода</span>
                             <input class='form-control' type='date' name='start_date' value='{{\Carbon\Carbon::now()->format('Y-m-d')}}' />
@@ -33,7 +32,7 @@
                             <div class="list-group">
                                 <li class='list-group-item'>
                                     <label>
-                                        <input name='debtor_id_1c[]'
+                                        <input name='user_id[]'
                                                class="{{(auth()->user()->user_group_id == '1541') ? 'remote_user' : ''}}"
                                                type='checkbox'
                                                value="{{auth()->user()->id}}"
@@ -44,7 +43,7 @@
                                 @foreach($user->subordinatedUsers->sortBy('login') as $subordinated)
                                     <li class='list-group-item'>
                                         <label>
-                                            <input name='debtor_id_1c[]'
+                                            <input name='user_id[]'
                                                    class="{{($subordinated->user_group_id == '1541') ? 'remote_user' : ''}}"
                                                    type='checkbox'
                                                    value="{{$subordinated->id}}"
