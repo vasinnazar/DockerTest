@@ -177,7 +177,7 @@ class DebtorsReportsController extends BasicController {
         return $res;
     }
 
-    public function getPaymentsForUser(ReportsService $reportsService, PaymentUserRequest $req): array
+    public function getPaymentsForUser(ReportsService $reportsService, PaymentUserRequest $req)
     {
         $request = $req->validated();
         $startDate = Carbon::parse($request['start_date']);
@@ -185,7 +185,7 @@ class DebtorsReportsController extends BasicController {
         if ($startDate->month !== $endDate->month || $endDate->lt($startDate)) {
             return ['result' => 0];
         }
-        return $reportsService->getPaymentsForUsers($startDate, $endDate, $request['user_id']);
+        return response()->json($reportsService->getPaymentsForUsers($startDate, $endDate, $request['user_id']));
     }
 
     public function jobsDoneAct(Request $req) {
