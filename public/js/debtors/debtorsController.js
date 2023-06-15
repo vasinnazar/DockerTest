@@ -288,7 +288,7 @@
         var holder = $('#userPaymentsHolder tbody');
         $.app.blockScreen(true);
         let data = $('#userPaymentsForm').serialize();
-        $.get($.app.url + '/ajax/debtors/userpayments', data).done(function (data) {
+        $.post($.app.url + '/ajax/debtors/userpayments', data).done(function (data) {
             console.log(data)
             var html = '';
             var totalMoney = 0;
