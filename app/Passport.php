@@ -8,12 +8,36 @@ use Carbon\Carbon;
 class Passport extends Model {
 
     protected $table = 'passports';
-    protected $fillable = ['customer_id', 'birth_date', 'birth_city', 'series', 'number', 'issued',
-        'issued_date', 'subdivision_code', 'address_reg_date',
-        'zip', 'address_region', 'address_district', 'address_city', 'address_city1', 'address_street',
-        'address_house', 'address_building', 'address_apartment',
-        'fact_zip', 'fact_address_region', 'fact_address_district', 'fact_address_city', 'fact_address_city1',
-        'fact_address_street', 'fact_address_house', 'fact_address_building', 'fact_address_apartment', 'fio'];
+    protected $fillable = [
+        'customer_id',
+        'birth_date',
+        'birth_city',
+        'series',
+        'number',
+        'issued',
+        'issued_date',
+        'subdivision_code',
+        'address_reg_date',
+        'zip',
+        'address_region',
+        'address_district',
+        'address_city',
+        'address_city1',
+        'address_street',
+        'address_house',
+        'address_building',
+        'address_apartment',
+        'fact_zip',
+        'fact_address_region',
+        'fact_address_district',
+        'fact_address_city',
+        'fact_address_city1',
+        'fact_address_street',
+        'fact_address_house',
+        'fact_address_building',
+        'fact_address_apartment',
+        'fio'
+    ];
 
     public function customer() {
         return $this->belongsTo('App\Customer', 'customer_id');

@@ -153,9 +153,19 @@ class DebtorsController extends BasicController
         int $debtor_id
     )
     {
+
         $user = Auth::user();
         $debtor = Debtor::find($debtor_id);
-        $synchronize->synchronizeDebtor($debtor);
+
+        try {
+            $synchronize->synchronizeDebtor($debtor);
+        }catch (\Throwable $exception){
+            Log::error('Critical error update debtors', [
+                'customerId1c' => $debtor->customer_id_1c,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+
 
         // проверяем был ли пропущенный звонок от должника и если был - удаляем запись
         $loss_call = \App\DebtorsLossCalls::where('debtor_id_1c', $debtor->debtor_id_1c)->first();
@@ -165,7 +175,7 @@ class DebtorsController extends BasicController
         }
         // если у должника есть уведомление (при условии, если открыл не админ)
         if (!$user->isAdmin()) {
-            $messageService->deleteMessageIfExist($user,$debtor->loan_id_1c);
+            $messageService->deleteMessageIfExist($user, $debtor->loan_id_1c);
         }
         // получаем данные об ответственном
         $responsibleUser = User::where('id_1c', $debtor->responsible_user_id_1c)->first();

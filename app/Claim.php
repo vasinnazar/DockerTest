@@ -50,7 +50,33 @@ class Claim extends Model {
     //добавил статус здесь - добавь в getStatusName
 
     protected $table = 'claims';
-    protected $fillable = ['customer_id', 'srok', 'summa', 'date', 'comment', 'status', 'seb_phone', 'terminal_guid', 'terminal_loantype_id', 'special_percent', 'max_money', 'uki', 'timestart', 'id_teleport', 'agrid', 'scorista_status', 'scorista_decision', 'teleport_status'];
+    protected $fillable = [
+        'customer_id' ,
+        'srok',
+        'summa',
+        'date',
+        'comment',
+        'user_id',
+        'status',
+        'passport_id',
+        'about_client_id',
+        'subdivision_id',
+        'id_1c',
+        'promocode_id',
+        'seb_phone',
+        'special_percent',
+        'claimed_for_remove',
+        'max_money',
+        'terminal_loantype_id',
+        'terminal_guid',
+        'uki',
+        'timestart',
+        'id_teleport',
+        'agrid',
+        'scorista_status',
+        'scorista_decision',
+        'teleport_status',
+    ];
     protected $dates = ['deleted_at'];
 
     public function customer() {

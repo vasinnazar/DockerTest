@@ -15,8 +15,6 @@ use App\LoanType;
 use App\Passport;
 use App\Subdivision;
 use App\User;
-use Exception;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -34,26 +32,33 @@ class SynchronizeService
         if ($debtor->passport && $debtor->loan) {
             return true;
         }
-        $loanArm = $this->armClient->getLoanById1c($debtor->loan_id_1c);
-        $customerArm = $this->armClient->getCustomerById($loanArm->claim->customer_id);
+        $loanArm = $this->armClient->getLoanById1c($debtor->loan_id_1c)->first();
+        if (empty($loanArm)) {
+            throw new DebtorException('synchronize_exception', 'Не удалось получить информацию');
+        }
+        $infoArm = $this->armClient->getCustomerById($loanArm->claim->customer_id);
+        if (empty($infoArm)) {
+            throw new DebtorException('synchronize_exception', 'Не удалось получить информацию');
+        }
 
         DB::beginTransaction();
         $customer = Customer::where('id_1c', $debtor->customer_id_1c)->first();
 
-        if ($customer->telephone !== $customerArm->telephone) {
-            $customer->telephone = $customerArm->telephone;
+        if ($customer->telephone !== $infoArm['customer']->telephone) {
+            $customer->telephone = $infoArm['customer']->telephone;
             $customer->save();
         }
 
         try {
-            $aboutClient = $this->updateOrCreateAboutClient($debtor, $customerArm);
-            $passport = $this->updateOrCreatePassport($debtor, $customerArm);
-            $claim = $this->updateOrCreateClaim($debtor, $customerArm, $passport->id, $aboutClient->id);
+            $aboutClient = $this->updateOrCreateAboutClient($debtor, $infoArm);
+            $passport = $this->updateOrCreatePassport($debtor, $infoArm);
+            $claim = $this->updateOrCreateClaim($debtor, $loanArm, $passport->id, $aboutClient->id);
             $loan = $this->updateOrCreateLoan($debtor, $loanArm, $claim);
         } catch (\Throwable $exception) {
             Log::error('Critical error update debtors', [
                 'customerId1c' => $debtor->customer_id_1c,
-                'message' => $exception->getMessage()
+                'message' => $exception->getMessage(),
+                'line' => $exception->getLine()
             ]);
             DB::rollBack();
             return false;
@@ -62,126 +67,124 @@ class SynchronizeService
         return true;
     }
 
-    private function updateOrCreateAboutClient(Debtor $debtor, Collection $customerArmSales)
+    private function updateOrCreateAboutClient(Debtor $debtor, $infoCustomerArmSales)
     {
         return about_client::updateOrCreate([
             'customer_id' => $debtor->customer->id
         ], [
             'customer_id' => $debtor->customer->id,
-            'sex' => $customerArmSales->about->sex,
-            'goal' => $customerArmSales->about->goal,
-            'zhusl' => $customerArmSales->about->zhusl,
-            'deti' => $customerArmSales->about->deti,
-            'fiosuprugi' => $customerArmSales->about->fiosuprugi,
-            'fioizmena' => $customerArmSales->about->fioizmena,
-            'avto' => $customerArmSales->about->avto,
-            'telephonehome' => $customerArmSales->about->telephonehome,
-            'organizacia' => $customerArmSales->about->organizacia,
-            'innorganizacia' => $customerArmSales->about->innorganizacia,
-            'dolznost' => $customerArmSales->about->dolznost,
-            'vidtruda' => $customerArmSales->about->vidtruda,
-            'fiorukovoditel' => $customerArmSales->about->fiorukovoditel,
-            'adresorganiz' => $customerArmSales->about->adresorganiz,
-            'telephoneorganiz' => $customerArmSales->about->telephoneorganiz,
-            'credit' => $customerArmSales->about->credit,
-            'dohod' => $customerArmSales->about->dohod,
-            'dopdohod' => $customerArmSales->about->dopdohod,
-            'stazlet' => $customerArmSales->about->stazlet,
-            'adsource' => $customerArmSales->about->adsource,
-            'pensionnoeudost' => $customerArmSales->about->pensionnoeudost,
-            'telephonerodstv' => $customerArmSales->about->telephonerodstv,
-            'obrasovanie' => $customerArmSales->about->obrasovanie,
-            'pensioner' => $customerArmSales->about->pensioner,
-            'postclient' => $customerArmSales->about->postclient,
-            'armia' => $customerArmSales->about->armia,
-            'poruchitelstvo' => $customerArmSales->about->poruchitelstvo,
-            'zarplatcard' => $customerArmSales->about->zarplatcard,
-            'alco' => $customerArmSales->about->alco,
-            'drugs' => $customerArmSales->about->drugs,
-            'stupid' => $customerArmSales->about->stupid,
-            'badspeak' => $customerArmSales->about->badspeak,
-            'pressure' => $customerArmSales->about->pressure,
-            'dirty' => $customerArmSales->about->dirty,
-            'smell' => $customerArmSales->about->smell,
-            'badbehaviour' => $customerArmSales->about->badbehaviour,
-            'soldier' => $customerArmSales->about->soldier,
-            'other' => $customerArmSales->about->other,
-            'watch' => $customerArmSales->about->watch,
-            'stepenrodstv' => $customerArmSales->about->stepenrodstv,
-            'anothertelephone' => $customerArmSales->about->anothertelephone,
-            'marital_type_id' => $customerArmSales->about->marital_type_id,
-            'recomend_phone_1' => $customerArmSales->about->recomend_phone_1,
-            'recomend_phone_2' => $customerArmSales->about->recomend_phone_2,
-            'recomend_phone_3' => $customerArmSales->about->recomend_phone_3,
-            'recomend_fio_1' => $customerArmSales->about->recomend_fio_1,
-            'recomend_fio_2' => $customerArmSales->about->recomend_fio_2,
-            'recomend_fio_3' => $customerArmSales->about->recomend_fio_3,
-            'other_mfo' => $customerArmSales->about->other_mfo,
-            'other_mfo_why' => $customerArmSales->about->other_mfo_why,
-            'email' => $customerArmSales->about->email,
-            'dohod_husband' => $customerArmSales->about->dohod_husband,
-            'pension' => $customerArmSales->about->pension,
+            'sex' => $infoCustomerArmSales['about']->sex,
+            'goal' => $infoCustomerArmSales['about']->goal,
+            'zhusl' => $infoCustomerArmSales['about']->zhusl,
+            'deti' => $infoCustomerArmSales['about']->deti,
+            'fiosuprugi' => $infoCustomerArmSales['about']->fiosuprugi,
+            'fioizmena' => $infoCustomerArmSales['about']->fioizmena,
+            'avto' => $infoCustomerArmSales['about']->avto,
+            'telephonehome' => $infoCustomerArmSales['about']->telephonehome,
+            'organizacia' => $infoCustomerArmSales['about']->organizacia,
+            'innorganizacia' => $infoCustomerArmSales['about']->innorganizacia,
+            'dolznost' => $infoCustomerArmSales['about']->dolznost,
+            'vidtruda' => $infoCustomerArmSales['about']->vidtruda,
+            'fiorukovoditel' => $infoCustomerArmSales['about']->fiorukovoditel,
+            'adresorganiz' => $infoCustomerArmSales['about']->adresorganiz,
+            'telephoneorganiz' => $infoCustomerArmSales['about']->telephoneorganiz,
+            'credit' => $infoCustomerArmSales['about']->credit,
+            'dohod' => $infoCustomerArmSales['about']->dohod,
+            'dopdohod' => $infoCustomerArmSales['about']->dopdohod,
+            'stazlet' => $infoCustomerArmSales['about']->stazlet,
+            'adsource' => $infoCustomerArmSales['about']->adsource,
+            'pensionnoeudost' => $infoCustomerArmSales['about']->pensionnoeudost,
+            'telephonerodstv' => $infoCustomerArmSales['about']->telephonerodstv,
+            'obrasovanie' => $infoCustomerArmSales['about']->obrasovanie,
+            'pensioner' => $infoCustomerArmSales['about']->pensioner,
+            'postclient' => $infoCustomerArmSales['about']->postclient,
+            'armia' => $infoCustomerArmSales['about']->armia,
+            'poruchitelstvo' => $infoCustomerArmSales['about']->poruchitelstvo,
+            'zarplatcard' => $infoCustomerArmSales['about']->zarplatcard,
+            'alco' => $infoCustomerArmSales['about']->alco,
+            'drugs' => $infoCustomerArmSales['about']->drugs,
+            'stupid' => $infoCustomerArmSales['about']->stupid,
+            'badspeak' => $infoCustomerArmSales['about']->badspeak,
+            'pressure' => $infoCustomerArmSales['about']->pressure,
+            'dirty' => $infoCustomerArmSales['about']->dirty,
+            'smell' => $infoCustomerArmSales['about']->smell,
+            'badbehaviour' => $infoCustomerArmSales['about']->badbehaviour,
+            'soldier' => $infoCustomerArmSales['about']->soldier,
+            'other' => $infoCustomerArmSales['about']->other,
+            'watch' => $infoCustomerArmSales['about']->watch,
+            'stepenrodstv' => $infoCustomerArmSales['about']->stepenrodstv,
+            'anothertelephone' => $infoCustomerArmSales['about']->anothertelephone,
+            'marital_type_id' => $infoCustomerArmSales['about']->marital_type_id,
+            'recomend_phone_1' => $infoCustomerArmSales['about']->recomend_phone_1,
+            'recomend_phone_2' => $infoCustomerArmSales['about']->recomend_phone_2,
+            'recomend_phone_3' => $infoCustomerArmSales['about']->recomend_phone_3,
+            'recomend_fio_1' => $infoCustomerArmSales['about']->recomend_fio_1,
+            'recomend_fio_2' => $infoCustomerArmSales['about']->recomend_fio_2,
+            'recomend_fio_3' => $infoCustomerArmSales['about']->recomend_fio_3,
+            'other_mfo' => $infoCustomerArmSales['about']->other_mfo,
+            'other_mfo_why' => $infoCustomerArmSales['about']->other_mfo_why,
+            'email' => $infoCustomerArmSales['about']->email,
+            'dohod_husband' => $infoCustomerArmSales['about']->dohod_husband,
+            'pension' => $infoCustomerArmSales['about']->pension,
         ]);
     }
 
-    private function updateOrCreatePassport(Debtor $debtor, Collection $customerArmSales)
+    private function updateOrCreatePassport(Debtor $debtor, $infoCustomerArmSales)
     {
         return Passport::updateOrCreate([
             'series' => $debtor->passport_series,
             'number' => $debtor->passport_number,
         ], [
-            'birth_date' => $customerArmSales->passport->birth_date,
-            'birth_city' => $customerArmSales->passport->birth_city,
-            'series' => $customerArmSales->passport->series,
-            'number' => $customerArmSales->passport->number,
-            'issued' => $customerArmSales->passport->issued,
-            'issued_date' => $customerArmSales->passport->issued_date,
-            'subdivision_code' => $customerArmSales->passport->subdivision_code,
-            'zip' => $customerArmSales->passport->zip,
-            'fact_zip' => $customerArmSales->passport->fact_zip,
-            'address_region' => $customerArmSales->passport->address_region,
-            'address_district' => $customerArmSales->passport->address_district,
-            'address_city' => $customerArmSales->passport->address_city,
-            'address_street' => $customerArmSales->passport->address_street,
-            'address_house' => $customerArmSales->passport->address_house,
-            'address_building' => $customerArmSales->passport->address_building,
-            'address_apartment' => $customerArmSales->passport->address_apartment,
-            'address_reg_date' => $customerArmSales->passport->address_reg_date,
-            'fact_address_region' => $customerArmSales->passport->fact_address_region,
-            'fact_address_district' => $customerArmSales->passport->fact_address_district,
-            'fact_address_city' => $customerArmSales->passport->fact_address_city,
-            'fact_address_street' => $customerArmSales->passport->fact_address_street,
-            'fact_address_house' => $customerArmSales->passport->fact_address_house,
-            'fact_address_building' => $customerArmSales->passport->fact_address_building,
-            'fact_address_apartment' => $customerArmSales->passport->fact_address_apartment,
+            'birth_date' => $infoCustomerArmSales['passport']->birth_date,
+            'birth_city' => $infoCustomerArmSales['passport']->birth_city,
+            'series' => $infoCustomerArmSales['passport']->series,
+            'number' => $infoCustomerArmSales['passport']->number,
+            'issued' => $infoCustomerArmSales['passport']->issued,
+            'issued_date' => $infoCustomerArmSales['passport']->issued_date,
+            'subdivision_code' => $infoCustomerArmSales['passport']->subdivision_code,
+            'zip' => $infoCustomerArmSales['passport']->zip,
+            'fact_zip' => $infoCustomerArmSales['passport']->fact_zip,
+            'address_region' => $infoCustomerArmSales['passport']->address_region,
+            'address_district' => $infoCustomerArmSales['passport']->address_district,
+            'address_city' => $infoCustomerArmSales['passport']->address_city,
+            'address_street' => $infoCustomerArmSales['passport']->address_street,
+            'address_house' => $infoCustomerArmSales['passport']->address_house,
+            'address_building' => $infoCustomerArmSales['passport']->address_building,
+            'address_apartment' => $infoCustomerArmSales['passport']->address_apartment,
+            'address_reg_date' => $infoCustomerArmSales['passport']->address_reg_date,
+            'fact_address_region' => $infoCustomerArmSales['passport']->fact_address_region,
+            'fact_address_district' => $infoCustomerArmSales['passport']->fact_address_district,
+            'fact_address_city' => $infoCustomerArmSales['passport']->fact_address_city,
+            'fact_address_street' => $infoCustomerArmSales['passport']->fact_address_street,
+            'fact_address_house' => $infoCustomerArmSales['passport']->fact_address_house,
+            'fact_address_building' => $infoCustomerArmSales['passport']->fact_address_building,
+            'fact_address_apartment' => $infoCustomerArmSales['passport']->fact_address_apartment,
             'customer_id' => $debtor->customer->id,
-            'created_at' => $customerArmSales->passport->created_at,
-            'updated_at' => $customerArmSales->passport->updated_at,
-            'fio' => $customerArmSales->passport->fio,
-            'address_city1' => $customerArmSales->passport->address_city1,
-            'fact_address_city1' => $customerArmSales->passport->fact_address_city1,
+            'fio' => $infoCustomerArmSales['passport']->fio,
+            'address_city1' => $infoCustomerArmSales['passport']->address_city1,
+            'fact_address_city1' => $infoCustomerArmSales['passport']->fact_address_city1,
         ]);
     }
 
-    private function updateOrCreateClaim(Debtor $debtor, Collection $loanArm, int $passportId, int $aboutClientId)
+    private function updateOrCreateClaim(Debtor $debtor, $loanArm, int $passportId, int $aboutClientId)
     {
-        $subdivisionArmSales = $this->armClient->getSubdivisions()->map(function ($subdivision) use ($loanArm) {
+        $subdivisionArmSales = $this->armClient->getSubdivisions()->filter(function ($subdivision) use ($loanArm) {
             return $subdivision->id === $loanArm->claim->subdivision_id;
-        });
+        })->first();
         $subdivision = Subdivision::where('name_id', $subdivisionArmSales->id_1c)->first();
+
         if (!$subdivision) {
             throw new DebtorException('synchronize_exception', 'Не удалось определить подразделение');
         }
         $userArmSales = $this->armClient->getUserById($loanArm->claim->user_id);
-        $user = User::where('id_1c', $userArmSales->id_1c)->first();
-        if (!$subdivision) {
+        $user = User::where('id_1c', $userArmSales['id_1c'])->first();
+        if (!$user) {
             throw new DebtorException('synchronize_exception', 'Не удалось определить ответственного в заявке');
         }
-
         return Claim::updateOrCreate([
-            'customer_id' => $debtor->customer_id_1c,
+            'customer_id' => $debtor->customer->id,
         ], [
-            'customer_id' => $debtor->customer_id_1c,
+            'customer_id' => $debtor->customer->id,
             'srok' => $loanArm->claim->srok,
             'summa' => $loanArm->claim->summa,
             'date' => $loanArm->claim->date,
@@ -209,27 +212,28 @@ class SynchronizeService
         ]);
     }
 
-    private function updateOrCreateLoan(Debtor $debtor, Collection $loanArm, Claim $claim)
+    private function updateOrCreateLoan(Debtor $debtor, $loanArm, Claim $claim)
     {
-        $subdivisionArmSales = $this->armClient->getSubdivisions()->map(function ($subdivision) use ($loanArm) {
+        $subdivisionArmSales = $this->armClient->getSubdivisions()->filter(function ($subdivision) use ($loanArm) {
             return $subdivision->id === $loanArm->subdivision_id;
-        });
+        })->first();
         $subdivision = Subdivision::where('name_id', $subdivisionArmSales->id_1c)->first();
         if (!$subdivision) {
             throw new DebtorException('synchronize_exception', 'Не удалось определить подразделение');
         }
         $userArmSales = $this->armClient->getUserById($loanArm->user_id);
-        $user = User::where('id_1c', $userArmSales->id_1c)->first();
-        if (!$subdivision) {
+        $user = User::where('id_1c', $userArmSales['id_1c'])->first();
+        if (!$user) {
             throw new DebtorException('synchronize_exception', 'Не удалось определить ответственного в заявке');
         }
+
         $loanType = $this->getOrCreateLoantype($loanArm);
         $card = $this->createCard($debtor, $loanArm);
 
+
         return Loan::updateOrCreate([
-            'customer_id' => $debtor->customer_id_1c,
+            'id_1c' => $loanArm->id_1c,
         ], [
-            'customer_id' => $debtor->customer_id_1c,
             'money' => $loanArm->money,
             'time' => $loanArm->time,
             'claim_id' => $claim->id,
@@ -253,10 +257,11 @@ class SynchronizeService
             'tranche_number' => $loanArm->tranche_number,
             'first_loan_id_1c' => $loanArm->first_loan_id_1c,
             'first_loan_date' => $loanArm->first_loan_date,
+            'created_at' => $loanArm->created_at,
         ]);
     }
 
-    private function createCard(Debtor $debtor, Collection $loanArm)
+    private function createCard(Debtor $debtor, $loanArm)
     {
         return Card::create([
             'card_number' => $loanArm->card->card_number,
@@ -266,7 +271,7 @@ class SynchronizeService
         ]);
     }
 
-    private function getOrCreateLoantype(Collection $loanArm)
+    private function getOrCreateLoantype($loanArm)
     {
         return LoanType::updateOrCreate([
             'id_1c' => $loanArm->loantype->id_1c,

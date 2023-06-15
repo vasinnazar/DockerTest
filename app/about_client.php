@@ -13,12 +13,12 @@ class about_client extends Model {
         'adsource', 'pensionnoeudost', 'telephonerodstv', 'stepenrodstv', 'obrasovanie', 'pensioner', 'postclient',
         'armia', 'poruchitelstvo', 'zarplatcard', 'organizacia', 'telephoneorganiz',
         'drugs', 'alco', 'stupid', 'badspeak', 'pressure', 'dirty', 'smell', 'badbehaviour', 'soldier', 'watch', 'other',
-        'anothertelephone', 'marital_type_id','recomends','other_mfo','other_mfo_why',
+        'anothertelephone', 'marital_type_id','other_mfo','other_mfo_why',
         'recomend_phone_1','recomend_fio_1',
         'recomend_phone_2','recomend_fio_2',
         'recomend_phone_3','recomend_fio_3',
         'dohod_husband','pension'
-//        'email'
+        ,'email'
         ];
 
     public function customer() {
