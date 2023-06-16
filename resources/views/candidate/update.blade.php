@@ -82,7 +82,7 @@
 						</div>
                                                 <div class="col">
                                                     Руководитель <br/>
-                                                    {!!Form::select('headman',([''=>'']+$roles_list), null,['class'=>'myform-control'])!!}
+                                                    {!!Form::select('headman',($roles_list), null,['class'=>'myform-control'])!!}
                                                 </div>
                                                 <div class="col">
                                                     Ответственный <br/>
