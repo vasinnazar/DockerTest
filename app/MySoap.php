@@ -647,4 +647,22 @@ class MySoap {
         return MySoap::sendXML($xml, $log, 'Main', config('1c.exchange_arm'));
     }
 
+    public function getPaymentsFrom1c(Carbon $startDate, Carbon $endDate, string $userId1c = null)
+    {
+        if (!$userId1c) {
+            $xml = MySoap::createXML([
+                'type' => 'GetDebtorPayment',
+                'start_date' => $startDate->startOfDay()->format('YmdHis'),
+                'end_date' => $endDate->endOfDay()->format('YmdHis'),
+            ]);
+            return json_decode(json_encode(MySoap::sendXML($xml, false, 'Main', config('1c.exchange_arm'))));
+        }
+        $xml = MySoap::createXML([
+            'type' => 'GetDebtorPayment',
+            'start_date' => $startDate->startOfDay()->format('YmdHis'),
+            'end_date' => $endDate->endOfDay()->format('YmdHis'),
+            'debtor_id_1c' => $userId1c
+        ]);
+        return json_decode(json_encode(MySoap::sendXML($xml, false, 'Main', config('1c.exchange_arm'))));
+    }
 }

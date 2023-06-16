@@ -289,12 +289,12 @@
         $.app.blockScreen(true);
         let data = $('#userPaymentsForm').serialize();
         $.post($.app.url + '/ajax/debtors/userpayments', data).done(function (data) {
-            console.log(data)
             var html = '';
             var totalMoney = 0;
             //если в хмл пришел ноль то вывести ошибку
             if (data.result == '0') {
-                $.app.openErrorModal('Ошибка', "Введенный интервал не должен превышать месяца");
+                $.app.blockScreen(false);
+                $.app.openErrorModal('Ошибка', "Выберите корректный период! Введенный интервал не должен превышать месяца");
                 return;
             }
             data.payments.forEach(function (item) {

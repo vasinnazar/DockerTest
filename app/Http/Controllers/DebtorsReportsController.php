@@ -149,32 +149,22 @@ class DebtorsReportsController extends BasicController {
         }
     }
 
-    public function getPaymentsForDay(Request $req) {
-        $now = Carbon::now();
-        $startDate = new Carbon($req->get('start_date', $now->format('Y-m-d')));
-        $endDate = new Carbon($req->get('end_date', $now->format('Y-m-d')));
+    public function getPaymentsForDay(MySoap $mySoap, Request $req)
+    {
+        $startDate = Carbon::parse($req['start_date']);
+        $endDate = Carbon::parse($req['end_date']);
         $res = ['result' => 1, 'payments' => []];
-
-        if ($endDate->copy()->subMonth()->gt($startDate)) {
+        if ($endDate->lt($startDate) || $endDate->copy()->subMonth()->gt($startDate)) {
             return ['result' => 0];
         }
-        if ($endDate->lt($startDate)) {
-            return ['result' => 0];
+        $res1c = $mySoap->getPaymentsFrom1c($startDate, $endDate);
+        if ((int) $res1c->result !== 1) {
+            return $res;
         }
-        $xml = \App\MySoap::createXML([
-                    'type' => 'GetDebtorPayment',
-                    'start_date' => $startDate->setTime(0, 0, 0)->format('YmdHis'),
-                    'end_date' => $endDate->setTime(23, 59, 59)->format('YmdHis'),
-        ]);
-        $res1c = MySoap::sendXML($xml, false, 'Main', config('1c.exchange_arm'), ['url' => '192.168.35.56:8080/111SPD']);
-
-        if ((int) $res1c->result == 1) {
-            $obj = json_decode(json_encode($res1c));
-            foreach ($obj->tab as $payment) {
-                $res['payments'][] = $payment;
-            }
+        foreach ($res1c->tab as $payment) {
+            $res['payments'][] = $payment;
         }
-        return $res;
+        return response()->json($res);
     }
 
     public function getPaymentsForUser(ReportsService $reportsService, PaymentUserRequest $req)

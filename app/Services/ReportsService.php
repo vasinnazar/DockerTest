@@ -9,16 +9,11 @@ use Carbon\Carbon;
 
 class ReportsService
 {
-    public function getPaymentsForUserFrom1c(Carbon $startDate, Carbon $endDate, string $userId1c)
+    private MySoap $mySoap;
+
+    public function __construct(MySoap $mySoap)
     {
-        $xml = MySoap::createXML([
-            'type' => 'GetDebtorPayment',
-            'start_date' => $startDate->startOfDay()->format('YmdHis'),
-            'end_date' => $endDate->endOfDay()->format('YmdHis'),
-            'debtor_id_1c' => $userId1c
-        ]);
-        $res1c = MySoap::sendXML($xml, false, 'Main', config('1c.exchange_arm'));
-        return json_decode(json_encode($res1c), false);
+        $this->mySoap = $mySoap;
     }
 
     public function getPaymentsForUsers(Carbon $startDate, Carbon $endDate, array $userIds): array
@@ -26,7 +21,7 @@ class ReportsService
         $users = User::whereIn('id', $userIds)->get();
         $result = ['result' => 1, 'payments' => []];
         foreach ($users as $user) {
-            $res1c = $this->getPaymentsForUserFrom1c($startDate, $endDate, $user->id_1c);
+            $res1c = $this->mySoap->getPaymentsFrom1c($startDate, $endDate, $user->id_1c);
             if ((int)$res1c->result !== 1) {
                 return $result;
             }
