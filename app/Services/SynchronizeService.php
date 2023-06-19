@@ -169,10 +169,9 @@ class SynchronizeService
         })->first();
         $subdivision = Subdivision::where('name_id', $subdivisionArmSales->id_1c)->first();
 
-        if (!$subdivision && $subdivisionArmSales->is_api === 0) {
+        if (!$subdivision && $subdivisionArmSales->is_lead === 1) {
             $subdivision = Subdivision::where('name_id', 'П00000035')->first();
         }
-
         if (!$subdivision) {
             throw new DebtorException('synchronize_exception', 'Не удалось определить подразделение');
         }
