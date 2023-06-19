@@ -27,15 +27,9 @@
                                 </tr>
                                 </thead>
                                 @foreach ($emailCollect as $email)
-                                        <?php
-                                        $email->text_tpl = str_replace('##email_till_date##', date('d.m.Y', time()),
-                                            $email->text_tpl);
-                                        $email->text_tpl = str_replace('##email_loan_info##', '[данные договора]',
-                                            $email->text_tpl);
-                                        ?>
                                     <tr>
                                         <td><input type="radio" name="email_id" value="{{$email->id}}"></td>
-                                        <td class="email_text" style="text-align: left">{{$email->text_tpl}}</td>
+                                        <td class="email_text" style="text-align: left">{{$email->template_message}}</td>
                                     </tr>
                                 @endforeach
                             </table>

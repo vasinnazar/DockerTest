@@ -12,6 +12,7 @@ use App\Repositories\DebtorEventsRepository;
 use App\Repositories\DebtorSmsRepository;
 use App\Services\DebtorEventService;
 use App\Services\DebtorSmsService;
+use App\Services\EmailService;
 use App\Utils\SMSer;
 use Illuminate\Http\Request;
 use App\Utils\PermLib;
@@ -27,12 +28,13 @@ use App\User;
 
 class DebtorMassSmsController extends BasicController
 {
-
+    public $emailService;
     public $debtorEventService;
 
-    public function __construct(DebtorEventService $service)
+    public function __construct(EmailService $emailService, DebtorEventService $debtorEventService)
     {
-        $this->debtorEventService = $service;
+        $this->emailService = $emailService;
+        $this->debtorEventService = $debtorEventService;
     }
 
     public function index(DebtorSmsRepository $smsRepository)
@@ -52,7 +54,7 @@ class DebtorMassSmsController extends BasicController
             $nameGroup = 'Удаленное взыскание';
         }
         return view('debtormasssms.index', [
-            'emailCollect' => $smsRepository->getSms($type),
+            'emailCollect' => $this->emailService->getListEmailsMessages(Auth::user()->id),
             'smsCollect' => $smsRepository->getSms($type),
             'nameGroup' => $nameGroup,
             'debtorTransferFilterFields' => self::getSearchFields()
