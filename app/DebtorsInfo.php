@@ -9,7 +9,7 @@ use Config;
 
 class DebtorsInfo extends Model {
 
-    protected $table = 'debtors.debtors_info';
+    protected $table = 'debtors_info';
     protected $fillable = ['debtor_id', 'last_open'];
     
     /**

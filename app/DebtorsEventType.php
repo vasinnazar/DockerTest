@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DebtorsEventType extends Model
 {
-    protected $table = 'debtors.debtors_event_types';
+    protected $table = 'debtors_event_types';
     protected $fillable = ['name'];
 
     const TYPE_INFORMATION = 9;

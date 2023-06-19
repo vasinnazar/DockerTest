@@ -8,7 +8,8 @@ class OrderType extends Model {
 
     protected $fillable = ['text_id', 'name', 'plus', 'invoice'];
     protected $table = 'order_types';
-    
+    public $timestamps = false;
+
     const RKO = 'RKO';
     const PKO = 'PKO';
     const CARD = 'CARD';

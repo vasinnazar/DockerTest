@@ -8,7 +8,7 @@ use Auth;
 
 class DebtorsOtherPhones extends Model
 {
-    protected $table = 'debtors.debtors_other_phones';
+    protected $table = 'debtors_other_phones';
     protected $fillable = ['debtor_id_1c', 'phone', 'type'];
     
     /**

@@ -20,7 +20,7 @@ class DebtorSmsTpls extends Model {
      *
      * @var string
      */
-    protected $table = 'debtors.debtor_sms_tpls';
+    protected $table = 'debtor_sms_tpls';
     public $timestamps = false;
 
     /**

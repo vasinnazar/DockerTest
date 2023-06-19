@@ -12,8 +12,9 @@ class DebtGroup extends Model
     const  DIFFICULT = 5;
     const HOPLESS = 6;
 
-    protected $table = 'debtors.debt_groups';
+    protected $table = 'debt_groups';
     protected $fillable = ['name'];
+    public $timestamps = false;
 
     /**
      * Возвращает массив всех групп должников

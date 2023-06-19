@@ -12,7 +12,7 @@ class DebtorsPayments extends Model {
      *
      * @var string
      */
-    protected $table = 'debtors.debtors_payments';
+    protected $table = 'debtors_payments';
 
     /**
      * The attributes that are mass assignable.

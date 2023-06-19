@@ -9,7 +9,7 @@ use Config;
 
 class DebtorRecurrentQuery extends Model {
 
-    protected $table = 'debtors.debtors_recurrent_queries';
+    protected $table = 'debtors_recurrent_queries';
     protected $fillable = ['debtor_id'];
 
 }
