@@ -1,6 +1,6 @@
 @extends('app')
 @section('title')
-    Массовая рассылка SMS
+    Массовая рассылка
 @stop
 @section('css')
     <style>
@@ -27,6 +27,14 @@
         <div class="col-xs-12">
             <table id="debtorTransferAction" class="pull-right">
                 <tr>
+                    <td style="padding-left: 20px; padding-right: 17px;">
+                        <button id="emailTpls" class="btn btn-primary" data-toggle="modal" data-target="#debtorMassEmail">
+                            Шаблон Email
+                        </button>
+                    </td>
+                    <td style="padding-left: 20px; padding-right: 17px;">
+                        <input type="button" id="sendMassEmail" class="btn btn-primary" value="Отправить" disabled/>
+                    </td>
                     <td style="padding-left: 20px; padding-right: 17px;">
                         <button id="smsTpls" class="btn btn-primary" data-toggle="modal" data-target="#debtorMassSMS">
                             Шаблон SMS
