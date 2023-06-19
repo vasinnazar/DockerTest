@@ -494,14 +494,7 @@ class DebtorsController extends BasicController
             ->orderBy('id', 'desc')
             ->first();
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL,
-            config('services.arm.url') . '/api/repayments/offers/status?loan_id_1c=' . $debtor->loan_id_1c);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $resultPeace = curl_exec($ch);
-        curl_close($ch);
-
-        $dataHasPeaceClaim = json_decode($resultPeace, true);
+        $dataHasPeaceClaim =  $armClient->getHasPeaceClaim($debtor->loan_id_1c);
         $blockProlongation = \App\DebtorBlockProlongation::where('debtor_id', $debtor->id)->orderBy('id', 'desc')
             ->where('block_till_date', '>=', date('Y-m-d', time()) . ' 00:00:00')
             ->first();

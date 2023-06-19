@@ -58,7 +58,11 @@ class ArmClient
         $response = $this->client->get($this->url . '/api/v1/loans?loan_id_1c=' . $loanId1c);
         return collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
     }
-
+    public function getHasPeaceClaim(string $loanId1c)
+    {
+        $response = $this->client->get($this->url . '/api/repayments/offers/status?loan_id_1c=' . $loanId1c);
+        return json_decode($response->getBody()->getContents(), true);
+    }
     public function getCustomerById(int $customerId)
     {
         $response = $this->client->get($this->url . "/api/v1/customers/{$customerId}?with_all=1");

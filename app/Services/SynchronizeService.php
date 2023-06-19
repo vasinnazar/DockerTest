@@ -29,9 +29,6 @@ class SynchronizeService
 
     public function synchronizeDebtor(Debtor $debtor)
     {
-        if ($debtor->passport && $debtor->loan) {
-            return true;
-        }
         $loanArm = $this->armClient->getLoanById1c($debtor->loan_id_1c)->first();
         if (empty($loanArm)) {
             throw new DebtorException('synchronize_exception', 'Не удалось получить информацию');
@@ -173,6 +170,10 @@ class SynchronizeService
         })->first();
         $subdivision = Subdivision::where('name_id', $subdivisionArmSales->id_1c)->first();
 
+        if (!$subdivision && $subdivisionArmSales->is_api === 0) {
+            $subdivision = Subdivision::where('name_id', 'П00000035')->first();
+        }
+
         if (!$subdivision) {
             throw new DebtorException('synchronize_exception', 'Не удалось определить подразделение');
         }
@@ -183,6 +184,7 @@ class SynchronizeService
         }
         return Claim::updateOrCreate([
             'customer_id' => $debtor->customer->id,
+            'id_1c' => $loanArm->claim->id_1c,
         ], [
             'customer_id' => $debtor->customer->id,
             'srok' => $loanArm->claim->srok,
@@ -214,6 +216,9 @@ class SynchronizeService
 
     private function updateOrCreateLoan(Debtor $debtor, $loanArm, Claim $claim)
     {
+        if($debtor->loan) {
+            return $debtor->loan;
+        }
         $subdivisionArmSales = $this->armClient->getSubdivisions()->filter(function ($subdivision) use ($loanArm) {
             return $subdivision->id === $loanArm->subdivision_id;
         })->first();
@@ -238,9 +243,9 @@ class SynchronizeService
             'time' => $loanArm->time,
             'claim_id' => $claim->id,
             'loantype_id' => $loanType->id,
-            'card_id' => $card->id,
+            'card_id' => $card->id ?? null,
             'closed' => $loanArm->closed,
-            'order_id' => $loanArm->order_id,
+            'order_id' => null,
             'subdivision_id' => $subdivision->id,
             'id_1c' => $loanArm->id_1c,
             'enrolled' => $loanArm->enrolled,
@@ -263,6 +268,10 @@ class SynchronizeService
 
     private function createCard(Debtor $debtor, $loanArm)
     {
+        if(!isset($loanArm->card) || empty($loanArm->card)) {
+            return null;
+        }
+
         return Card::create([
             'card_number' => $loanArm->card->card_number,
             'secret_word' => $loanArm->card->secret_word,
