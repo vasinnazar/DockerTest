@@ -89,7 +89,6 @@ class SynchronizeService
             'dohod' => $infoCustomerArmSales['about']->dohod,
             'dopdohod' => $infoCustomerArmSales['about']->dopdohod,
             'stazlet' => $infoCustomerArmSales['about']->stazlet,
-            'adsource' => $infoCustomerArmSales['about']->adsource,
             'pensionnoeudost' => $infoCustomerArmSales['about']->pensionnoeudost,
             'telephonerodstv' => $infoCustomerArmSales['about']->telephonerodstv,
             'obrasovanie' => $infoCustomerArmSales['about']->obrasovanie,
