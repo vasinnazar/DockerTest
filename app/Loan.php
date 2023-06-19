@@ -18,48 +18,83 @@ use Auth;
  * @var $money int
  * @var $time int
  */
-class Loan extends Model {
+class Loan extends Model
+{
 
 //    use SoftDeletes;
     protected $table = 'loans';
-    protected $fillable = ['money', 'time', 'claim_id', 'loantype_id', 'card_id', 'in_cash', 'closed', 'fine', 'last_payday', 'created_at', 'special_percent', 'uki'];
+    protected $fillable = [
+        'customer_id',
+        'money',
+        'time',
+        'claim_id',
+        'loantype_id',
+        'card_id',
+        'closed',
+        'order_id',
+        'subdivision_id',
+        'id_1c',
+        'enrolled',
+        'in_cash',
+        'user_id',
+        'promocode_id',
+        'fine',
+        'last_payday',
+        'special_percent',
+        'claimed_for_remove',
+        'on_balance',
+        'uki',
+        'cc_call',
+        'tranche_number',
+        'first_loan_id_1c',
+        'first_loan_date'
+    ];
 
     const STATUS_OPENED = 0;
     const STATUS_CLOSED = 1;
 
-    public function claim() {
+    public function claim()
+    {
         return $this->belongsTo('App\Claim');
     }
 
-    public function loantype() {
+    public function loantype()
+    {
         return $this->belongsTo('App\LoanType');
     }
 
-    public function card() {
+    public function card()
+    {
         return $this->belongsTo('App\Card');
     }
 
-    public function subdivision() {
+    public function subdivision()
+    {
         return $this->belongsTo('App\Subdivision');
     }
 
-    public function order() {
+    public function order()
+    {
         return $this->belongsTo('App\Order');
     }
 
-    public function orders() {
+    public function orders()
+    {
         return $this->hasMany('App\Order', 'loan_id');
     }
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo('App\User');
     }
 
-    public function promocode() {
+    public function promocode()
+    {
         return $this->belongsTo('App\Promocode');
     }
 
-    public function repayments() {
+    public function repayments()
+    {
         return $this->hasMany('App\Repayment', 'loan_id');
     }
 
@@ -71,11 +106,12 @@ class Loan extends Model {
 //        return PaySaving::where('loan_id', $this->id)->where('created_at', '>', ((is_null($lastRep)) ? $this->created_at : $lastRep->created_at))->where('plus', 1)->get();
 //    }
 
-    public function getUnusedOrders($all = false) {
+    public function getUnusedOrders($all = false)
+    {
         $orders = [];
         $PKOid = OrderType::getPKOid();
         foreach ($this->orders as $order) {
-            if ($order->orderType->id == $PKOid && $order->repayment_id == NULL) {
+            if ($order->orderType->id == $PKOid && $order->repayment_id == null) {
                 $orders[] = $order;
             }
         }
@@ -95,7 +131,8 @@ class Loan extends Model {
      * возвращает детализацию прцентных ставок по договору
      * @return type
      */
-    public function getPercents() {
+    public function getPercents()
+    {
         $res = ['pc' => 2];
         if ($this->loantype->basic == 1) {
             $brate = config('options.basic_rate');
@@ -105,18 +142,21 @@ class Loan extends Model {
                     break;
                 }
             }
-        } else if ($this->loantype->special_pc == 1 && !is_null($this->special_percent)) {
-            $res['pc'] = $this->special_percent;
         } else {
-            $res['pc'] = $this->loantype->percent;
+            if ($this->loantype->special_pc == 1 && !is_null($this->special_percent)) {
+                $res['pc'] = $this->special_percent;
+            } else {
+                $res['pc'] = $this->loantype->percent;
+            }
         }
         if ($this->claim->about_client->pensioner == 1 || $this->claim->about_client->postclient == 1) {
             $res['fine_pc'] = (is_null($this->loantype->fine_pc_perm)) ? config('options.fine_percent_perm') : $this->loantype->fine_pc_perm;
             $res['exp_pc'] = (is_null($this->loantype->exp_pc_perm)) ? config('options.exp_percent_perm') : $this->loantype->exp_pc_perm;
             //если кредитник просрочен то установить основной процент равным проценту после просрочки
             if (!is_null($this->loantype->pc_after_exp) && $this->loantype->pc_after_exp != '0.00' &&
-                    Carbon::now()->setTime(0, 0, 0)->diffInDays(with(new Carbon($this->created_at))->setTime(0, 0, 0)) > $this->time &&
-                    $this->created_at->gte(new Carbon(config('options.perm_new_rules_day')))) {
+                Carbon::now()->setTime(0, 0, 0)->diffInDays(with(new Carbon($this->created_at))->setTime(0, 0,
+                    0)) > $this->time &&
+                $this->created_at->gte(new Carbon(config('options.perm_new_rules_day')))) {
                 $res['pc'] = $this->loantype->pc_after_exp;
             }
         } else {
@@ -124,34 +164,42 @@ class Loan extends Model {
             $res['exp_pc'] = (is_null($this->loantype->exp_pc)) ? config('options.exp_percent') : $this->loantype->exp_pc;
 
             //если кредитник просрочен у нового клиента то установить основной процент равным проценту после просрочки
-            if (!is_null($this->loantype->pc_after_exp) && $this->loantype->pc_after_exp != '0.00' && Carbon::now()->setTime(0, 0, 0)->diffInDays(with(new Carbon($this->created_at))->setTime(0, 0, 0)) > $this->time) {
+            if (!is_null($this->loantype->pc_after_exp) && $this->loantype->pc_after_exp != '0.00' && Carbon::now()->setTime(0,
+                    0, 0)->diffInDays(with(new Carbon($this->created_at))->setTime(0, 0, 0)) > $this->time) {
                 $res['pc'] = $this->loantype->pc_after_exp;
             }
         }
         $res['pc_money'] = $this->money * ($res['pc'] / 100) * $this->time;
-        $res['cur_pc_money'] = $this->money * ($res['pc'] / 100) * (Carbon::now()->setTime(0, 0, 0)->diffInDays(with(new Carbon($this->created_at))->setTime(0, 0, 0)));
+        $res['cur_pc_money'] = $this->money * ($res['pc'] / 100) * (Carbon::now()->setTime(0, 0,
+                0)->diffInDays(with(new Carbon($this->created_at))->setTime(0, 0, 0)));
         $rate = $this->getLoanRate();
         $res['exp_pc'] = $rate->exp_pc;
         $res['fine'] = $rate->fine;
         return $res;
     }
 
-    public function getLoanRate() {
+    public function getLoanRate()
+    {
         return LoanRate::getByDate($this->created_at);
     }
 
-    public function getPrintPercent() {
+    public function getPrintPercent()
+    {
         return with($this->getLoanRate())->pc;
 
 
         if ($this->created_at->gte(new Carbon(config('options.new_rules_day_010717')))) {
             return 2.18;
-        } else if ($this->created_at->gte(new Carbon(config('options.new_rules_day_010117')))) {
-            return 2.17;
-        } else if ($this->created_at->gte(new Carbon(config('options.new_rules_day')))) {
-            return 2.2;
         } else {
-            return $this->loantype->percent;
+            if ($this->created_at->gte(new Carbon(config('options.new_rules_day_010117')))) {
+                return 2.17;
+            } else {
+                if ($this->created_at->gte(new Carbon(config('options.new_rules_day')))) {
+                    return 2.2;
+                } else {
+                    return $this->loantype->percent;
+                }
+            }
         }
     }
 
@@ -159,10 +207,11 @@ class Loan extends Model {
      * получить детализированную требуемую сумму
      * @return ReqMoneyDetails
      */
-    public function getRequiredMoneyDetails($importantMoneyData = null) {
+    public function getRequiredMoneyDetails($importantMoneyData = null)
+    {
         /**
-         * кстати все расчеты здесь не нужны, потому что суммы по допникам и 
-         * кредитникам запрашиваются в 1с, мировое и суз приходят уже посчитанные, 
+         * кстати все расчеты здесь не нужны, потому что суммы по допникам и
+         * кредитникам запрашиваются в 1с, мировое и суз приходят уже посчитанные,
          * а вот от непросроченного заявления нужно отнимать суммы в регистре
          */
         $reps = Repayment::where('loan_id', $this->id)->orderBy('created_at', 'asc')->get();
@@ -199,19 +248,28 @@ class Loan extends Model {
          * для мирового, закрытия и суза данные приходят в самих договорах через ARMLOANKNUMBER
          */
         if ($repsNum == 0 || (!$lastActiveRep->repaymentType->isPeace() && !$lastActiveRep->repaymentType->isSUZ() && !$lastActiveRep->repaymentType->isClosing())) {
-            $xml = ['type' => '4', 'loan_id_1c' => $this->id_1c, 'customer_id_1c' => $this->claim->customer->id_1c, 'repayment_id_1c' => '0', 'repayment_type' => '0', 'created_at' => Carbon::now()->format('YmdHis')];
+            $xml = [
+                'type' => '4',
+                'loan_id_1c' => $this->id_1c,
+                'customer_id_1c' => $this->claim->customer->id_1c,
+                'repayment_id_1c' => '0',
+                'repayment_type' => '0',
+                'created_at' => Carbon::now()->format('YmdHis')
+            ];
             if ($repsNum == 0) {
                 $calc_res1c = MySoap::sendXML(MySoap::createXML($xml));
-            } else if (!$lastActiveRep->repaymentType->isPeace() && !$lastActiveRep->repaymentType->isClosing()) {
-                $xml['repayment_type'] = $lastActiveRep->repaymentType->getMySoapItemID();
-                $xml['repayment_id_1c'] = $lastActiveRep->id_1c;
-                $calc_res1c = MySoap::sendXML(MySoap::createXML($xml));
+            } else {
+                if (!$lastActiveRep->repaymentType->isPeace() && !$lastActiveRep->repaymentType->isClosing()) {
+                    $xml['repayment_type'] = $lastActiveRep->repaymentType->getMySoapItemID();
+                    $xml['repayment_id_1c'] = $lastActiveRep->id_1c;
+                    $calc_res1c = MySoap::sendXML(MySoap::createXML($xml));
+                }
             }
         }
         if (isset($calc_res1c)) {
-            $pc['pc'] = (float) $calc_res1c->percent;
-            if ((float) $calc_res1c->exp_percent != 0) {
-                $pc['exp_pc'] = (float) $calc_res1c->exp_percent;
+            $pc['pc'] = (float)$calc_res1c->percent;
+            if ((float)$calc_res1c->exp_percent != 0) {
+                $pc['exp_pc'] = (float)$calc_res1c->exp_percent;
             }
 
             //А ЗДЕСЬ ВНЕЗАПНО МЕНЯЕМ ТИП ПОСЛЕДНЕГО ДОПНИКА ЕСЛИ ВДРУГ ПРОЦЕНТ ПРИШЕЛ 2.2 НА ПРОСРОЧЕННЫЙ ДОПНИК
@@ -220,19 +278,25 @@ class Loan extends Model {
                 if ($repsNum > 0 && $lastActiveRep->repaymentType->text_id != config('options.rtype_dopnik5') && $pc['pc'] > 2) {
                     if ($lastActiveRep->repaymentType->isDopnik()) {
                         if ($this->created_at->gte(new Carbon(config('options.new_rules_day_010117')))) {
-                            $lastActiveRep->repayment_type_id = with(RepaymentType::where('text_id', config('options.rtype_dopnik7'))->first())->id;
+                            $lastActiveRep->repayment_type_id = with(RepaymentType::where('text_id',
+                                config('options.rtype_dopnik7'))->first())->id;
                         } else {
-                            $lastActiveRep->repayment_type_id = with(RepaymentType::where('text_id', config('options.rtype_dopnik5'))->first())->id;
+                            $lastActiveRep->repayment_type_id = with(RepaymentType::where('text_id',
+                                config('options.rtype_dopnik5'))->first())->id;
                         }
                         $lastActiveRep->save();
                     }
-                } else if ($repsNum > 0 && $lastActiveRep->repaymentType->text_id == config('options.rtype_dopnik5') && $pc['pc'] == 2) {
-                    if ($this->created_at->gte(new Carbon(config('options.card_nal_dop_day')))) {
-                        $lastActiveRep->repayment_type_id = with(RepaymentType::where('text_id', config('options.rtype_dopnik6'))->first())->id;
-                    } else {
-                        $lastActiveRep->repayment_type_id = with(RepaymentType::where('text_id', config('options.rtype_dopnik4'))->first())->id;
+                } else {
+                    if ($repsNum > 0 && $lastActiveRep->repaymentType->text_id == config('options.rtype_dopnik5') && $pc['pc'] == 2) {
+                        if ($this->created_at->gte(new Carbon(config('options.card_nal_dop_day')))) {
+                            $lastActiveRep->repayment_type_id = with(RepaymentType::where('text_id',
+                                config('options.rtype_dopnik6'))->first())->id;
+                        } else {
+                            $lastActiveRep->repayment_type_id = with(RepaymentType::where('text_id',
+                                config('options.rtype_dopnik4'))->first())->id;
+                        }
+                        $lastActiveRep->save();
                     }
-                    $lastActiveRep->save();
                 }
             }
         }
@@ -260,17 +324,19 @@ class Loan extends Model {
 //                }
                 $mTotal = $mOD + $mPc + $mExpPc + $mFine;
                 $repExpPcDays = $repDays - $lastRep->time;
-            } else if ($lastRep->repaymentType->isSUZ()) {
-                //если суз
-                $mPc = $lastRep->pc;
-                $mExpPc = $lastRep->exp_pc;
-                $mFine = $lastRep->fine;
-                $mTax = $lastRep->tax;
-                $mOD = $lastRep->od;
-                $mTotal = $mOD + $mPc + $mExpPc + $mFine + $mTax;
-                $repExpPcDays = 0;
-                $lastPayday = (is_null($this->last_payday) || $this->last_payday == '0000-00-00 00:00:00' || with(new Carbon($this->last_payday))->lt($lastRep->created_at)) ? $this->created_at->addDays($this->time) : (new Carbon($this->last_payday));
-                $fine_percent = $lastRep->repaymentType->fine_percent;
+            } else {
+                if ($lastRep->repaymentType->isSUZ()) {
+                    //если суз
+                    $mPc = $lastRep->pc;
+                    $mExpPc = $lastRep->exp_pc;
+                    $mFine = $lastRep->fine;
+                    $mTax = $lastRep->tax;
+                    $mOD = $lastRep->od;
+                    $mTotal = $mOD + $mPc + $mExpPc + $mFine + $mTax;
+                    $repExpPcDays = 0;
+                    $lastPayday = (is_null($this->last_payday) || $this->last_payday == '0000-00-00 00:00:00' || with(new Carbon($this->last_payday))->lt($lastRep->created_at)) ? $this->created_at->addDays($this->time) : (new Carbon($this->last_payday));
+                    $fine_percent = $lastRep->repaymentType->fine_percent;
+                }
             }
         } else {
             $loanDays = Carbon::now()->setTime(0, 0, 0)->diffInDays($loanDate);
@@ -310,24 +376,24 @@ class Loan extends Model {
             /**
              * ДОБАВЛЯЕМ РАСЧЕТ С 1С
              */
-            $res->pc = ((float) $calc_res1c->pc) * 100;
-            $res->exp_pc = ((float) $calc_res1c->exp_pc) * 100;
+            $res->pc = ((float)$calc_res1c->pc) * 100;
+            $res->exp_pc = ((float)$calc_res1c->exp_pc) * 100;
             $res->all_pc = $res->pc + $res->exp_pc;
-            $res->fine = ((float) $calc_res1c->fine) * 100;
-            $res->fine_left = number_format((float) $res->fine, 2, '', '');
-            $res->od = ((float) $calc_res1c->od) * 100;
+            $res->fine = ((float)$calc_res1c->fine) * 100;
+            $res->fine_left = number_format((float)$res->fine, 2, '', '');
+            $res->od = ((float)$calc_res1c->od) * 100;
             $res->all_fine = $res->fine;
             $res->money = $res->pc + $res->exp_pc + $res->od + $res->fine;
             $res->peace_pays = $peacePays;
-            $res->exp_days = (int) $calc_res1c->exp_time;
+            $res->exp_days = (int)$calc_res1c->exp_time;
             $res->pc_days = ($repsNum > 0) ? $repPcDays : $loanPcDays;
             $res->all_days = ($repsNum > 0) ? $repDays : $loanDays;
             $res->peace_pays_exp_pc = $mPaysExpPc;
             $res->peace_pays_fine = $mPaysFine;
-            $res->percent = (float) $calc_res1c->percent;
-            $ep = (float) $calc_res1c->exp_percent;
+            $res->percent = (float)$calc_res1c->percent;
+            $ep = (float)$calc_res1c->exp_percent;
             if ($ep > 0) {
-                $res->exp_percent = (float) $calc_res1c->exp_percent;
+                $res->exp_percent = (float)$calc_res1c->exp_percent;
             }
             if (isset($calc_res1c->ODx4) && !is_null($calc_res1c->ODx4)) {
                 $res->odx4 = ($calc_res1c->ODx4 == 1);
@@ -349,7 +415,8 @@ class Loan extends Model {
         return $res;
     }
 
-    static function rewriteDebtImportantData(ReqMoneyDetails $res, $importantMoneyData) {
+    static function rewriteDebtImportantData(ReqMoneyDetails $res, $importantMoneyData)
+    {
         if (is_array($importantMoneyData)) {
             foreach ($importantMoneyData as $k => $v) {
                 $res->{$k} = $v;
@@ -359,11 +426,13 @@ class Loan extends Model {
         return $res;
     }
 
-    public function getReqMoneyFrom1c() {
-        
+    public function getReqMoneyFrom1c()
+    {
+
     }
 
-    public function calculateFine($lastPayday, $mDet, $fine_percent) {
+    public function calculateFine($lastPayday, $mDet, $fine_percent)
+    {
         $res = 0;
         $loanFineDays = $lastPayday->diffInDays(Carbon::now());
         $res += ((($mDet->od + $mDet->pc + $mDet->exp_pc) * ($fine_percent / 100)) / (365 + date("L"))) * $loanFineDays;
@@ -375,7 +444,8 @@ class Loan extends Model {
      * @param boolean $onlyPercents
      * @return type
      */
-    public function getRequiredMoney($onlyPercents = false) {
+    public function getRequiredMoney($onlyPercents = false)
+    {
         $details = $this->getRequiredMoneyDetails();
         return ($onlyPercents) ? $details->all_pc : $details->money;
     }
@@ -385,11 +455,13 @@ class Loan extends Model {
      * @param type $createClosing (пока нигде не задействовано)
      * @return type
      */
-    public function close($createClosing = false) {
+    public function close($createClosing = false)
+    {
         return $this->update(['closed' => 1, 'last_payment_fine_left' => '0']);
     }
 
-    public function deleteThrough1c() {
+    public function deleteThrough1c()
+    {
         if (Order::where('loan_id', $this->id)->count() > 0) {
             return false;
         }
@@ -401,7 +473,7 @@ class Loan extends Model {
         $customer_id_1c = (!is_null($this->claim) && !is_null($this->claim->customer)) ? $this->claim->customer->id_1c : '';
         $res1c = MySoap::removeItem(MySoap::ITEM_LOAN, $this->id_1c, $customer_id_1c);
 //        if((config('app.dev') && $res1c->result == 0) || (!config('app.dev') && $res1c['res']==0)){
-        if ((int) $res1c->result == 0) {
+        if ((int)$res1c->result == 0) {
             DB::rollback();
             return false;
         }
@@ -409,7 +481,8 @@ class Loan extends Model {
         return true;
     }
 
-    public function getEndDate() {
+    public function getEndDate()
+    {
         return with(new Carbon($this->created_at))->setTime(0, 0, 0)->addDays($this->time);
     }
 
@@ -418,7 +491,8 @@ class Loan extends Model {
      * @param boolean $withOD
      * @return integer
      */
-    public function getEndDateMoney($withOD = false, $expPc = false) {
+    public function getEndDateMoney($withOD = false, $expPc = false)
+    {
         $pc = ($expPc) ? $this->loantype->pc_after_exp : $this->loantype->percent;
         $res = $pc / 100 * $this->time * $this->money;
         if ($withOD) {
@@ -427,11 +501,13 @@ class Loan extends Model {
         return $res * 100;
     }
 
-    public function getLastRepayment() {
+    public function getLastRepayment()
+    {
         return Repayment::where('loan_id', $this->id)->orderBy('created_at', 'desc')->first();
     }
 
-    public function getPaysavingsMoney() {
+    public function getPaysavingsMoney()
+    {
         $res = ['pc' => 0, 'exp_pc' => 0, 'od' => 0, 'fine' => 0];
         return $res;
     }
@@ -440,7 +516,8 @@ class Loan extends Model {
      * количество дней просрочки
      * @return int
      */
-    public function getOverdueDays($beforeNextRep = false) {
+    public function getOverdueDays($beforeNextRep = false)
+    {
 //        $endDate = $this->created_at->setTime(0, 0, 0)->addDays($this->time);
 //        if (Carbon::now()->gt($endDate)) {
 //            return Carbon::now()->setTime(0, 0, 0)->diffInDays($endDate);
@@ -451,7 +528,8 @@ class Loan extends Model {
         $endDate = $this->created_at->setTime(0, 0, 0)->addDays($this->time);
         if (Carbon::now()->gt($endDate)) {
             if ($beforeNextRep) {
-                $nextRep = Repayment::where('loan_id', $this->id)->where('created_at', '>', $this->created_at->format('Y-m-d H:i:s'))->orderBy('created_at', 'asc')->first();
+                $nextRep = Repayment::where('loan_id', $this->id)->where('created_at', '>',
+                    $this->created_at->format('Y-m-d H:i:s'))->orderBy('created_at', 'asc')->first();
                 if (!is_null($nextRep) && $nextRep->created_at->gt($endDate)) {
                     return $nextRep->created_at->setTime(0, 0, 0)->diffInDays($endDate);
                 } else {
@@ -468,7 +546,8 @@ class Loan extends Model {
      * получить количество дней пользования займом (НЕ РАБОТАЕТ)
      * @return type
      */
-    public function getUseDays() {
+    public function getUseDays()
+    {
         $startDate = with(new Carbon($this->created_at))->setTime(0, 0, 0);
         $reps = Repayment::where('loan_id', $this->id)->orderBy('created_at', 'asc')->get();
         $days = 0;
@@ -492,7 +571,8 @@ class Loan extends Model {
      * проверяет можно ли оплатить уки по данному кредитнику
      * @return boolean
      */
-    public function isUkiActive() {
+    public function isUkiActive()
+    {
         if ($this->uki) {
             $lastRep = $this->getLastRepayment();
             //если нет никаких документов и количество дней просрочки не превышает 20 дней
@@ -509,7 +589,8 @@ class Loan extends Model {
 //        return ($this->uki && with(new Carbon($this->created_at))->addDays(config('options.uki_days') + $this->time)->gte(Carbon::now()));
     }
 
-    public function isCommissionRequired() {
+    public function isCommissionRequired()
+    {
         return false;
         if ($this->created_at->gt(new Carbon(config('options.new_rules_day'))) && $this->created_at->gt(with(new Carbon($this->created_at))->addDays(120))) {
             return true;
@@ -522,9 +603,12 @@ class Loan extends Model {
      * недоделанная проверка на возможность применения скидки. пока работает только для предновогодней акции
      * @return boolean
      */
-    public function canUseDiscount($data = null) {
+    public function canUseDiscount($data = null)
+    {
         if (!is_null($data)) {
-            if (array_key_exists('exDopnikData', $data) && is_array($data['exDopnikData']) && array_key_exists('can_use_discount', $data['exDopnikData']) && !$data['exDopnikData']['can_use_discount']) {
+            if (array_key_exists('exDopnikData',
+                    $data) && is_array($data['exDopnikData']) && array_key_exists('can_use_discount',
+                    $data['exDopnikData']) && !$data['exDopnikData']['can_use_discount']) {
                 return false;
             }
         }
@@ -542,7 +626,8 @@ class Loan extends Model {
      * проверяет есть ли у кредитника просроченный допник
      * @return boolean
      */
-    public function hasOverduedDopnik() {
+    public function hasOverduedDopnik()
+    {
         $reps = Repayment::where('loan_id', $this->id)->get();
         foreach ($reps as $r) {
             if ($r->repaymentType->isDopnik() && $r->getOverdueDays(true) > 0) {
@@ -552,7 +637,8 @@ class Loan extends Model {
         return false;
     }
 
-    public function getDebtFrom1c(Loan $loan = null, $date = null, $repayment = null) {
+    public function getDebtFrom1c(Loan $loan = null, $date = null, $repayment = null)
+    {
         if (is_null($loan)) {
             $loan = $this;
         }
@@ -561,7 +647,14 @@ class Loan extends Model {
         } else {
             $date = Carbon::createFromFormat('Y-m-d', $date)->format('YmdHis');
         }
-        $xml = ['type' => '4', 'loan_id_1c' => $loan->id_1c, 'customer_id_1c' => $loan->claim->customer->id_1c, 'repayment_id_1c' => '0', 'repayment_type' => '0', 'created_at' => $date];
+        $xml = [
+            'type' => '4',
+            'loan_id_1c' => $loan->id_1c,
+            'customer_id_1c' => $loan->claim->customer->id_1c,
+            'repayment_id_1c' => '0',
+            'repayment_type' => '0',
+            'created_at' => $date
+        ];
         if (!is_null($repayment)) {
             if ($repayment->repaymentType->isPeace()) {
                 return $this->getRequiredMoneyDetails();
@@ -573,26 +666,28 @@ class Loan extends Model {
             $last_rep = Repayment::where('loan_id', $loan->id)->orderBy('created_at', 'desc')->first();
             if (is_null($last_rep)) {
                 $calc_res1c = MySoap::sendXML(MySoap::createXML($xml));
-            } else if (!$last_rep->repaymentType->isPeace() && !$last_rep->repaymentType->isClosing()) {
-                $xml['repayment_type'] = $last_rep->repaymentType->getMySoapItemID();
-                $xml['repayment_id_1c'] = $last_rep->id_1c;
-                $calc_res1c = MySoap::sendXML(MySoap::createXML($xml));
             } else {
-                return $this->getRequiredMoneyDetails();
+                if (!$last_rep->repaymentType->isPeace() && !$last_rep->repaymentType->isClosing()) {
+                    $xml['repayment_type'] = $last_rep->repaymentType->getMySoapItemID();
+                    $xml['repayment_id_1c'] = $last_rep->id_1c;
+                    $calc_res1c = MySoap::sendXML(MySoap::createXML($xml));
+                } else {
+                    return $this->getRequiredMoneyDetails();
+                }
             }
         }
         $res = new ReqMoneyDetails();
-        $res->pc = ((float) $calc_res1c->pc) * 100;
-        $res->exp_pc = ((float) $calc_res1c->exp_pc) * 100;
+        $res->pc = ((float)$calc_res1c->pc) * 100;
+        $res->exp_pc = ((float)$calc_res1c->exp_pc) * 100;
         $res->all_pc = $res->pc + $res->exp_pc;
-        $res->fine = ((float) $calc_res1c->fine) * 100;
-        $res->fine_left = number_format((float) $res->fine, 2, '', '');
-        $res->od = ((float) $calc_res1c->od) * 100;
+        $res->fine = ((float)$calc_res1c->fine) * 100;
+        $res->fine_left = number_format((float)$res->fine, 2, '', '');
+        $res->od = ((float)$calc_res1c->od) * 100;
         $res->all_fine = $res->fine;
         $res->money = $res->pc + $res->exp_pc + $res->od + $res->fine;
-        $res->exp_days = (int) $calc_res1c->exp_time;
-        $res->percent = (float) $calc_res1c->percent;
-        $ep = (float) $calc_res1c->exp_percent;
+        $res->exp_days = (int)$calc_res1c->exp_time;
+        $res->percent = (float)$calc_res1c->percent;
+        $ep = (float)$calc_res1c->exp_percent;
         if ($ep > 0) {
             $res->exp_percent = $ep;
         } else {
@@ -601,27 +696,35 @@ class Loan extends Model {
         return $res;
     }
 
-    public function getDebtFrom1cWithoutRepayment($date = null) {
+    public function getDebtFrom1cWithoutRepayment($date = null)
+    {
         if (empty($date)) {
             $date = Carbon::now()->format('YmdHis');
         } else {
             $date = Carbon::createFromFormat('Y-m-d', $date)->format('YmdHis');
         }
-        $xml = ['type' => '11', 'loan_id_1c' => $this->id_1c, 'customer_id_1c' => $this->claim->customer->id_1c, 'repayment_id_1c' => '0', 'repayment_type' => '0', 'created_at' => $date];
+        $xml = [
+            'type' => '11',
+            'loan_id_1c' => $this->id_1c,
+            'customer_id_1c' => $this->claim->customer->id_1c,
+            'repayment_id_1c' => '0',
+            'repayment_type' => '0',
+            'created_at' => $date
+        ];
         $calc_res1c = MySoap::sendXML(MySoap::createXML($xml));
 
         $res = new ReqMoneyDetails();
-        $res->pc = ((float) $calc_res1c->pc) * 100;
-        $res->exp_pc = ((float) $calc_res1c->exp_pc) * 100;
+        $res->pc = ((float)$calc_res1c->pc) * 100;
+        $res->exp_pc = ((float)$calc_res1c->exp_pc) * 100;
         $res->all_pc = $res->pc + $res->exp_pc;
-        $res->fine = ((float) $calc_res1c->fine) * 100;
-        $res->fine_left = number_format((float) $res->fine, 2, '', '');
-        $res->od = ((float) $calc_res1c->od) * 100;
+        $res->fine = ((float)$calc_res1c->fine) * 100;
+        $res->fine_left = number_format((float)$res->fine, 2, '', '');
+        $res->od = ((float)$calc_res1c->od) * 100;
         $res->all_fine = $res->fine;
         $res->money = $res->pc + $res->exp_pc + $res->od + $res->fine;
-        $res->exp_days = (int) $calc_res1c->exp_time;
-        $res->percent = (float) $calc_res1c->percent;
-        $ep = (float) $calc_res1c->exp_percent;
+        $res->exp_days = (int)$calc_res1c->exp_time;
+        $res->percent = (float)$calc_res1c->percent;
+        $ep = (float)$calc_res1c->exp_percent;
         if ($ep > 0) {
             $res->exp_percent = $ep;
         }
@@ -636,7 +739,8 @@ class Loan extends Model {
      * @param \App\Utils\ReqMoneyDetails $mDet
      * @return boolean
      */
-    public function canCloseWithPromocode($mDet = null) {
+    public function canCloseWithPromocode($mDet = null)
+    {
         if (is_null($this->claim->promocode)) {
             return false;
         }
@@ -670,7 +774,8 @@ class Loan extends Model {
      * @param int $promocode 0 - не получать промокод, 1 - получать промокод
      * @return boolean|\App\Loan
      */
-    public function saveThrough1c($promocode = 0) {
+    public function saveThrough1c($promocode = 0)
+    {
         $update = (!is_null($this->id_1c));
         $card = $this->card;
         $data = [
@@ -683,7 +788,7 @@ class Loan extends Model {
             'secret_word' => (isset($card) && !is_null($card) && !$this->in_cash) ? $card->secret_word : '',
             'created_at' => ($update) ? with(new Carbon($this->created_at))->format('YmdHis') : Carbon::now()->format('YmdHis'),
             'user_id_1c' => $this->user->id_1c,
-            'promocode_number' => (int) $promocode,
+            'promocode_number' => (int)$promocode,
             'uki' => $this->uki
         ];
         DB::beginTransaction();
@@ -711,7 +816,8 @@ class Loan extends Model {
         }
     }
 
-    public function syncWith1c() {
+    public function syncWith1c()
+    {
         $update = (!is_null($this->id_1c));
         $card = $this->card;
         $data = [
@@ -730,7 +836,7 @@ class Loan extends Model {
             'id_1c' => (is_null($this->id_1c)) ? '' : $this->id_1c
         ];
         $res1c = MySoap::sendExchangeArm(MySoap::createXML($data));
-        if ((int) $res1c->result == 0) {
+        if ((int)$res1c->result == 0) {
             return false;
         }
         $this->sync = 1;
@@ -742,15 +848,16 @@ class Loan extends Model {
     }
 
     /**
-     * считает суммы для заключения допника с комиссией; 
+     * считает суммы для заключения допника с комиссией;
      * тут же считает и суммы для возврата и суммы к оплате
-     * 
+     *
      * @param type $time
      * @param type $od
      * @param \App\Repayment $lastRep
      * @return Utils\DopCommissionCalculation
      */
-    public function calculateDopCommissionMoney($time = 15, $od = null, $lastRep = null) {
+    public function calculateDopCommissionMoney($time = 15, $od = null, $lastRep = null)
+    {
         $result = new Utils\DopCommissionCalculation($this, $time, $od, $lastRep);
         return $result;
     }
@@ -759,7 +866,8 @@ class Loan extends Model {
      * Возвращает следующий номер для кредитника
      * @return string
      */
-    static function getNextNumber() {
+    static function getNextNumber()
+    {
         $number = 'А0000000001';
         $lastLoan = DB::select('select loans.id_1c from loans order by SUBSTRING(loans.id_1c, 2) desc limit 1');
         $intNumber = intval(StrUtils::removeNonDigits($lastLoan[0]->id_1c));
@@ -771,15 +879,16 @@ class Loan extends Model {
      * Возвращает следующий номер для транша, для контрагента из этого кредитника
      * @return string
      */
-    public function getNextTrancheNumber() {
+    public function getNextTrancheNumber()
+    {
         $trancheNumber = 1;
         $lastLoanOnCard = Loan::leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-                ->where('loans.id_1c', '<>', $this->id_1c)
-                ->where('loans.in_cash', 0)
-                ->whereNotNull('loans.tranche_number')
-                ->where('claims.customer_id', $this->claim->customer_id)
-                ->orderBy('created_at', 'desc')
-                ->first();
+            ->where('loans.id_1c', '<>', $this->id_1c)
+            ->where('loans.in_cash', 0)
+            ->whereNotNull('loans.tranche_number')
+            ->where('claims.customer_id', $this->claim->customer_id)
+            ->orderBy('created_at', 'desc')
+            ->first();
         if (!is_null($lastLoanOnCard)) {
             $trancheNumber = intval($lastLoanOnCard->tranche_number) + 1;
         }
@@ -790,7 +899,8 @@ class Loan extends Model {
      * Отправляет все неотправленные кредитники в 1С
      * @return type
      */
-    static function syncLoans() {
+    static function syncLoans()
+    {
         $loans = Loan::where('sync', 0)->get();
         $num = count($loans);
         if ($num == 0) {
@@ -821,7 +931,8 @@ class Loan extends Model {
      * Возвращает есть ли на кредитнике просрочка
      * @return boolean
      */
-    public function hasOverdue() {
+    public function hasOverdue()
+    {
         $lastRep = $this->getLastRepayment();
         if (is_null($lastRep)) {
             return ($this->getOverdueDays() > 0);
@@ -830,21 +941,25 @@ class Loan extends Model {
         }
     }
 
-    static function getById1cAndCustomerId1c($loan_id_1c, $customer_id_1c) {
+    static function getById1cAndCustomerId1c($loan_id_1c, $customer_id_1c)
+    {
         $schema = \Illuminate\Support\Facades\Schema::getColumnListing('loans');
         $cols = [];
         foreach ($schema as $col) {
             $cols[] = 'loans.' . $col;
         }
-        return Loan::select($cols)->where('loans.id_1c', $loan_id_1c)->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')->where('customers.id_1c', $customer_id_1c)->first();
+        return Loan::select($cols)->where('loans.id_1c', $loan_id_1c)->leftJoin('claims', 'claims.id', '=',
+            'loans.claim_id')->leftJoin('customers', 'customers.id', '=',
+            'claims.customer_id')->where('customers.id_1c', $customer_id_1c)->first();
     }
 
-    static function getById1cAndCustomerId1c2($loan_id_1c, $customer_id_1c) {
+    static function getById1cAndCustomerId1c2($loan_id_1c, $customer_id_1c)
+    {
         $loan_id = Loan::where('loans.true_id_1c', $loan_id_1c)
-                ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
-                ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
-                ->where('customers.id_1c', $customer_id_1c)
-                ->pluck('loans.id');
+            ->leftJoin('claims', 'claims.id', '=', 'loans.claim_id')
+            ->leftJoin('customers', 'customers.id', '=', 'claims.customer_id')
+            ->where('customers.id_1c', $customer_id_1c)
+            ->pluck('loans.id');
         return Loan::whereIn('id', $loan_id)->first();
     }
 
@@ -853,14 +968,16 @@ class Loan extends Model {
      * @param boolean $formated отформатировать для печати или отдать как есть
      * @return type
      */
-    public function getPSK($formated = false) {
+    public function getPSK($formated = false)
+    {
         $pc = with($this->getLoanRate())->pc;
         $psk = $pc * 365;
         return ($formated) ? number_format($psk, 3, ',', '') : $psk;
     }
 
-    public function enroll() {
-        if ((bool) $this->enrolled) {
+    public function enroll()
+    {
+        if ((bool)$this->enrolled) {
             return Order::find($this->order_id);
         }
         $user = \App\User::select('id_1c')->where('id', $this->user_id)->first();
@@ -871,15 +988,16 @@ class Loan extends Model {
         }
         DB::beginTransaction();
         if ($this->subdivision->is_terminal) {
-            $res1c = MySoap::enrollTerminal($this->id_1c, Carbon::now()->format('YmdHis'), $this->user->id_1c, $this->subdivision->name_id);
+            $res1c = MySoap::enrollTerminal($this->id_1c, Carbon::now()->format('YmdHis'), $this->user->id_1c,
+                $this->subdivision->name_id);
         } else {
             $res1c = MySoap::enrollLoan([
-                        'loan_id_1c' => $this->id_1c,
-                        'created_at' => Carbon::now()->format('YmdHis'),
-                        'user_id_1c' => $user->id_1c,
-                        'subdivision_id_1c' => $subdiv->name_id,
-                        'customer_id_1c' => $this->claim->customer->id_1c
-                            ], !$this->in_cash);
+                'loan_id_1c' => $this->id_1c,
+                'created_at' => Carbon::now()->format('YmdHis'),
+                'user_id_1c' => $user->id_1c,
+                'subdivision_id_1c' => $subdiv->name_id,
+                'customer_id_1c' => $this->claim->customer->id_1c
+            ], !$this->in_cash);
         }
         if ($res1c['res'] == 0) {
             Log::error('enrollLoan.mysoap', ['res1c' => $res1c]);
@@ -903,7 +1021,8 @@ class Loan extends Model {
         $this->enrolled = 1;
 
         if (!is_null($this->promocode_id) && !$this->claim->customer->isPostClient()) {
-            Utils\SMSer::send($this->claim->customer->telephone, '500 рублей за друга! Ваш промо код ' . $this->promocode->number);
+            Utils\SMSer::send($this->claim->customer->telephone,
+                '500 рублей за друга! Ваш промо код ' . $this->promocode->number);
         }
 
         if ($this->save()) {

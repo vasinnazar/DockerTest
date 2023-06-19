@@ -16,7 +16,10 @@ class Subdivision extends Model
         'is_terminal',
         'city',
         'city_id',
-        'allow_use_new_cards'
+        'allow_use_new_cards',
+        'closed',
+        'is_lead',
+        'working_times',
     ];
     protected $table = 'subdivisions';
 

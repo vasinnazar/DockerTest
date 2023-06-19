@@ -28,8 +28,10 @@ use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
 use App\Services\DebtorSmsService;
 use App\Services\MassRecurrentService;
+use App\Services\MessageService;
 use App\Services\RepaymentOfferService;
 use App\Services\DebtorService;
+use App\Services\SynchronizeService;
 use App\Services\TimezoneService;
 use App\StrUtils;
 use App\User;
@@ -142,44 +144,39 @@ class DebtorsController extends BasicController
         return view('debtors.calendar', []);
     }
 
-    /**
-     * Открывает карточку должника
-     * @param int $debtor_id
-     * @return type
-     */
-    public function debtorcard(DebtorSmsService $smsService, PaysClient $paysClient,ArmClient $armClient,int $debtor_id)
+    public function debtorcard(
+        DebtorSmsService $smsService,
+        MessageService $messageService,
+        PaysClient $paysClient,
+        ArmClient $armClient,
+        SynchronizeService $synchronize,
+        int $debtor_id
+    )
     {
-        $user = auth()->user();
+
+        $user = Auth::user();
         $debtor = Debtor::find($debtor_id);
+
+        try {
+            $synchronize->synchronizeDebtor($debtor);
+        }catch (\Throwable $exception){
+            Log::error('Critical error update debtors', [
+                'customerId1c' => $debtor->customer_id_1c,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+
 
         // проверяем был ли пропущенный звонок от должника и если был - удаляем запись
         $loss_call = \App\DebtorsLossCalls::where('debtor_id_1c', $debtor->debtor_id_1c)->first();
         if (!is_null($loss_call) && !$user->isAdmin()) {
             $loss_call->delete();
+
         }
-
-        // если у должника есть уведомление "должник на точке" - "удаляем" его (при условии, если открыл не админ)
-        if (!$user->isAdmin() && ($user->hasRole('debtors_remote') || ($user->hasRole('debtors_personal') && $user->hasRole('debtors_chief')))) {
-            $pfx_loan = ($user->hasRole('debtors_personal')) ? 'pn' : 'ln';
-            $msg_on_subdivision = Message::where('type', $pfx_loan . $debtor->loan_id_1c)->first();
-            if (!is_null($msg_on_subdivision)) {
-                $msg_on_subdivision->deleted_at = date('Y-m-d H:i:s', time());
-                $msg_on_subdivision->save();
-            }
+        // если у должника есть уведомление (при условии, если открыл не админ)
+        if (!$user->isAdmin()) {
+            $messageService->deleteMessageIfExist($user, $debtor->loan_id_1c);
         }
-
-        // если у должника есть уведомление "должник на сайте" - "удаляем" его (при условии, если открыл не админ)
-        if (!$user->isAdmin() && $user->hasRole('debtors_remote')) {
-            $pfx_loan = 'sn';
-            $msg_on_subdivision = Message::where('type', $pfx_loan . $debtor->loan_id_1c)->first();
-            if (!is_null($msg_on_subdivision)) {
-                $msg_on_subdivision->deleted_at = date('Y-m-d H:i:s', time());
-                $msg_on_subdivision->save();
-            }
-        }
-
-
-
         // получаем данные об ответственном
         $responsibleUser = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
 
@@ -270,20 +267,6 @@ class DebtorsController extends BasicController
             $recUser = User::find($debtor->recommend_user_id);
             if (!is_null($recUser)) {
                 $recommend_user_name = $recUser->name;
-            }
-        }
-
-        if ($debtor->decommissioned || $debtor->debt_group_id == 32) {
-            $is_orders_loaded = \App\DebtorsLossBase::where('debtor_id_1c', $debtor->debtor_id_1c)->first();
-            if (is_null($is_orders_loaded) || $is_orders_loaded->is_loaded == 0) {
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL,
-                    config('services.arm.url') . '/debtors/orders/upload?passport_series=' . $debtor->passport_series . '&passport_number=' . $debtor->passport_number . '&loan_id_1c=' . $debtor->loan_id_1c . '&customer_id_1c=' . $debtor->customer_id_1c);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                $answer_curl = curl_exec($ch);
-                curl_close($ch);
-                \App\DebtorsLossBase::addRecord($debtor->debtor_id_1c);
-                sleep(3);
             }
         }
 
@@ -511,14 +494,7 @@ class DebtorsController extends BasicController
             ->orderBy('id', 'desc')
             ->first();
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL,
-            config('services.arm.url') . '/api/repayments/offers/status?loan_id_1c=' . $debtor->loan_id_1c);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $resultPeace = curl_exec($ch);
-        curl_close($ch);
-
-        $dataHasPeaceClaim = json_decode($resultPeace, true);
+        $dataHasPeaceClaim =  $armClient->getHasPeaceClaim($debtor->loan_id_1c);
         $blockProlongation = \App\DebtorBlockProlongation::where('debtor_id', $debtor->id)->orderBy('id', 'desc')
             ->where('block_till_date', '>=', date('Y-m-d', time()) . ' 00:00:00')
             ->first();

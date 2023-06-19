@@ -53,27 +53,19 @@ class AuthController extends Controller
                     $msg = 'Доступ был запрещён по причине отсутствия в программе в течении ' . config('options.days_until_user_block') . ' дней.';
                 }
             }
-//            $ssl_on = (array_key_exists('HTTPS', $_SERVER) && $_SERVER['HTTPS'] == 'on');
             if ($user->swapable == 1) {
                 return redirect('subdivisions/swapable/change');
             }
-//            if ($ssl_on) {
-//                $ssl_user_name = (array_key_exists('SSL_CLIENT_S_DN_OU', $_SERVER)) ? $_SERVER['SSL_CLIENT_S_DN_OU'] : '';
-//                if ($user->id != $ssl_user_name) {
-//                    Auth::logout();
-//                    return redirect('/auth/login')->with('msg', 'Выбран неверный сертификат. Перезапустите браузер и выберите свой сертификат' . $msg)->with('class', 'alert-danger');
-//                }
-//            }
             if ($user->banned || (!is_null($user->ban_at) && $user->ban_at != '0000-00-00' && $now->gte(new Carbon($user->ban_at)))) {
                 Auth::logout();
-                return redirect('/auth/login')->with('msg',
+                return redirect('/auth/login')->with('msg_err',
                     'Доступ запрещён. Обратитесь в техническую поддержку. ' . $msg)->with('class', 'alert-danger');
             }
             $begin = new Carbon($user->begin_time);
             $end = new Carbon($user->end_time);
             if ((Carbon::now()->gte($end) || Carbon::now()->lte($begin)) && !Auth::user()->id == 1) {
                 Auth::logout();
-                return redirect('/auth/login')->with('msg', 'Доступ временно запрещён')->with('class', 'alert-danger');
+                return redirect('/auth/login')->with('msg_err', 'Доступ временно запрещён')->with('class', 'alert-danger');
             }
             $user->last_login = Carbon::now();
             $user->save();
@@ -90,7 +82,7 @@ class AuthController extends Controller
             Spylog::log(Spylog::ACTION_LOGIN, 'users', $user->id, $_SERVER['REMOTE_ADDR']);
             if (config('app.version_type') == 'debtors') {
                 return redirect('debtors/index')
-                    ->with('msg', 'Добро пожаловать, ' . Auth::user()->name)
+                    ->with('msg_err', 'Добро пожаловать, ' . Auth::user()->name)
                     ->with('class', 'alert-success');
             } else {
                 if (Auth::user()->hasPermission(\App\Permission::makeName(\App\Utils\PermLib::ACTION_SELECT,
@@ -98,11 +90,11 @@ class AuthController extends Controller
                     return redirect('candidate/index');
                 }
                 return redirect('home')
-                    ->with('msg', 'Добро пожаловать, ' . Auth::user()->name)
+                    ->with('msg_suc', 'Добро пожаловать, ' . Auth::user()->name)
                     ->with('class', 'alert-success');
             }
         }
-        return redirect()->back()->with('msg', 'Ошибка при вводе почты\\пароля')->with('class', 'alert-danger');
+        return redirect()->back()->with('msg_err', 'Ошибка при вводе почты\\пароля')->with('class', 'alert-danger');
     }
 
     public function getLogout()
