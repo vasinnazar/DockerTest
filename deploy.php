@@ -29,9 +29,12 @@ set('writable_dirs', [
 
 after('deploy:failed', 'deploy:unlock');
 
-
 task('prod:opcache', ['cachetool:clear:opcache'])->onStage('prod');
+task('laravel5.6:opcache', ['cachetool:clear:opcache'])->onStage('laravel5.6');
+
 host('prod')->set('cachetool', '/var/run/arm_debt_php.sock');
+host('laravel5.6')->set('cachetool', '/var/run/debtors-php.sock');
+
 
 task('build', function () {
     set('repository', host('local')->get('repository'));
@@ -70,5 +73,6 @@ task('deploy', [
     'files:symlink',
     'cleanup',
     'prod:opcache',
+    'laravel5.6:opcache',
     'success'
 ]);
