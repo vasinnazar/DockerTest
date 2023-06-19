@@ -51,6 +51,7 @@
                                         <td><b>Текст SMS</b></td>
                                     </tr>
                                 </thead>
+                                @foreach ($debtSms as $row)
                                 <tr>
                                     <td><input type="radio" name="sms_id" value="{{$row['id']}}"></td>
                                     <td class="sms_text" style="text-align: left">{{$row['text_tpl']}}</td>
