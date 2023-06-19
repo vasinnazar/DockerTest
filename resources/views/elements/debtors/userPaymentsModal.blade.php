@@ -9,7 +9,6 @@
                 <div class="row">
                     <div class="col-xs-12">
                         {!!Form::open(['class'=>'form-inline','id'=>'userPaymentsForm'])!!}
-                        <input name="debtor_id_1c[]" value="{{ auth()->user()->id }}">
                         <div class='input-group'>
                             <span class='input-group-addon'>Начало периода</span>
                             <input class='form-control' type='date' name='start_date' value='{{\Carbon\Carbon::now()->format('Y-m-d')}}' />
@@ -31,10 +30,27 @@
                         <br><br>
                         <div class="collapse" id="userPaymentsModalUsers">
                             <div class="list-group">
-                                @foreach($user->subordinatedUsers->sortBy('login') as $subordinated)
                                 <li class='list-group-item'>
-                                    <label><input name='debtor_id_1c[]' class="{{($subordinated->user_group_id == '1541') ? 'remote_user' : ''}}" type='checkbox' value="{{$subordinated->id}}" @if($subordinated->id == auth()->user()->id) checked @endif /> {{$subordinated->name}}</label>
+                                    <label>
+                                        <input name='user_id[]'
+                                               class="{{(auth()->user()->user_group_id == '1541') ? 'remote_user' : ''}}"
+                                               type='checkbox'
+                                               value="{{auth()->user()->id}}"
+                                        />
+                                        {{auth()->user()->name}}
+                                    </label>
                                 </li>
+                                @foreach($user->subordinatedUsers->sortBy('login') as $subordinated)
+                                    <li class='list-group-item'>
+                                        <label>
+                                            <input name='user_id[]'
+                                                   class="{{($subordinated->user_group_id == '1541') ? 'remote_user' : ''}}"
+                                                   type='checkbox'
+                                                   value="{{$subordinated->id}}"
+                                            />
+                                            {{$subordinated->name}}
+                                        </label>
+                                    </li>
                                 @endforeach
                             </div>
                         </div>

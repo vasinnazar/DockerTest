@@ -2,28 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Export\Excel\DebtorsLoginSiteExport;
-use Illuminate\Http\Request;
-use Carbon\Carbon;
-use App\Spylog\Spylog;
-use App\Spylog\SpylogModel;
-use App\Subdivision;
-use App\WorkTime;
-use Auth;
-use App\Utils\PermLib;
-use App\Permission;
-use App\Order;
-use DB;
-use App\User;
 use App\DebtorsPayments;
+use App\Export\Excel\DebtorsLoginSiteExport;
+use App\Http\Requests\Ajax\PaymentUserRequest;
 use App\MySoap;
+use App\Services\ReportsService;
+use App\User;
+use Auth;
+use Carbon\Carbon;
+use DB;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
-class DebtorsReportsController extends BasicController {
 
-    public function __construct() {
-        $this->middleware('auth');
-    }
+class DebtorsReportsController extends BasicController {
 
     public function dzcollect(Request $req) {
         $start_date = false;
@@ -157,78 +149,33 @@ class DebtorsReportsController extends BasicController {
         }
     }
 
-    public function getPaymentsForDay(Request $req) {
-        $now = Carbon::now();
-        $startDate = new Carbon($req->get('start_date', $now->format('Y-m-d')));
-        $endDate = new Carbon($req->get('end_date', $now->format('Y-m-d')));
+    public function getPaymentsForDay(MySoap $mySoap, Request $req)
+    {
+        $startDate = Carbon::parse($req['start_date']);
+        $endDate = Carbon::parse($req['end_date']);
         $res = ['result' => 1, 'payments' => []];
-
-        if ($endDate->copy()->subMonth()->gt($startDate)) {
+        if ($endDate->lt($startDate) || $endDate->copy()->subMonth()->gt($startDate)) {
             return ['result' => 0];
         }
-        if ($endDate->lt($startDate)) {
-            return ['result' => 0];
+        $res1c = $mySoap->getPaymentsFrom1c($startDate, $endDate);
+        if ((int) $res1c->result !== 1) {
+            return $res;
         }
-        $xml = \App\MySoap::createXML([
-                    'type' => 'GetDebtorPayment',
-                    'start_date' => $startDate->setTime(0, 0, 0)->format('YmdHis'),
-                    'end_date' => $endDate->setTime(23, 59, 59)->format('YmdHis'),
-        ]);
-        $res1c = MySoap::sendXML($xml, false, 'Main', config('1c.exchange_arm'), ['url' => '192.168.35.56:8080/111SPD']);
-
-        if ((int) $res1c->result == 1) {
-            $obj = json_decode(json_encode($res1c));
-            foreach ($obj->tab as $payment) {
-                $res['payments'][] = $payment;
-            }
+        foreach ($res1c->tab as $payment) {
+            $res['payments'][] = $payment;
         }
-        return $res;
+        return response()->json($res);
     }
 
-    /** Получает зачет оплат из 1С и возвращает json на вывод
-     * @param Request $req
-     * @return type
-     */
-    public function getPaymentsForUser(Request $req) {
-        $now = Carbon::now();
-        $startDate = new Carbon($req->get('start_date', $now->format('Y-m-d')));
-        $endDate = new Carbon($req->get('end_date', $now->format('Y-m-d')));
-        if ($startDate->month != $endDate->month) {
+    public function getPaymentsForUser(ReportsService $reportsService, PaymentUserRequest $req)
+    {
+        $request = $req->validated();
+        $startDate = Carbon::parse($request['start_date']);
+        $endDate = Carbon::parse($request['end_date']);
+        if ($startDate->month !== $endDate->month || $endDate->lt($startDate)) {
             return ['result' => 0];
         }
-        if ($endDate->lt($startDate)) {
-            return ['result' => 0];
-        }
-        $user_ids = $req->get('debtor_id_1c');
-        $users = User::whereIn('id', $user_ids)->get();
-        $res = ['result' => 1, 'payments' => []];
-        foreach ($users as $user) {
-            $xml = \App\MySoap::createXML([
-                        'type' => 'GetDebtorPayment',
-                        'start_date' => $startDate->setTime(0, 0, 0)->format('YmdHis'),
-                        'end_date' => $endDate->setTime(23, 59, 59)->format('YmdHis'),
-                        'debtor_id_1c' => $user->id_1c
-            ]);
-            $res1c = MySoap::sendXML($xml, false, 'Main', config('1c.exchange_arm'), ['url' => '192.168.35.56:8080/111SPD']);
-            if ((int) $res1c->result == 1) {
-                $obj = json_decode(json_encode($res1c));
-                foreach ($obj->tab as $payment) {
-
-                    if (isset($payment->loan_id_1c)) {
-                        $arLoanId1c = explode(' ', $payment->loan_id_1c);
-                        if ($arLoanId1c[0] == 'Продление') {
-                            $loan_id_1c = str_replace('№', '', $arLoanId1c[1]);
-                        } else {
-                            $loan_id_1c = $arLoanId1c[0];
-                        }
-                        $debtor = \App\Debtor::where('customer_id_1c', $payment->customer_id_1c)->where('loan_id_1c', $loan_id_1c)->first();
-                        $payment->debtor_id = $debtor->id;
-                    }
-                    $res['payments'][] = $payment;
-                }
-            }
-        }
-        return $res;
+        return response()->json($reportsService->getPaymentsForUsers($startDate, $endDate, $request['user_id']));
     }
 
     public function jobsDoneAct(Request $req) {

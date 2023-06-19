@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Log;
 class Debtor extends Model
 {
 
-    protected $table = 'debtors.debtors';
+    protected $table = 'debtors';
     protected $fillable = ['od', 'pc', 'exp_pc', 'fine', 'tax', 'customer_id_1c', 'loan_id_1c', 'is_debtor'];
     
     protected $dates = [

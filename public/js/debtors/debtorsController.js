@@ -287,12 +287,14 @@
     $.debtorsCtrl.getUserPayments = function () {
         var holder = $('#userPaymentsHolder tbody');
         $.app.blockScreen(true);
-        $.get($.app.url + '/ajax/debtors/userpayments', $('#userPaymentsForm').serialize()).done(function (data) {
+        let data = $('#userPaymentsForm').serialize();
+        $.post($.app.url + '/ajax/debtors/userpayments', data).done(function (data) {
             var html = '';
             var totalMoney = 0;
             //если в хмл пришел ноль то вывести ошибку
             if (data.result == '0') {
-                $.app.openErrorModal('Ошибка', "Введенный интервал не должен превышать месяца");
+                $.app.blockScreen(false);
+                $.app.openErrorModal('Ошибка', "Выберите корректный период! Введенный интервал не должен превышать месяца");
                 return;
             }
             data.payments.forEach(function (item) {
@@ -309,6 +311,10 @@
             html += '<tr><td colspan="3"></td><td><b>Итого</b></td><td><b>' + (totalMoney / 100).toFixed(2) + ' руб.</b></td>';
             holder.html(html);
             $.app.blockScreen(false);
+        }).error(function () {
+            $.app.blockScreen(false);
+            $.app.openErrorModal('Ошибка', "Невалидные данные");
+            return;
         });
     };
     /**
