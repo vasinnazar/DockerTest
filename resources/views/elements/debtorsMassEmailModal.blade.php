@@ -14,7 +14,7 @@
                             <table style="margin-bottom: 15px;">
                                 <tr>
                                     <td>Дата для Email:</td>
-                                    <td style="padding-left: 15px;"><input type="date" name="sms_date"
+                                    <td style="padding-left: 15px;"><input type="date" name="email_date"
                                                                            class="form-control" style="width: 200px;"
                                                                            min="{{date('Y-m-d', time())}}"></td>
                                 </tr>
@@ -26,16 +26,16 @@
                                     <td><b>Текст Email</b></td>
                                 </tr>
                                 </thead>
-                                @foreach ($smsCollect as $sms)
+                                @foreach ($emailCollect as $email)
                                         <?php
-                                        $sms->text_tpl = str_replace('##sms_till_date##', date('d.m.Y', time()),
-                                            $sms->text_tpl);
-                                        $sms->text_tpl = str_replace('##sms_loan_info##', '[данные договора]',
-                                            $sms->text_tpl);
+                                        $email->text_tpl = str_replace('##email_till_date##', date('d.m.Y', time()),
+                                            $email->text_tpl);
+                                        $email->text_tpl = str_replace('##email_loan_info##', '[данные договора]',
+                                            $email->text_tpl);
                                         ?>
                                     <tr>
-                                        <td><input type="radio" name="sms_id" value="{{$sms->id}}"></td>
-                                        <td class="sms_text" style="text-align: left">{{$sms->text_tpl}}</td>
+                                        <td><input type="radio" name="email_id" value="{{$email->id}}"></td>
+                                        <td class="email_text" style="text-align: left">{{$email->text_tpl}}</td>
                                     </tr>
                                 @endforeach
                             </table>

@@ -52,6 +52,7 @@ class DebtorMassSmsController extends BasicController
             $nameGroup = 'Удаленное взыскание';
         }
         return view('debtormasssms.index', [
+            'emailCollect' => $smsRepository->getSms($type),
             'smsCollect' => $smsRepository->getSms($type),
             'nameGroup' => $nameGroup,
             'debtorTransferFilterFields' => self::getSearchFields()
