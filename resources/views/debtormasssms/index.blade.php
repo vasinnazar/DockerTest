@@ -148,6 +148,7 @@
             </div>
         </div>
     </div>
+    @include('elements.debtorsMassEmailModal')
     @include('elements.debtorsMassSmsModal')
 @stop
 @section('scripts')
