@@ -51,13 +51,6 @@
                                         <td><b>Текст SMS</b></td>
                                     </tr>
                                 </thead>
-                                @foreach ($debtSms as $row)
-                                @if ($row['id'] == 21 && $debtor->qty_delays < 80 && $debtor->base != 'Б-МС')
-                                <?php continue; ?>
-                                @endif
-                                @if ($row['id'] == 21 && $debtor->qty_delays < 30 && $debtor->base == 'Б-МС')
-                                <?php continue; ?>
-                                @endif
                                 <tr>
                                     <td><input type="radio" name="sms_id" value="{{$row['id']}}"></td>
                                     <td class="sms_text" style="text-align: left">{{$row['text_tpl']}}</td>
