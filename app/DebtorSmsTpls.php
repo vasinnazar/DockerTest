@@ -29,21 +29,7 @@ class DebtorSmsTpls extends Model {
      * @var array
      */
     protected $fillable = ['sort'];
-    
-    /**
-     * Возвращает шаблоны для SMS-сообщений
-     * @param string $recovery_type
-     * @return array
-     */
-    static function getSmsTpls($recovery_type, $is_ubytki = false) {
-        $q = self::where('recovery_type', $recovery_type);
-        if ($recovery_type == 'remote' && $is_ubytki) {
-            $q->where('sort', 1);
-        } else {
-            $q->where('sort', null);
-        }
-        return $q->get();
-    }
+
     public function scopeBySort($query, string $type = null, int $sort = null)
     {
         if ($type == 'remote' && $sort) {
