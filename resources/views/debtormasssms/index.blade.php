@@ -2,25 +2,20 @@
 @section('title')
     Массовая рассылка
 @stop
-@section('css')
-    <style>
-        .debtors-frame {
-            height: 250px;
-            overflow-y: scroll;
-        }
-
-        .debtors-table-frame {
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-    </style>
-@stop
 @section('content')
-    <div class='row'>
-        <div class="col-xs-12">
-            <button id="smsFilter" type="button" class="btn btn-default" data-toggle="modal"
-                    data-target="#debtorMassSmsFilterModal"><span class='glyphicon glyphicon-search'></span> Фильтр
+    <div class='row m-10'>
+        <div class="col-md-9">
+            <button id="massFilter" type="button" class="btn btn-default" data-toggle="modal"
+                    data-target="#debtorMassFilterModal"><span class='glyphicon glyphicon-search'></span> Фильтр
             </button>
+        </div>
+        <div class="col-md-1">
+            <p>Дата отправки: </p>
+        </div>
+        <div class="col-md-1">
+            <input type="date" name="dateSend"
+                   class="form-control" style="width: 200px;"
+                   min="{{date('Y-m-d', time())}}">
         </div>
     </div>
     <div class='row'>
@@ -33,23 +28,20 @@
                         </button>
                     </td>
                     <td style="padding-left: 20px; padding-right: 17px;">
-                        <input type="button" id="sendMassEmail" class="btn btn-primary" value="Отправить" disabled/>
-                    </td>
-                    <td style="padding-left: 20px; padding-right: 17px;">
                         <button id="smsTpls" class="btn btn-primary" data-toggle="modal" data-target="#debtorMassSMS">
                             Шаблон SMS
                         </button>
                     </td>
                     <td style="padding-left: 20px; padding-right: 17px;">
-                        <input type="button" id="sendMassSms" class="btn btn-primary" value="Отправить" disabled/>
+                        <input type="button" id="sendMass" class="btn btn-primary" value="Отправить" disabled/>
                     </td>
                 </tr>
             </table>
         </div>
     </div>
-    <div class="row" id="smsInfoBlock" style="margin-top: 15px; display: none;">
+    <div class="row" id="sendInfoBlock" style="margin-top: 15px; display: none;">
         <div class="col-xs-12">
-            <div id="smsInfo" class="alert alert-info" role="alert">Отправка СМС начата. Ожидайте...</div>
+            <div id="sendInfo" class="alert alert-info" role="alert">Отправка начата. Ожидайте...</div>
         </div>
     </div>
     <div class="row">
@@ -74,7 +66,7 @@
             </table>
         </div>
     </div>
-    <div class="modal fade" id="debtorMassSmsFilterModal" tabindex="-1" role="dialog"
+    <div class="modal fade" id="debtorMassFilterModal" tabindex="-1" role="dialog"
          aria-labelledby="debtorTransferFilterModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -82,9 +74,10 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4 class="modal-title" id="debtorTransferFilterModalLabel">Фильтр должников</h4>
                 </div>
-                <form id="massSmsFormFilter">
-                    <input type="hidden" name="sms_tpl_id">
-                    <input type="hidden" name="sms_tpl_date" value="{{ date('d.m.Y', time()) }}">
+                <form id="massSendFormFilter">
+                    <input type="hidden" name="is_sms" value="">
+                    <input type="hidden" name="template_id">
+                    <input type="hidden" name="date_send" value="{{ date('d.m.Y', time()) }}">
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-xs-12">
@@ -94,14 +87,24 @@
                                             <td>{{$dtff['label']}}</td>
                                             <td>
                                                 <select class='form-control'
-                                                        name='{{($dtff['name'] == 'users@login') ? 'search_field_users@id_condition' : 'search_field_'.$dtff['name'].'_condition'}}'>
+                                                        name='{{($dtff['name'] == 'users@login')
+                                                        ?
+                                                        'search_field_users@id_condition'
+                                                        :
+                                                        'search_field_'.$dtff['name'].'_condition'}}'>
                                                     <option value='='>=</option>
                                                     <option value="<"><</option>
                                                     <option value="<="><=</option>
                                                     <option value=">">></option>
                                                     <option value=">=">>=</option>
                                                     <option value="<>">не равно</option>
-                                                    <option value="like" {{($dtff['name'] == 'passports@fact_address_region' || $dtff['name'] == 'passports@fact_address_district') ? 'selected' : ''}}>
+                                                    <option value="like" {{
+                                                            ($dtff['name'] == 'passports@fact_address_region' ||
+                                                            $dtff['name'] == 'passports@fact_address_district')
+                                                            ?
+                                                            'selected'
+                                                            : ''
+                                                            }}>
                                                         подобно
                                                     </option>
                                                 </select>

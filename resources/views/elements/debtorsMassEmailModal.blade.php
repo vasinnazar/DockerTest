@@ -11,14 +11,6 @@
                         <form id="formSendEmail">
                             <input type="hidden" name="debtor_ids" value="">
                             <h4>{{$nameGroup}}</h4>
-                            <table style="margin-bottom: 15px;">
-                                <tr>
-                                    <td>Дата для Email:</td>
-                                    <td style="padding-left: 15px;"><input type="date" name="email_date"
-                                                                           class="form-control" style="width: 200px;"
-                                                                           min="{{date('Y-m-d', time())}}"></td>
-                                </tr>
-                            </table>
                             <table class="table table-bordered table-condensed">
                                 <thead>
                                 <tr>
