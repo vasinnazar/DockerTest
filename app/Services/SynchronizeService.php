@@ -178,7 +178,7 @@ class SynchronizeService
         $userArmSales = $this->armClient->getUserById($loanArm->claim->user_id);
         $user = User::where('id_1c', $userArmSales['id_1c'])->first();
         if (!$user) {
-            throw new DebtorException('synchronize_exception', 'Не удалось определить ответственного в заявке');
+            $user = User::where('id', 18)->first();
         }
         return Claim::updateOrCreate([
             'customer_id' => $debtor->customer->id,
@@ -195,7 +195,6 @@ class SynchronizeService
             'about_client_id' => $aboutClientId,
             'subdivision_id' => $subdivision->id,
             'id_1c' => $loanArm->claim->id_1c,
-            'promocode_id' => $loanArm->claim->promocode_id,
             'seb_phone' => $loanArm->claim->seb_phone,
             'special_percent' => $loanArm->claim->special_percent,
             'claimed_for_remove' => $loanArm->claim->claimed_for_remove,
