@@ -213,7 +213,7 @@ class SynchronizeService
 
     private function updateOrCreateLoan(Debtor $debtor, $loanArm, Claim $claim)
     {
-        if($debtor->loan) {
+        if ($debtor->loan) {
             return $debtor->loan;
         }
         $subdivisionArmSales = $this->armClient->getSubdivisions()->filter(function ($subdivision) use ($loanArm) {
@@ -265,7 +265,7 @@ class SynchronizeService
 
     private function createCard(Debtor $debtor, $loanArm)
     {
-        if(!isset($loanArm->card) || empty($loanArm->card)) {
+        if (!isset($loanArm->card) || empty($loanArm->card)) {
             return null;
         }
 
