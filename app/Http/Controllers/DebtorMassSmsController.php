@@ -302,7 +302,7 @@ class DebtorMassSmsController extends BasicController
     {
         return response()->json([
             'error' => 'success',
-            'cnt' => 99
+            'cnt' => $input
         ]);
     }
     public function sendMassMessage(SendMassSmsRequest $request)

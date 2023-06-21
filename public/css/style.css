@@ -384,3 +384,6 @@ body{
 .m-10{
     margin: 10px
 }
+.text-left-important{
+    text-align: left !important;
+}

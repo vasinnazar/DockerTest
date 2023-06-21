@@ -254,3 +254,7 @@ position:absolute;
 	background-position:0 -79px !important;
 	color:#ccc;
 }
+
+.form-close{
+    margin-top: -4% !important;
+}

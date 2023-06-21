@@ -11,7 +11,10 @@ class SendMassSmsRequest extends Request
             'templateId' => 'required|integer',
             'responsibleUserId' => 'required|integer',
             'debtorsIds' => 'required|array',
-            'sendDate' => 'date'
+            'sendDate' => 'date',
+            'dateAnswer'=>'date',
+            'datePayment'=>'date',
+            'discountPayment'=>'numeric'
         ];
     }
     public function messages()

@@ -61,6 +61,9 @@ $(document).ready(function () {
                 responsibleUserId : $('#old_user_id').val(),
                 debtorsIds : $('#debtormasssmsTable').dataTable().api().rows().ids().toArray(),
                 sendDate : $('input[name="date_send"]').val(),
+                dateAnswer : $('input[name="dateAnswer"]').val(),
+                datePayment : $('input[name="datePayment"]').val(),
+                discountPayment : $('input[name="discountPayment"]').val()
             },
             dataType: "json",
             success: function (data) {
