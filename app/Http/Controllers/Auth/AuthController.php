@@ -82,7 +82,7 @@ class AuthController extends Controller
             Spylog::log(Spylog::ACTION_LOGIN, 'users', $user->id, $_SERVER['REMOTE_ADDR']);
             if (config('app.version_type') == 'debtors') {
                 return redirect('debtors/index')
-                    ->with('msg_err', 'Добро пожаловать, ' . Auth::user()->name)
+                    ->with('msg_suc', 'Добро пожаловать, ' . Auth::user()->name)
                     ->with('class', 'alert-success');
             } else {
                 if (Auth::user()->hasPermission(\App\Permission::makeName(\App\Utils\PermLib::ACTION_SELECT,
