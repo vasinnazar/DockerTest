@@ -54,16 +54,17 @@ $(document).ready(function () {
         $('#sendInfoBlock').show();
         $.ajax({
             type: "POST",
-            url: "/ajax/debtors/masssms/send",
+            url: "/ajax/debtors/massmessage/send",
             data: {
                 isSms: $('input[name="is_sms"]').val(),
                 templateId : $('input[name="template_id"]').val(),
-                sendDate : $('input[name="date_send"]').val(),
                 responsibleUserId : $('#old_user_id').val(),
-                debtorsIds : $('#debtormasssmsTable').dataTable().api().rows().ids().toArray()
+                debtorsIds : $('#debtormasssmsTable').dataTable().api().rows().ids().toArray(),
+                sendDate : $('input[name="date_send"]').val(),
             },
             dataType: "json",
             success: function (data) {
+                console.log(data);
                 if (data.error == 'success') {
                     $('#sendInfo').attr('class', 'alert alert-success');
                     $('#sendInfo').text('Сообщения отправлены. Кол-во: ' + data.cnt);

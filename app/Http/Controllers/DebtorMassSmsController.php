@@ -30,11 +30,25 @@ class DebtorMassSmsController extends BasicController
 {
     public $emailService;
     public $debtorEventService;
-
-    public function __construct(EmailService $emailService, DebtorEventService $debtorEventService)
+    public $debtorSmsRepository;
+    public $debtorEventSmsRepository;
+    public $debtorEventsRepository;
+    public $debtorSmsService;
+    public function __construct(
+        EmailService $emailService,
+        DebtorEventService $debtorEventService,
+        DebtorSmsRepository $debtorSmsRepository,
+        DebtorEventSmsRepository $debtorEventSmsRepository,
+        DebtorEventsRepository $debtorEventsRepository,
+        DebtorSmsService $debtorSmsService
+    )
     {
         $this->emailService = $emailService;
         $this->debtorEventService = $debtorEventService;
+        $this->debtorSmsRepository = $debtorSmsRepository;
+        $this->debtorEventSmsRepository = $debtorEventSmsRepository;
+        $this->debtorEventsRepository = $debtorEventsRepository;
+        $this->debtorSmsService = $debtorSmsService;
     }
 
     public function index(DebtorSmsRepository $smsRepository)
@@ -203,17 +217,10 @@ class DebtorMassSmsController extends BasicController
             ->toJson();
     }
 
-    public function sendMassSms(
-        DebtorSmsRepository $debtorSmsRepository,
-        DebtorEventSmsRepository $debtorEventSmsRepository,
-        DebtorEventsRepository $debtorEventsRepository,
-        DebtorSmsService $debtorSmsService,
-        SendMassSmsRequest $request
-    ) {
-        $input = $request->validated();
-
+    public function sendMassSms(array $input)
+    {
         try {
-            $sms = $debtorSmsRepository->firstById((int)$input['smsId']);
+            $sms = $this->debtorSmsRepository->firstById((int)$input['templateId']);
             $respUser = User::findOrFail($input['responsibleUserId']);
 
         } catch (\Throwable $exception) {
@@ -245,8 +252,8 @@ class DebtorMassSmsController extends BasicController
                 ]);
                 continue;
             }
-            if (!$debtorSmsService->hasSmsMustBeSentOnce($debtor, $sms->id)) {
-                $sms = $debtorSmsRepository->firstById(3);
+            if (!$this->debtorSmsService->hasSmsMustBeSentOnce($debtor, $sms->id)) {
+                $sms = $this->debtorSmsRepository->firstById(3);
             }
 
             $sms->text_tpl = str_replace([
@@ -269,7 +276,7 @@ class DebtorMassSmsController extends BasicController
             $respUser->increaseSentSms();
             // создаем мероприятие отправки смс
             $report = $phone . ' SMS: ' . $sms->text_tpl;
-            $event = $debtorEventsRepository->createEvent(
+            $event = $this->debtorEventsRepository->createEvent(
                 $debtor,
                 $respUser,
                 $report,
@@ -280,7 +287,7 @@ class DebtorMassSmsController extends BasicController
             );
 
             if (in_array($sms->id, [21, 45])) {
-                $debtorEventSmsRepository->create($event->id, $sms->id, $debtor->customer_id_1c, $debtor->base);
+                $this->debtorEventSmsRepository->create($event->id, $sms->id, $debtor->customer_id_1c, $debtor->base);
             }
             $sendCustomers[] =  $debtor->customer_id_1c;
             $cnt++;
@@ -290,6 +297,21 @@ class DebtorMassSmsController extends BasicController
             'error' => 'success',
             'cnt' => $cnt
         ]);
+    }
+    public function sendMassEmail(array $input)
+    {
+        return response()->json([
+            'error' => 'success',
+            'cnt' => 99
+        ]);
+    }
+    public function sendMassMessage(SendMassSmsRequest $request)
+    {
+        $input = $request->validated();
+        if ($input['isSms']) {
+            return $this->sendMassSms($input);
+        }
+        return $this->sendMassEmail($input);
     }
     static function getSearchFields()
     {

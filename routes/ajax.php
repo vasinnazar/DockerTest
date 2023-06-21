@@ -193,6 +193,7 @@ Route::prefix('/ajax')->group(function () {
         Route::get('/total-planned',[DebtorsController::class,'totalNumberPlaned']);
         Route::post('/calc/creditcard', [DebtorsController::class,'getCalcDataForCreditCard']);
         Route::post('/masssms/send', [DebtorMassSmsController::class,'sendMassSms']);
+        Route::post('/massmessage/send', [DebtorMassSmsController::class,'sendMassMessage']);
         Route::get('/changeloadstatus/{debtor_id}', [DebtorsController::class,'changeLoadStatus']);
         Route::post('/getallpayments/{debtor_id}', [DebtorsController::class,'getAllPayments']);
         Route::post('/loans/upload', [DebtorsController::class,'uploadLoans']);
