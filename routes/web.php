@@ -90,6 +90,10 @@ Route::get('finterra/asp/secret', [FinterraController::class, 'aspSecret']);
 Route::get('finterra/asp/approve', [FinterraController::class, 'aspApprove']);
 Route::get('finterra/asp/data', [FinterraController::class, 'aspData']);
 
+//ГРАФИК ПРОДАЖ
+Route::get('graph/index', [GraphController::class,'index']);
+Route::post('graph/index/graphdata', [GraphController::class,'getGraphData']);
+
 Route::prefix('auth')->group(function () {
     Route::get('/login', ['uses' => 'Auth\AuthController@login']);
     Route::get('/logout', ['uses' => 'Auth\AuthController@logout']);
@@ -107,10 +111,6 @@ Route::middleware('auth_only')->group(function () {
     Route::get('spylog/list', [SpylogController::class, 'index'])
         ->middleware('admin_only')
         ->name('spylog.list');
-
-    //ГРАФИК ПРОДАЖ
-    Route::get('graph/index', [GraphController::class,'index']);
-    Route::post('graph/index/graphdata', [GraphController::class,'getGraphData']);
 
     Route::prefix('/test')->group(function () {
         Route::get('/', [TestController::class, 'test'])->name('test');
