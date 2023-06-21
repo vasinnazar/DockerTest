@@ -12,7 +12,6 @@ use App\Role;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Mail\Mailer;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -51,7 +50,7 @@ class EmailService
      */
     public function sendEmailDebtor($arrayParam)
     {
-        $user = Auth::user();
+        $user = $arrayParam['user'];
         $debtor = Debtor::where('id', $arrayParam['debtor_id'])->first();
         $loan = Loan::where('id_1c', $debtor->loan_id_1c)->first();
         $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();

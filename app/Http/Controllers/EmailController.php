@@ -9,6 +9,7 @@ use App\Http\Requests\Email\EmailSendRequest;
 use App\Services\DebtorEventService;
 use App\Services\EmailService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class EmailController extends Controller
@@ -38,6 +39,7 @@ class EmailController extends Controller
             'dateAnswer' => Carbon::parse($request->dateAnswer)->format('d.m.Y') ?? null,
             'datePayment' => Carbon::parse($request->datePayment)->format('d.m.Y') ?? null,
             'discountPayment' => $request->discountPayment ?? null,
+            'user' => Auth::user(),
         ];
 
         $customer = (Debtor::find($request->debtor_id))->customer;

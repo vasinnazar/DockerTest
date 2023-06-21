@@ -300,9 +300,52 @@ class DebtorMassSmsController extends BasicController
     }
     public function sendMassEmail(array $input)
     {
+        try {
+            $responsibleUser = User::findOrFail($input['responsibleUserId']);
+        } catch (\Throwable $exception) {
+            return response()->json([
+                'error' => 'Не удалось определить ответственного'
+            ]);
+        }
+        $cnt = 0;
+        $sendCustomers = [];
+        $debtors = Debtor::whereIn('id', $input['debtorsIds'])->get();
+
+        foreach ($debtors as $debtor) {
+            $arrayParam = [
+                'debtor_id' => $debtor->id,
+                'email_id' => $input['templateId'],
+                'dateAnswer' => Carbon::parse($input['dateAnswer'])->format('d.m.Y') ?? null,
+                'datePayment' => Carbon::parse($input['datePayment'])->format('d.m.Y') ?? null,
+                'discountPayment' => $input['discountPayment'] ?? null,
+                'user' => $responsibleUser,
+            ];
+            if (in_array($debtor->customer_id_1c, $sendCustomers)) {
+                continue;
+            }
+            try {
+                $this->debtorEventService->checkLimitEventByCustomerId1c($debtor->customer_id_1c);
+            } catch (DebtorException $e) {
+                Log::error("$e->errorName:", [
+                    'customer' => $debtor['customer_id_1c'],
+                    'file' => __FILE__,
+                    'method' => __METHOD__,
+                    'line' => __LINE__,
+                    'id' => $e->errorId,
+                    'message' => $e->errorMessage,
+                ]);
+                continue;
+            }
+            if (!($this->emailService->sendEmailDebtor($arrayParam))) {
+                continue;
+            }
+            $responsibleUser->increaseSentSms();
+            $sendCustomers[] =  $debtor->customer_id_1c;
+            $cnt++;
+        }
         return response()->json([
             'error' => 'success',
-            'cnt' => $input
+            'cnt' => $cnt
         ]);
     }
     public function sendMassMessage(SendMassSmsRequest $request)
