@@ -11,7 +11,7 @@ class SendMassSmsRequest extends Request
             'templateId' => 'required|integer',
             'responsibleUserId' => 'required|integer',
             'debtorsIds' => 'required|array',
-            'sendDate' => 'date',
+            'sendDate' => 'required|date',
             'dateAnswer'=>'date',
             'datePayment'=>'date',
             'discountPayment'=>'numeric'

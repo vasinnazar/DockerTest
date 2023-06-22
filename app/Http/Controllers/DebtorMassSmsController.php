@@ -260,7 +260,7 @@ class DebtorMassSmsController extends BasicController
                 '##sms_till_date##',
                 '##spec_phone##',
             ], [
-                $input['smsDate'],
+                $input['sendDate'],
                 $respUser->phone,
             ], $sms->text_tpl);
             $phone = $debtor->customer->getPhone();
@@ -310,13 +310,12 @@ class DebtorMassSmsController extends BasicController
         $cnt = 0;
         $sendCustomers = [];
         $debtors = Debtor::whereIn('id', $input['debtorsIds'])->get();
-
         foreach ($debtors as $debtor) {
             $arrayParam = [
                 'debtor_id' => $debtor->id,
                 'email_id' => $input['templateId'],
-                'dateAnswer' => Carbon::parse($input['dateAnswer'])->format('d.m.Y') ?? null,
-                'datePayment' => Carbon::parse($input['datePayment'])->format('d.m.Y') ?? null,
+                'dateAnswer' => Carbon::parse($input['dateAnswer'] ?? null)->format('d.m.Y'),
+                'datePayment' => Carbon::parse($input['datePayment'] ?? null)->format('d.m.Y'),
                 'discountPayment' => $input['discountPayment'] ?? null,
                 'user' => $responsibleUser,
             ];
