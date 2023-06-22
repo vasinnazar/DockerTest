@@ -34,7 +34,6 @@ class SynchronizeService
             throw new DebtorException('synchronize_exception', 'Не удалось получить информацию');
         }
         $infoArm = $this->armClient->getCustomerById($loanArm->claim->customer_id);
-        logger([$infoArm]);
         if (empty($infoArm)) {
             throw new DebtorException('synchronize_exception', 'Не удалось получить информацию');
         }
