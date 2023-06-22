@@ -58,8 +58,8 @@ class EmailService
 
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
         $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
-        $armf_customer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
-        $client = DB::Table('armf.about_clients')->where('customer_id', $armf_customer->id)->first();
+        $armfCustomer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
+        $aboutClient = DB::Table('armf.about_clients')->where('customer_id', $armfCustomer->id)->first();
         $userArm = $this->armClient->getUserById1c($user->id_1c);
 
         if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['email'])) {
@@ -80,11 +80,11 @@ class EmailService
             $mailer->send(
                 'emails.sendMessage',
                 ['messageText' => $messageText],
-                function ($message) use ($client) {
+                function ($message) use ($aboutClient) {
                     /** @var Message $message */
                     $message->subject(config('vars.company_new_name'));
                     $message->from(config('mail.username'));
-                    $message->to($client->email);
+                    $message->to($aboutClient->email);
                     $message->bcc(config('mail.username'));
                 }
             );
@@ -105,7 +105,7 @@ class EmailService
             'last_user_id' => $user->id,
             'user_id_1c' => $user->id_1c,
             'event_type_id' => 24,
-            'report' => 'Отправленно ' . $client->email . ' сообщение :' . $messageText,
+            'report' => 'Отправленно ' . $aboutClient->email . ' сообщение :' . $messageText,
             'refresh_date' => Carbon::now(),
             'overdue_reason_id' => 0,
             'event_result_id' => 17,
