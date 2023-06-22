@@ -70,7 +70,7 @@ class ArmClient
     }
     public function getAbouts(int $customerId): array
     {
-        $response = $this->client->request('GET', '/api/v1/customers/' . $customerId . '/about');
+        $response = $this->client->get($this->url . '/api/v1/customers/' . $customerId . '/about');
         return json_decode($response->getBody()->getContents(), true);
     }
 

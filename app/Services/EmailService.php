@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\about_client;
 use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorEvent;
@@ -59,7 +60,8 @@ class EmailService
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
         $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
         $armfCustomer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
-        $aboutClient = DB::Table('armf.about_clients')->where('customer_id', $armfCustomer->id)->first();
+        $aboutClient = $this->armClient->getAbouts($armfCustomer->id);
+        $debtorEmail = $aboutClient ? end($aboutClient)['email'] : null;
         $userArm = $this->armClient->getUserById1c($user->id_1c);
 
         if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['email'])) {
@@ -80,11 +82,11 @@ class EmailService
             $mailer->send(
                 'emails.sendMessage',
                 ['messageText' => $messageText],
-                function ($message) use ($aboutClient) {
+                function ($message) use ($debtorEmail) {
                     /** @var Message $message */
                     $message->subject(config('vars.company_new_name'));
                     $message->from(config('mail.username'));
-                    $message->to($aboutClient->email);
+                    $message->to($debtorEmail);
                     $message->bcc(config('mail.username'));
                 }
             );
