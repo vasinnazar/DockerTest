@@ -45,29 +45,8 @@ class EmailService
         return $collectMessages;
     }
 
-    /**
-     * @param array $arrayParam
-     * @return bool
-     */
-    public function sendEmailDebtor($arrayParam)
+    public function sendEmailMessage(string $messageText, string $email)
     {
-        $user = $arrayParam['user'];
-        $debtor = Debtor::where('id', $arrayParam['debtor_id'])->first();
-        $loan = Loan::where('id_1c', $debtor->loan_id_1c)->first();
-        $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
-        $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
-
-        $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
-        $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
-        $armfCustomer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
-        $aboutClient = $this->armClient->getAbouts($armfCustomer->id);
-        $debtorEmail = $aboutClient ? end($aboutClient)['email'] : null;
-        $userArm = $this->armClient->getUserById1c($user->id_1c);
-
-        if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['email'])) {
-            return false;
-        }
-        $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
         try {
             $mailer = app()->make(Mailer::class);
             $mailer->getSwiftMailer()->getTransport()->setStreamOptions(
@@ -82,11 +61,11 @@ class EmailService
             $mailer->send(
                 'emails.sendMessage',
                 ['messageText' => $messageText],
-                function ($message) use ($debtorEmail) {
+                function ($message) use ($email) {
                     /** @var Message $message */
                     $message->subject(config('vars.company_new_name'));
                     $message->from(config('mail.username'));
-                    $message->to($debtorEmail);
+                    $message->to($email);
                     $message->bcc(config('mail.username'));
                 }
             );
@@ -95,6 +74,29 @@ class EmailService
         }
 
         if (count($mailer->failures()) > 0) {
+            return false;
+        }
+        return true;
+    }
+    public function sendEmailDebtor(array $arrayParam): bool
+    {
+        $user = $arrayParam['user'];
+        $debtor = Debtor::where('id', $arrayParam['debtor_id'])->first();
+        $loan = Loan::where('id_1c', $debtor->loan_id_1c)->first();
+        $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
+        $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
+        $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
+        $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
+        $armfCustomer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
+        $aboutClient = $this->armClient->getAbouts($armfCustomer->id);
+        $debtorEmail = $aboutClient ? end($aboutClient)['email'] : null;
+        $userArm = $this->armClient->getUserById1c($user->id_1c);
+
+        if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['email'])) {
+            return false;
+        }
+        $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
+        if (!$this->sendEmailMessage($messageText, $debtorEmail)) {
             return false;
         }
         DebtorEvent::create([
@@ -107,7 +109,7 @@ class EmailService
             'last_user_id' => $user->id,
             'user_id_1c' => $user->id_1c,
             'event_type_id' => 24,
-            'report' => 'Отправленно ' . $aboutClient->email . ' сообщение :' . $messageText,
+            'report' => 'Отправленно ' . $debtorEmail . ' сообщение :' . $messageText,
             'refresh_date' => Carbon::now(),
             'overdue_reason_id' => 0,
             'event_result_id' => 17,
