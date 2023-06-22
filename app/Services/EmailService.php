@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\about_client;
 use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorEvent;
@@ -14,7 +13,6 @@ use App\User;
 use Carbon\Carbon;
 use Illuminate\Mail\Mailer;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class EmailService
 {

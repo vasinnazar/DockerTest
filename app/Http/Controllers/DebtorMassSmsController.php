@@ -339,7 +339,6 @@ class DebtorMassSmsController extends BasicController
             if (!($this->emailService->sendEmailDebtor($arrayParam))) {
                 continue;
             }
-            $responsibleUser->increaseSentSms();
             $sendCustomers[] =  $debtor->customer_id_1c;
             $cnt++;
         }
