@@ -8,7 +8,30 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xs-12">
-
+                        @if (count($arEmailSent))
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Сообщение</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @foreach ($arEmailSent as $email)
+                                    <tr>
+                                        <td>{{date('d.m.Y', strtotime($email->refresh_date))}}</td>
+                                        <td>{{$email->report}}</td>
+                                        <td>Отправлено</td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        @elseif (count($arEmailSent))
+                            Ошибка.
+                        @else
+                            Уведомления не отправлялись
+                        @endif
                     </div>
                 </div>
             </div>

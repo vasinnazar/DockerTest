@@ -164,6 +164,22 @@ class DebtorEventService
             ->orderBy('de_created_at', 'desc')
             ->get();
     }
+    public function getDebtorEventsEmailForCustomer($debtors)
+    {
+        $arDebtorIds = [];
+        foreach ($debtors as $debtor) {
+            $arDebtorIds[] = $debtor->debtor_id_1c;
+        }
+
+        return DebtorEvent::select(DB::raw('*, debtor_events.id as id, debtor_events.created_at as de_created_at, debtors_events_promise_pays.promise_date as promise_date, debtors_events_promise_pays.amount as promise_amount'))
+            ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
+            ->leftJoin('customers', 'customers.id_1c', '=', 'debtor_events.customer_id_1c')
+            ->leftJoin('debtors_events_promise_pays', 'debtors_events_promise_pays.event_id', '=', 'debtor_events.id')
+            ->whereIn('debtor_id_1c', $arDebtorIds)
+            ->where('event_type_id', 24)
+            ->orderBy('de_created_at', 'desc')
+            ->get();
+    }
 
     public function getEventsForExport(Request $req)
     {

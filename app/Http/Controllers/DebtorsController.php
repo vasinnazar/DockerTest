@@ -183,6 +183,7 @@ class DebtorsController extends BasicController
         $all_debts = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
 
         $debtorEvents = $this->debtEventService->getDebtorEventsForCustomer($all_debts);
+        $arEmailSent = $this->debtEventService->getDebtorEventsEmailForCustomer($all_debts);
 
         $arPurposes = Order::getPurposeNames();
 
@@ -205,6 +206,7 @@ class DebtorsController extends BasicController
 
         $passport_armf = DB::Table('armf.passports')->select(DB::raw('*'))->where('series',
             $debtor->passport_series)->where('number', $debtor->passport_number)->first();
+
         if (!is_null($passport_armf)) {
             $loan_id_replica = $this->getLoanIdFromArm($debtor->loan_id_1c, $debtor->customer_id_1c);
 
@@ -550,6 +552,7 @@ class DebtorsController extends BasicController
             'data_pos' => $data_pos,
             'insurances_data' => $arInsurancesData,
             'arSmsSent' => $arSmsSent,
+            'arEmailSent' => $arEmailSent,
             'hasSentNoticePersonal' => $hasSentNoticePersonal,
             'credit_vacation_data' => $credit_vacation_data,
             'third_people_agreement' => $third_people_agreement,
