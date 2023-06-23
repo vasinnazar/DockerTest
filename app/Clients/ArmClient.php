@@ -68,6 +68,11 @@ class ArmClient
         $response = $this->client->get($this->url . "/api/v1/customers/{$customerId}?with_all=1");
         return collect(\GuzzleHttp\json_decode($response->getBody()->getContents()));
     }
+    public function getCustomerById1c(string $customerId1c)
+    {
+        $response = $this->client->get($this->url . '/api/v1/customers?id_1c=' . $customerId1c);
+        return collect(json_decode($response->getBody()->getContents()));
+    }
     public function getAbouts(int $customerId): array
     {
         $response = $this->client->get($this->url . '/api/v1/customers/' . $customerId . '/about');

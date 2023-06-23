@@ -76,6 +76,7 @@ class EmailService
         }
         return true;
     }
+
     public function sendEmailDebtor(array $arrayParam): bool
     {
         $user = $arrayParam['user'];
@@ -85,8 +86,9 @@ class EmailService
         $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
         $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
-        $armfCustomer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
-        $aboutClient = $this->armClient->getAbouts($armfCustomer->id);
+        $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c);
+        $armfCustomerId = $armfCustomer->first()->id;
+        $aboutClient = $this->armClient->getAbouts($armfCustomerId);
         $debtorEmail = $aboutClient ? end($aboutClient)['email'] : null;
         $userArm = $this->armClient->getUserById1c($user->id_1c);
 
