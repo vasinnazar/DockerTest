@@ -127,6 +127,10 @@ class SynchronizeService
 
     private function updateOrCreatePassport(Debtor $debtor, $infoCustomerArmSales)
     {
+        $debtor->passport_series = $infoCustomerArmSales['passport']->series;
+        $debtor->passport_number = $infoCustomerArmSales['passport']->number;
+        $debtor->save();
+
         return Passport::updateOrCreate([
             'series' => $debtor->passport_series,
             'number' => $debtor->passport_number,
