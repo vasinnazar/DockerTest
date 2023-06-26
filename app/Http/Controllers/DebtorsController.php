@@ -23,6 +23,7 @@ use App\Passport;
 use App\Permission;
 use App\DebtorEventPromisePay;
 use App\Repayment;
+use App\Repositories\DebtorEventEmailRepository;
 use App\Repositories\DebtorSmsRepository;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
@@ -58,17 +59,20 @@ class DebtorsController extends BasicController
     public $debtCardService;
     public $debtEventService;
     public $massRecurrentService;
+    public $debtorEventEmailRepository;
 
     public function __construct(
         DebtorCardService $debtService,
         DebtorEventService $eventService,
-        MassRecurrentService $massRecurrentService
+        MassRecurrentService $massRecurrentService,
+        DebtorEventEmailRepository $debtorEventEmailRepository
     )
     {
 
         $this->debtCardService = $debtService;
         $this->debtEventService = $eventService;
         $this->massRecurrentService = $massRecurrentService;
+        $this->debtorEventEmailRepository = $debtorEventEmailRepository;
     }
 
     /**
@@ -183,7 +187,7 @@ class DebtorsController extends BasicController
         $all_debts = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
 
         $debtorEvents = $this->debtEventService->getDebtorEventsForCustomer($all_debts);
-        $arEmailSent = $this->debtEventService->getDebtorEventsEmailForCustomer($all_debts);
+        $arEmailSent = $this->debtorEventEmailRepository->findByDebtorId($debtor->id);
 
         $arPurposes = Order::getPurposeNames();
 

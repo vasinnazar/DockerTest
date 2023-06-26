@@ -67,7 +67,6 @@ $(document).ready(function () {
             },
             dataType: "json",
             success: function (data) {
-                console.log(data);
                 if (data.error == 'success') {
                     $('#sendInfo').attr('class', 'alert alert-success');
                     $('#sendInfo').text('Сообщения отправлены. Кол-во: ' + data.cnt);

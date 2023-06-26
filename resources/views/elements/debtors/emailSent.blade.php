@@ -1,3 +1,9 @@
+<?php
+$arEmailSentStatuses = [
+    0 => 'Не отправлено',
+    1 => 'Отправлено'
+];
+?>
 <div class="modal fade" id="debtorEmailSent" tabindex="-1" role="dialog" aria-labelledby="debtorEmailSentLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -20,9 +26,9 @@
                                 <tbody>
                                 @foreach ($arEmailSent as $email)
                                     <tr>
-                                        <td>{{date('d.m.Y', strtotime($email->refresh_date))}}</td>
-                                        <td>{{$email->report}}</td>
-                                        <td>Отправлено</td>
+                                        <td>{{date('d.m.Y', strtotime($email->created_at))}}</td>
+                                        <td>{{$email->message}}</td>
+                                        <td>{{$arEmailSentStatuses[$email->status]}}</td>
                                     </tr>
                                 @endforeach
                                 </tbody>
