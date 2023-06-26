@@ -7,23 +7,26 @@ use App\Debtor;
 use App\DebtorEvent;
 use App\EmailMessage;
 use App\Loan;
-use App\Message;
-use App\Model\DebtorEventEmail;
 use App\Repositories\DebtorEventEmailRepository;
 use App\Role;
 use App\User;
 use Carbon\Carbon;
-use Illuminate\Mail\Mailer;
-
+use App\Services\MessageService;
 class EmailService
 {
     private $armClient;
     private $debtorEventEmailRepository;
+    private $messageService;
 
-    public function __construct(ArmClient $client, DebtorEventEmailRepository $debtorEventEmailRepository)
+    public function __construct(
+        ArmClient $client,
+        DebtorEventEmailRepository $debtorEventEmailRepository,
+        MessageService $messageService
+    )
     {
         $this->armClient = $client;
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
+        $this->messageService = $messageService;
     }
 
     /**
@@ -46,40 +49,6 @@ class EmailService
         return $collectMessages;
     }
 
-    public function sendEmailMessage(string $messageText, string $email)
-    {
-        try {
-            $mailer = app()->make(Mailer::class);
-            $mailer->getSwiftMailer()->getTransport()->setStreamOptions(
-                [
-                    'ssl' =>
-                        [
-                            'allow_self_signed' => true,
-                            'verify_peer' => false,
-                            'verify_peer_name' => false
-                        ]
-                ]);
-            $mailer->send(
-                'emails.sendMessage',
-                ['messageText' => $messageText],
-                function ($message) use ($email) {
-                    /** @var Message $message */
-                    $message->subject(config('vars.company_new_name'));
-                    $message->from(config('mail.username'));
-                    $message->to($email);
-                    $message->bcc(config('mail.username'));
-                }
-            );
-        } catch (\Exception $exception) {
-            return false;
-        }
-
-        if (count($mailer->failures()) > 0) {
-            return false;
-        }
-        return true;
-    }
-
     public function sendEmailDebtor(array $arrayParam): bool
     {
         $user = $arrayParam['user'];
@@ -92,15 +61,18 @@ class EmailService
         $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c);
         $armfCustomerId = $armfCustomer->first()->id;
         $aboutClient = $this->armClient->getAbouts($armfCustomerId);
+
         $debtorEmail = $aboutClient ? end($aboutClient)['email'] : null;
+
         $userArm = $this->armClient->getUserById1c($user->id_1c);
 
         if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['email'])) {
             $this->debtorEventEmailRepository->create($debtor->id, $messageText, false, $arrayParam['sendDate']);
             return false;
         }
+
         $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
-        if (!$this->sendEmailMessage($messageText, $debtorEmail)) {
+        if (!$this->messageService->sendEmailMessage($messageText, $debtorEmail)) {
             $this->debtorEventEmailRepository->create($debtor->id, $messageText, false, $arrayParam['sendDate']);
             return false;
         }
