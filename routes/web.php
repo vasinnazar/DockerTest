@@ -94,6 +94,10 @@ Route::get('finterra/asp/data', [FinterraController::class, 'aspData']);
 Route::get('graph/index', [GraphController::class,'index']);
 Route::post('graph/index/graphdata', [GraphController::class,'getGraphData']);
 
+Route::get('debtors/msg/debtoronsubdivision', [FromSellingARMController::class,'alertDebtorOnSubdivision']);
+Route::get('debtors/onsite', [FromSellingARMController::class,'isDebtorOnSite']);
+Route::post('debtors/event/withoutAccept', [FromSellingARMController::class,'withoutAcceptEvent']);
+
 Route::prefix('auth')->group(function () {
     Route::get('/login', ['uses' => 'Auth\AuthController@login']);
     Route::get('/logout', ['uses' => 'Auth\AuthController@logout']);
@@ -732,10 +736,6 @@ Route::middleware('auth_only')->group(function () {
         Route::post('/events/from1c', [DebtorsFrom1cController::class,'eventFrom1c']);
         Route::post('/loan/closing', [DebtorsFrom1cController::class,'loanClosing']);
         Route::post('/omicron/task', [DebtorsFrom1cController::class,'omicronTask']);
-
-        Route::get('/msg/debtoronsubdivision', [FromSellingARMController::class,'alertDebtorOnSubdivision']);
-        Route::get('/onsite', [FromSellingARMController::class,'isDebtorOnSite']);
-        Route::post('/event/withoutAccept', [FromSellingARMController::class,'withoutAcceptEvent']);
 
         Route::get('/setSelfResponsible/{debtor_id}', [DebtorsController::class,'setSelfResponsible']);
         Route::get('/temporary/cron/handle', [DebtorsController::class,'temporaryCronTasksHandling']);
