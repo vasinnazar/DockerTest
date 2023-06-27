@@ -11,7 +11,7 @@ class DebtorEventEmail extends Model
     use SoftDeletes;
     protected $table = 'debtor_event_email';
     protected $fillable = [
-        'debtor_id', 'message', 'status'
+        'debtor_id', 'message', 'status', 'date_sent'
     ];
     protected $hidden = [
         'created_at', 'updated_at', 'deleted_at',

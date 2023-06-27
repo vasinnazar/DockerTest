@@ -114,20 +114,22 @@ class DebtorMassSmsControllerTest extends TestCase
         );
 
         $this->withoutMiddleware();
+        $dateSend = Carbon::now()->format('d.m.Y');
         $response = $this->actingAs($this->user, 'web')
             ->post('/ajax/debtors/massmessage/send', [
                 'isSms' => $isSms,
                 'responsibleUserId' => $this->user->id,
                 'debtorsIds' => $this->debtors->pluck('id')->toArray(),
                 'templateId' => Arr::random($this->emailTemplateId),
-                'sendDate' => Carbon::now()->format('d.m.Y'),
+                'sendDate' => $dateSend,
             ]);
         $result = $response->decodeResponseJson();
 
         foreach ($this->debtors as $debtor) {
             $this->assertDatabaseHas('debtor_event_email', [
                 'debtor_id' => $debtor->id,
-                'status' => (int) true
+                'status' => (int) true,
+                'date_sent' => Carbon::parse($dateSend)->format('Y-m-d')
             ]);
             $this->assertDatabaseHas('debtor_events', [
                 'debtor_id' => $debtor->id,
