@@ -43,7 +43,7 @@ $(document).ready(function () {
         $('.sms_text').each(function () {
             $(this).text($(this).text().replace(/\d{1,2}\.\d{1,2}\.\d{4}/, arVal[2] + '.' + arVal[1] + '.' + arVal[0]));
         });
-        $('input[name="date_send"]').val(arVal[2] + '.' + arVal[1] + '.' + arVal[0]);
+        $('input[name="date_template_sms"]').val(arVal[2] + '.' + arVal[1] + '.' + arVal[0]);
     });
 
     $(document).on('click', '#sendMass', function () {
@@ -60,7 +60,7 @@ $(document).ready(function () {
                 templateId : $('input[name="template_id"]').val(),
                 responsibleUserId : $('#old_user_id').val(),
                 debtorsIds : $('#debtormasssmsTable').dataTable().api().rows().ids().toArray(),
-                sendDate : $('input[name="date_send"]').val(),
+                dateSmsTemplate : $('input[name="date_template_sms"]').val(),
                 dateAnswer : $('input[name="dateAnswer"]').val(),
                 datePayment : $('input[name="datePayment"]').val(),
                 discountPayment : $('input[name="discountPayment"]').val()

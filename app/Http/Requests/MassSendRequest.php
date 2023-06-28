@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-class SendMassSmsRequest extends Request
+class MassSendRequest extends Request
 {
     public function rules(): array
     {
@@ -11,7 +11,7 @@ class SendMassSmsRequest extends Request
             'templateId' => 'required|integer',
             'responsibleUserId' => 'required|integer',
             'debtorsIds' => 'required|array',
-            'sendDate' => 'required|date',
+            'dateSmsTemplate' => 'required|date',
             'dateAnswer'=>'date',
             'datePayment'=>'date',
             'discountPayment'=>'numeric'

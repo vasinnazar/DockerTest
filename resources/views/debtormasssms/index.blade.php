@@ -3,21 +3,14 @@
     Массовая рассылка
 @stop
 @section('content')
-    <div class='row m-10'>
-        <div class="col-md-9">
+    <div class='row'>
+        <div class="col-xs-12">
             <button id="massFilter" type="button" class="btn btn-default" data-toggle="modal"
                     data-target="#debtorMassFilterModal"><span class='glyphicon glyphicon-search'></span> Фильтр
             </button>
         </div>
-        <div class="col-md-1">
-            <p>Дата отправки: </p>
-        </div>
-        <div class="col-md-1">
-            <input type="date" name="dateSend"
-                   class="form-control" style="width: 200px;"
-                   min="{{date('Y-m-d', time())}}">
-        </div>
     </div>
+
     <div class='row'>
         <div class="col-xs-12">
             <table id="debtorTransferAction" class="pull-right">
@@ -77,7 +70,7 @@
                 <form id="massSendFormFilter">
                     <input type="hidden" name="is_sms" value="">
                     <input type="hidden" name="template_id">
-                    <input type="hidden" name="date_send" value="{{ date('d.m.Y', time()) }}">
+                    <input type="hidden" name="date_template_sms" value="{{ date('d.m.Y', time()) }}">
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-xs-12">

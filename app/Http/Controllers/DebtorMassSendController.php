@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Customer;
 use App\DebtorEvent;
 use App\Exceptions\DebtorException;
-use App\Http\Requests\SendMassSmsRequest;
+use App\Http\Requests\MassSendRequest;
 use App\Model\DebtorEventSms;
 use App\Repositories\DebtorEventSmsRepository;
 use App\Repositories\DebtorEventsRepository;
@@ -260,7 +260,7 @@ class DebtorMassSendController extends BasicController
                 '##sms_till_date##',
                 '##spec_phone##',
             ], [
-                $input['sendDate'],
+                $input['dateSmsTemplate'],
                 $respUser->phone,
             ], $sms->text_tpl);
             $phone = $debtor->customer->getPhone();
@@ -316,7 +316,7 @@ class DebtorMassSendController extends BasicController
                 'email_id' => $input['templateId'],
                 'dateAnswer' => Carbon::parse($input['dateAnswer'] ?? null)->format('d.m.Y'),
                 'datePayment' => Carbon::parse($input['datePayment'] ?? null)->format('d.m.Y'),
-                'sendDate' => $input['sendDate'],
+                'sendDate' => $input['dateSmsTemplate'],
                 'discountPayment' => $input['discountPayment'] ?? null,
                 'user' => $responsibleUser,
             ];
@@ -347,7 +347,7 @@ class DebtorMassSendController extends BasicController
             'cnt' => $cnt
         ]);
     }
-    public function sendMassMessage(SendMassSmsRequest $request)
+    public function sendMassMessage(MassSendRequest $request)
     {
         $input = $request->validated();
         if ($input['isSms']) {

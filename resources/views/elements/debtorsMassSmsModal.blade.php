@@ -11,6 +11,19 @@
                     <div class="col-xs-12">
                         <form id="formSendSMS">
                             <input type="hidden" name="debtor_ids" value="">
+                            <table style="margin-bottom: 15px;">
+                                <tr>
+                                    <td>Дата для SMS:</td>
+                                    <td style="padding-left: 15px;">
+                                        <input type="date"
+                                               name="dateSms"
+                                               class="form-control"
+                                               style="width: 200px;"
+                                               min="{{date('Y-m-d', time())}}"
+                                        >
+                                    </td>
+                                </tr>
+                            </table>
                             <table class="table table-bordered table-condensed">
                                 <thead>
                                 <tr>
