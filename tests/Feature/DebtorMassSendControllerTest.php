@@ -78,13 +78,14 @@ class DebtorMassSendControllerTest extends TestCase
                 'responsibleUserId' => $this->user->id,
                 'debtorsIds' => $this->debtors->pluck('id')->toArray(),
                 'templateId' => $sms->id,
-                'sendDate' => Carbon::now()->format('d.m.Y'),
+                'dateSmsTemplate' => Carbon::now()->format('d.m.Y'),
             ]);
 
         $result = $response->decodeResponseJson();
         $this->assertEquals($this->debtors->count(), (int)$result['cnt']);
         $this->assertEquals("success", $result['error']);
     }
+
     public function testSendMassMessageEmailSuccessSending()
     {
         $isSms = 0;
@@ -114,22 +115,19 @@ class DebtorMassSendControllerTest extends TestCase
         );
 
         $this->withoutMiddleware();
-        $dateSend = Carbon::now()->format('d.m.Y');
         $response = $this->actingAs($this->user, 'web')
             ->post('/ajax/debtors/massmessage/send', [
                 'isSms' => $isSms,
                 'responsibleUserId' => $this->user->id,
                 'debtorsIds' => $this->debtors->pluck('id')->toArray(),
                 'templateId' => Arr::random($this->emailTemplateId),
-                'sendDate' => $dateSend,
+                'dateSmsTemplate' => Carbon::now(),
             ]);
         $result = $response->decodeResponseJson();
-
         foreach ($this->debtors as $debtor) {
             $this->assertDatabaseHas('debtor_event_email', [
-                'debtor_id' => $debtor->id,
+                'customer_id_1c' => $debtor->customer_id_1c,
                 'status' => (int) true,
-                'date_sent' => Carbon::parse($dateSend)->format('Y-m-d')
             ]);
             $this->assertDatabaseHas('debtor_events', [
                 'debtor_id' => $debtor->id,
@@ -138,6 +136,7 @@ class DebtorMassSendControllerTest extends TestCase
         }
         $this->assertEquals($this->debtors->count(), (int)$result['cnt']);
     }
+
     public function testSendMassMessageEmailErrorSending()
     {
         $isSms = 0;
@@ -171,13 +170,13 @@ class DebtorMassSendControllerTest extends TestCase
                 'responsibleUserId' => $this->user->id,
                 'debtorsIds' => $this->debtors->pluck('id')->toArray(),
                 'templateId' => Arr::random($this->emailTemplateId),
-                'sendDate' => Carbon::now()->format('d.m.Y'),
+                'dateSmsTemplate' => Carbon::now(),
             ]);
         $result = $response->decodeResponseJson();
 
         foreach ($this->debtors as $debtor) {
             $this->assertDatabaseHas('debtor_event_email', [
-                'debtor_id' => $debtor->id,
+                'customer_id_1c' => $debtor->customer_id_1c,
                 'status' => (int) false
             ]);
             $this->assertDatabaseMissing('debtor_events', [
@@ -187,6 +186,7 @@ class DebtorMassSendControllerTest extends TestCase
         }
         $this->assertEquals(0, (int)$result['cnt']);
     }
+
     public function testSendMassMessageEmailErrorGetEmailFromArm()
     {
         $isSms = 0;
@@ -211,11 +211,12 @@ class DebtorMassSendControllerTest extends TestCase
                 'responsibleUserId' => $this->user->id,
                 'debtorsIds' => $this->debtors->pluck('id')->toArray(),
                 'templateId' => Arr::random($this->emailTemplateId),
-                'sendDate' => Carbon::now()->format('d.m.Y'),
+                'dateSmsTemplate' => Carbon::now(),
             ]);
         $result = $response->decodeResponseJson();
         $this->assertEquals(0, (int)$result['cnt']);
     }
+
     public function testSendMassMessageEmailErrorExcLimit()
     {
         $isSms = 0;
@@ -227,7 +228,7 @@ class DebtorMassSendControllerTest extends TestCase
                 'responsibleUserId' => $this->user->id,
                 'debtorsIds' => [$this->debtors->first()->id],
                 'templateId' => Arr::random($this->emailTemplateId),
-                'sendDate' => Carbon::now()->format('d.m.Y'),
+                'dateSmsTemplate' => Carbon::now()->format('d.m.Y'),
             ]);
         $result = $response->decodeResponseJson();
         $this->assertEquals(0, (int)$result['cnt']);
