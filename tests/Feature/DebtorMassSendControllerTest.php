@@ -24,7 +24,7 @@ use Mockery;
 use RolesSeeder;
 use Tests\TestCase;
 
-class DebtorMassSmsControllerTest extends TestCase
+class DebtorMassSendControllerTest extends TestCase
 {
     use RefreshDatabase;
 

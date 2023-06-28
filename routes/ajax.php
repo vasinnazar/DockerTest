@@ -7,7 +7,7 @@ use App\Http\Controllers\CardsController;
 use App\Http\Controllers\ClaimController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DailyCashReportController;
-use App\Http\Controllers\DebtorMassSmsController;
+use App\Http\Controllers\DebtorMassSendController;
 use App\Http\Controllers\DebtorsController;
 use App\Http\Controllers\DebtorsReportsController;
 use App\Http\Controllers\DebtorTransferController;
@@ -192,7 +192,7 @@ Route::prefix('/ajax')->group(function () {
         Route::post('/orders/upload', [DebtorsController::class,'uploadOrdersFrom1c']);
         Route::get('/total-planned',[DebtorsController::class,'totalNumberPlaned']);
         Route::post('/calc/creditcard', [DebtorsController::class,'getCalcDataForCreditCard']);
-        Route::post('/massmessage/send', [DebtorMassSmsController::class,'sendMassMessage']);
+        Route::post('/massmessage/send', [DebtorMassSendController::class,'sendMassMessage']);
         Route::get('/changeloadstatus/{debtor_id}', [DebtorsController::class,'changeLoadStatus']);
         Route::post('/getallpayments/{debtor_id}', [DebtorsController::class,'getAllPayments']);
         Route::post('/loans/upload', [DebtorsController::class,'uploadLoans']);
@@ -203,7 +203,7 @@ Route::prefix('/ajax')->group(function () {
         Route::post('/transfer/changeResponsibleUser', [DebtorTransferController::class,'changeResponsibleUser']);
         Route::get('/transfer/printResponsibleUser', [DebtorTransferController::class,'getActPdf']);
     });
-    Route::get('/debtormasssms/list', [DebtorMassSmsController::class,'ajaxList']);
+    Route::get('/debtormasssms/list', [DebtorMassSendController::class,'ajaxList']);
     Route::get('/removeRequests/list', [UsersRequestsController::class,'removeRequestsList'])
         ->middleware('office_only')
         ->name('usersreqs.remove.list');

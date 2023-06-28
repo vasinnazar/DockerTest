@@ -26,7 +26,7 @@ use App\Utils\HtmlHelper;
 use Carbon\Carbon;
 use App\User;
 
-class DebtorMassSmsController extends BasicController
+class DebtorMassSendController extends BasicController
 {
     public $emailService;
     public $debtorEventService;

@@ -14,7 +14,7 @@ use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DailyCashReportController;
 use App\Http\Controllers\DataLoaderController;
 use App\Http\Controllers\DebtorExportController;
-use App\Http\Controllers\DebtorMassSmsController;
+use App\Http\Controllers\DebtorMassSendController;
 use App\Http\Controllers\DebtorsController;
 use App\Http\Controllers\DebtorsFrom1cController;
 use App\Http\Controllers\DebtorsNoticesController;
@@ -723,7 +723,7 @@ Route::middleware('auth_only')->group(function () {
         Route::get('/report/countcustomers', [DebtorsReportsController::class,'countDebtCustomersForRespUser']);
         Route::post('/peaceclaim/new', [DebtorsController::class,'addNewRepaymentOffer']);
         Route::get('/omicron/gettask', [CronController::class,'getOmicronTask']);
-        Route::get('/mass/send', [DebtorMassSmsController::class,'index']);
+        Route::get('/mass/send', [DebtorMassSendController::class,'index']);
         Route::get('/loans/summary/{loan_id}', [DebtorsController::class,'getLoanSummary']);
         Route::post('/getResponsibleUser', [FromDebtorsController::class,'respUserForSellingARM']);
         Route::post('/loans/summary/updateloan', [DebtorsController::class,'updateLoan']);
