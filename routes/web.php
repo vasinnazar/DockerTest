@@ -723,7 +723,6 @@ Route::middleware('auth_only')->group(function () {
         Route::get('/report/countcustomers', [DebtorsReportsController::class,'countDebtCustomersForRespUser']);
         Route::post('/peaceclaim/new', [DebtorsController::class,'addNewRepaymentOffer']);
         Route::get('/omicron/gettask', [CronController::class,'getOmicronTask']);
-        Route::get('/sms/mass', [DebtorMassSmsController::class,'index']);
         Route::get('/mass/send', [DebtorMassSmsController::class,'index']);
         Route::get('/loans/summary/{loan_id}', [DebtorsController::class,'getLoanSummary']);
         Route::post('/getResponsibleUser', [FromDebtorsController::class,'respUserForSellingARM']);
