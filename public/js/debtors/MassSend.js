@@ -35,7 +35,7 @@ $(document).ready(function () {
         }
     });
 
-    $(document).on('change', 'input[name="dateSend"]', function () {
+    $(document).on('change', 'input[name="dateSms"]', function () {
         var arVal = $(this).val().split('-');
         $('.email_text').each(function () {
             $(this).text($(this).text().replace(/\d{1,2}\.\d{1,2}\.\d{4}/, arVal[2] + '.' + arVal[1] + '.' + arVal[0]));
