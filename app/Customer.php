@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Model\DebtorEventEmail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -31,6 +32,11 @@ class Customer extends Model {
 
     public function cards() {
         $this->hasMany('App\Card', 'customer_id');
+    }
+
+    public function eventEmail()
+    {
+        $this->hasMany(DebtorEventEmail::class, 'customer_id_1c');
     }
 
     public function isPostClient() {

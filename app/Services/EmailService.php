@@ -11,7 +11,7 @@ use App\Repositories\DebtorEventEmailRepository;
 use App\Role;
 use App\User;
 use Carbon\Carbon;
-use App\Services\MessageService;
+
 class EmailService
 {
     private $armClient;
@@ -61,23 +61,21 @@ class EmailService
         $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c);
         $armfCustomerId = $armfCustomer->first()->id;
         $aboutClient = $this->armClient->getAbouts($armfCustomerId);
-
         $debtorEmail = $aboutClient ? end($aboutClient)['email'] : null;
-
         $userArm = $this->armClient->getUserById1c($user->id_1c);
 
         if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['email'])) {
-            $this->debtorEventEmailRepository->create($debtor->id, $messageText, false, $arrayParam['sendDate']);
+            $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
         }
 
         $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
         if (!$this->messageService->sendEmailMessage($messageText, $debtorEmail)) {
-            $this->debtorEventEmailRepository->create($debtor->id, $messageText, false, $arrayParam['sendDate']);
+            $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
         }
-        $this->debtorEventEmailRepository->create($debtor->id, $messageText, true, $arrayParam['sendDate']);
-        DebtorEvent::create([
+
+        $debtorEvent = DebtorEvent::create([
             'debtor_id' => $debtor->id,
             'debtor_id_1c' => $debtor->debtor_id_1c,
             'customer_id_1c' => $debtor->customer_id_1c,
@@ -93,6 +91,7 @@ class EmailService
             'event_result_id' => 17,
             'completed' => 1,
         ]);
+        $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, true, $debtorEvent->id);
         return true;
     }
 

@@ -201,10 +201,6 @@ class Debtor extends Model
         return $this->hasOne(DebtGroup::class, 'id', 'debt_group_id');
     }
 
-    public function debtorEventEmail()
-    {
-        $this->hasMany(DebtorEventEmail::class, 'debtor_id');
-    }
     public function getLoanEndDate()
     {
         $period_type = ($this->is_bigmoney || $this->is_pledge || $this->is_pos) ? 'month' : 'days';

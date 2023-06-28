@@ -187,7 +187,7 @@ class DebtorsController extends BasicController
         $all_debts = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
 
         $debtorEvents = $this->debtEventService->getDebtorEventsForCustomer($all_debts);
-        $arEmailSent = $this->debtorEventEmailRepository->findByDebtorId($debtor->id);
+        $arEmailSent = $this->debtorEventEmailRepository->findByCustomerId1c($debtor->customer_id_1c);
 
         $arPurposes = Order::getPurposeNames();
 

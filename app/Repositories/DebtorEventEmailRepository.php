@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\Model\DebtorEventEmail;
-use Carbon\Carbon;
 
 class DebtorEventEmailRepository
 {
@@ -19,17 +18,17 @@ class DebtorEventEmailRepository
         return $this->model->findOrFail($id);
     }
 
-    public function findByDebtorId(string $debtorId)
+    public function findByCustomerId1c(string $customerId1c)
     {
-        return $this->model->where('debtor_id', $debtorId)->get();
+        return $this->model->where('customer_id_1c', $customerId1c)->get();
     }
-    public function create(int $debtorId, string $message, bool $status, string $dateSend): DebtorEventEmail
+    public function create(string $customerId1c, string $message, bool $status, int $eventId = null): DebtorEventEmail
     {
         return DebtorEventEmail::create([
-            'debtor_id' => $debtorId,
+            'customer_id_1c' => $customerId1c,
             'message' => $message,
             'status' => $status,
-            'date_sent' => Carbon::parse($dateSend)->format('Y-m-d'),
+            'event_id' => $eventId,
         ]);
     }
 }

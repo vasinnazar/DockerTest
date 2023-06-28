@@ -26,7 +26,7 @@ $arEmailSentStatuses = [
                                 <tbody>
                                 @foreach ($arEmailSent as $email)
                                     <tr>
-                                        <td>{{date('d.m.Y', strtotime($email->date_sent))}}</td>
+                                        <td>{{date('d.m.Y', strtotime($email->created_at))}}</td>
                                         <td>{{$email->message}}</td>
                                         <td>{{$arEmailSentStatuses[$email->status]}}</td>
                                     </tr>

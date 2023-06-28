@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Model\DebtorEventEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -79,6 +80,11 @@ class DebtorEvent extends Model
                 DebtorsForgotten::whereIn('debtor_id', $debtorsIds)->delete();
             }
         });
+    }
+
+    public function eventEmail()
+    {
+        $this->hasMany(DebtorEventEmail::class, 'debtor_id');
     }
 
     /**

@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Customer;
 use App\DebtorEvent;
 use App\Exceptions\DebtorException;
 use App\Http\Requests\MassSendRequest;
-use App\Model\DebtorEventSms;
 use App\Repositories\DebtorEventSmsRepository;
 use App\Repositories\DebtorEventsRepository;
 use App\Repositories\DebtorSmsRepository;
@@ -15,9 +13,6 @@ use App\Services\DebtorSmsService;
 use App\Services\EmailService;
 use App\Utils\SMSer;
 use Illuminate\Http\Request;
-use App\Utils\PermLib;
-use App\Permission;
-use App\Utils\StrLib;
 use Illuminate\Support\Facades\Auth;
 use App\Debtor;
 use Illuminate\Support\Facades\Log;
