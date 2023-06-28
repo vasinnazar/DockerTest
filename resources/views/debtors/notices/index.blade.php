@@ -103,6 +103,9 @@
                                         <option value="4">Бесконтактный</option>
                                         <option value="5">Сложный</option>
                                         <option value="6">Безнадежный</option>
+                                        @if($user->isDebtorsRemote())
+                                            <option value="8">Розыск</option>
+                                        @endif
                                     </select>
                                 </td>
                             </tr>
@@ -111,6 +114,9 @@
                                 <td></td>
                                 <td>
                                     <select name="debt_base_ids[]" multiple="multiple">
+                                        @if($user->isDebtorsRemote())
+                                            <option value="7">Б-1</option>
+                                        @endif
                                         <option value="9">Б-3</option>
                                         <option value="19">Б-риски</option>
                                         <option value="29">Б-график</option>
