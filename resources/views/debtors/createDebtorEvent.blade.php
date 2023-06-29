@@ -60,15 +60,21 @@
                                             <?php foreach ($debtdata['debt_groups'] as $k => $type) {
                                                 $selected = '';
                                                 if ($bool_sel_disabled) {
-                                                    if ($k == $debtor->debt_group_id){
+                                                    if ($k == $debtor->debt_group_id) {
                                                         $selected = ' selected';
                                                     }
                                                 }
                                                 if ($user->hasRole('debtors_personal') && !in_array($k,
-                                                        [1, 2, 3, 5, 6, 19, 51])) {
+                                                        [1, 2, 3, 5, 6, 19, 51]
+                                                    )) {
                                                     continue;
                                                 }
-//                                                                ?>
+                                                if ($user->hasRole('debtors_remote') && !in_array($k,
+                                                        [1, 2, 3, 4, 5, 8, 64, 19, 31]
+                                                    )) {
+                                                    continue;
+                                                }
+                                                ?>
                                             <option value="{{ $k }}"{{$selected}}>{{$type}}</option>
                                             <?php } ?>
                                         @endif
@@ -81,6 +87,10 @@
                                     <select name="event_result_id" class="form-control">
                                         <option value=""></option>
                                         @foreach ($debtdata['event_results'] as $k => $type)
+                                            @if ($user->hasRole('debtors_remote') &&
+                                                !in_array($k,[5, 6, 9, 11, 12, 17, 22, 29, 25, 26]))
+                                                @continue;
+                                            @endif
                                             <option value="{{$k}}">{{$type}}</option>
                                         @endforeach
                                     </select>
@@ -157,13 +167,6 @@
                                        class="form-control" disabled>
                             </div>
                         </div>
-                        <!--div class="well">
-                            <strong>Запланированное мероприятие: </strong>&nbsp;&nbsp;<input type="checkbox" name="completed" value="1"> Выполнено
-                        </div-->
-                        <!--div class="text-center">
-                            <br>
-                            <button id="submit_event" type="submit" class="btn btn-primary btn-lg"><span class="glyphicon glyphicon-floppy-disk"></span> Сохранить</button>
-                        </div-->
                     </div>
                 </div>
                 <div class="panel panel-default">
