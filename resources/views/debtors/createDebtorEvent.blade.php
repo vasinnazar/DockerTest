@@ -61,12 +61,10 @@
                                         @else
                                             <option value=""></option>
                                             @foreach ($debtdata['debt_groups'] as $k => $type)
-                                                @php
-                                                    $selected = '';
-                                                    if ($bool_sel_disabled && $k == $debtor->debt_group_id) {
-                                                        $selected = ' selected';
-                                                    }
-                                                @endphp
+                                                @php($selected = '')
+                                                @if($bool_sel_disabled && $k == $debtor->debt_group_id)
+                                                    @php($selected = ' selected')
+                                                @endif
                                                 @continue ($user->hasRole('debtors_personal') && !in_array($k,
                                                         [1, 2, 3, 5, 6, 19, 51]))
                                                 @continue ($user->hasRole('debtors_remote') && !in_array($k,
