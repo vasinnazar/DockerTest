@@ -14,8 +14,11 @@
                             <div class='form-group'>
                                 <label class='col-xs-12 col-sm-4 text-right'>Дата мероприятия:</label>
                                 <div class='col-xs-12 col-sm-8 form-inline'>
-                                    <input id="datetimepickerCreate" type="text" name="created_at"
-                                           value="{{date('d.m.Y H:i', time())}}" class="form-control"
+                                    <input id="datetimepickerCreate"
+                                           type="text"
+                                           name="created_at"
+                                           value="{{date('d.m.Y H:i', time())}}"
+                                           class="form-control"
                                            readonly>
                                 </div>
                             </div>
@@ -44,39 +47,39 @@
                             <div class='form-group'>
                                 <label class='col-xs-12 col-sm-4 text-right'>Группа долга:</label>
                                 <div class='col-xs-12 col-sm-8'>
-                                    <?php
-                                    $sel_disabled = '';
-                                    $bool_sel_disabled = false;
-                                    if ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') {
-                                        $sel_disabled = ' disabled';
-                                        $bool_sel_disabled = true;
-                                    }
-                                    ?>
+                                    @php
+                                        $sel_disabled = '';
+                                        $bool_sel_disabled = false;
+                                        if ($debtor->base == 'Архив убытки' || $debtor->base == 'Архив компании') {
+                                            $sel_disabled = ' disabled';
+                                            $bool_sel_disabled = true;
+                                        }
+                                    @endphp
                                     <select name="debt_group_id" class="form-control"{{$sel_disabled}}>
                                         @if ($debtor->debt_group_id == null && $bool_sel_disabled)
                                             <option value="" selected disabled></option>
                                         @else
                                             <option value=""></option>
-                                            <?php foreach ($debtdata['debt_groups'] as $k => $type) {
-                                                $selected = '';
-                                                if ($bool_sel_disabled) {
-                                                    if ($k == $debtor->debt_group_id) {
+                                            @foreach ($debtdata['debt_groups'] as $k => $type)
+                                                {
+                                                @php
+                                                    $selected = '';
+                                                    if ($bool_sel_disabled && $k == $debtor->debt_group_id) {
                                                         $selected = ' selected';
                                                     }
-                                                }
-                                                if ($user->hasRole('debtors_personal') && !in_array($k,
-                                                        [1, 2, 3, 5, 6, 19, 51]
-                                                    )) {
-                                                    continue;
-                                                }
-                                                if ($user->hasRole('debtors_remote') && !in_array($k,
-                                                        [1, 2, 3, 4, 5, 8, 64, 19, 31]
-                                                    )) {
-                                                    continue;
-                                                }
-                                                ?>
-                                            <option value="{{ $k }}"{{$selected}}>{{$type}}</option>
-                                            <?php } ?>
+                                                    if ($user->hasRole('debtors_personal') && !in_array($k,
+                                                            [1, 2, 3, 5, 6, 19, 51]
+                                                        )) {
+                                                        continue;
+                                                    }
+                                                    if ($user->hasRole('debtors_remote') && !in_array($k,
+                                                            [1, 2, 3, 4, 5, 8, 64, 19, 31]
+                                                        )) {
+                                                        continue;
+                                                    }
+                                                @endphp
+                                                <option value="{{ $k }}"{{$selected}}>{{$type}}</option>
+                                            @endforeach
                                         @endif
                                     </select>
                                 </div>
@@ -100,27 +103,31 @@
                                 <div class='form-group' id='chief_event_field'>
                                     <label class='col-xs-12 col-sm-4 text-right'>От имени:</label>
                                     <div class='col-xs-12 col-sm-8 form-inline'>
-                                        <input name='users@login' type='text'
+                                        <input name='users@login'
+                                               type='text'
                                                class='form-control autocomplete'
                                                data-hidden-value-field='search_field_users@id'
                                                style='width: 100%;'/>
-                                        <input id="chief_from_user_id" name='search_field_users@id'
+                                        <input id="chief_from_user_id"
+                                               name='search_field_users@id'
                                                type='hidden'/>
                                     </div>
                                 </div>
                             @endif
                             <div class='form-group'>
-                                <label class='col-xs-12 col-sm-4 text-right'>Отчет о
-                                    мероприятии:</label>
+                                <label class='col-xs-12 col-sm-4 text-right'>Отчет о мероприятии:</label>
                                 <div class='col-xs-12 col-sm-8'>
-                                                    <textarea style="min-height: 150px;" name="report"
-                                                              class="form-control"></textarea>
+                                    <textarea style="min-height: 150px; max-width: 100%;"
+                                              name="report"
+                                              class="form-control">
+                                    </textarea>
                                 </div>
                             </div>
                             <div class='form-group'>
                                 <div class='col-xs-12'>
                                     <label class="btn btn-default btn-file pull-right">
-                                        Прикрепить фото <input name="messenger_photo" type="file"
+                                        Прикрепить фото <input name="messenger_photo"
+                                                               type="file"
                                                                onchange="$('#upload-file-info').text(this.files[0].name)"
                                                                style="display: none;">
                                     </label>
@@ -128,8 +135,7 @@
                             </div>
                             <div class='form-group'>
                                 <div class='col-xs-12'>
-                                                    <span class='label label-info pull-right'
-                                                          id="upload-file-info"></span>
+                                    <span class='label label-info pull-right' id="upload-file-info"></span>
                                 </div>
                             </div>
                         </div>
@@ -156,15 +162,13 @@
                         <div class='form-group'>
                             <label class='col-xs-12 col-sm-4 text-right'>Дата мероприятия</label>
                             <div class='col-xs-12 col-sm-8 form-inline'>
-                                <input id="datetimepickerPlan" type="text" name="date"
-                                       class="form-control">
+                                <input id="datetimepickerPlan" type="text" name="date" class="form-control">
                             </div>
                         </div>
                         <div class='form-group'>
                             <label class='col-xs-12 col-sm-4 text-right'>Сумма договоренности</label>
                             <div class='col-xs-12 col-sm-8 form-inline'>
-                                <input type="text" name="promise_pay_amount"
-                                       class="form-control" disabled>
+                                <input type="text" name="promise_pay_amount" class="form-control" disabled>
                             </div>
                         </div>
                     </div>
@@ -183,8 +187,8 @@
                         </div>
                         <div class="text-center">
                             <br>
-                            <button id="submit_event" type="submit" class="btn btn-primary btn-lg"><span
-                                        class="glyphicon glyphicon-floppy-disk"></span> Сохранить
+                            <button id="submit_event" type="submit" class="btn btn-primary btn-lg">
+                                <span class="glyphicon glyphicon-floppy-disk"></span> Сохранить
                             </button>
                         </div>
                     </div>
