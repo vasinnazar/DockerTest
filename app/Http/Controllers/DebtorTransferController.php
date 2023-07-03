@@ -359,24 +359,8 @@ class DebtorTransferController extends BasicController
             $arr_history[$i]['fixation_date_after'] = $debtor->fixation_date;
             $arr_history[$i]['transfer_time'] = $debtor->refresh_date;
 
-            if ($base == 'Б-3' && $old_base == 'Б-1' && $debtor->sum_indebt >= 300000) {
-
-                $armf_loan = DB::Table('armf.loans')->where('id_1c', $debtor->loan_id_1c)->first();
-
-                if (!is_null($armf_loan)) {
-                    $date_order_from = date('Y-m-d H:i:s', strtotime('-30 day'));
-
-                    $armf_orders = DB::Table('armf.orders')
-                        ->where('loan_id', $armf_loan->id)
-                        ->where('created_at', '>=', $date_order_from)
-                        ->sum('money');
-
-                    $armf_orders_sum = $armf_orders / 100;
-
-                    if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
-                        $repaymentOfferService->sendPeaceForUDR($debtor);
-                    }
-                }
+            if ($base == 'Б-3' && $old_base == 'Б-1' && ($debtor->qty_delays >= 59 && $debtor->qty_delays <= 94)) {
+                $repaymentOfferService->sendPeaceForUDR($debtor);
             }
 
             $debtor_unclosed = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->where('is_debtor', 1)->get();
@@ -450,24 +434,25 @@ class DebtorTransferController extends BasicController
                 $unclosed->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
                 $unclosed->save();
 
-                if ($base == 'Б-3' && $unclosed_old_base == 'Б-1' && $unclosed->sum_indebt >= 300000) {
+                if ($base == 'Б-3' && $unclosed_old_base == 'Б-1' && ($debtor->qty_delays >= 59 && $debtor->qty_delays <= 94)) {
 
-                    $armf_loan = DB::Table('armf.loans')->where('id_1c', $unclosed->loan_id_1c)->first();
-
-                    if (!is_null($armf_loan)) {
-                        $date_order_from = date('Y-m-d H:i:s', strtotime('-30 day'));
-
-                        $armf_orders = DB::Table('armf.orders')
-                            ->where('loan_id', $armf_loan->id)
-                            ->where('created_at', '>=', $date_order_from)
-                            ->sum('money');
-
-                        $armf_orders_sum = $armf_orders / 100;
-
-                        if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
-                            $repaymentOfferService->sendPeaceForUDR($debtor);
-                        }
-                    }
+//                    $armf_loan = DB::Table('armf.loans')->where('id_1c', $unclosed->loan_id_1c)->first();
+//
+//                    if (!is_null($armf_loan)) {
+//                        $date_order_from = date('Y-m-d H:i:s', strtotime('-30 day'));
+//
+//                        $armf_orders = DB::Table('armf.orders')
+//                            ->where('loan_id', $armf_loan->id)
+//                            ->where('created_at', '>=', $date_order_from)
+//                            ->sum('money');
+//
+//                        $armf_orders_sum = $armf_orders / 100;
+//
+//                        if (!is_null($armf_orders_sum) && $armf_orders_sum < 500) {
+//                            $repaymentOfferService->sendPeaceForUDR($debtor);
+//                        }
+//                    }
+                    $repaymentOfferService->sendPeaceForUDR($debtor);
                 }
 
                 $items[$num_1c]['number'] = $num_1c;
