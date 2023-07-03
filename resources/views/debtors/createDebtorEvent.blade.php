@@ -66,9 +66,9 @@
                                                     @php($selected = ' selected')
                                                 @endif
                                                 @continue ($user->hasRole('debtors_personal') && !in_array($k,
-                                                        [1, 2, 3, 5, 6, 19, 51]))
+                                                        $availableData['debtGroupPersonal']))
                                                 @continue ($user->hasRole('debtors_remote') && !in_array($k,
-                                                        [1, 2, 3, 4, 5, 8, 64, 19, 31]))
+                                                        $availableData['debtGroupRemote']))
                                                 <option value="{{ $k }}"{{$selected}}>{{$type}}</option>
                                             @endforeach
                                         @endif
@@ -82,7 +82,7 @@
                                         <option value=""></option>
                                         @foreach ($debtdata['event_results'] as $k => $type)
                                             @continue ($user->hasRole('debtors_remote') &&
-                                                !in_array($k,[5, 6, 9, 11, 12, 17, 22, 29, 25, 26]))
+                                                !in_array($k, $availableData['eventResultRemote']))
                                             <option value="{{$k}}">{{$type}}</option>
                                         @endforeach
                                     </select>
