@@ -2,21 +2,26 @@
 
 namespace App\Http\Requests;
 
-class SendMassSmsRequest extends Request
+class MassSendRequest extends Request
 {
     public function rules(): array
     {
         return [
-            'smsId' => 'required|integer',
+            'isSms' => 'required|integer',
+            'templateId' => 'required|integer',
             'responsibleUserId' => 'required|integer',
             'debtorsIds' => 'required|array',
-            'smsDate' => 'date'
+            'dateSmsTemplate' => 'required|date',
+            'dateAnswer'=>'date',
+            'datePayment'=>'date',
+            'discountPayment'=>'numeric'
         ];
     }
     public function messages()
     {
        return [
-           'smsId.required' => 'Не выбран шаблон смс',
+           'isSms.required' => 'Не выбран тип сообщений',
+           'templateId.required' => 'Не выбран шаблон сообщений',
            'responsibleUserId.required' => 'Не удалось определить ответственного',
            'debtorsIds.required' => 'Не удалось определить должников',
        ];

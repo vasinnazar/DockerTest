@@ -23,6 +23,7 @@ use App\Passport;
 use App\Permission;
 use App\DebtorEventPromisePay;
 use App\Repayment;
+use App\Repositories\DebtorEventEmailRepository;
 use App\Repositories\DebtorSmsRepository;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
@@ -58,17 +59,20 @@ class DebtorsController extends BasicController
     public $debtCardService;
     public $debtEventService;
     public $massRecurrentService;
+    public $debtorEventEmailRepository;
 
     public function __construct(
         DebtorCardService $debtService,
         DebtorEventService $eventService,
-        MassRecurrentService $massRecurrentService
+        MassRecurrentService $massRecurrentService,
+        DebtorEventEmailRepository $debtorEventEmailRepository
     )
     {
 
         $this->debtCardService = $debtService;
         $this->debtEventService = $eventService;
         $this->massRecurrentService = $massRecurrentService;
+        $this->debtorEventEmailRepository = $debtorEventEmailRepository;
     }
 
     /**
@@ -183,6 +187,7 @@ class DebtorsController extends BasicController
         $all_debts = Debtor::where('customer_id_1c', $debtor->customer_id_1c)->get();
 
         $debtorEvents = $this->debtEventService->getDebtorEventsForCustomer($all_debts);
+        $arEmailSent = $this->debtorEventEmailRepository->findByCustomerId1c($debtor->customer_id_1c);
 
         $arPurposes = Order::getPurposeNames();
 
@@ -210,22 +215,21 @@ class DebtorsController extends BasicController
 
         $passport_armf = DB::Table('armf.passports')->select(DB::raw('*'))->where('series',
             $debtor->passport_series)->where('number', $debtor->passport_number)->first();
+
         if (!is_null($passport_armf)) {
-            $loan_id_replica = $this->getLoanIdFromArm($debtor->loan_id_1c, $debtor->customer_id_1c);
+            $loan_replica = $armClient->getLoanById1c($debtor->loan_id_1c)->first();
 
             $debtorpayments = DB::Table('armf.orders')
                 ->select(DB::raw('*'))
                 //->where('passport_id', $passport_armf->id)
-                ->whereIn('loan_id', $loan_id_replica)
+                ->whereIn('loan_id', [$loan_replica->id])
                 ->whereNotNull('passport_id')
                 ->orderBy('created_at', 'asc');
             $datapayments = $debtorpayments->get();
 
             $arTypes = \App\OrderType::pluck('name', 'id');
 
-            if (!is_null($loan_id_replica) && !empty($loan_id_replica)) {
-                $loan_replica = DB::Table('armf.loans')->select(DB::raw('*'))->where('id', $loan_id_replica)->first();
-
+            if (!is_null($loan_replica) && !empty($loan_replica)) {
                 foreach ($datapayments as $k => $datapayment) {
                     if ($datapayment->type == 0) {
                         if ($loan_replica->subdivision_id != $datapayment->subdivision_id) {
@@ -556,6 +560,7 @@ class DebtorsController extends BasicController
             'data_pos' => $data_pos,
             'insurances_data' => $arInsurancesData,
             'arSmsSent' => $arSmsSent,
+            'arEmailSent' => $arEmailSent,
             'hasSentNoticePersonal' => $hasSentNoticePersonal,
             'credit_vacation_data' => $credit_vacation_data,
             'third_people_agreement' => $third_people_agreement,

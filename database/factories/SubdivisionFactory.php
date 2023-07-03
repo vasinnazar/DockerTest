@@ -8,7 +8,7 @@ $factory->define(Subdivision::class, function (Faker $faker) {
     $address = $faker->address;
     return [
         'name' => $address,
-        'name_id'=>$faker->numberBetween(0,500),
+        'name_id'=>$faker->numberBetween(0, 500),
         'address'=>$address,
         'peacejudge' => 'Мировой судья судебного участка ' . $address,
         'districtcourt' => 'районный суд ' . $address,

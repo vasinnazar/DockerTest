@@ -1,5 +1,6 @@
 <?php
 
+use App\Role;
 use Illuminate\Database\Seeder;
 
 class RolesSeeder extends Seeder
@@ -76,10 +77,11 @@ class RolesSeeder extends Seeder
                 'description' => 'Пропущенные звонки отделения'
             ],
         ];
-        foreach ($arrRoles as $role) {
-            \App\Role::create([
-                'name' => $role['name'],
-                'description' => $role['description'],
+        for ($i = 0; $i < count($arrRoles); $i++) {
+            Role::create([
+                'id' => $i + 1,
+                'name' => $arrRoles[$i]['name'],
+                'description' => $arrRoles[$i]['description'],
             ]);
         }
     }

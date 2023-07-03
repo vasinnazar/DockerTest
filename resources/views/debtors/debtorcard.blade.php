@@ -184,6 +184,11 @@
                                     <a href="#" data-toggle="modal" data-target="#debtorSmsSent" class="btn btn-default">Отправленные SMS</a>
                                 </div>
                             </div>
+                            <div class='col-xs-12 col-sm-6 col-lg-8 text-center' style="padding-top: 4px;">
+                                <div class='btn-group btn-group-sm btn-group-vertical'>
+                                    <a href="#" data-toggle="modal" data-target="#debtorEmailSent" class="btn btn-default">Отправленные Email</a>
+                                </div>
+                            </div>
                             @if ($user->hasRole('debtors_chief'))
                                 <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right' style="padding-top: 15px;">
                                     <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
@@ -911,6 +916,7 @@
     @include('elements.debtors.pdAgreementInfo')
     @include('elements.debtors.sendedNotices')
     @include('elements.debtors.smsSent')
+    @include('elements.debtors.emailSent')
     @include('elements.debtors.addDebtorPeace')
     @include('elements.debtors.addDebtorClaim')
     @include('elements.debtors.searchContactsModal')

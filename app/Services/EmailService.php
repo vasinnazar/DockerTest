@@ -7,22 +7,26 @@ use App\Debtor;
 use App\DebtorEvent;
 use App\EmailMessage;
 use App\Loan;
-use App\Message;
+use App\Repositories\DebtorEventEmailRepository;
 use App\Role;
 use App\User;
 use Carbon\Carbon;
-use Illuminate\Mail\Mailer;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class EmailService
 {
     private $armClient;
+    private $debtorEventEmailRepository;
+    private $messageService;
 
-    public function __construct(ArmClient $client)
+    public function __construct(
+        ArmClient $client,
+        DebtorEventEmailRepository $debtorEventEmailRepository,
+        MessageService $messageService
+    )
     {
         $this->armClient = $client;
+        $this->debtorEventEmailRepository = $debtorEventEmailRepository;
+        $this->messageService = $messageService;
     }
 
     /**
@@ -45,58 +49,33 @@ class EmailService
         return $collectMessages;
     }
 
-    /**
-     * @param array $arrayParam
-     * @return bool
-     */
-    public function sendEmailDebtor($arrayParam)
+    public function sendEmailDebtor(array $arrayParam): bool
     {
-        $user = Auth::user();
+        $user = $arrayParam['user'];
         $debtor = Debtor::where('id', $arrayParam['debtor_id'])->first();
         $loan = Loan::where('id_1c', $debtor->loan_id_1c)->first();
         $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
         $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
-
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
         $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
-        $armf_customer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
-        $client = DB::Table('armf.about_clients')->where('customer_id', $armf_customer->id)->first();
+        $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c);
+        $armfCustomerId = $armfCustomer->first()->id;
+        $aboutClient = $this->armClient->getAbouts($armfCustomerId);
+        $debtorEmail = $aboutClient ? end($aboutClient)['email'] : null;
         $userArm = $this->armClient->getUserById1c($user->id_1c);
 
         if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['email'])) {
-            return false;
-        }
-        $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
-        try {
-            $mailer = app()->make(Mailer::class);
-            $mailer->getSwiftMailer()->getTransport()->setStreamOptions(
-                [
-                    'ssl' =>
-                        [
-                            'allow_self_signed' => true,
-                            'verify_peer' => false,
-                            'verify_peer_name' => false
-                        ]
-                ]);
-            $mailer->send(
-                'emails.sendMessage',
-                ['messageText' => $messageText],
-                function ($message) use ($client) {
-                    /** @var Message $message */
-                    $message->subject(config('vars.company_new_name'));
-                    $message->from(config('mail.username'));
-                    $message->to($client->email);
-                    $message->bcc(config('mail.username'));
-                }
-            );
-        } catch (\Exception $exception) {
+            $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
         }
 
-        if (count($mailer->failures()) > 0) {
+        $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
+        if (!$this->messageService->sendEmailMessage($messageText, $debtorEmail)) {
+            $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
         }
-        DebtorEvent::create([
+
+        $debtorEvent = DebtorEvent::create([
             'debtor_id' => $debtor->id,
             'debtor_id_1c' => $debtor->debtor_id_1c,
             'customer_id_1c' => $debtor->customer_id_1c,
@@ -106,12 +85,13 @@ class EmailService
             'last_user_id' => $user->id,
             'user_id_1c' => $user->id_1c,
             'event_type_id' => 24,
-            'report' => 'Отправленно ' . $client->email . ' сообщение :' . $messageText,
+            'report' => 'Отправленно ' . $debtorEmail . ' сообщение :' . $messageText,
             'refresh_date' => Carbon::now(),
             'overdue_reason_id' => 0,
             'event_result_id' => 17,
             'completed' => 1,
         ]);
+        $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, true, $debtorEvent->id);
         return true;
     }
 

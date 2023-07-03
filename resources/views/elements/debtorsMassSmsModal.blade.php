@@ -3,20 +3,25 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4>{{$nameGroup}}</h4>
+                <button type="button" class="close form-close" data-dismiss="modal" aria-hidden="true">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xs-12">
                         <form id="formSendSMS">
                             <input type="hidden" name="debtor_ids" value="">
-                            <h4>{{$nameGroup}}</h4>
                             <table style="margin-bottom: 15px;">
                                 <tr>
                                     <td>Дата для SMS:</td>
-                                    <td style="padding-left: 15px;"><input type="date" name="sms_date"
-                                                                           class="form-control" style="width: 200px;"
-                                                                           min="{{date('Y-m-d', time())}}"></td>
+                                    <td style="padding-left: 15px;">
+                                        <input type="date"
+                                               name="dateSms"
+                                               class="form-control"
+                                               style="width: 200px;"
+                                               min="{{date('Y-m-d', time())}}"
+                                        >
+                                    </td>
                                 </tr>
                             </table>
                             <table class="table table-bordered table-condensed">
