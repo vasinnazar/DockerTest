@@ -108,8 +108,7 @@
                                 <div class='col-xs-12 col-sm-8'>
                                     <textarea style="min-height: 150px; max-width: 100%;"
                                               name="report"
-                                              class="form-control">
-                                    </textarea>
+                                              class="form-control"></textarea>
                                 </div>
                             </div>
                             <div class='form-group'>
