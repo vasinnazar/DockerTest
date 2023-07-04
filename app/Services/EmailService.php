@@ -68,8 +68,11 @@ class EmailService
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
         }
-
         $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
+        if (empty(trim($debtorEmail))) {
+            $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
+            return false;
+        }
         if (!$this->messageService->sendEmailMessage($messageText, $debtorEmail)) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
