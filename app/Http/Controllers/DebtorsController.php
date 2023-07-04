@@ -192,6 +192,11 @@ class DebtorsController extends BasicController
         $arPurposes = Order::getPurposeNames();
 
         $arDebtData = config('debtors');
+        $arDebtAvailableData = [
+            'debtGroupPersonal' => [1, 2, 3, 5, 6, 19, 51],
+            'debtGroupRemote' => [1, 2, 3, 4, 5, 8, 64, 19, 31],
+            'eventResultRemote' => [5, 6, 9, 11, 12, 17, 22, 29, 25, 26]
+        ];
         $whatsAppEvent = true;
         try {
             $this->debtEventService->checkLimitEventByCustomerId1c($debtor->customer_id_1c);
@@ -542,6 +547,7 @@ class DebtorsController extends BasicController
             'datapayments' => $datapayments,
             'purposes' => $arPurposes,
             'debtdata' => $arDebtData,
+            'availableData' => $arDebtAvailableData,
             'debtSms' => $debtSms,
             'debtor' => $debtor,
             'contractforms' => $arContractFormsIds,
