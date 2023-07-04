@@ -64,12 +64,15 @@ class EmailService
         $debtorEmail = $aboutClient ? end($aboutClient)['email'] : null;
         $userArm = $this->armClient->getUserById1c($user->id_1c);
 
-        if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['email'])) {
+        if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['password'])) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
         }
-
         $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
+        if (empty(trim($debtorEmail))) {
+            $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
+            return false;
+        }
         if (!$this->messageService->sendEmailMessage($messageText, $debtorEmail)) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
