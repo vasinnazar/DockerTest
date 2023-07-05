@@ -6,6 +6,7 @@ use App\Message;
 use App\Repositories\MessageRepository;
 use App\User;
 use Illuminate\Mail\Mailer;
+use Illuminate\Support\Facades\Log;
 
 class MessageService
 {
@@ -60,6 +61,14 @@ class MessageService
                 }
             );
         } catch (\Exception $exception) {
+            Log::error("$exception->errorName:", [
+                'email' => $email,
+                'file' => __FILE__,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'id' => $exception->errorId,
+                'message' => $exception->errorMessage,
+            ]);
             return false;
         }
         if (count($mailer->failures()) > 0) {

@@ -11,6 +11,7 @@ use App\Repositories\DebtorEventEmailRepository;
 use App\Role;
 use App\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class EmailService
 {
@@ -73,15 +74,12 @@ class EmailService
         $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c)->first();
         $aboutClient = $armfCustomer ? $this->armClient->getAbouts($armfCustomer->id) : null;
         $debtorEmail = $aboutClient ? $this->validatorEmail($aboutClient) : null;
-        $userArm = $this->armClient->getUserById1c($user->id_1c);
-
-        if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['password'])) {
-            $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
-            return false;
-        }
-        $this->setConfig($userArm[0]['email_user']['email'], $userArm[0]['email_user']['password']);
+        $this->setConfig($arrayParam['userEmail'], $arrayParam['userPassword']);
         if (empty(trim($debtorEmail))) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
+            Log::error("Incorrect data debetor:", [
+                'email' => $debtorEmail,
+            ]);
             return false;
         }
         if (!$this->messageService->sendEmailMessage($messageText, $debtorEmail)) {

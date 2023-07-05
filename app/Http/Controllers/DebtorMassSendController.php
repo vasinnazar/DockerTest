@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Clients\ArmClient;
 use App\DebtorEvent;
 use App\Exceptions\DebtorException;
 use App\Http\Requests\MassSendRequest;
@@ -16,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Debtor;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Yajra\DataTables\Facades\DataTables;
 use App\Utils\HtmlHelper;
 use Carbon\Carbon;
@@ -29,13 +31,15 @@ class DebtorMassSendController extends BasicController
     public $debtorEventSmsRepository;
     public $debtorEventsRepository;
     public $debtorSmsService;
+    public $armClient;
     public function __construct(
         EmailService $emailService,
         DebtorEventService $debtorEventService,
         DebtorSmsRepository $debtorSmsRepository,
         DebtorEventSmsRepository $debtorEventSmsRepository,
         DebtorEventsRepository $debtorEventsRepository,
-        DebtorSmsService $debtorSmsService
+        DebtorSmsService $debtorSmsService,
+        ArmClient $armClient
     )
     {
         $this->emailService = $emailService;
@@ -44,6 +48,7 @@ class DebtorMassSendController extends BasicController
         $this->debtorEventSmsRepository = $debtorEventSmsRepository;
         $this->debtorEventsRepository = $debtorEventsRepository;
         $this->debtorSmsService = $debtorSmsService;
+        $this->armClient = $armClient;
     }
 
     public function index(DebtorSmsRepository $smsRepository)
@@ -297,9 +302,15 @@ class DebtorMassSendController extends BasicController
     {
         try {
             $responsibleUser = User::findOrFail($input['responsibleUserId']);
+            $userArm = $this->armClient->getUserById1c($responsibleUser->id_1c);
+            $userEmail = $userArm[0]['email_user']['email'];
+            $userPassword = $userArm[0]['email_user']['password'];
+            if (empty(trim($userEmail)) || empty($userPassword)) {
+                throw new \Exception();
+            }
         } catch (\Throwable $exception) {
             return response()->json([
-                'error' => 'Не удалось определить ответственного'
+                'error' => 'Не удалось определить данные ответственного'
             ]);
         }
         $cnt = 0;
@@ -313,6 +324,8 @@ class DebtorMassSendController extends BasicController
                 'datePayment' => Carbon::parse($input['datePayment'] ?? null)->format('d.m.Y'),
                 'discountPayment' => $input['discountPayment'] ?? null,
                 'user' => $responsibleUser,
+                'userEmail' => $userEmail,
+                'userPassword' => $userPassword,
             ];
             if (in_array($debtor->customer_id_1c, $sendCustomers)) {
                 continue;
