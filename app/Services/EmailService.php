@@ -51,13 +51,16 @@ class EmailService
 
     public function validatorEmail(array $abouts)
     {
+        $email_validation_regex = "/^[a-z0-9!#$%&'*+\\/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+\\/=?^_`{|}~-]+)*" .
+                                  "@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/";
         foreach ($abouts as $about) {
-            if (preg_match('/@/', $about['email'])) {
+            if (preg_match($email_validation_regex, $about['email'])) {
                 return $about['email'];
             }
         }
         return null;
     }
+
     public function sendEmailDebtor(array $arrayParam): bool
     {
         $user = $arrayParam['user'];
