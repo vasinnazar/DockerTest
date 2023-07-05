@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Clients\ArmClient;
 use App\Debtor;
 use App\Exceptions\DebtorException;
 use App\Http\Requests\Email\EmailListRequest;
@@ -16,12 +17,13 @@ class EmailController extends Controller
 {
     public $emailService;
     private $debtorEventService;
+    private $armClient;
 
-
-    public function __construct(EmailService $service, DebtorEventService $debtorEventservice)
+    public function __construct(EmailService $service, DebtorEventService $debtorEventservice, ArmClient $armClient)
     {
         $this->emailService = $service;
         $this->debtorEventService = $debtorEventservice;
+        $this->armClient = $armClient;
     }
 
     public function index(EmailListRequest $request)
@@ -33,13 +35,26 @@ class EmailController extends Controller
 
     public function sendEmail(EmailSendRequest $request)
     {
+        $user = Auth::user();
+        $userArm = $this->armClient->getUserById1c($user->id_1c);
+        $userEmail = $userArm ? $userArm[0]['email_user']['email'] : null;
+        $userPassword = $userArm ? $userArm[0]['email_user']['password'] : null;
+        if (empty(trim($userEmail)) || empty($userPassword)) {
+            return redirect()
+                ->back()
+                ->with('msg_err', 'Email сообщение не отправленно.
+                Логин и пароль для входа в корпоративную почту не заполнены, обратитесь в техподдержку.');
+        }
+
         $arrayParam = [
             'debtor_id' => $request->debtor_id,
             'email_id' => $request->email_id,
             'dateAnswer' => Carbon::parse($request->dateAnswer)->format('d.m.Y') ?? null,
             'datePayment' => Carbon::parse($request->datePayment)->format('d.m.Y') ?? null,
             'discountPayment' => $request->discountPayment ?? null,
-            'user' => Auth::user(),
+            'user' => $user,
+            'userEmail' => $userEmail,
+            'userPassword' => $userPassword,
         ];
 
         $customer = (Debtor::find($request->debtor_id))->customer;
