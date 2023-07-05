@@ -28,6 +28,7 @@ use App\Repositories\DebtorSmsRepository;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
 use App\Services\DebtorSmsService;
+use App\Services\EmailService;
 use App\Services\MassRecurrentService;
 use App\Services\MessageService;
 use App\Services\RepaymentOfferService;
@@ -60,12 +61,14 @@ class DebtorsController extends BasicController
     public $debtEventService;
     public $massRecurrentService;
     public $debtorEventEmailRepository;
+    public $emailService;
 
     public function __construct(
         DebtorCardService $debtService,
         DebtorEventService $eventService,
         MassRecurrentService $massRecurrentService,
-        DebtorEventEmailRepository $debtorEventEmailRepository
+        DebtorEventEmailRepository $debtorEventEmailRepository,
+        EmailService $emailService
     )
     {
 
@@ -73,6 +76,7 @@ class DebtorsController extends BasicController
         $this->debtEventService = $eventService;
         $this->massRecurrentService = $massRecurrentService;
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
+        $this->emailService = $emailService;
     }
 
     /**
@@ -508,15 +512,9 @@ class DebtorsController extends BasicController
             ->where('block_till_date', '>=', date('Y-m-d', time()) . ' 00:00:00')
             ->first();
 
-        $armf_customer = DB::Table('armf.customers')->where('id_1c', $debtor->customer_id_1c)->first();
-        if (!is_null($armf_customer)) {
-            $armf_about = DB::Table('armf.about_clients')->where('customer_id', $armf_customer->id)->first();
-            if (!is_null($armf_about)) {
-                if (!is_null($armf_about->email)) {
-                    $data[0]['email'] = $armf_about->email;
-                }
-            }
-        }
+        $armfCustomer = $armClient->getCustomerById1c($debtor->customer_id_1c)->first();
+        $aboutClient = $armfCustomer ? $armClient->getAbouts($armfCustomer->id) : null;
+        $data[0]['email'] = $aboutClient ? $this->emailService->validatorEmail($aboutClient) : null;
 
         $arDataCcCard = false;
 
