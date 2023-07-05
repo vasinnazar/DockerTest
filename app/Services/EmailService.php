@@ -49,6 +49,15 @@ class EmailService
         return $collectMessages;
     }
 
+    public function validatorEmail(array $abouts)
+    {
+        foreach ($abouts as $about) {
+            if (preg_match('/@/', $about['email'])) {
+                return $about['email'];
+            }
+        }
+        return null;
+    }
     public function sendEmailDebtor(array $arrayParam): bool
     {
         $user = $arrayParam['user'];
@@ -61,7 +70,7 @@ class EmailService
         $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c);
         $armfCustomerId = $armfCustomer->first()->id;
         $aboutClient = $this->armClient->getAbouts($armfCustomerId);
-        $debtorEmail = $aboutClient ? end($aboutClient)['email'] : null;
+        $debtorEmail = $this->validatorEmail($aboutClient);
         $userArm = $this->armClient->getUserById1c($user->id_1c);
 
         if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['password'])) {
