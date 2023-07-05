@@ -49,7 +49,7 @@ class EmailService
         return $collectMessages;
     }
 
-    public function validatorEmail(array $abouts)
+    public function validatorEmail($abouts)
     {
         $email_validation_regex = "/^[a-z0-9!#$%&'*+\\/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+\\/=?^_`{|}~-]+)*" .
                                   "@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/";
@@ -70,10 +70,9 @@ class EmailService
         $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
         $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
-        $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c);
-        $armfCustomerId = $armfCustomer->first()->id;
-        $aboutClient = $this->armClient->getAbouts($armfCustomerId);
-        $debtorEmail = $this->validatorEmail($aboutClient);
+        $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c)->first();
+        $aboutClient = $armfCustomer ? $this->armClient->getAbouts($armfCustomer->id) : null;
+        $debtorEmail = $aboutClient ? $this->validatorEmail($aboutClient) : null;
         $userArm = $this->armClient->getUserById1c($user->id_1c);
 
         if (!isset($userArm[0]['email_user']['email']) && empty($userArm[0]['email_user']['password'])) {
