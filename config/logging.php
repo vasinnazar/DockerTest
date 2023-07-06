@@ -76,6 +76,13 @@ return [
             'driver' => 'errorlog',
             'level' => 'debug',
         ],
+
+        'infinity' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/infinity.log'),
+            'level' => 'debug',
+            'days' => 7,
+        ],
     ],
 
 ];
