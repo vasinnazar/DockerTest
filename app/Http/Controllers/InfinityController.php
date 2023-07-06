@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Debtor;
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -46,6 +47,11 @@ class InfinityController extends BasicController
 
     public function main(Request $req)
     {
+        Log::channel('infinity')->info('Outgoing call : ', [
+            'user' => auth()->user()->login,
+            'telephone' => $req->get('telephone'),
+            'milliseconds' => Carbon::now()->timestamp,
+        ]);
         $this->middleware('auth');
         $serverAddress = 'http://192.168.1.50/';
         $extension = auth()->user()->infinity_extension;
@@ -61,7 +67,16 @@ class InfinityController extends BasicController
 
         switch ($req->get('type')) {
             case 'call':
-                return $this->ajaxResult(1, '', json_decode(@file_get_contents($serverAddress . 'call/make/?Extension=' . $extension . '&Number=' . $customerTelephone . '&Tag=1'), true));
+                $result =  $this->ajaxResult(1, '',
+                    json_decode(@file_get_contents($serverAddress . 'call/make/?Extension=' . $extension . '&Number=' . $customerTelephone . '&Tag=1'),
+                        true));
+                Log::channel('infinity')->info('Outgoing call : ', [
+                    'user' => auth()->user()->login,
+                    'telephone' => $req->get('telephone'),
+                    'milliseconds' => Carbon::now()->timestamp,
+                    'result' => $result
+                ]);
+                return $result;
             default:
                 return $this->ajaxResult(0, 'Неизвестный тип операции');
         }
