@@ -450,7 +450,7 @@
                 dtData: {
                     scrollY: 600,
                     scrollCollapse: false,
-                    lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Все"]]
+                    lengthMenu: [[-1], ["Все"]]
                 },
                 rowId : 'DT_RowID',
                 clearFilterBtn: $('#debtorMassSmsClearFilterBtn'),
