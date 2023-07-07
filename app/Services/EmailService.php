@@ -77,8 +77,9 @@ class EmailService
         $this->setConfig($arrayParam['userEmail'], $arrayParam['userPassword']);
         if (empty(trim($debtorEmail))) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
-            Log::error("Incorrect data debetor:", [
-                'email' => $debtorEmail,
+            Log::error("Incorrect email debtor:", [
+                'customer_id_1c' => $debtor->customer_id_1c,
+                'email' => $debtorEmail
             ]);
             return false;
         }
