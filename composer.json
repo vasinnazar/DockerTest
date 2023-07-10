@@ -35,7 +35,8 @@
     "ext-curl": "*",
     "ext-zip": "*",
     "ext-simplexml": "*",
-    "ext-soap": "*"
+    "ext-soap": "*",
+    "rap2hpoutre/laravel-log-viewer": "^2.3"
   },
   "require-dev": {
     "symfony/dom-crawler": "~3.1",

@@ -136,8 +136,8 @@ return [
         \Yajra\Datatables\DatatablesServiceProvider::class,
         \App\Providers\DebtorServiceProvider::class,
         Collective\Html\HtmlServiceProvider::class,
-        App\Providers\BroadcastServiceProvider::class
-
+        App\Providers\BroadcastServiceProvider::class,
+        Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class
     ],
     /*
       |--------------------------------------------------------------------------
