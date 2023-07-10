@@ -72,6 +72,9 @@ class MessageService
             return false;
         }
         if (count($mailer->failures()) > 0) {
+            Log::error("Error send email: ", [
+                'email' => $email
+            ]);
             return false;
         }
         return true;
