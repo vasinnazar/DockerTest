@@ -72,7 +72,7 @@ $(document).ready(function () {
                     $('#sendInfo').text('Сообщения отправлены. Кол-во: ' + data.cnt);
                 } else {
                     $('#sendInfo').attr('class', 'alert alert-danger');
-                    $('#sendInfo').text('Ошибка: ' + data);
+                    $('#sendInfo').text('Ошибка: ' + data.error);
                 }
             },
             error : function () {
