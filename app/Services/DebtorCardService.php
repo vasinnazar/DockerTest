@@ -157,7 +157,6 @@ class DebtorCardService
             ->pluck('id_1c');
 
         $equalPhonesDebtors = Debtor::whereIn('customer_id_1c', $equalPhones)->get();
-
         $equalAddressesRegisterToRegister = Debtor::select('debtors.*')
             ->leftJoin('passports', function ($join) {
                 $join->on('passports.series', '=', 'debtors.debtors.passport_series');
@@ -227,7 +226,6 @@ class DebtorCardService
             ->get();
 
         $collection = collect([
-            'phone' => $debtor->customer->telephone,
             'equal_phones' => $equalPhonesDebtors,
             'equal_addresses_register_to_register' => $equalAddressesRegisterToRegister,
             'equal_addresses_register_to_fact' => $equalAddressesRegisterToFact,

@@ -34,8 +34,8 @@
                     <td>{{ $contactDebtor->passport->fio }}</td>
                     <td>{{ $contactDebtor->loan_id_1c }}</td>
                     <td>{{ $contactDebtor->base }}</td>
-                    <td>{{$collectContacts->get('phone')}}</td>
-                    <td>{{ $contactDebtor->debt_group_id }}</td>
+                    <td>{{ $contactDebtor->customer->telephone }}</td>
+                    <td>{{ $contactDebtor->debtGroup->name }}</td>
                     <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
                     <td>{{ $contactDebtor->str_podr }}</td>
                     <td>
@@ -61,6 +61,11 @@
                 <tr>
                     <td>{{ $contactDebtor->passport->fio }}</td>
                     <td>{{ $contactDebtor->loan_id_1c }}</td>
+                    <td>{{ $contactDebtor->base }}</td>
+                    <td>{{ $contactDebtor->customer->telephone }}</td>
+                    <td>{{ $contactDebtor->debtGroup->name }}</td>
+                    <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
+                    <td>{{ $contactDebtor->str_podr }}</td>
                     <td>
                         <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
@@ -84,6 +89,11 @@
                 <tr>
                     <td>{{ $contactDebtor->passport->fio }}</td>
                     <td>{{ $contactDebtor->loan_id_1c }}</td>
+                    <td>{{ $contactDebtor->base }}</td>
+                    <td>{{ $contactDebtor->customer->telephone }}</td>
+                    <td>{{ $contactDebtor->debtGroup->name }}</td>
+                    <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
+                    <td>{{ $contactDebtor->str_podr }}</td>
                     <td>
                         <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
@@ -107,6 +117,11 @@
                 <tr>
                     <td>{{ $contactDebtor->passport->fio }}</td>
                     <td>{{ $contactDebtor->loan_id_1c }}</td>
+                    <td>{{ $contactDebtor->base }}</td>
+                    <td>{{ $contactDebtor->customer->telephone }}</td>
+                    <td>{{ $contactDebtor->debtGroup->name }}</td>
+                    <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
+                    <td>{{ $contactDebtor->str_podr }}</td>
                     <td>
                         <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
@@ -130,6 +145,11 @@
                 <tr>
                     <td>{{ $contactDebtor->passport->fio }}</td>
                     <td>{{ $contactDebtor->loan_id_1c }}</td>
+                    <td>{{ $contactDebtor->base }}</td>
+                    <td>{{ $contactDebtor->customer->telephone }}</td>
+                    <td>{{ $contactDebtor->debtGroup->name }}</td>
+                    <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
+                    <td>{{ $contactDebtor->str_podr }}</td>
                     <td>
                         <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
