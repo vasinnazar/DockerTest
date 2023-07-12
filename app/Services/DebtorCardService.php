@@ -151,7 +151,6 @@ class DebtorCardService
 
     public function getEqualContactsDebtors($debtor)
     {
-
         $equalPhones = Customer::where('telephone', $debtor->customer->telephone)
             ->get()
             ->except($debtor->customer->id)
@@ -228,13 +227,13 @@ class DebtorCardService
             ->get();
 
         $collection = collect([
+            'phone' => $debtor->customer->telephone,
             'equal_phones' => $equalPhonesDebtors,
             'equal_addresses_register_to_register' => $equalAddressesRegisterToRegister,
             'equal_addresses_register_to_fact' => $equalAddressesRegisterToFact,
             'equal_addresses_fact_to_register' => $equalAddressesFactToRegister,
             'equal_addresses_fact_to_fact' => $equalAddressesFactToFact
         ]);
-
         return $collection;
     }
 
