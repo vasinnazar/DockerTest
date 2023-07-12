@@ -315,7 +315,6 @@ class DebtorMassSendController extends BasicController
             ]);
         }
         logger(['email' => $userEmail, 'password' => $userPassword]);
-
         $cnt = 0;
         $sendCustomers = [];
         $debtors = Debtor::whereIn('id', $input['debtorsIds'])->get();
