@@ -331,8 +331,8 @@ class DebtorsController extends BasicController
         $data_pos = false;
         if ($debtor->is_pos || $debtor->is_bigmoney) {
             if ($repl_loan) {
-                $schedule_row = DB::Table('armf.pos_loans')->where('loan_id', $repl_loan->id)->orderBy('created_at',
-                    'desc')->first();
+                $schedule_row = DB::Table('armf.pos_loans')->where('loan_id', $repl_loan->id)
+                    ->orderBy('created_at')->first();
                 if (!is_null($schedule_row->pays)) {
                     $current_schedule = json_decode($schedule_row->pays, true);
                 }
