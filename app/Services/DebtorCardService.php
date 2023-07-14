@@ -3,6 +3,7 @@
 namespace App\Services;
 
 
+use App\about_client;
 use App\Customer;
 use App\Debtor;
 use App\DebtorRecurrentQuery;
@@ -151,10 +152,18 @@ class DebtorCardService
 
     public function getEqualContactsDebtors($debtor)
     {
-        $equalPhones = Customer::where('telephone', $debtor->customer->telephone)
+        $equalPhones = Customer::leftJoin('about_clients', function($join) {
+                    $join->on('customers.id', '=', 'about_clients.customer_id');
+                })
+            ->where('telephone', $debtor->customer->telephone)
+            ->orWhere('telephonehome', $debtor->customer->telephone)
+            ->orWhere('telephoneorganiz', $debtor->customer->telephone)
+            ->orWhere('telephonerodstv', $debtor->customer->telephone)
+            ->orWhere('anothertelephone', $debtor->customer->telephone)
             ->get()
-            ->except($debtor->customer->id)
             ->pluck('id_1c');
+
+        $equalPhones = $equalPhones->filter(fn ($id1c) => $id1c !== $debtor->customer->id_1c);
 
         $equalPhonesDebtors = Debtor::whereIn('customer_id_1c', $equalPhones)->get();
         $equalAddressesRegisterToRegister = Debtor::select('debtors.*')
