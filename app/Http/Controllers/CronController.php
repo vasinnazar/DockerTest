@@ -57,6 +57,7 @@ class CronController extends Controller {
         //exit();
 
         if ((string) $object->data->task["taskstatusstr"] == 'Закончена') {
+
             $arEventData = [];
 
             $events = \App\DebtorEvent::where('date', '>=', $today . ' 00:00:00')
@@ -79,7 +80,7 @@ class CronController extends Controller {
                     }
                 }
             }
-
+            logger(['CronController::getTask', (array) $object, $arEventData]);
             foreach ($object->data->item as $call) {
                 $phone = (string) $call['phonenumber'];
                 if ($phone[0] == '8') {
