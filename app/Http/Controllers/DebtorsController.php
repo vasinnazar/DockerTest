@@ -3198,6 +3198,7 @@ class DebtorsController extends BasicController
                 $object = simplexml_load_string($result);
 
                 if ((string) $object->data->task["taskstatusstr"] == 'Закончена') {
+
                     $arEventData = [];
 
                     $events = \App\DebtorEvent::where('date', '>=', $today . ' 00:00:00')
@@ -3218,7 +3219,7 @@ class DebtorsController extends BasicController
                             }
                         }
                     }
-
+                    logger(['DebtorsController::temporaryCronTasksHandling', (array) $object, $arEventData]);
                     foreach ($object->data->item as $call) {
                         $phone = (string) $call['phonenumber'];
                         if ($phone[0] == '8') {
