@@ -150,18 +150,12 @@ class DebtorCardService
 
     public function getEqualContactsDebtors($debtor)
     {
-        $equalPhonesDebtors = Debtor::leftJoin('customers', function($join) {
-                    $join->on('debtors.customer_id_1c', '=', 'customers.id_1c');
-                })
-            ->leftJoin('about_clients', function($join) {
-                $join->on('customers.id', '=', 'about_clients.customer_id');
-            })
-            ->where('telephone', $debtor->customer->telephone)
-            ->orWhere('telephonehome', $debtor->customer->telephone)
-            ->orWhere('telephoneorganiz', $debtor->customer->telephone)
-            ->orWhere('telephonerodstv', $debtor->customer->telephone)
-            ->orWhere('anothertelephone', $debtor->customer->telephone)
-            ->get();
+        $debtorsWithEqualPhone = $this->debtorRepository
+            ->getDebtorsWithEqualPhone($debtor->customer->telephone)
+            ->filter(
+                fn ($debtorWithEqualPhone)
+                => $debtorWithEqualPhone->customer_id_1c !== $debtor->customer->id_1c
+            );
 
         $equalAddressesRegisterToRegister = Debtor::select('debtors.*')
             ->leftJoin('passports', function ($join) {
@@ -232,7 +226,7 @@ class DebtorCardService
             ->get();
 
         $collection = collect([
-            'equal_phones' => $equalPhonesDebtors,
+            'equal_phones' => $debtorsWithEqualPhone,
             'equal_addresses_register_to_register' => $equalAddressesRegisterToRegister,
             'equal_addresses_register_to_fact' => $equalAddressesRegisterToFact,
             'equal_addresses_fact_to_register' => $equalAddressesFactToRegister,
