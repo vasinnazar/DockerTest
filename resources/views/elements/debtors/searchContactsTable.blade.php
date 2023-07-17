@@ -22,11 +22,11 @@
 
     @if ($collectContacts->get('equal_phones', false))
         <tr>
-            <td colspan="8" style="background: #5bc0de;">Совпадение телефонов</td>
+            <td colspan="8" style="background: #5bc0de;">Совпадение мобильного телефона</td>
         </tr>
         @if (!$collectContacts->get('equal_phones')->count())
             <tr>
-                <td colspan="8">Совпадений по телефону не найдено.</td>
+                <td colspan="8">Совпадений по мобильному телефону не найдено.</td>
             </tr>
         @else
             @foreach($collectContacts->get('equal_phones') as $contactDebtor)
