@@ -150,11 +150,11 @@ class DebtorCardService
 
     public function getEqualContactsDebtors($debtor)
     {
-        $debtorsWithEqualPhone = $this->debtorRepository
+        $debtorsWithEqualTelephone = $this->debtorRepository
             ->getDebtorsWithEqualPhone($debtor->customer->telephone)
             ->filter(
-                fn ($debtorWithEqualPhone)
-                => $debtorWithEqualPhone->customer_id_1c !== $debtor->customer->id_1c
+                fn ($debtorWithEqualTelephone)
+                => $debtorWithEqualTelephone->customer_id_1c !== $debtor->customer->id_1c
             );
 
         $equalAddressesRegisterToRegister = Debtor::select('debtors.*')
@@ -226,7 +226,7 @@ class DebtorCardService
             ->get();
 
         $collection = collect([
-            'equal_phones' => $debtorsWithEqualPhone,
+            'equal_phones' => $debtorsWithEqualTelephone,
             'equal_addresses_register_to_register' => $equalAddressesRegisterToRegister,
             'equal_addresses_register_to_fact' => $equalAddressesRegisterToFact,
             'equal_addresses_fact_to_register' => $equalAddressesFactToRegister,
