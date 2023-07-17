@@ -2,26 +2,24 @@
 
 namespace App\Services;
 
-
-use App\about_client;
-use App\Customer;
 use App\Debtor;
 use App\DebtorRecurrentQuery;
 use App\MassRecurrentTask;
 use App\MySoap;
+use App\Repositories\DebtorRepository;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+
 
 class DebtorCardService
 {
+    private DebtorRepository $debtorRepository;
     private $httpClient;
 
-    public function __construct()
+    public function __construct(DebtorRepository $debtorRepository)
     {
+        $this->debtorRepository = $debtorRepository;
         $this->httpClient = new Client(
             [
                 'verify' => false,
