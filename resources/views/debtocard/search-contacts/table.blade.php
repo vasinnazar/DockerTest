@@ -14,38 +14,36 @@
     <tbody>
     @if (!$collectContacts->count())
         <tr>
-            <td>
+            <td colspan="8" style="background: #5bc0de;">
                 Совпадений не найдено.
             </td>
         </tr>
-    @endif
-
-    @if ($collectContacts->get('equal_phones', false))
-        <tr>
-            <td colspan="8" style="background: #5bc0de;">Совпадение мобильного телефона</td>
-        </tr>
-        @if (!$collectContacts->get('equal_phones')->count())
-            <tr>
-                <td colspan="8">Совпадений по мобильному телефону не найдено.</td>
-            </tr>
-        @else
-            @foreach($collectContacts->get('equal_phones') as $contactDebtor)
-                <tr>
-                    <td>{{ $contactDebtor->passport->fio }}</td>
-                    <td>{{ $contactDebtor->loan_id_1c }}</td>
-                    <td>{{ $contactDebtor->base }}</td>
-                    <td>{{ $contactDebtor->customer->telephone }}</td>
-                    <td>{{ $contactDebtor->debtGroup->name }}</td>
-                    <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
-                    <td>{{ $contactDebtor->str_podr }}</td>
-                    <td>
-                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
-                            <span class="glyphicon glyphicon-eye-open"></span>
-                        </a>
-                    </td>
-                </tr>
-            @endforeach
-        @endif
+    @else
+        @include('debtocard.search-contacts.element-table',
+            [
+                'type_telephone' => 'equal_telephone',
+                'template_text' => 'мобильного телефона'
+            ])
+        @include('debtocard.search-contacts.element-table',
+            [
+                'type_telephone' => 'equal_telephonehome',
+                'template_text' => 'домашнего телефона'
+            ])
+        @include('debtocard.search-contacts.element-table',
+           [
+               'type_telephone' => 'equal_telephoneorganiz',
+               'template_text' => 'телефона организации'
+           ])
+        @include('debtocard.search-contacts.element-table',
+           [
+               'type_telephone' => 'equal_telephonerodstv',
+               'template_text' => 'телефона родственников'
+           ])
+        @include('debtocard.search-contacts.element-table',
+           [
+               'type_telephone' => 'equal_anothertelephone',
+               'template_text' => 'другого телефона'
+           ])
     @endif
 
     @if ($collectContacts->get('equal_addresses_register_to_register', false))
@@ -67,7 +65,8 @@
                     <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
                     <td>{{ $contactDebtor->str_podr }}</td>
                     <td>
-                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
+                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}"
+                           class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
                         </a>
                     </td>
@@ -95,7 +94,8 @@
                     <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
                     <td>{{ $contactDebtor->str_podr }}</td>
                     <td>
-                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
+                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}"
+                           class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
                         </a>
                     </td>
@@ -123,7 +123,8 @@
                     <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
                     <td>{{ $contactDebtor->str_podr }}</td>
                     <td>
-                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
+                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}"
+                           class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
                         </a>
                     </td>
@@ -151,7 +152,8 @@
                     <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
                     <td>{{ $contactDebtor->str_podr }}</td>
                     <td>
-                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}" class="btn btn-default btn-xs" size="xs" target="_blank">
+                        <a href="/debtors/debtorcard/{{ $contactDebtor->id }}?finded_by={{ $debtor->id }}"
+                           class="btn btn-default btn-xs" size="xs" target="_blank">
                             <span class="glyphicon glyphicon-eye-open"></span>
                         </a>
                     </td>

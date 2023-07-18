@@ -9,6 +9,8 @@ use App\MySoap;
 use App\Repositories\DebtorRepository;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 
@@ -148,14 +150,43 @@ class DebtorCardService
         return $arResult;
     }
 
-    public function getEqualContactsDebtors($debtor)
+    public function getDebtorsByEqualTelephone(Model $debtor, $telephone): Collection
     {
-        $debtorsWithEqualTelephone = $this->debtorRepository
-            ->getDebtorsWithEqualPhone($debtor->customer->telephone)
+        if (empty($telephone) || $telephone === 'нет') {
+            return collect();
+        }
+        return $this->debtorRepository
+            ->getDebtorsWithEqualPhone($telephone)
             ->filter(
                 fn ($debtorWithEqualTelephone)
                 => $debtorWithEqualTelephone->customer_id_1c !== $debtor->customer->id_1c
             );
+    }
+    public function getEqualContactsDebtors(Model $debtor): Collection
+    {
+        if (!$debtor->customer->about_clients) {
+            return collect();
+        }
+        $debtorsWithEqualTelephone = $this->getDebtorsByEqualTelephone(
+            $debtor,
+            $debtor->customer->telephone
+        );
+        $debtorsWithEqualTelephonehome = $this->getDebtorsByEqualTelephone(
+            $debtor,
+            $debtor->customer->about_clients->last()->telephonehome
+        );
+        $debtorsWithEqualTelephoneorganiz = $this->getDebtorsByEqualTelephone(
+            $debtor,
+            $debtor->customer->about_clients->last()->telephoneorganiz
+        );
+        $debtorsWithEqualTelephonerodstv = $this->getDebtorsByEqualTelephone(
+            $debtor,
+            $debtor->customer->about_clients->last()->telephonerodstv
+        );
+        $debtorsWithEqualAnothertelephone = $this->getDebtorsByEqualTelephone(
+            $debtor,
+            $debtor->customer->about_clients->last()->anothertelephone
+        );
 
         $equalAddressesRegisterToRegister = Debtor::select('debtors.*')
             ->leftJoin('passports', function ($join) {
@@ -226,7 +257,11 @@ class DebtorCardService
             ->get();
 
         $collection = collect([
-            'equal_phones' => $debtorsWithEqualTelephone,
+            'equal_telephone' => $debtorsWithEqualTelephone,
+            'equal_telephonehome' => $debtorsWithEqualTelephonehome,
+            'equal_telephoneorganiz' => $debtorsWithEqualTelephoneorganiz,
+            'equal_telephonerodstv' => $debtorsWithEqualTelephonerodstv,
+            'equal_anothertelephone' => $debtorsWithEqualAnothertelephone,
             'equal_addresses_register_to_register' => $equalAddressesRegisterToRegister,
             'equal_addresses_register_to_fact' => $equalAddressesRegisterToFact,
             'equal_addresses_fact_to_register' => $equalAddressesFactToRegister,

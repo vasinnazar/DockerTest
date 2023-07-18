@@ -3301,7 +3301,7 @@ class DebtorsController extends BasicController
             $collectContacts = $this->debtCardService->getEqualContactsDebtors($debtor);
         }
 
-        return view('elements.debtors.searchContactsTable', compact('collectContacts', 'debtor'));
+        return view('debtocard.search-contacts.table', compact('collectContacts', 'debtor'));
     }
 
 
