@@ -36,7 +36,8 @@
     "ext-zip": "*",
     "ext-simplexml": "*",
     "ext-soap": "*",
-    "rap2hpoutre/laravel-log-viewer": "^2.3"
+    "rap2hpoutre/laravel-log-viewer": "^2.3",
+    "spatie/data-transfer-object": "~2.0"
   },
   "require-dev": {
     "symfony/dom-crawler": "~3.1",

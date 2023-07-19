@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Debtor;
 use App\DebtorRecurrentQuery;
+use App\DTO\Passport\FactAddressDto;
+use App\DTO\Passport\RegAddressDto;
 use App\MassRecurrentTask;
 use App\MySoap;
 use App\Repositories\DebtorRepository;
@@ -163,7 +165,6 @@ class DebtorCardService
         if (!$debtor->customer->about_clients || !$debtor->customer || !$debtor->passport) {
             return collect();
         }
-
         $phonesSearch = [
             'equal_telephone' => $debtor->customer->telephone,
             'equal_telephonehome' => $debtor->customer->about_clients->last()->telephonehome,
@@ -174,35 +175,14 @@ class DebtorCardService
         foreach ($phonesSearch as $key => $phone) {
             $debtorsEqualPhonesAndAddress->put($key, $this->getDebtorsByEqualTelephone($debtor, $phone));
         }
-        $addressRegSearch = collect([
-            'zip' => $debtor->passport->zip,
-            'address_region' => $debtor->passport->address_region,
-            'address_district' => $debtor->passport->address_district,
-            'address_city' => $debtor->passport->address_city,
-            'address_street' => $debtor->passport->address_street,
-            'address_house' => $debtor->passport->address_house,
-            'address_building' => $debtor->passport->address_building,
-            'address_apartment' => $debtor->passport->address_apartment,
-            'address_city1' => $debtor->passport->address_city1,
-            'id' => $debtor->passport->id,
-        ]);
-        $addressFactSearch = collect([
-            'zip' => $debtor->passport->zip,
-            'address_region' => $debtor->passport->fact_address_region,
-            'address_district' => $debtor->passport->fact_address_district,
-            'address_city' => $debtor->passport->fact_address_city,
-            'address_street' => $debtor->passport->fact_address_street,
-            'address_house' => $debtor->passport->fact_address_house,
-            'address_building' => $debtor->passport->fact_address_building,
-            'address_apartment' => $debtor->passport->fact_address_apartment,
-            'address_city1' => $debtor->passport->fact_address_city1,
-            'id' => $debtor->passport->id,
-        ]);
 
-        $equalAddressesRegisterToRegister = $this->debtorRepository->getDebtorsWithEqualAddressRegister($addressRegSearch);
-        $equalAddressesFactToRegister = $this->debtorRepository->getDebtorsWithEqualAddressRegister($addressFactSearch);
-        $equalAddressesRegisterToFact = $this->debtorRepository->getDebtorsWithEqualAddressFact($addressRegSearch);
-        $equalAddressesFactToFact = $this->debtorRepository->getDebtorsWithEqualAddressFact($addressFactSearch);
+        $factAddressDto = FactAddressDto::fromModel($debtor->passport);
+        $regAddressDto = RegAddressDto::fromModel($debtor->passport);
+
+        $equalAddressesRegisterToRegister = $this->debtorRepository->getDebtorsWithEqualAddressRegister($regAddressDto);
+        $equalAddressesFactToRegister = $this->debtorRepository->getDebtorsWithEqualAddressRegister($factAddressDto);
+        $equalAddressesRegisterToFact = $this->debtorRepository->getDebtorsWithEqualAddressFact($regAddressDto);
+        $equalAddressesFactToFact = $this->debtorRepository->getDebtorsWithEqualAddressFact($factAddressDto);
 
         $debtorsEqualPhonesAndAddress->put('equal_addresses_register_to_register', $equalAddressesRegisterToRegister);
         $debtorsEqualPhonesAndAddress->put('equal_addresses_register_to_fact', $equalAddressesRegisterToFact);

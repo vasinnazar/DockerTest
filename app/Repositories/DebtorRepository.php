@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\Debtor;
-use Arcanedev\Support\Bases\Model;
 use Illuminate\Support\Collection;
 
 class DebtorRepository
@@ -33,44 +32,45 @@ class DebtorRepository
             })
             ->get();
     }
-    public function getDebtorsWithEqualAddressRegister(Collection $passport): Collection
+    public function getDebtorsWithEqualAddressRegister(object $passport): Collection
     {
         return $this->model
             ->leftJoin('passports', function ($join) {
                 $join->on('debtors.passport_series', '=', 'passports.series');
                 $join->on('debtors.passport_number', '=', 'passports.number');
             })
-            ->where('zip', $passport->get('zip'))
-            ->where('address_region', $passport->get('address_region'))
-            ->where('address_district', $passport->get('address_district'))
-            ->where('address_city', $passport->get('address_city'))
-            ->where('address_street', $passport->get('address_street'))
-            ->where('address_house', $passport->get('address_house'))
-            ->where('address_building', $passport->get('address_building'))
-            ->where('address_apartment', $passport->get('address_apartment'))
-            ->where('address_city1', $passport->get('address_city1'))
-            ->where('passports.id', '<>', $passport->get('id'))
+            ->where('zip', $passport->zip)
+            ->where('address_region', $passport->address_region)
+            ->where('address_district', $passport->address_district)
+            ->where('address_city', $passport->address_city)
+            ->where('address_street', $passport->address_street)
+            ->where('address_house', $passport->address_house)
+            ->where('address_building', $passport->address_building)
+            ->where('address_apartment', $passport->address_apartment)
+            ->where('address_city1', $passport->address_city1)
+            ->where('passports.id', '<>', $passport->id)
             ->get();
     }
-    public function getDebtorsWithEqualAddressFact(Collection $passport): Collection
+    public function getDebtorsWithEqualAddressFact(object $passport): Collection
     {
         return $this->model
             ->leftJoin('passports', function ($join) {
                 $join->on('debtors.passport_series', '=', 'passports.series');
                 $join->on('debtors.passport_number', '=', 'passports.number');
             })
-            ->where('fact_zip', $passport->get('zip'))
-            ->where('fact_address_region', $passport->get('address_region'))
-            ->where('fact_address_district', $passport->get('address_district'))
-            ->where('fact_address_city', $passport->get('address_city'))
-            ->where('fact_address_street', $passport->get('address_street'))
-            ->where('fact_address_house', $passport->get('address_house'))
-            ->where('fact_address_building', $passport->get('address_building'))
-            ->where('fact_address_apartment', $passport->get('address_apartment'))
-            ->where('fact_address_city1', $passport->get('address_city1'))
-            ->where('passports.id', '<>', $passport->get('id'))
+            ->where('fact_zip', $passport->zip)
+            ->where('fact_address_region', $passport->address_region)
+            ->where('fact_address_district', $passport->address_district)
+            ->where('fact_address_city', $passport->address_city)
+            ->where('fact_address_street', $passport->address_street)
+            ->where('fact_address_house', $passport->address_house)
+            ->where('fact_address_building', $passport->address_building)
+            ->where('fact_address_apartment', $passport->address_apartment)
+            ->where('fact_address_city1', $passport->address_city1)
+            ->where('passports.id', '<>', $passport->id)
             ->get();
     }
+
 
 
 }
