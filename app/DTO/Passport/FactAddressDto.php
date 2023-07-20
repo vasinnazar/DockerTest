@@ -21,7 +21,7 @@ class FactAddressDto extends DataTransferObject
     public static function fromModel(Passport $passport): self
     {
         return new self([
-            'zip' => $passport->zip,
+            'zip' => $passport->fact_zip,
             'address_region' => $passport->fact_address_region,
             'address_district' => $passport->fact_address_district,
             'address_city' => $passport->fact_address_city,
