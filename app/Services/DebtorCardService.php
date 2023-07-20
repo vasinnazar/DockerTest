@@ -14,6 +14,7 @@ use GuzzleHttp\Client;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use function Deployer\get;
 
 
 class DebtorCardService
@@ -159,6 +160,25 @@ class DebtorCardService
         }
         return $this->debtorRepository->getDebtorsWithEqualPhone($telephone, $debtor->customer->id_1c);
     }
+
+    public function getDebtorsByEqualAddress(
+        object     $addressDto,
+        Collection &$debtorsEqualPhonesAndAddress,
+        string     $keyAddressReg,
+        string     $keyAddressFact
+    )
+    {
+        if (
+            !empty($addressDto->address_region) && !empty($addressDto->address_city) &&
+            !empty($addressDto->address_street) && !empty($addressDto->address_house)
+        ) {
+            $equalAddressesFactToRegister = $this->debtorRepository->getDebtorsWithEqualAddressRegister($addressDto);
+            $equalAddressesFactToFact = $this->debtorRepository->getDebtorsWithEqualAddressFact($addressDto);
+            $debtorsEqualPhonesAndAddress->put($keyAddressReg, $equalAddressesFactToRegister);
+            $debtorsEqualPhonesAndAddress->put($keyAddressFact, $equalAddressesFactToFact);
+        }
+    }
+
     public function getEqualContactsDebtors(Model $debtor): Collection
     {
         $debtorsEqualPhonesAndAddress = collect();
@@ -171,24 +191,23 @@ class DebtorCardService
             'equal_telephoneorganiz' => $debtor->customer->about_clients->last()->telephoneorganiz,
             'equal_telephonerodstv' => $debtor->customer->about_clients->last()->telephonerodstv,
             'equal_anothertelephone' => $debtor->customer->about_clients->last()->anothertelephone,
-            ];
+        ];
         foreach ($phonesSearch as $key => $phone) {
             $debtorsEqualPhonesAndAddress->put($key, $this->getDebtorsByEqualTelephone($debtor, $phone));
         }
 
-        $factAddressDto = FactAddressDto::fromModel($debtor->passport);
-        $regAddressDto = RegAddressDto::fromModel($debtor->passport);
-
-        $equalAddressesRegisterToRegister = $this->debtorRepository->getDebtorsWithEqualAddressRegister($regAddressDto);
-        $equalAddressesFactToRegister = $this->debtorRepository->getDebtorsWithEqualAddressRegister($factAddressDto);
-        $equalAddressesRegisterToFact = $this->debtorRepository->getDebtorsWithEqualAddressFact($regAddressDto);
-        $equalAddressesFactToFact = $this->debtorRepository->getDebtorsWithEqualAddressFact($factAddressDto);
-
-        $debtorsEqualPhonesAndAddress->put('equal_addresses_register_to_register', $equalAddressesRegisterToRegister);
-        $debtorsEqualPhonesAndAddress->put('equal_addresses_register_to_fact', $equalAddressesRegisterToFact);
-        $debtorsEqualPhonesAndAddress->put('equal_addresses_fact_to_register', $equalAddressesFactToRegister);
-        $debtorsEqualPhonesAndAddress->put('equal_addresses_fact_to_fact', $equalAddressesFactToFact);
-
+        $this->getDebtorsByEqualAddress(
+            FactAddressDto::fromModel($debtor->passport),
+            $debtorsEqualPhonesAndAddress,
+            'equal_addresses_fact_to_register',
+            'equal_addresses_fact_to_fact'
+        );
+        $this->getDebtorsByEqualAddress(
+            RegAddressDto::fromModel($debtor->passport),
+            $debtorsEqualPhonesAndAddress,
+            'equal_addresses_register_to_register',
+            'equal_addresses_register_to_fact'
+        );
         return $debtorsEqualPhonesAndAddress;
     }
 

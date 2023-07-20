@@ -1,4 +1,4 @@
-@if ($collectContacts->get($type_telephone)->isEmpty())
+@if (!$collectContacts->has($type_contact) || $collectContacts->get($type_contact)->isEmpty())
 <tr>
     <td colspan="8">Совпадений {{$template_text}} не найдено.</td>
 </tr>
@@ -6,7 +6,7 @@
     <tr>
         <td colspan="8" style="background: #5bc0de;">Совпадения {{$template_text}}</td>
     </tr>
-    @foreach($collectContacts->get($type_telephone) as $contactDebtor)
+    @foreach($collectContacts->get($type_contact) as $contactDebtor)
         <tr>
             <td>{{ $contactDebtor->passport->fio }}</td>
             <td>{{ $contactDebtor->loan_id_1c }}</td>
