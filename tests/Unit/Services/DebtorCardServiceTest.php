@@ -76,23 +76,56 @@ class DebtorCardServiceTest extends TestCase
     public function testGetEqualContactsDebtorsWithoutCustomer()
     {
         $debtor = $this->debtors->first();
-        $debtor->customer_id_1c = $this->fakeCustomerId1c;
+        $debtor->customer = null;
         $debtorsEqualPhonesAndAddress = $this->debtorCardService->getEqualContactsDebtors($debtor);
         $this->assertTrue($debtorsEqualPhonesAndAddress->isEmpty());
     }
     public function testGetEqualContactsDebtorsWithoutPassport()
     {
         $debtor = $this->debtors->first();
-        $debtor->passport_series = $this->fakePassportId;
-        $debtor->passport_number = $this->fakePassportId;
+        $debtor->passport = null;
         $debtorsEqualPhonesAndAddress = $this->debtorCardService->getEqualContactsDebtors($debtor);
         $this->assertTrue($debtorsEqualPhonesAndAddress->isEmpty());
     }
     public function testGetEqualContactsDebtorsWithoutAbout()
     {
         $debtor = $this->debtors->first();
-        $debtor->customer->about_clients->first()->customer_id = $this->fakeCustomerId;
+        $debtor->customer->about_clients = null;
         $debtorsEqualPhonesAndAddress = $this->debtorCardService->getEqualContactsDebtors($debtor);
         $this->assertTrue($debtorsEqualPhonesAndAddress->isEmpty());
+    }
+    public function testGetEqualContactsDebtorsNoMatches()
+    {
+        $debtor = $this->debtors->first();
+        $debtorsEqualPhonesAndAddress = $this->debtorCardService->getEqualContactsDebtors($debtor);
+        $keysPhonesSearch = [
+            'equal_telephone',
+            'equal_telephonehome',
+            'equal_telephoneorganiz',
+            'equal_telephonerodstv',
+            'equal_anothertelephone'
+        ];
+        foreach ($keysPhonesSearch as $key) {
+            $this->assertTrue($debtorsEqualPhonesAndAddress->get($key)->isEmpty());
+        }
+    }
+    public function testGetEqualContactsDebtorsNoTelephone()
+    {
+        $debtor = $this->debtors->first();
+        $keysPhonesSearch = [
+            'equal_telephone',
+            'equal_telephonehome',
+            'equal_telephoneorganiz',
+            'equal_telephonerodstv',
+            'equal_anothertelephone'
+        ];
+        $emptyPhones = [null, 'нет', ''];
+        foreach ($emptyPhones as $phone) {
+            $debtor->customer->telephone = $phone;
+            $debtorsEqualPhonesAndAddress = $this->debtorCardService->getEqualContactsDebtors($debtor);
+            foreach ($keysPhonesSearch as $key) {
+                $this->assertTrue($debtorsEqualPhonesAndAddress->get($key)->isEmpty());
+            }
+        }
     }
 }
