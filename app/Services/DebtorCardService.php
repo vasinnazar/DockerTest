@@ -182,7 +182,10 @@ class DebtorCardService
     public function getEqualContactsDebtors(Model $debtor): Collection
     {
         $debtorsEqualPhonesAndAddress = collect();
-        if (!$debtor->customer->about_clients || !$debtor->customer || !$debtor->passport) {
+        if (!$debtor->customer || !$debtor->passport) {
+            return collect();
+        }
+        if (!$debtor->customer->about_clients) {
             return collect();
         }
         $phonesSearch = [

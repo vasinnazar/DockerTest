@@ -3290,10 +3290,9 @@ class DebtorsController extends BasicController
         return view('debtors.temporaryCronTaskHandling', compact('message'));
     }
 
-    public function searchEqualContacts(Request $request) {
-        $debtor_id = $request->get('debtor_id', false);
-
-        $debtor = Debtor::find($debtor_id);
+    public function searchEqualContacts(Request $request)
+    {
+        $debtor = Debtor::find($request->get('debtor_id', false));
 
         $collectContacts = collect();
 
