@@ -10,7 +10,8 @@ use App\Debtor;
 use App\Loan;
 use App\LoanType;
 use App\Passport;
-use App\Repositories\DebtorEventsRepository;
+use App\Repositories\CustomerRepository;
+use App\Repositories\AboutClientRepository;
 use App\Services\DebtorCardService;
 use App\Subdivision;
 use App\User;
@@ -30,11 +31,14 @@ class DebtorCardServiceTest extends TestCase
     private $fakeCustomerId1c = 'q999999';
     private $fakePassportId = 9999;
     private $fakeCustomerId = 9999;
-    private DebtorEventsRepository $debtorEventsRepository;
+    private $fakePhone = '123456789';
+    private CustomerRepository $customerRepository;
+    private AboutClientRepository $aboutClientRepository;
     public function __construct(?string $name = null, array $data = [], $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
-        $this->debtorEventsRepository = app()->make(DebtorEventsRepository::class);
+        $this->customerRepository = app()->make(CustomerRepository::class);
+        $this->aboutClientRepository = app()->make(AboutClientRepository::class);
     }
     public function setUp(): void
     {
@@ -70,8 +74,6 @@ class DebtorCardServiceTest extends TestCase
                 'customer_id' => $customer->id
             ]);
         }
-
-
     }
     public function testGetEqualContactsDebtorsWithoutCustomer()
     {
@@ -121,11 +123,46 @@ class DebtorCardServiceTest extends TestCase
         ];
         $emptyPhones = [null, 'нет', ''];
         foreach ($emptyPhones as $phone) {
-            $debtor->customer->telephone = $phone;
+            $this->customerRepository->update($debtor->customer->id, ['telephone' => $phone]);
+            $this->aboutClientRepository->update(
+                $debtor->customer->about_clients->last()->id, ['telephonehome' => $phone]
+            );
+            $this->aboutClientRepository->update(
+                $debtor->customer->about_clients->last()->id, ['telephoneorganiz' => $phone])
+            ;
+            $this->aboutClientRepository->update(
+                $debtor->customer->about_clients->last()->id, ['telephonerodstv' => $phone]
+            );
+            $this->aboutClientRepository->update(
+                $debtor->customer->about_clients->last()->id, ['anothertelephone' => $phone]
+            );
             $debtorsEqualPhonesAndAddress = $this->debtorCardService->getEqualContactsDebtors($debtor);
             foreach ($keysPhonesSearch as $key) {
                 $this->assertTrue($debtorsEqualPhonesAndAddress->get($key)->isEmpty());
             }
         }
     }
+    public function testGetEqualContactsDebtorsPhoneMatch()
+    {
+        $debtorSearch = $this->debtors->first();
+        $lastCustomerid = $this->debtors->last()->customer->id;
+        $this->customerRepository->update($lastCustomerid, [
+            'telephone' => $debtorSearch->customer->telephone,
+        ]);
+        $debtorsEqualPhones = $this->debtorCardService->getEqualContactsDebtors($debtorSearch);
+        $this->assertEquals($debtorsEqualPhones->get('equal_telephone')->first()->id, $lastCustomerid);
+    }
+    public function testGetEqualContactsDebtorsTelephoneMatch()
+    {
+        $debtorSearch = $this->debtors->first();
+        $aboutClientEqualPhone = $this->debtors->last()->customer->about_clients->last();
+        $typesPhone = ['telephonehome', 'telephoneorganiz', 'telephonerodstv', 'anothertelephone'];
+        foreach ($typesPhone as $typePhone) {
+            $debtorSearch->customer->about_clients->last()->$typePhone = $this->fakePhone;
+            $this->aboutClientRepository->update($aboutClientEqualPhone->id, [$typePhone => $this->fakePhone]);
+            $debtorsEqualPhones = $this->debtorCardService->getEqualContactsDebtors($debtorSearch);
+            $this->assertEquals($debtorsEqualPhones->get('equal_'.$typePhone)->first()->id, $aboutClientEqualPhone->id);
+        }
+    }
+
 }

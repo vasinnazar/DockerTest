@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Debtor;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class DebtorRepository
@@ -13,9 +14,19 @@ class DebtorRepository
     {
         $this->model = $model;
     }
-    public function firstById(int $id)
+    public function getAll(): Collection
+    {
+        return $this->model::all();
+    }
+    public function firstById(int $id): Model
     {
         return $this->model->findOrFail($id);
+    }
+    public function update(int $id, array $params = []): Model
+    {
+        $modelItem = $this->model->where('id', $id)->firstOrFail();
+
+        return tap($modelItem)->update($params);
     }
     public function getDebtorsWithEqualPhone(string $phone, string $customerId1c): Collection
     {
