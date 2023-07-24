@@ -12,6 +12,7 @@ use App\LoanType;
 use App\Passport;
 use App\Repositories\CustomerRepository;
 use App\Repositories\AboutClientRepository;
+use App\Repositories\PassportRepository;
 use App\Services\DebtorCardService;
 use App\Subdivision;
 use App\User;
@@ -34,11 +35,13 @@ class DebtorCardServiceTest extends TestCase
     private $fakePhone = '123456789';
     private CustomerRepository $customerRepository;
     private AboutClientRepository $aboutClientRepository;
+    private PassportRepository $passportRepository;
     public function __construct(?string $name = null, array $data = [], $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
         $this->customerRepository = app()->make(CustomerRepository::class);
         $this->aboutClientRepository = app()->make(AboutClientRepository::class);
+        $this->passportRepository = app()->make(PassportRepository::class);
     }
     public function setUp(): void
     {
@@ -96,7 +99,7 @@ class DebtorCardServiceTest extends TestCase
         $debtorsEqualPhonesAndAddress = $this->debtorCardService->getEqualContactsDebtors($debtor);
         $this->assertTrue($debtorsEqualPhonesAndAddress->isEmpty());
     }
-    public function testGetEqualContactsDebtorsNoMatches()
+    public function testGetEqualContactsDebtorsNoMatchesPhones()
     {
         $debtor = $this->debtors->first();
         $debtorsEqualPhonesAndAddress = $this->debtorCardService->getEqualContactsDebtors($debtor);
@@ -162,6 +165,85 @@ class DebtorCardServiceTest extends TestCase
             $this->aboutClientRepository->update($aboutClientEqualPhone->id, [$typePhone => $this->fakePhone]);
             $debtorsEqualPhones = $this->debtorCardService->getEqualContactsDebtors($debtorSearch);
             $this->assertEquals($debtorsEqualPhones->get('equal_'.$typePhone)->first()->id, $aboutClientEqualPhone->id);
+        }
+    }
+    public function testGetEqualContactsDebtorsAllTelephonehomeMatch()
+    {
+        $aboutClientIdAll = $this->aboutClientRepository->getAll()->pluck('id')->toArray();
+        asort($aboutClientIdAll);
+        $typesPhone = ['telephonehome'];
+        foreach ($typesPhone as $typePhone) {
+            about_client::whereIn('id', $aboutClientIdAll)->update([$typePhone => $this->fakePhone]);
+            $aboutClientSearchPhone = $this->debtors->first()->customer->about_clients->first();
+            $debtorsEqualPhones = $this->debtorCardService->getEqualContactsDebtors($this->debtors->first());
+            $aboutClientIdResult = $debtorsEqualPhones->get('equal_'.$typePhone)->pluck('id')->toArray();
+            $aboutClientIdResult = array_merge($aboutClientIdResult, [$aboutClientSearchPhone->id]);
+            asort($aboutClientIdResult);
+            $this->assertEquals(array_values($aboutClientIdResult), array_values($aboutClientIdAll));
+        }
+    }
+    public function testGetEqualContactsDebtorsAllTelephoneorganizMatch()
+    {
+        $aboutClientIdAll = $this->aboutClientRepository->getAll()->pluck('id')->toArray();
+        asort($aboutClientIdAll);
+        $typesPhone = ['telephoneorganiz'];
+        foreach ($typesPhone as $typePhone) {
+            about_client::whereIn('id', $aboutClientIdAll)->update([$typePhone => $this->fakePhone]);
+            $aboutClientSearchPhone = $this->debtors->first()->customer->about_clients->first();
+            $debtorsEqualPhones = $this->debtorCardService->getEqualContactsDebtors($this->debtors->first());
+            $aboutClientIdResult = $debtorsEqualPhones->get('equal_'.$typePhone)->pluck('id')->toArray();
+            $aboutClientIdResult = array_merge($aboutClientIdResult, [$aboutClientSearchPhone->id]);
+            asort($aboutClientIdResult);
+            $this->assertEquals(array_values($aboutClientIdResult), array_values($aboutClientIdAll));
+        }
+    }
+    public function testGetEqualContactsDebtorsAllTelephonerodstvMatch()
+    {
+        $aboutClientIdAll = $this->aboutClientRepository->getAll()->pluck('id')->toArray();
+        asort($aboutClientIdAll);
+        $typesPhone = ['telephonerodstv'];
+        foreach ($typesPhone as $typePhone) {
+            about_client::whereIn('id', $aboutClientIdAll)->update([$typePhone => $this->fakePhone]);
+            $aboutClientSearchPhone = $this->debtors->first()->customer->about_clients->first();
+            $debtorsEqualPhones = $this->debtorCardService->getEqualContactsDebtors($this->debtors->first());
+            $aboutClientIdResult = $debtorsEqualPhones->get('equal_'.$typePhone)->pluck('id')->toArray();
+            $aboutClientIdResult = array_merge($aboutClientIdResult, [$aboutClientSearchPhone->id]);
+            asort($aboutClientIdResult);
+            $this->assertEquals(array_values($aboutClientIdResult), array_values($aboutClientIdAll));
+        }
+    }
+    public function testGetEqualContactsDebtorsAllAnothertelephoneMatch()
+    {
+        $aboutClientIdAll = $this->aboutClientRepository->getAll()->pluck('id')->toArray();
+        asort($aboutClientIdAll);
+        $typesPhone = ['anothertelephone'];
+        foreach ($typesPhone as $typePhone) {
+            about_client::whereIn('id', $aboutClientIdAll)->update([$typePhone => $this->fakePhone]);
+            $aboutClientSearchPhone = $this->debtors->first()->customer->about_clients->first();
+            $debtorsEqualPhones = $this->debtorCardService->getEqualContactsDebtors($this->debtors->first());
+            $aboutClientIdResult = $debtorsEqualPhones->get('equal_'.$typePhone)->pluck('id')->toArray();
+            $aboutClientIdResult = array_merge($aboutClientIdResult, [$aboutClientSearchPhone->id]);
+            asort($aboutClientIdResult);
+            $this->assertEquals(array_values($aboutClientIdResult), array_values($aboutClientIdAll));
+        }
+    }
+    public function testGetEqualContactsDebtorsAddressMatch()
+    {
+        $typesEqualAddress = [
+            'equal_addresses_fact_to_register',
+            'equal_addresses_fact_to_fact',
+            'equal_addresses_register_to_register',
+            'equal_addresses_register_to_fact'
+        ];
+        foreach ($typesEqualAddress as $typeEqualAddress) {
+            $debtorSearch = $this->debtors->first();
+            $debtorsEqualPhones = $this->debtorCardService->getEqualContactsDebtors($debtorSearch);
+            $passportIdAll = $this->passportRepository->getAll()->pluck('id')->toArray();
+            asort($passportIdAll);
+            $passportIdResult = $debtorsEqualPhones->get($typeEqualAddress)->pluck('id')->toArray();
+            $passportIdResult = array_merge($passportIdResult, [$debtorSearch->passport->id]);
+            asort($passportIdResult);
+            $this->assertEquals(array_values($passportIdResult), array_values($passportIdAll));
         }
     }
 
