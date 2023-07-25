@@ -331,13 +331,13 @@ class DebtorsController extends BasicController
         $data_pos = false;
         if ($debtor->is_pos || $debtor->is_bigmoney) {
             if ($repl_loan) {
-                $schedule_row = DB::Table('armf.pos_loans')->where('loan_id', $repl_loan->id)->orderBy('created_at',
-                    'desc')->first();
-                if (!is_null($schedule_row->pays)) {
-                    $current_schedule = json_decode($schedule_row->pays, true);
+                $schedule_row = DB::Table('armf.pos_loans')->where('loan_id', $repl_loan->id)
+                    ->orderBy('created_at')->get();
+                if (!is_null($schedule_row->first()->pays)) {
+                    $current_schedule = json_decode($schedule_row->first()->pays, true);
                 }
-                if (!is_null($schedule_row->create_pays)) {
-                    $create_schedule = json_decode($schedule_row->create_pays, true);
+                if (!is_null($schedule_row->last()->create_pays)) {
+                    $create_schedule = json_decode($schedule_row->last()->create_pays, true);
                 }
 
                 if ($debtor->is_pos) {
@@ -3198,6 +3198,7 @@ class DebtorsController extends BasicController
                 $object = simplexml_load_string($result);
 
                 if ((string) $object->data->task["taskstatusstr"] == 'Закончена') {
+
                     $arEventData = [];
 
                     $events = \App\DebtorEvent::where('date', '>=', $today . ' 00:00:00')
@@ -3218,7 +3219,7 @@ class DebtorsController extends BasicController
                             }
                         }
                     }
-
+                    logger(['DebtorsController::temporaryCronTasksHandling', (array) $object, $arEventData]);
                     foreach ($object->data->item as $call) {
                         $phone = (string) $call['phonenumber'];
                         if ($phone[0] == '8') {
