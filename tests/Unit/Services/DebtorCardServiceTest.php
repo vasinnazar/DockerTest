@@ -246,5 +246,4 @@ class DebtorCardServiceTest extends TestCase
             $this->assertEquals(array_values($passportIdResult), array_values($passportIdAll));
         }
     }
-
 }
