@@ -20,6 +20,7 @@ use EducationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use LiveConditionSeeder;
 use LoanGoalsSeeder;
+use MaritalTypesSeeder;
 use Tests\TestCase;
 
 class DebtorCardServiceTest extends TestCase
@@ -28,10 +29,6 @@ class DebtorCardServiceTest extends TestCase
     private DebtorCardService $debtorCardService;
     private $user;
     private $debtors;
-    private $emailTemplateId;
-    private $fakeCustomerId1c = 'q999999';
-    private $fakePassportId = 9999;
-    private $fakeCustomerId = 9999;
     private $fakePhone = '123456789';
     private CustomerRepository $customerRepository;
     private AboutClientRepository $aboutClientRepository;
@@ -54,7 +51,7 @@ class DebtorCardServiceTest extends TestCase
         $this->seed(EducationSeeder::class);
         $this->seed(LiveConditionSeeder::class);
         $this->seed(LoanGoalsSeeder::class);
-        $this->seed(\MaritalTypesSeeder::class);
+        $this->seed(MaritalTypesSeeder::class);
         $this->debtors = factory(Debtor::class, 'debtor', 5)->create();
         foreach ($this->debtors as $debtor) {
             $customer = factory(Customer::class)->create([
