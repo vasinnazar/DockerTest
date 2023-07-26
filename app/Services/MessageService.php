@@ -57,17 +57,13 @@ class MessageService
                     $message->subject(config('vars.company_new_name'));
                     $message->from(config('mail.username'));
                     $message->to($email);
-                    $message->bcc(config('mail.username'));
                 }
             );
         } catch (\Exception $exception) {
-            Log::error("$exception->errorName:", [
+            Log::error("Email send error : ", [
                 'email' => $email,
-                'file' => __FILE__,
-                'method' => __METHOD__,
                 'line' => __LINE__,
-                'id' => $exception->errorId,
-                'message' => $exception->errorMessage,
+                'message' => $exception->getMessage(),
             ]);
             return false;
         }
