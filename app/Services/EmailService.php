@@ -68,11 +68,10 @@ class EmailService
         $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
         $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
-        $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
         $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c)->first();
         $aboutClient = $armfCustomer ? $this->armClient->getAbouts($armfCustomer->id) : null;
         $debtorEmail = $aboutClient ? $this->validatorEmail($aboutClient) : null;
-        $this->setConfig($arrayParam['userEmail'], $arrayParam['userPassword']);
+        $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
         if (empty(trim($debtorEmail))) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             Log::error("Incorrect email debtor:", [
@@ -117,6 +116,7 @@ class EmailService
         $templateMessage = str_replace('{{spec_phone}}', $user->phone, $templateMessage);
         $templateMessage = str_replace('{{fio_debtors}}', $fio, $templateMessage);
         $templateMessage = str_replace('{{debtor_money_on_day}}', $arrayParam['debtor_sum'], $templateMessage);
+        $templateMessage = str_replace('{{email_user}}', $arrayParam['userEmail'], $templateMessage);
 
         if (array_key_exists('dateAnswer', $arrayParam)) {
             $templateMessage = str_replace('{{date_answer}}', $arrayParam['dateAnswer'], $templateMessage);

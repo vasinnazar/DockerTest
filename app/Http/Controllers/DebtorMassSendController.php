@@ -314,7 +314,7 @@ class DebtorMassSendController extends BasicController
                 'error' => 'Не удалось определить данные ответственного'
             ]);
         }
-        logger(['email' => $userEmail, 'password' => $userPassword]);
+
         $cnt = 0;
         $sendCustomers = [];
         $debtors = Debtor::whereIn('id', $input['debtorsIds'])->get();
