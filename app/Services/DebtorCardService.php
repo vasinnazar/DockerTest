@@ -2,25 +2,29 @@
 
 namespace App\Services;
 
-
-use App\Customer;
 use App\Debtor;
 use App\DebtorRecurrentQuery;
+use App\DTO\Passport\FactAddressDto;
+use App\DTO\Passport\RegAddressDto;
 use App\MassRecurrentTask;
 use App\MySoap;
+use App\Repositories\DebtorRepository;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use function Deployer\get;
+
 
 class DebtorCardService
 {
+    private DebtorRepository $debtorRepository;
     private $httpClient;
 
-    public function __construct()
+    public function __construct(DebtorRepository $debtorRepository)
     {
+        $this->debtorRepository = $debtorRepository;
         $this->httpClient = new Client(
             [
                 'verify' => false,
@@ -149,93 +153,65 @@ class DebtorCardService
         return $arResult;
     }
 
-    public function getEqualContactsDebtors($debtor)
+    public function getDebtorsByEqualTelephone(Model $debtor, $telephone): Collection
     {
+        if (empty($telephone) || $telephone === 'нет') {
+            return collect();
+        }
+        return $this->debtorRepository->getDebtorsWithEqualPhone($telephone, $debtor->customer->id_1c);
+    }
 
-        $equalPhones = Customer::where('telephone', $debtor->customer->telephone)
-            ->get()
-            ->except($debtor->customer->id)
-            ->pluck('id_1c');
+    public function getDebtorsByEqualAddress(
+        object     $addressDto,
+        Collection &$debtorsEqualPhonesAndAddress,
+        string     $keyAddressReg,
+        string     $keyAddressFact
+    )
+    {
+        if (
+            !empty($addressDto->address_region) && !empty($addressDto->address_city) &&
+            !empty($addressDto->address_street) && !empty($addressDto->address_house)
+        ) {
+            $equalAddressesFactToRegister = $this->debtorRepository->getDebtorsWithEqualAddressRegister($addressDto);
+            $equalAddressesFactToFact = $this->debtorRepository->getDebtorsWithEqualAddressFact($addressDto);
+            $debtorsEqualPhonesAndAddress->put($keyAddressReg, $equalAddressesFactToRegister);
+            $debtorsEqualPhonesAndAddress->put($keyAddressFact, $equalAddressesFactToFact);
+        }
+    }
 
-        $equalPhonesDebtors = Debtor::whereIn('customer_id_1c', $equalPhones)->get();
+    public function getEqualContactsDebtors(Model $debtor): Collection
+    {
+        $debtorsEqualPhonesAndAddress = collect();
+        if (!$debtor->customer || !$debtor->passport) {
+            return collect();
+        }
+        if (!$debtor->customer->about_clients) {
+            return collect();
+        }
+        $phonesSearch = [
+            'equal_telephone' => $debtor->customer->telephone,
+            'equal_telephonehome' => $debtor->customer->about_clients->last()->telephonehome,
+            'equal_telephoneorganiz' => $debtor->customer->about_clients->last()->telephoneorganiz,
+            'equal_telephonerodstv' => $debtor->customer->about_clients->last()->telephonerodstv,
+            'equal_anothertelephone' => $debtor->customer->about_clients->last()->anothertelephone,
+        ];
+        foreach ($phonesSearch as $key => $phone) {
+            $debtorsEqualPhonesAndAddress->put($key, $this->getDebtorsByEqualTelephone($debtor, $phone));
+        }
 
-        $equalAddressesRegisterToRegister = Debtor::select('debtors.*')
-            ->leftJoin('passports', function ($join) {
-                $join->on('passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->where('passports.zip', $debtor->passport->zip)
-            ->where('passports.address_region', $debtor->passport->address_region)
-            ->where('passports.address_district', $debtor->passport->address_district)
-            ->where('passports.address_city', $debtor->passport->address_city)
-            ->where('passports.address_street', $debtor->passport->address_street)
-            ->where('passports.address_house', $debtor->passport->address_house)
-            ->where('passports.address_building', $debtor->passport->address_building)
-            ->where('passports.address_apartment', $debtor->passport->address_apartment)
-            ->where('passports.address_city1', $debtor->passport->address_city1)
-            ->where('passports.id', '<>', $debtor->passport->id)
-            ->get();
-
-        $equalAddressesRegisterToFact = Debtor::select('debtors.*')
-            ->leftJoin('passports', function ($join) {
-                $join->on('passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->where('passports.fact_zip', $debtor->passport->zip)
-            ->where('passports.fact_address_region', $debtor->passport->address_region)
-            ->where('passports.fact_address_district', $debtor->passport->address_district)
-            ->where('passports.fact_address_city', $debtor->passport->address_city)
-            ->where('passports.fact_address_street', $debtor->passport->address_street)
-            ->where('passports.fact_address_house', $debtor->passport->address_house)
-            ->where('passports.fact_address_building', $debtor->passport->address_building)
-            ->where('passports.fact_address_apartment', $debtor->passport->address_apartment)
-            ->where('passports.fact_address_city1', $debtor->passport->address_city1)
-            ->where('passports.id', '<>', $debtor->passport->id)
-            ->get();
-
-        $equalAddressesFactToRegister = Debtor::select('debtors.*')
-            ->leftJoin('passports', function ($join) {
-                $join->on('passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->where('zip', $debtor->passport->zip)
-            ->where('address_region', $debtor->passport->fact_address_region)
-            ->where('address_district', $debtor->passport->fact_address_district)
-            ->where('address_city', $debtor->passport->fact_address_city)
-            ->where('address_street', $debtor->passport->fact_address_street)
-            ->where('address_house', $debtor->passport->fact_address_house)
-            ->where('address_building', $debtor->passport->fact_address_building)
-            ->where('address_apartment', $debtor->passport->fact_address_apartment)
-            ->where('address_city1', $debtor->passport->fact_address_city1)
-            ->where('passports.id', '<>', $debtor->passport->id)
-            ->get();
-
-        $equalAddressesFactToFact = Debtor::select('debtors.*')
-            ->leftJoin('passports', function ($join) {
-                $join->on('passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('passports.number', '=', 'debtors.debtors.passport_number');
-            })
-            ->where('fact_zip', $debtor->passport->fact_zip)
-            ->where('fact_address_region', $debtor->passport->fact_address_region)
-            ->where('fact_address_district', $debtor->passport->fact_address_district)
-            ->where('fact_address_city', $debtor->passport->fact_address_city)
-            ->where('fact_address_street', $debtor->passport->fact_address_street)
-            ->where('fact_address_house', $debtor->passport->fact_address_house)
-            ->where('fact_address_building', $debtor->passport->fact_address_building)
-            ->where('fact_address_apartment', $debtor->passport->fact_address_apartment)
-            ->where('fact_address_city1', $debtor->passport->fact_address_city1)
-            ->where('passports.id', '<>', $debtor->passport->id)
-            ->get();
-
-        $collection = collect([
-            'equal_phones' => $equalPhonesDebtors,
-            'equal_addresses_register_to_register' => $equalAddressesRegisterToRegister,
-            'equal_addresses_register_to_fact' => $equalAddressesRegisterToFact,
-            'equal_addresses_fact_to_register' => $equalAddressesFactToRegister,
-            'equal_addresses_fact_to_fact' => $equalAddressesFactToFact
-        ]);
-
-        return $collection;
+        $this->getDebtorsByEqualAddress(
+            FactAddressDto::fromModel($debtor->passport),
+            $debtorsEqualPhonesAndAddress,
+            'equal_addresses_fact_to_register',
+            'equal_addresses_fact_to_fact'
+        );
+        $this->getDebtorsByEqualAddress(
+            RegAddressDto::fromModel($debtor->passport),
+            $debtorsEqualPhonesAndAddress,
+            'equal_addresses_register_to_register',
+            'equal_addresses_register_to_fact'
+        );
+        return $debtorsEqualPhonesAndAddress;
     }
 
     public function checkRecurrentButtonEnabled(Debtor $debtor, $loan_in_cash, $loan_required_money)
