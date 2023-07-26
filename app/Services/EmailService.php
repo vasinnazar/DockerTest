@@ -129,10 +129,4 @@ class EmailService
         }
         return $templateMessage;
     }
-
-    public function setConfig($email, $password)
-    {
-        config()->set('mail.username', $email);
-        config()->set('mail.password', $password);
-    }
 }
