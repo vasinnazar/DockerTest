@@ -104,12 +104,14 @@ class DebtorsNoticesController extends Controller
         }
 
         $debtors = Debtor::where('is_debtor', 1)
-            ->byFixation($fixationDateFrom, $fixationDateTo)
             ->whereIn('responsible_user_id_1c', $respUsers)
             ->whereIn('debt_group_id', $input['debt_group_ids']);
 
         if (!is_null($bases)) {
             $debtors->whereIn('base', $bases);
+        }
+        if ($fixationDateFrom || $fixationDateTo) {
+            $debtors->byFixation($fixationDateFrom, $fixationDateTo);
         }
         if (!empty($input['overdue_from']) || !empty($input['overdue_till'])) {
             $debtors->byQty($input['overdue_from'], $input['overdue_till']);
@@ -124,7 +126,6 @@ class DebtorsNoticesController extends Controller
             $debtors->where('loan_id_1c', 'like', '%СБП');
         }
         $debtors = $debtors->get();
-
 
         $massDir = storage_path() . '/app/public/postPdfTasks/' . $noticesTask->id . '/';
 
