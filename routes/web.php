@@ -80,6 +80,10 @@ Route::get('maintenance', function () {
 
 });
 
+Route::get('/logs', [\Rap2hpoutre\LaravelLogViewer\LogViewerController::class, 'index'])
+    ->middleware('admin_only');
+
+
 //запросы с сайта Финтерра.рф
 //TODO: переделать на апи
 Route::get('fincustomer', [FinterraController::class, 'getCustomerIdForFinterra']);

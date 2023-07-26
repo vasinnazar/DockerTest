@@ -303,8 +303,9 @@ class DebtorMassSendController extends BasicController
         try {
             $responsibleUser = User::findOrFail($input['responsibleUserId']);
             $userArm = $this->armClient->getUserById1c($responsibleUser->id_1c);
-            $userEmail = $userArm[0]['email_user']['email'];
-            $userPassword = $userArm[0]['email_user']['password'];
+            $dataEmailUser = $userArm ? array_shift($userArm)['email_user'] : null;
+            $userEmail = $dataEmailUser['email'] ?? $dataEmailUser;
+            $userPassword = $dataEmailUser['password'] ?? $dataEmailUser;
             if (empty(trim($userEmail)) || empty($userPassword)) {
                 throw new \Exception();
             }
@@ -313,6 +314,7 @@ class DebtorMassSendController extends BasicController
                 'error' => 'Не удалось определить данные ответственного'
             ]);
         }
+        logger(['email' => $userEmail, 'password' => $userPassword]);
         $cnt = 0;
         $sendCustomers = [];
         $debtors = Debtor::whereIn('id', $input['debtorsIds'])->get();

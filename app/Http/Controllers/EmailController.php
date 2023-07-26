@@ -37,8 +37,9 @@ class EmailController extends Controller
     {
         $user = Auth::user();
         $userArm = $this->armClient->getUserById1c($user->id_1c);
-        $userEmail = $userArm ? $userArm[0]['email_user']['email'] : null;
-        $userPassword = $userArm ? $userArm[0]['email_user']['password'] : null;
+        $dataEmailUser = $userArm ? array_shift($userArm)['email_user'] : null;
+        $userEmail = $dataEmailUser['email'] ?? $dataEmailUser;
+        $userPassword = $dataEmailUser['password'] ?? $dataEmailUser;
         if (empty(trim($userEmail)) || empty($userPassword)) {
             return redirect()
                 ->back()

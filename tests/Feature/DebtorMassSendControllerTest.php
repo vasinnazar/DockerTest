@@ -44,7 +44,7 @@ class DebtorMassSendControllerTest extends TestCase
         $this->user = factory(User::class)->create();
         factory(LoanType::class)->create();
         factory(Subdivision::class)->create();
-        $this->debtors = factory(Debtor::class, 'debtor', 5)->create();
+        $this->debtors = factory(Debtor::class, 'debtor', 50)->create();
         foreach ($this->debtors as $debtor) {
             $customer = factory(Customer::class)->create([
                 'id_1c' => $debtor->customer_id_1c
@@ -65,8 +65,8 @@ class DebtorMassSendControllerTest extends TestCase
         $this->seed(RolesSeeder::class);
         $this->seed(EmailsMessagesSeeder::class);
         $this->emailTemplateId = EmailMessage::all()->pluck('id')->toArray();
-
     }
+
     public function testSendMassMessageSms()
     {
         $isSms = 1;
@@ -214,12 +214,27 @@ class DebtorMassSendControllerTest extends TestCase
                 'dateSmsTemplate' => Carbon::now(),
             ]);
         $result = $response->decodeResponseJson();
-        $this->assertEquals(0, (int)$result['cnt']);
+        $this->assertEquals($result['error'], 'Не удалось определить данные ответственного');
     }
 
     public function testSendMassMessageEmailErrorExcLimit()
     {
         $isSms = 0;
+        $this->app->bind(
+            ArmClient::class,
+            function () {
+                $mock = Mockery::mock(ArmClient::class);
+                $mock->shouldReceive('getCustomerById1c')->andReturn(new Collection([
+                    (object) ['id' => 1]
+                ]));
+                $mock->shouldReceive('getAbouts')->andReturn([
+                    ['id' => 1,  'email' => "test_customer@mail.ru"]
+                ]);
+                $mock->shouldReceive('getUserById1c')->andReturn([
+                    ["email_user" =>  ["email" => "test_user@mail.ru", "password" => "123456"]]]);
+                return $mock;
+            }
+        );
         $this->debtorEventsRepository->createEvent($this->debtors->first(),$this->user,'test', $this->eventTypeId, 0);
         $this->debtorEventsRepository->createEvent($this->debtors->first(),$this->user,'test', $this->eventTypeId, 0);
         $response = $this->actingAs($this->user, 'web')

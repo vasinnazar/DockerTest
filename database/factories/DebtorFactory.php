@@ -6,7 +6,7 @@ use Faker\Generator as Faker;
 $factory->defineAs(Debtor::class,'debtor', function (Faker $faker) {
 
     return [
-        'customer_id_1c' => $faker->text(9),
+        'customer_id_1c' => $faker->unique()->text(9),
         'loan_id_1c' => $faker->text(9),
         'is_debtor' => 1,
         'od' => $faker->numberBetween(200000, 3000000),

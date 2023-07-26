@@ -10,7 +10,8 @@ class AdminOnlyMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user()->isAdmin()) {
+        $user = Auth::user();
+        if ($user && $user->isAdmin()) {
             return $next($request);
         }
         return redirect('home')->with('msg', 'Недостаточно прав доступа!')->with('class', 'alert-danger');

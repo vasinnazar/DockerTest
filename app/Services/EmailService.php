@@ -52,10 +52,8 @@ class EmailService
 
     public function validatorEmail($abouts)
     {
-        $email_validation_regex = "/^[a-z0-9!#$%&'*+\\/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+\\/=?^_`{|}~-]+)*" .
-                                  "@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/";
         foreach ($abouts as $about) {
-            if (preg_match($email_validation_regex, $about['email'])) {
+            if (filter_var($about['email'], FILTER_VALIDATE_EMAIL)) {
                 return $about['email'];
             }
         }
@@ -77,8 +75,9 @@ class EmailService
         $this->setConfig($arrayParam['userEmail'], $arrayParam['userPassword']);
         if (empty(trim($debtorEmail))) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
-            Log::error("Incorrect data debetor:", [
-                'email' => $debtorEmail,
+            Log::error("Incorrect email debtor:", [
+                'customer_id_1c' => $debtor->customer_id_1c,
+                'email' => $debtorEmail
             ]);
             return false;
         }
