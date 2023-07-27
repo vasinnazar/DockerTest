@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Customer;
 use App\Debtor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -28,21 +29,18 @@ class DebtorRepository
 
         return tap($modelItem)->update($params);
     }
-    public function getDebtorsWithEqualPhone(string $phone, string $customerId1c): Collection
+    public function getDebtorsWithEqualTelephone(string $phone): Collection
     {
         return $this->model
             ->leftJoin('customers', 'debtors.customer_id_1c', '=', 'customers.id_1c')
-            ->leftJoin('about_clients', 'customers.id', '=', 'about_clients.customer_id')
-            ->where('customer_id_1c', '!=', $customerId1c)
-            ->where(function ($query) use ($phone) {
-                $query->where('telephone', $phone)
-                    ->orWhere('telephonehome', $phone)
-                    ->orWhere('telephoneorganiz', $phone)
-                    ->orWhere('telephonerodstv', $phone)
-                    ->orWhere('anothertelephone', $phone);
-            })
+            ->where('telephone', $phone)
             ->get();
     }
+    public function getDebtorsByCustomerId1c(array $customerId1c): Collection
+    {
+        return $this->model->whereIn('customer_id_1c', $customerId1c)->get();
+    }
+
     public function getDebtorsWithEqualAddressRegister(object $passport): Collection
     {
         return $this->model

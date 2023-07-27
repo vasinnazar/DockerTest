@@ -8,6 +8,8 @@ use App\DTO\Passport\FactAddressDto;
 use App\DTO\Passport\RegAddressDto;
 use App\MassRecurrentTask;
 use App\MySoap;
+use App\Repositories\AboutClientRepository;
+use App\Repositories\CustomerRepository;
 use App\Repositories\DebtorRepository;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
@@ -20,11 +22,15 @@ use function Deployer\get;
 class DebtorCardService
 {
     private DebtorRepository $debtorRepository;
+    private AboutClientRepository $aboutClientRepository;
+    private CustomerRepository $customerRepository;
     private $httpClient;
 
-    public function __construct(DebtorRepository $debtorRepository)
+    public function __construct(DebtorRepository $debtorRepository, AboutClientRepository $aboutClientRepository, CustomerRepository $customerRepository)
     {
         $this->debtorRepository = $debtorRepository;
+        $this->aboutClientRepository = $aboutClientRepository;
+        $this->customerRepository = $customerRepository;
         $this->httpClient = new Client(
             [
                 'verify' => false,
@@ -153,12 +159,31 @@ class DebtorCardService
         return $arResult;
     }
 
-    public function getDebtorsByEqualTelephone(Model $debtor, $telephone): Collection
+    public function getDebtorsByEqualTelephone($telephone, string $customerId1c): Collection
     {
         if (empty($telephone) || $telephone === 'нет') {
             return collect();
         }
-        return $this->debtorRepository->getDebtorsWithEqualPhone($telephone, $debtor->customer->id_1c);
+        $customerId = $this->aboutClientRepository
+            ->getCustomerIdWithEqualPhone($telephone)
+            ->pluck('customer_id')
+            ->toArray();
+        $customerId1c1 = $this->customerRepository
+            ->getCustomerId1cById($customerId)
+            ->pluck('id_1c')
+            ->diff($customerId1c)
+            ->toArray();
+
+        $debtorsEqualAllPhones = $this->debtorRepository
+            ->getDebtorsWithEqualTelephone($telephone)->filter(
+            fn ($debtorWithEqualPhone)
+            => $debtorWithEqualPhone->customer_id_1c !== $customerId1c
+        );
+        $debtorsEqualPhonesFromAbout = $this->debtorRepository->getDebtorsByCustomerId1c($customerId1c1);
+        $debtorsEqualPhonesFromAbout->map(function ($item) use($debtorsEqualAllPhones){
+            $debtorsEqualAllPhones->push($item);
+        });
+        return $debtorsEqualAllPhones;
     }
 
     public function getDebtorsByEqualAddress(
@@ -196,7 +221,10 @@ class DebtorCardService
             'equal_anothertelephone' => $debtor->customer->about_clients->last()->anothertelephone,
         ];
         foreach ($phonesSearch as $key => $phone) {
-            $debtorsEqualPhonesAndAddress->put($key, $this->getDebtorsByEqualTelephone($debtor, $phone));
+            $debtorsEqualPhonesAndAddress->put(
+                $key,
+                $this->getDebtorsByEqualTelephone($phone, $debtor->customer->id_1c)
+            );
         }
 
         $this->getDebtorsByEqualAddress(
