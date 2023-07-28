@@ -8,11 +8,11 @@
     </tr>
     @foreach($collectContacts->get($type_contact) as $contactDebtor)
         <tr>
-            <td>{{ $contactDebtor->passport->fio }}</td>
+            <td>{{ $contactDebtor->passport ? $contactDebtor->passport->fio : ' ' }}</td>
             <td>{{ $contactDebtor->loan_id_1c }}</td>
             <td>{{ $contactDebtor->base }}</td>
-            <td>{{ $contactDebtor->customer->telephone }}</td>
-            <td>{{ $contactDebtor->debtGroup->name }}</td>
+            <td>{{ $contactDebtor->customer ? $contactDebtor->customer->telephone : ' ' }}</td>
+            <td>{{ $contactDebtor->debtGroup ? $contactDebtor->debtGroup->name : ' '}}</td>
             <td>{{ $contactDebtor->responsible_user_id_1c }}</td>
             <td>{{ $contactDebtor->str_podr }}</td>
             <td>

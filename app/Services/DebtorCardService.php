@@ -16,7 +16,6 @@ use GuzzleHttp\Client;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use function Deployer\get;
 
 
 class DebtorCardService
@@ -161,7 +160,7 @@ class DebtorCardService
 
     public function getDebtorsByEqualTelephone($telephone, string $customerId1c): Collection
     {
-        if (empty($telephone) || $telephone === 'нет') {
+        if (empty(trim($telephone)) || mb_strtolower(trim($telephone)) === 'нет') {
             return collect();
         }
         $customerId = $this->aboutClientRepository
