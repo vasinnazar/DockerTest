@@ -166,7 +166,7 @@
                                 <div class="btn-group btn-group-sm btn-group-vertical">
                                     <a href="{{url('debtors/debtorcard/createPdf/' . $contractforms['anketa'] . '/'.$debtor->id.'/0')}}" target="_blank" class="btn btn-default">Анкета</a>
                                     <!--button disabled class='btn btn-default'>Связанные лица</button-->
-{{--                                    <button class="btn btn-default" data-toggle="modal" data-target="#debtorSearchContacts">Поиск контактов</button>--}}
+                                    <button class="btn btn-default" data-toggle="modal" data-target="#debtorSearchContacts">Поиск контактов</button>
                                 </div>
                                 <div class='btn-group btn-group-sm btn-group-vertical'>
                                     <a id="debtor_history_button" class='btn btn-default' href='{{url('debtors/history/'.$debtor->id)}}' target="_blank" disabled>История заемщика</a>
