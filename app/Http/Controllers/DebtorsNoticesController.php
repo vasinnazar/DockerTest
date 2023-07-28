@@ -49,7 +49,7 @@ class DebtorsNoticesController extends Controller
 
         if ($struct_subdivision) {
             $noticesTask = DebtorNotice::where('in_progress', 1)->where('struct_subdivision', $struct_subdivision)->first();
-            $taskInProgress = false;
+            $taskInProgress = (!is_null($noticesTask)) ? true : false;
         }
 
         $tasks = DebtorNotice::where('struct_subdivision', $struct_subdivision)
