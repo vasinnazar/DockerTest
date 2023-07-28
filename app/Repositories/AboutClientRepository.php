@@ -28,4 +28,14 @@ class AboutClientRepository
 
         return tap($modelItem)->update($params);
     }
+    public function getCustomerIdWithEqualPhone(string $phone): Collection
+    {
+        return $this->model
+            ->select('customer_id')
+            ->where('telephonehome', $phone)
+            ->orWhere('telephoneorganiz', $phone)
+            ->orWhere('telephonerodstv', $phone)
+            ->orWhere('anothertelephone', $phone)
+            ->get();
+    }
 }

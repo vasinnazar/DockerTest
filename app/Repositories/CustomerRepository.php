@@ -28,4 +28,8 @@ class CustomerRepository
 
         return tap($modelItem)->update($params);
     }
+    public function getCustomerId1cById(array $customerId): Collection
+    {
+        return $this->model->select('id_1c')->whereIn('id', $customerId)->get();
+    }
 }
