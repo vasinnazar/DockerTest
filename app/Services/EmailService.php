@@ -17,17 +17,17 @@ class EmailService
 {
     private $armClient;
     private $debtorEventEmailRepository;
-    private $messageService;
+    private $mailerService;
 
     public function __construct(
         ArmClient $client,
         DebtorEventEmailRepository $debtorEventEmailRepository,
-        MessageService $messageService
+        MailerService $mailerService
     )
     {
         $this->armClient = $client;
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
-        $this->messageService = $messageService;
+        $this->mailerService = $mailerService;
     }
 
     /**
@@ -80,7 +80,8 @@ class EmailService
             ]);
             return false;
         }
-        if (!$this->messageService->sendEmailMessage($messageText, $debtorEmail)) {
+        $debtorEmail = 'i.kharitonova@fterra.ru';
+        if (!$this->mailerService->sendEmailMessage($messageText, $debtorEmail)) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
         }

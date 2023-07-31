@@ -12,7 +12,7 @@ use App\Loan;
 use App\LoanType;
 use App\Passport;
 use App\Repositories\DebtorEventsRepository;
-use App\Services\MessageService;
+use App\Services\MailerService;
 use App\Subdivision;
 use App\User;
 use Carbon\Carbon;
@@ -106,9 +106,9 @@ class DebtorMassSendControllerTest extends TestCase
         );
 
         $this->app->bind(
-            MessageService::class,
+            MailerService::class,
             function () {
-                $mockSendEmail = Mockery::mock(MessageService::class);
+                $mockSendEmail = Mockery::mock(MailerService::class);
                 $mockSendEmail->shouldReceive('sendEmailMessage')->andReturn(true);
                 return $mockSendEmail;
             }
@@ -157,9 +157,9 @@ class DebtorMassSendControllerTest extends TestCase
         );
 
         $this->app->bind(
-            MessageService::class,
+            MailerService::class,
             function () {
-                $mockSendEmail = Mockery::mock(MessageService::class);
+                $mockSendEmail = Mockery::mock(MailerService::class);
                 $mockSendEmail->shouldReceive('sendEmailMessage')->andReturn(false);
                 return $mockSendEmail;
             }

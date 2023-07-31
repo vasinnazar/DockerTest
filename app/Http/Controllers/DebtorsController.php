@@ -153,12 +153,12 @@ class DebtorsController extends BasicController
     }
 
     public function debtorcard(
-        DebtorSmsService $smsService,
-        MessageService $messageService,
-        PaysClient $paysClient,
-        ArmClient $armClient,
+        DebtorSmsService   $smsService,
+        MessageService     $messageService,
+        PaysClient         $paysClient,
+        ArmClient          $armClient,
         SynchronizeService $synchronize,
-        int $debtor_id
+        int                $debtor_id
     )
     {
 
