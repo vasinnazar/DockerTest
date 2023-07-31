@@ -25,14 +25,16 @@ use App\Utils\PdfUtil;
 use App\Export\Excel\CourtExport;
 use App\Export\Excel\NoticeExport;
 
-class DebtorsNoticesController extends Controller {
+class DebtorsNoticesController extends Controller
+{
 
-    public function __construct(PdfService $pdfService) {
-        $this->middleware('auth');
+    public function __construct(PdfService $pdfService)
+    {
         $this->pdfService = $pdfService;
     }
 
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $user = auth()->user();
 
         if ($user->hasRole('debtors_remote')) {
@@ -61,7 +63,8 @@ class DebtorsNoticesController extends Controller {
         ]);
     }
 
-    public function startTask(Request $request) {
+    public function startTask(Request $request)
+    {
         $input = $request->input();
         $user = auth()->user();
 
@@ -88,7 +91,10 @@ class DebtorsNoticesController extends Controller {
         $fixationDateTo = !empty($input['fixation_date_to']) ?
             Carbon::parse($input['fixation_date_to'])->endOfDay() : null;
 
-        $respUsers = User::whereIn('id',$input['responsible_users_ids'])->get()->pluck('id_1c')->toArray();
+        $respUsers = User::whereIn('id', $input['responsible_users_ids'])
+            ->get()
+            ->pluck('id_1c')
+            ->toArray();
 
         $bases = null;
         if (!empty($input['debt_base_ids'])) {
@@ -98,12 +104,26 @@ class DebtorsNoticesController extends Controller {
         }
 
         $debtors = Debtor::where('is_debtor', 1)
-            ->byFixation($fixationDateFrom, $fixationDateTo)
             ->whereIn('responsible_user_id_1c', $respUsers)
             ->whereIn('debt_group_id', $input['debt_group_ids']);
 
-        if(!is_null($bases)) {
+        if (!is_null($bases)) {
             $debtors->whereIn('base', $bases);
+        }
+        if ($fixationDateFrom || $fixationDateTo) {
+            $debtors->byFixation($fixationDateFrom, $fixationDateTo);
+        }
+        if (!empty($input['overdue_from']) || !empty($input['overdue_till'])) {
+            $debtors->byQty($input['overdue_from'], $input['overdue_till']);
+        }
+        if (!empty($input['amount_owed'])) {
+            $debtors->where('sum_indebt', '>=', $input['amount_owed'] * 100);
+        }
+        if (!empty($input['amount_owed'])) {
+            $debtors->where('sum_indebt', '>=', $input['amount_owed'] * 100);
+        }
+        if (isset($input['loan_sbp'])) {
+            $debtors->where('loan_id_1c', 'like', '%СБП');
         }
         $debtors = $debtors->get();
 

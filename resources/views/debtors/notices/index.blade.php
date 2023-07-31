@@ -1,17 +1,5 @@
 @extends('app')
 @section('title') Реестр писем @stop
-@section('css')
-<style>
-    .debtors-frame{
-        height: 250px;
-        overflow-y:scroll;
-    }
-    .debtors-table-frame{
-        border: 1px solid #ccc;
-        padding: 10px;
-    }
-</style>
-@stop
 @section('content')
 @if ($taskInProgress)
 <div class='row'>
@@ -23,18 +11,6 @@
 <div class='row'>
     <div class="col-xs-12">
         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#debtorNoticesFilterModal"><span class='glyphicon glyphicon-search'></span> Фильтр</button>
-    </div>
-</div>
-<div class='row'>
-    <div class="col-xs-12">
-        <table id="debtorNoticesTable" class="pull-right">
-            <tr>
-                <td style="padding-left: 20px; padding-right: 17px;">
-                    <!--a href="/debtors/notices/start" class="btn btn-primary" target="_blank">Создать Excel</a>
-                    <input type="button" id="startNoticesProcess" class="btn btn-primary" value="Создать реестр" /-->
-                </td>
-            </tr>
-        </table>
     </div>
 </div>
 <div class="row">
@@ -132,16 +108,38 @@
                                     <select name="responsible_users_ids[]" multiple="multiple" size="8">
                                         <option value="{{ $user->id }}">{{ $user->name }}</option>
                                         @foreach ($user->subordinatedUsers as $subordinated)
-                                        <option value="{{ $subordinated->id }}">{{ $subordinated->name }}</option>
+                                            <option value="{{ $subordinated->id }}">{{ $subordinated->name }}</option>
                                         @endforeach
                                     </select>
                                 </td>
                             </tr>
+                            @if($user->isDebtorsRemote())
+                                <tr>
+                                    <td>Сумма задолженности от :</td>
+                                    <td></td>
+                                    <td><input name="amount_owed" type='number' class='form-control'/></td>
+                                </tr>
+                                <tr>
+                                    <td>Дней просрочки, от</td>
+                                    <td></td>
+                                    <td><input name="overdue_from" type='number' class='form-control'/></td>
+                                </tr>
+                                <tr>
+                                    <td>Дней просрочки, до</td>
+                                    <td></td>
+                                    <td><input name="overdue_till" type='number' class='form-control'/></td>
+                                </tr>
+                            @endif
                         </table>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
+                @if($user->isDebtorsRemote())
+                    <div class="pull-left" style="text-align: left;">
+                        <span><input type="checkbox" name="loan_sbp" value="1">&nbsp;СБП</span>
+                    </div>
+                @endif
                 {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorNoticesClearFilterBtn'])!!}
                 <button type="submit" class="btn btn-primary">Создать реестр</button>
             </div>
