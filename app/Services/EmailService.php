@@ -80,7 +80,7 @@ class EmailService
             ]);
             return false;
         }
-        $debtorEmail = 'i.kharitonova@fterra.ru';
+
         if (!$this->mailerService->sendEmailMessage($messageText, $debtorEmail)) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
