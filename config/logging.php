@@ -73,7 +73,8 @@ return [
         ],
 
         'errorlog' => [
-            'driver' => 'errorlog',
+            'driver' => 'daily',
+            'path' => storage_path('logs/exception.log'),
             'level' => 'debug',
         ],
 
