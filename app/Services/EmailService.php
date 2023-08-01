@@ -7,6 +7,7 @@ use App\Debtor;
 use App\DebtorEvent;
 use App\EmailMessage;
 use App\Loan;
+use App\Repositories\AboutClientRepository;
 use App\Repositories\DebtorEventEmailRepository;
 use App\Role;
 use App\User;
@@ -17,16 +18,19 @@ class EmailService
 {
     private $armClient;
     private $debtorEventEmailRepository;
+    private $aboutClientRepository;
     private $mailerService;
 
     public function __construct(
         ArmClient $client,
         DebtorEventEmailRepository $debtorEventEmailRepository,
+        AboutClientRepository $aboutClientRepository,
         MailerService $mailerService
     )
     {
         $this->armClient = $client;
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
+        $this->aboutClientRepository = $aboutClientRepository;
         $this->mailerService = $mailerService;
     }
 
@@ -49,28 +53,24 @@ class EmailService
         }
         return $collectMessages;
     }
-
-    public function validatorEmail($abouts)
-    {
-        foreach ($abouts as $about) {
-            if (filter_var($about['email'], FILTER_VALIDATE_EMAIL)) {
-                return $about['email'];
-            }
-        }
-        return null;
-    }
-
     public function sendEmailDebtor(array $arrayParam): bool
     {
         $user = $arrayParam['user'];
         $debtor = Debtor::where('id', $arrayParam['debtor_id'])->first();
+        if (empty($debtor->customer)) {
+            Log::error("Customer not found:", [
+                'customer_id_1c' => $debtor->customer_id_1c,
+                'debtor_id' => $debtor->id
+            ]);
+            return false;
+        }
         $loan = Loan::where('id_1c', $debtor->loan_id_1c)->first();
         $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
         $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
-        $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c)->first();
-        $aboutClient = $armfCustomer ? $this->armClient->getAbouts($armfCustomer->id) : null;
-        $debtorEmail = $aboutClient ? $this->validatorEmail($aboutClient) : null;
+        $aboutClient = $this->aboutClientRepository->firstByCustomerId($debtor->customer->id);
+        $validateEmail = $aboutClient ? filter_var($aboutClient->email, FILTER_VALIDATE_EMAIL) : false;
+        $debtorEmail = $validateEmail ? $aboutClient->email : null;
         $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
         if (empty(trim($debtorEmail))) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
