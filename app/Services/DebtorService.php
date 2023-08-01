@@ -175,9 +175,14 @@ class DebtorService
             ->leftJoin('debtors.struct_subdivisions', 'debtors.struct_subdivisions.id_1c', '=',
                 'debtors.debtors.str_podr')
             ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
-            ->leftJoin('debtors.debtors_events_promise_pays',
-                'debtors.debtors_events_promise_pays.debtor_id', '=', 'debtors.id')
+            ->leftJoin('debtors.about_clients',
+                'debtors.customers.id', '=', 'debtors.about_clients.customer_id')
             ->groupBy('debtors.id');
+
+        $debtorsEmail = trim($input['search_field_about@email']);
+        if (!empty($debtorsEmail)) {
+            $debtors->where('debtors.about_clients.email', '=', $input['search_field_about@email']);
+        }
 
         if (isset($input['search_field_passports@fact_address_region']) && mb_strlen($input['search_field_passports@fact_address_region'])) {
             $debtors->where('debtors.passports.fact_address_region', 'like',

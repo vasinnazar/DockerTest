@@ -40,7 +40,6 @@ class DebtorRepository
     {
         return $this->model->whereIn('customer_id_1c', $customerId1c)->get();
     }
-
     public function getDebtorsWithEqualAddressRegister(object $passport): Collection
     {
         return $this->model
@@ -79,7 +78,4 @@ class DebtorRepository
             ->where('passports.id', '<>', $passport->id)
             ->get();
     }
-
-
-
 }

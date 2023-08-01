@@ -23,6 +23,7 @@ use App\Passport;
 use App\Permission;
 use App\DebtorEventPromisePay;
 use App\Repayment;
+use App\Repositories\AboutClientRepository;
 use App\Repositories\DebtorEventEmailRepository;
 use App\Repositories\DebtorSmsRepository;
 use App\Services\DebtorCardService;
@@ -60,23 +61,27 @@ class DebtorsController extends BasicController
     public $debtCardService;
     public $debtEventService;
     public $massRecurrentService;
-    public $debtorEventEmailRepository;
     public $emailService;
+    public $debtorEventEmailRepository;
+    public $aboutClientRepository;
+
 
     public function __construct(
         DebtorCardService $debtService,
         DebtorEventService $eventService,
         MassRecurrentService $massRecurrentService,
+        EmailService $emailService,
         DebtorEventEmailRepository $debtorEventEmailRepository,
-        EmailService $emailService
+        AboutClientRepository $aboutClientRepository
     )
     {
 
         $this->debtCardService = $debtService;
         $this->debtEventService = $eventService;
         $this->massRecurrentService = $massRecurrentService;
-        $this->debtorEventEmailRepository = $debtorEventEmailRepository;
         $this->emailService = $emailService;
+        $this->debtorEventEmailRepository = $debtorEventEmailRepository;
+        $this->aboutClientRepository = $aboutClientRepository;
     }
 
     /**
@@ -512,9 +517,8 @@ class DebtorsController extends BasicController
             ->where('block_till_date', '>=', date('Y-m-d', time()) . ' 00:00:00')
             ->first();
 
-        $armfCustomer = $armClient->getCustomerById1c($debtor->customer_id_1c)->first();
-        $aboutClient = $armfCustomer ? $armClient->getAbouts($armfCustomer->id) : null;
-        $data[0]['email'] = $aboutClient ? $this->emailService->validatorEmail($aboutClient) : null;
+        $aboutClient = $this->aboutClientRepository->firstByCustomerId($debtor->customer->id);
+        $data[0]['email'] = $aboutClient ? $aboutClient->email : null;
 
         $arDataCcCard = false;
 

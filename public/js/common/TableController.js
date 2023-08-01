@@ -19,6 +19,7 @@ TableController = function (name, columns, props) {
 };
 TableController.prototype.init = function () {
     var ctrl = this;
+    console.log(this.name)
     var dtData = {
         order: ('order' in this.props) ? this.props.order : [[0, "desc"]],
         searching: false,

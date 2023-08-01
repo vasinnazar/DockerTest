@@ -18,9 +18,9 @@ class AboutClientRepository
     {
         return $this->model::all();
     }
-    public function firstById(int $id): Model
+    public function firstByCustomerId(int $id): Model
     {
-        return $this->model->findOrFail($id);
+        return $this->model->where('customer_id', $id)->firstOrFail();
     }
     public function update(int $id, array $params = []): Model
     {
