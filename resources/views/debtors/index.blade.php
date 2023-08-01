@@ -186,7 +186,8 @@
                                                     $dsf['name'] != 'debtors@qty_delays_from' AND
                                                     $dsf['name'] != 'debtors@qty_delays_to' AND
                                                     $dsf['name'] != 'passports@fact_address_region' AND
-                                                    $dsf['name'] != 'passports@address_region'
+                                                    $dsf['name'] != 'passports@address_region' AND
+                                                    $dsf['name'] != 'about@email'
                                                 )
                                                 <select class='form-control'
                                                         name='{{'search_field_'.$dsf['name'].'_condition'}}'>
