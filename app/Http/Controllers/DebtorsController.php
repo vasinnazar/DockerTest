@@ -210,7 +210,7 @@ class DebtorsController extends BasicController
             $this->debtEventService->checkLimitEventByCustomerId1c($debtor->customer_id_1c);
 
         } catch (DebtorException $e) {
-            Log::error("$e->errorName:", [
+            Log::channel('errorlog')->error("$e->errorName:", [
                 'customer' => $debtor->customer_id_1c,
                 'file' => __FILE__,
                 'method' => __METHOD__,

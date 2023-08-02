@@ -2,4 +2,6 @@
 laravel*.log
 echo*.log
 infinity*.log
+sms*.log
+email*.log
 exception*.log

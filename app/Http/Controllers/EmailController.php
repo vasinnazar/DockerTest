@@ -71,7 +71,7 @@ class EmailController extends Controller
                       Возможно,неверные логин и пароль для входа в корпоративную почту,обратитесь в техподдержку.');
 
         } catch (DebtorException $e) {
-            Log::error("$e->errorName:", [
+            Log::channel('exception')->error("$e->errorName:", [
                 'customer' => $customer->id_1c,
                 'file' => __FILE__,
                 'method' => __METHOD__,

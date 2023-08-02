@@ -73,13 +73,26 @@ return [
         ],
 
         'errorlog' => [
-            'driver' => 'errorlog',
+            'driver' => 'daily',
+            'path' => storage_path('logs/exception.log'),
             'level' => 'debug',
         ],
 
         'infinity' => [
             'driver' => 'daily',
             'path' => storage_path('logs/infinity.log'),
+            'level' => 'debug',
+            'days' => 7,
+        ],
+        'sms' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/sms.log'),
+            'level' => 'debug',
+            'days' => 7,
+        ],
+        'email' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/email.log'),
             'level' => 'debug',
             'days' => 7,
         ],

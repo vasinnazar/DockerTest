@@ -2,7 +2,7 @@
 
 namespace App\Utils;
 
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class SMSer {
 
@@ -82,21 +82,21 @@ class SMSer {
     }
     
     static function makeSmsError($res) {
-        Log::error("SEND SMS: ", ['res' => $res]);
+        Log::channel('sms')->error("SEND SMS: ", ['res' => $res]);
         \App\Spylog\Spylog::logError(json_encode(['file' => 'SMSer.send', 'res' => $res]), true);
         return false;
     }
 	
 	static function sendBySmsService($telephone, $sms){
         if (config('app.dev')) {
-            Log::info("SEND SMS: ", ['telephone' => $telephone, 'sms' => $sms]);
+            Log::channel('sms')->info("SEND SMS: ", ['telephone' => $telephone, 'sms' => $sms]);
             return true;
         }
         //$url = 'http://192.168.35.84:90/api/json/sms/send?phone='.$telephone.'&sms_text='.$sms;
         $url = 'http://192.168.35.51/api/messages?phone=' . $telephone . '&text=' . $sms . '&response=json&type=1';
         $res = json_decode(file_get_contents($url), true);
         if(is_array($res) && array_key_exists('code', $res) && $res['code']==200){
-            Log::info("SEND SMS: ", ['telephone' => $telephone, 'sms' => $sms]);
+            Log::channel('sms')->info("SEND SMS: ", ['telephone' => $telephone, 'sms' => $sms]);
             return true;
         } else {
             return SMSer::makeSmsError($res);
@@ -183,7 +183,7 @@ class SMSer {
      */
     static function sendByGoIpApi($telephone, $sms) {
         if (config('app.dev')) {
-            Log::info("SEND SMS: ", ['telephone' => $telephone, 'sms' => $sms]);
+            Log::channel('sms')->info("SEND SMS: ", ['telephone' => $telephone, 'sms' => $sms]);
             return true;
         }
         $address = 'http://192.168.1.241/';

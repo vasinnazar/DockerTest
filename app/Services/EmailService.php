@@ -70,7 +70,7 @@ class EmailService
         $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
         if (empty(trim($debtorEmail))) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
-            Log::error("Incorrect email debtor:", [
+            Log::channel('email')->error("Incorrect email debtor:", [
                 'customer_id_1c' => $debtor->customer_id_1c,
                 'email' => $debtorEmail
             ]);

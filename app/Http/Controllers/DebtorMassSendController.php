@@ -242,7 +242,7 @@ class DebtorMassSendController extends BasicController
                 $this->debtorEventService->checkLimitEventByCustomerId1c($debtor->customer_id_1c);
 
             } catch (DebtorException $e) {
-                Log::error("$e->errorName:", [
+                Log::channel('exception')->error("$e->errorName:", [
                     'customer' => $debtor['customer_id_1c'],
                     'file' => __FILE__,
                     'method' => __METHOD__,
@@ -333,7 +333,7 @@ class DebtorMassSendController extends BasicController
             try {
                 $this->debtorEventService->checkLimitEventByCustomerId1c($debtor->customer_id_1c);
             } catch (DebtorException $e) {
-                Log::error("$e->errorName:", [
+                Log::channel('exception')->error("$e->errorName:", [
                     'customer' => $debtor['customer_id_1c'],
                     'file' => __FILE__,
                     'method' => __METHOD__,
@@ -365,7 +365,6 @@ class DebtorMassSendController extends BasicController
     static function getSearchFields()
     {
         return [
-
             [
                 'name' => 'users@login',
                 'input_type' => 'text',
