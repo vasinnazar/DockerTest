@@ -119,9 +119,6 @@ class DebtorsNoticesController extends Controller
         if (!empty($input['amount_owed'])) {
             $debtors->where('sum_indebt', '>=', $input['amount_owed'] * 100);
         }
-        if (!empty($input['amount_owed'])) {
-            $debtors->where('sum_indebt', '>=', $input['amount_owed'] * 100);
-        }
         if (isset($input['loan_sbp'])) {
             $debtors->where('loan_id_1c', 'like', '%СБП');
         }
