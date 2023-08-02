@@ -2,3 +2,4 @@
 laravel*.log
 echo*.log
 infinity*.log
+exception*.log
