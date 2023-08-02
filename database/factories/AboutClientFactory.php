@@ -50,5 +50,6 @@ $factory->define(about_client::class, function () {
         'marital_type_id' => $faker->randomElement($idsMaritalType),
         'dohod_husband' => $faker->phoneNumber,
         'pension' => $faker->phoneNumber,
+        'email' => $faker->email,
     ];
 });

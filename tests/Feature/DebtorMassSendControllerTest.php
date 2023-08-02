@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\about_client;
 use App\Claim;
 use App\Clients\ArmClient;
 use App\Customer;
@@ -60,6 +61,9 @@ class DebtorMassSendControllerTest extends TestCase
                 'id_1c' => $debtor->loan_id_1c,
                 'claim_id' => $claim->id
             ]);
+            factory(about_client::class)->create([
+                'customer_id' => $customer->id
+            ]);
         }
 
         $this->seed(RolesSeeder::class);
@@ -93,12 +97,6 @@ class DebtorMassSendControllerTest extends TestCase
             ArmClient::class,
             function () {
                 $mock = Mockery::mock(ArmClient::class);
-                $mock->shouldReceive('getCustomerById1c')->andReturn(new Collection([
-                    (object) ['id' => 1]
-                ]));
-                $mock->shouldReceive('getAbouts')->andReturn([
-                    ['id' => 1,  'email' => "test_customer@mail.ru"]
-                ]);
                 $mock->shouldReceive('getUserById1c')->andReturn([
                     ["email_user" =>  ["email" => "test_user@mail.ru", "password" => "123456"]]]);
                 return $mock;
@@ -144,12 +142,6 @@ class DebtorMassSendControllerTest extends TestCase
             ArmClient::class,
             function () {
                 $mock = Mockery::mock(ArmClient::class);
-                $mock->shouldReceive('getCustomerById1c')->andReturn(new Collection([
-                    (object) ['id' => 1]
-                ]));
-                $mock->shouldReceive('getAbouts')->andReturn([
-                    ['id' => 1,  'email' => "test_customer@mail.ru"]
-                ]);
                 $mock->shouldReceive('getUserById1c')->andReturn([
                     ["email_user" =>  ["email" => "test_user@mail.ru", "password" => "123456"]]]);
                 return $mock;
@@ -194,17 +186,12 @@ class DebtorMassSendControllerTest extends TestCase
             ArmClient::class,
             function () {
                 $mock = Mockery::mock(ArmClient::class);
-                $mock->shouldReceive('getCustomerById1c')->andReturn(new Collection([
-                    (object) ['id' => 1]
-                ]));
-                $mock->shouldReceive('getAbouts')->andReturn([
-                    ['id' => 1,  'email' => "test_customer@mail.ru"]
-                ]);
                 $mock->shouldReceive('getUserById1c')->andReturn([
                     ["email_user" =>  []]]);
                 return $mock;
             }
         );
+
         $response = $this->actingAs($this->user, 'web')
             ->post('/ajax/debtors/massmessage/send', [
                 'isSms' => $isSms,
@@ -224,12 +211,6 @@ class DebtorMassSendControllerTest extends TestCase
             ArmClient::class,
             function () {
                 $mock = Mockery::mock(ArmClient::class);
-                $mock->shouldReceive('getCustomerById1c')->andReturn(new Collection([
-                    (object) ['id' => 1]
-                ]));
-                $mock->shouldReceive('getAbouts')->andReturn([
-                    ['id' => 1,  'email' => "test_customer@mail.ru"]
-                ]);
                 $mock->shouldReceive('getUserById1c')->andReturn([
                     ["email_user" =>  ["email" => "test_user@mail.ru", "password" => "123456"]]]);
                 return $mock;
@@ -248,4 +229,5 @@ class DebtorMassSendControllerTest extends TestCase
         $result = $response->decodeResponseJson();
         $this->assertEquals(0, (int)$result['cnt']);
     }
+
 }

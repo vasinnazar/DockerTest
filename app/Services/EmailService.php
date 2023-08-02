@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorEvent;
 use App\EmailMessage;
@@ -16,19 +15,16 @@ use Illuminate\Support\Facades\Log;
 
 class EmailService
 {
-    private $armClient;
     private $debtorEventEmailRepository;
     private $aboutClientRepository;
     private $mailerService;
 
     public function __construct(
-        ArmClient $client,
         DebtorEventEmailRepository $debtorEventEmailRepository,
         AboutClientRepository $aboutClientRepository,
         MailerService $mailerService
     )
     {
-        $this->armClient = $client;
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
         $this->aboutClientRepository = $aboutClientRepository;
         $this->mailerService = $mailerService;
