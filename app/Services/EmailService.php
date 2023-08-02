@@ -54,7 +54,7 @@ class EmailService
         $user = $arrayParam['user'];
         $debtor = Debtor::where('id', $arrayParam['debtor_id'])->first();
         if (empty($debtor->customer)) {
-            Log::error("Customer not found:", [
+            Log::channel('email')->error("Customer not found:", [
                 'customer_id_1c' => $debtor->customer_id_1c,
                 'debtor_id' => $debtor->id
             ]);

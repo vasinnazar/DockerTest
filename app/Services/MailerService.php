@@ -32,7 +32,7 @@ class MailerService
                 }
             );
         } catch (\Exception $exception) {
-            Log::error("Email send error : ", [
+            Log::channel('email')->error("Email send error : ", [
                 'email' => $email,
                 'line' => __LINE__,
                 'message' => $exception->getMessage(),
@@ -40,7 +40,7 @@ class MailerService
             return false;
         }
         if (count($mailer->failures()) > 0) {
-            Log::error("Error send email: ", [
+            Log::channel('email')->error("Error send email: ", [
                 'email' => $email
             ]);
             return false;
