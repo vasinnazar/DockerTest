@@ -9,12 +9,15 @@ $factory->define(about_client::class, function () {
     $idsCustomer = \App\Customer::all()->pluck('id')->toArray();
     $idAdsource = \App\AdSource::all()->pluck('id')->toArray();
     $idsEducation = \App\EducationLevel::all()->pluck('id')->toArray();
+    $idsLiveCond = \App\LiveCondition::all()->pluck('id')->toArray();
+    $idsLoanGoal = \App\LoanGoal::all()->pluck('id')->toArray();
+    $idsMaritalType = \App\MaritalType::all()->pluck('id')->toArray();
 
     return [
         'customer_id' => $faker->randomElement($idsCustomer),
         'sex' => $faker->numberBetween(0, 10),
-        'goal' => $faker->numberBetween(1, 8),
-        'zhusl' => $faker->numberBetween(1, 5),
+        'goal' => $faker->randomElement($idsLoanGoal),
+        'zhusl' => $faker->randomElement($idsLiveCond),
         'avto' => $faker->numberBetween(0, 1),
         'organizacia' => $faker->company(),
         'innorganizacia' => $faker->randomNumber(7, true),
@@ -44,8 +47,9 @@ $factory->define(about_client::class, function () {
         'other' => $faker->numberBetween(0, 1),
         'watch' => $faker->numberBetween(0, 1),
         'anothertelephone' => $faker->phoneNumber,
-        'marital_type_id' => $faker->numberBetween(1, 5),
+        'marital_type_id' => $faker->randomElement($idsMaritalType),
         'dohod_husband' => $faker->phoneNumber,
         'pension' => $faker->phoneNumber,
+        'email' => $faker->email,
     ];
 });

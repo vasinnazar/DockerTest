@@ -311,6 +311,11 @@ class Debtor extends Model
                 'hidden_value_field' => 'passports@id'
             ],
             [
+                'name' => 'about@email',
+                'input_type' => 'text',
+                'label' => 'Email',
+            ],
+            [
                 'name' => 'debtors@loan_id_1c',
                 'input_type' => 'text',
                 'label' => 'Договор',

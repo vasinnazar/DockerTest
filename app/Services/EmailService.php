@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorEvent;
 use App\EmailMessage;
 use App\Loan;
+use App\Repositories\AboutClientRepository;
 use App\Repositories\DebtorEventEmailRepository;
 use App\Role;
 use App\User;
@@ -15,19 +15,19 @@ use Illuminate\Support\Facades\Log;
 
 class EmailService
 {
-    private $armClient;
     private $debtorEventEmailRepository;
-    private $messageService;
+    private $aboutClientRepository;
+    private $mailerService;
 
     public function __construct(
-        ArmClient $client,
         DebtorEventEmailRepository $debtorEventEmailRepository,
-        MessageService $messageService
+        AboutClientRepository $aboutClientRepository,
+        MailerService $mailerService
     )
     {
-        $this->armClient = $client;
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
-        $this->messageService = $messageService;
+        $this->aboutClientRepository = $aboutClientRepository;
+        $this->mailerService = $mailerService;
     }
 
     /**
@@ -49,30 +49,25 @@ class EmailService
         }
         return $collectMessages;
     }
-
-    public function validatorEmail($abouts)
-    {
-        foreach ($abouts as $about) {
-            if (filter_var($about['email'], FILTER_VALIDATE_EMAIL)) {
-                return $about['email'];
-            }
-        }
-        return null;
-    }
-
     public function sendEmailDebtor(array $arrayParam): bool
     {
         $user = $arrayParam['user'];
         $debtor = Debtor::where('id', $arrayParam['debtor_id'])->first();
+        if (empty($debtor->customer)) {
+            Log::error("Customer not found:", [
+                'customer_id_1c' => $debtor->customer_id_1c,
+                'debtor_id' => $debtor->id
+            ]);
+            return false;
+        }
         $loan = Loan::where('id_1c', $debtor->loan_id_1c)->first();
         $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
         $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
+        $aboutClient = $this->aboutClientRepository->firstByCustomerId($debtor->customer->id);
+        $validateEmail = $aboutClient ? filter_var($aboutClient->email, FILTER_VALIDATE_EMAIL) : false;
+        $debtorEmail = $validateEmail ? $aboutClient->email : null;
         $messageText = $this->replaceKeysTemplateMessage($user, $debtor, $templateMessage->template_message, $arrayParam);
-        $armfCustomer = $this->armClient->getCustomerById1c($debtor->customer_id_1c)->first();
-        $aboutClient = $armfCustomer ? $this->armClient->getAbouts($armfCustomer->id) : null;
-        $debtorEmail = $aboutClient ? $this->validatorEmail($aboutClient) : null;
-        $this->setConfig($arrayParam['userEmail'], $arrayParam['userPassword']);
         if (empty(trim($debtorEmail))) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             Log::channel('email')->error("Incorrect email debtor:", [
@@ -81,7 +76,8 @@ class EmailService
             ]);
             return false;
         }
-        if (!$this->messageService->sendEmailMessage($messageText, $debtorEmail)) {
+
+        if (!$this->mailerService->sendEmailMessage($messageText, $debtorEmail)) {
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
         }
@@ -117,6 +113,7 @@ class EmailService
         $templateMessage = str_replace('{{spec_phone}}', $user->phone, $templateMessage);
         $templateMessage = str_replace('{{fio_debtors}}', $fio, $templateMessage);
         $templateMessage = str_replace('{{debtor_money_on_day}}', $arrayParam['debtor_sum'], $templateMessage);
+        $templateMessage = str_replace('{{email_user}}', $arrayParam['userEmail'], $templateMessage);
 
         if (array_key_exists('dateAnswer', $arrayParam)) {
             $templateMessage = str_replace('{{date_answer}}', $arrayParam['dateAnswer'], $templateMessage);
@@ -128,11 +125,5 @@ class EmailService
             $templateMessage = str_replace('{{discount_payment}}', $arrayParam['discountPayment'], $templateMessage);
         }
         return $templateMessage;
-    }
-
-    public function setConfig($email, $password)
-    {
-        config()->set('mail.username', $email);
-        config()->set('mail.password', $password);
     }
 }

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Clients\ArmClient;
 use App\Clients\PaysClient;
-use App\DebtGroup;
 use App\Debtor;
 use App\DebtorEvent;
 use App\DebtorsInfo;
@@ -13,18 +12,14 @@ use App\DebtorUsersRef;
 use App\Exceptions\DebtorException;
 use App\Http\Requests\DebtorCard\MultiSumRequest;
 use App\Loan;
-use App\MassRecurrent;
 use App\MassRecurrentTask;
-use App\Message;
-use App\Model\DebtorEventSms;
 use App\NoticeNumbers;
 use App\Order;
 use App\Passport;
-use App\Permission;
 use App\DebtorEventPromisePay;
 use App\Repayment;
+use App\Repositories\AboutClientRepository;
 use App\Repositories\DebtorEventEmailRepository;
-use App\Repositories\DebtorSmsRepository;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
 use App\Services\DebtorSmsService;
@@ -34,15 +29,12 @@ use App\Services\MessageService;
 use App\Services\RepaymentOfferService;
 use App\Services\DebtorService;
 use App\Services\SynchronizeService;
-use App\Services\TimezoneService;
 use App\StrUtils;
 use App\User;
 use App\Utils;
 use App\Utils\HtmlHelper;
-use App\Utils\PermLib;
 use App\Utils\StrLib;
 use Carbon\Carbon;
-use http\Env\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,7 +43,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Image;
-use Maatwebsite\Excel\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class DebtorsController extends BasicController
@@ -60,23 +51,26 @@ class DebtorsController extends BasicController
     public $debtCardService;
     public $debtEventService;
     public $massRecurrentService;
-    public $debtorEventEmailRepository;
     public $emailService;
+    public $debtorEventEmailRepository;
+    public $aboutClientRepository;
+
 
     public function __construct(
-        DebtorCardService $debtService,
-        DebtorEventService $eventService,
-        MassRecurrentService $massRecurrentService,
+        DebtorCardService          $debtService,
+        DebtorEventService         $eventService,
+        MassRecurrentService       $massRecurrentService,
+        EmailService               $emailService,
         DebtorEventEmailRepository $debtorEventEmailRepository,
-        EmailService $emailService
+        AboutClientRepository      $aboutClientRepository
     )
     {
-
         $this->debtCardService = $debtService;
         $this->debtEventService = $eventService;
         $this->massRecurrentService = $massRecurrentService;
-        $this->debtorEventEmailRepository = $debtorEventEmailRepository;
         $this->emailService = $emailService;
+        $this->debtorEventEmailRepository = $debtorEventEmailRepository;
+        $this->aboutClientRepository = $aboutClientRepository;
     }
 
     /**
@@ -153,12 +147,12 @@ class DebtorsController extends BasicController
     }
 
     public function debtorcard(
-        DebtorSmsService $smsService,
-        MessageService $messageService,
-        PaysClient $paysClient,
-        ArmClient $armClient,
+        DebtorSmsService   $smsService,
+        MessageService     $messageService,
+        PaysClient         $paysClient,
+        ArmClient          $armClient,
         SynchronizeService $synchronize,
-        int $debtor_id
+        int                $debtor_id
     )
     {
 
@@ -167,13 +161,23 @@ class DebtorsController extends BasicController
 
         try {
             $synchronize->synchronizeDebtor($debtor);
-        }catch (\Throwable $exception){
+        } catch (\Throwable $exception) {
             Log::error('Critical error update debtors', [
                 'customerId1c' => $debtor->customer_id_1c,
                 'message' => $exception->getMessage(),
             ]);
         }
 
+        if (empty($debtor->customer)) {
+            Log::error("Customer not found:", [
+                'customer_id_1c' => $debtor->customer_id_1c,
+                'debtor_id' => $debtor->id
+            ]);
+            return redirect('debtors/index')->with(
+                'msg_err',
+                'Ошибка! Отсутствуют данные для открытия карточки должника ' . $debtor->id
+            );
+        }
 
         // проверяем был ли пропущенный звонок от должника и если был - удаляем запись
         $loss_call = \App\DebtorsLossCalls::where('debtor_id_1c', $debtor->debtor_id_1c)->first();
@@ -507,14 +511,13 @@ class DebtorsController extends BasicController
             ->orderBy('id', 'desc')
             ->first();
 
-        $dataHasPeaceClaim =  $armClient->getHasPeaceClaim($debtor->loan_id_1c);
+        $dataHasPeaceClaim = $armClient->getHasPeaceClaim($debtor->loan_id_1c);
         $blockProlongation = \App\DebtorBlockProlongation::where('debtor_id', $debtor->id)->orderBy('id', 'desc')
             ->where('block_till_date', '>=', date('Y-m-d', time()) . ' 00:00:00')
             ->first();
 
-        $armfCustomer = $armClient->getCustomerById1c($debtor->customer_id_1c)->first();
-        $aboutClient = $armfCustomer ? $armClient->getAbouts($armfCustomer->id) : null;
-        $data[0]['email'] = $aboutClient ? $this->emailService->validatorEmail($aboutClient) : null;
+        $aboutClient = $this->aboutClientRepository->firstByCustomerId($debtor->customer->id);
+        $data[0]['email'] = $aboutClient ? $aboutClient->email : null;
 
         $arDataCcCard = false;
 
@@ -529,7 +532,7 @@ class DebtorsController extends BasicController
                 ->getInfoByCustomerId1c($debtor->customer_id_1c)
                 ->first()
                 ->no_recurrent;
-        }catch (\Throwable $exception) {
+        } catch (\Throwable $exception) {
             $noRecurrent = false;
         }
         $enableRecurrentButton = $this
@@ -802,8 +805,7 @@ class DebtorsController extends BasicController
             $arPeaceClaims = $armClient->getOffers($debtor->loan_id_1c);
 
             $nowTime = time();
-            if($debtor->debt_group_id == '000000000007')
-            {
+            if ($debtor->debt_group_id == '000000000007') {
                 $service->closeOfferIfExist($debtor);
             }
             foreach ($arPeaceClaims as $peaceClaim) {
@@ -812,7 +814,7 @@ class DebtorsController extends BasicController
                         'freeze_start_at' => date('Y-m-d', time()),
                         'freeze_end_at' => date('Y-m-d', strtotime('+1 day', strtotime($data['dateProlongationBlock'])))
                     ];
-                    $armClient->updateOffer($peaceClaim->id,$postData);
+                    $armClient->updateOffer($peaceClaim->id, $postData);
                 }
             }
         }
@@ -847,7 +849,7 @@ class DebtorsController extends BasicController
      * возвращает список должников в таблицу
      * @param Request $req
      */
-    public function ajaxList(Request $req,DebtorService $service)
+    public function ajaxList(Request $req, DebtorService $service)
     {
         $debtors = $service->getDebtors($req);
 
@@ -1474,7 +1476,7 @@ class DebtorsController extends BasicController
             $phone[0] = '7';
         }
 
-        $result =  $smsService->sendSms(
+        $result = $smsService->sendSms(
             $debtor,
             $user,
             $phone,
@@ -2136,6 +2138,7 @@ class DebtorsController extends BasicController
             return \App\Utils\FileToPdfUtil::replaceKeys($doc->tplFileName, $arParams, 'debtors');
         }
     }
+
     /**
      * Страница прочих контактов
      * @param integer $id
@@ -2861,7 +2864,7 @@ class DebtorsController extends BasicController
                 $input['prepaid'] = 0;
             }
 
-            if($debtor->str_podr == '000000000006') {
+            if ($debtor->str_podr == '000000000006') {
                 $service->closeOfferIfExist($debtor);
             }
 
@@ -3078,9 +3081,9 @@ class DebtorsController extends BasicController
 
             if ($recurrentTask) {
                 return json_encode([
-                    'status' => 'success',
-                    'task_id' => $recurrentTask->id,
-                    'debtors_count' => $recurrentTask->debtors_count]
+                        'status' => 'success',
+                        'task_id' => $recurrentTask->id,
+                        'debtors_count' => $recurrentTask->debtors_count]
                 );
             }
 
@@ -3161,7 +3164,8 @@ class DebtorsController extends BasicController
         return redirect()->back();
     }
 
-    public function temporaryCronTasksHandling(Request $request) {
+    public function temporaryCronTasksHandling(Request $request)
+    {
         $action = $request->get('action', false);
         $message = false;
 
@@ -3197,15 +3201,15 @@ class DebtorsController extends BasicController
 
                 $object = simplexml_load_string($result);
 
-                if ((string) $object->data->task["taskstatusstr"] == 'Закончена') {
+                if ((string)$object->data->task["taskstatusstr"] == 'Закончена') {
 
                     $arEventData = [];
 
                     $events = \App\DebtorEvent::where('date', '>=', $today . ' 00:00:00')
-                            ->where('date', '<=', $today . ' 23:59:59')
-                            ->where('event_type_id', 22)
-                            ->where('completed', 0)
-                            ->get();
+                        ->where('date', '<=', $today . ' 23:59:59')
+                        ->where('event_type_id', 22)
+                        ->where('completed', 0)
+                        ->get();
 
                     foreach ($events as $event) {
                         $debtor = \App\Debtor::where('debtor_id_1c', $event->debtor_id_1c)->first();
@@ -3219,9 +3223,9 @@ class DebtorsController extends BasicController
                             }
                         }
                     }
-                    logger(['DebtorsController::temporaryCronTasksHandling', (array) $object, $arEventData]);
+                    logger(['DebtorsController::temporaryCronTasksHandling', (array)$object, $arEventData]);
                     foreach ($object->data->item as $call) {
-                        $phone = (string) $call['phonenumber'];
+                        $phone = (string)$call['phonenumber'];
                         if ($phone[0] == '8') {
                             $phone[0] = '7';
                         }
@@ -3237,13 +3241,13 @@ class DebtorsController extends BasicController
                             $debtor = Debtor::where('debtor_id_1c', $arEventData[$phone]['debtor_id_1c'])->first();
                             $resp_user = User::where('id_1c', $debtor->responsible_user_id_1c)->first();
 
-                            if ((string) $call['jobstatus'] == '3') {
+                            if ((string)$call['jobstatus'] == '3') {
                                 $call_result = 24;
                             } else {
                                 $call_result = 23;
                             }
 
-                            $report = (string) $call['reldescr'];
+                            $report = (string)$call['reldescr'];
                             if ($report == 'Ошибка сети') {
                                 $report .= ' или абонент сбросил вызов';
                             }
@@ -3291,10 +3295,9 @@ class DebtorsController extends BasicController
         return view('debtors.temporaryCronTaskHandling', compact('message'));
     }
 
-    public function searchEqualContacts(Request $request) {
-        $debtor_id = $request->get('debtor_id', false);
-
-        $debtor = Debtor::find($debtor_id);
+    public function searchEqualContacts(Request $request)
+    {
+        $debtor = Debtor::find($request->get('debtor_id', false));
 
         $collectContacts = collect();
 
@@ -3302,7 +3305,7 @@ class DebtorsController extends BasicController
             $collectContacts = $this->debtCardService->getEqualContactsDebtors($debtor);
         }
 
-        return view('elements.debtors.searchContactsTable', compact('collectContacts', 'debtor'));
+        return view('debtocard.search-contacts.table', compact('collectContacts', 'debtor'));
     }
 
 
