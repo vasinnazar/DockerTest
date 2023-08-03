@@ -634,12 +634,12 @@
                                             <br>
                                             <button
                                                     type="button"
-                                                    name="debtor_event_edit"
+                                                    name="debtor_event_delete"
                                                     class="btn btn-default btn-xs"
                                                     onclick="$.debtorsCtrl.deleteDebtorEvent({{$event->id}});">
                                                 <span class="glyphicon glyphicon-remove"></span>
                                             </button>
---}}                                        @endif
+                                      @endif
                                     </td>
                                 </tr>
                             @endforeach
@@ -947,7 +947,7 @@
     @endif
 @stop
 @section('scripts')
-    <script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
+    <script src="{{asset('js/debtors/debtorsController.js?2')}}"></script>
     <script src="{{asset('js/libs/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js')}}"></script>
     <script src="{{asset('js/libs/clipboard/clipboard.min.js')}}"></script>
     <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>

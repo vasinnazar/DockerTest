@@ -1375,11 +1375,11 @@ class DebtorsController extends BasicController
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroyDebtorEvent($id)
+    public function destroyDebtorEvent(int $id)
     {
         $debtEvent = DebtorEvent::find($id);
         if (!is_null($debtEvent)) {
-            $debtEvent->delete();
+            //$debtEvent->delete();
             $this->backWithSuc();
         } else {
             $this->backWithErr(StrLib::ERR_NULL);

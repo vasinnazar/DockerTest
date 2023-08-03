@@ -98,7 +98,6 @@
     $.debtorsCtrl.uploadOldDebtorEvents = function () {
         $.app.blockScreen(true);
         $.post($.app.url + '/ajax/debtors/oldevents/upload').done(function (data) {
-            console.log(data);
             $.app.blockScreen(false);
         });
     };
@@ -118,6 +117,20 @@
         }).always(function () {
             $.app.blockScreen(false);
         });
+    };
+    $.debtorsCtrl.deleteDebtorEvent = function (id) {
+        $.ajax({
+            url: $.app.url + '/ajax/debtors/event/' + id,
+            type: 'DELETE',
+            success: function (result) {
+                console.log();
+            }
+        });
+       /* $.get($.app.url + '/ajax/debtors/event', {id: id}).done(function (data) {
+           console.log(data)
+        }).always(function () {
+            $.app.blockScreen(false);
+        });*/
     };
     $.debtorsCtrl.initDebtorsCard = function () {
         var $debtCalcDate = $('.debtor-debt-table [name="debt_calc_date"]');
