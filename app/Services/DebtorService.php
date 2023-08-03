@@ -177,6 +177,8 @@ class DebtorService
             ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
             ->leftJoin('debtors.about_clients',
                 'debtors.customers.id', '=', 'debtors.about_clients.customer_id')
+            ->leftJoin('debtors.debtors_events_promise_pays',
+                'debtors.id', '=', 'debtors.debtors_events_promise_pays.debtor_id')
             ->groupBy('debtors.id');
 
         $debtorsEmail = trim($input['search_field_about@email']);
