@@ -624,8 +624,22 @@
                                     <td>
                                         <input type="checkbox" name="eventDone[]" value="{{$event->id}}" {{($event->completed == 1) ? 'checked' : ''}}/>
                                         @if($user->hasRole('debtors_chief'))
-                                            <button type="button" name="debtor_event_edit" class="btn btn-default btn-xs" onclick="$.debtorsCtrl.openDebtorEvent({{$event->id}});"><span class="glyphicon glyphicon-pencil"></span></button>
-                                        @endif
+                                            <button
+                                                    type="button"
+                                                    name="debtor_event_edit"
+                                                    class="btn btn-default btn-xs"
+                                                    onclick="$.debtorsCtrl.openDebtorEvent({{$event->id}});">
+                                                    <span class="glyphicon glyphicon-pencil"></span>
+                                            </button>
+                                            <br>
+                                            <button
+                                                    type="button"
+                                                    name="debtor_event_edit"
+                                                    class="btn btn-default btn-xs"
+                                                    onclick="$.debtorsCtrl.deleteDebtorEvent({{$event->id}});">
+                                                <span class="glyphicon glyphicon-remove"></span>
+                                            </button>
+--}}                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

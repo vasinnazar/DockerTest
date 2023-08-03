@@ -705,7 +705,7 @@ Route::middleware('auth_only')->group(function () {
     });
 
 
-    Route::prefix('/debtors')->group(function () {
+    Route::group(['as' => 'debtors.', 'prefix' => 'debtors'], function () {
         Route::get('/index', [DebtorsController::class,'index']);
         Route::get('/forgotten', [DebtorsController::class,'forgotten']);
         Route::post('/forgotten', [DebtorsController::class,'forgotten']);
@@ -718,6 +718,10 @@ Route::middleware('auth_only')->group(function () {
         Route::get('/debtorcard/{debtor_id}', [DebtorsController::class,'debtorcard']);
         Route::get('/addevent', [DebtorsController::class,'addevent']);
         Route::post('/addevent', [DebtorsController::class,'addevent']);
+        Route::group(['as' => 'event.', 'prefix' => 'event'], function () {
+            Route::post('/update', [DebtorsController::class,'updateDebtorEvent']);
+            Route::delete('/destroy/{eventId}', [DebtorsController::class,'destroyDebtorEvent'])->name('destroy');
+        });
         Route::post('/event/update', [DebtorsController::class,'updateDebtorEvent']);
         Route::get('/history/{debtor_id}', [DebtorsController::class,'debtorHistory']);
         Route::get('/debtorcard/createPdf/{doc_id}/{debtor_id}/{date}/{fact_address}', [DebtorsController::class,'createPdf']);
