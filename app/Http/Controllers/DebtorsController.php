@@ -20,6 +20,7 @@ use App\DebtorEventPromisePay;
 use App\Repayment;
 use App\Repositories\AboutClientRepository;
 use App\Repositories\DebtorEventEmailRepository;
+use App\Repositories\DebtorEventsRepository;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
 use App\Services\DebtorSmsService;
@@ -54,6 +55,7 @@ class DebtorsController extends BasicController
     public $emailService;
     public $debtorEventEmailRepository;
     public $aboutClientRepository;
+    public $debtorEventsRepository;
 
 
     public function __construct(
@@ -62,7 +64,8 @@ class DebtorsController extends BasicController
         MassRecurrentService       $massRecurrentService,
         EmailService               $emailService,
         DebtorEventEmailRepository $debtorEventEmailRepository,
-        AboutClientRepository      $aboutClientRepository
+        AboutClientRepository      $aboutClientRepository,
+        DebtorEventsRepository     $debtorEventsRepository
     )
     {
         $this->debtCardService = $debtService;
@@ -71,6 +74,7 @@ class DebtorsController extends BasicController
         $this->emailService = $emailService;
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
         $this->aboutClientRepository = $aboutClientRepository;
+        $this->debtorEventsRepository = $debtorEventsRepository;
     }
 
     /**
@@ -1377,13 +1381,8 @@ class DebtorsController extends BasicController
      */
     public function destroyDebtorEvent(int $id)
     {
-        $debtEvent = DebtorEvent::find($id);
-        if (!is_null($debtEvent)) {
-            //$debtEvent->delete();
-            $this->backWithSuc();
-        } else {
-            $this->backWithErr(StrLib::ERR_NULL);
-        }
+        $this->debtorEventsRepository->destroy($id);
+        return response()->json('OK');
     }
 
     /**

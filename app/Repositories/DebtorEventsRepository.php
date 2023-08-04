@@ -47,4 +47,9 @@ class DebtorEventsRepository
             'completed' => $completed,
         ]);
     }
+
+    public function destroy(int $id): int
+    {
+        return $this->model->destroy($id);
+    }
 }
