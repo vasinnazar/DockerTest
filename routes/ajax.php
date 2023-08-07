@@ -178,7 +178,7 @@ Route::prefix('/ajax')->group(function () {
 
     Route::prefix('/debtors')->group(function () {
         Route::post('/eventcomplete', [DebtorsController::class,'eventComplete'])->name('ajax.debtors.eventcomplete');
-        Route::delete('/event/{eventId}', [DebtorsController::class,'destroyDebtorEvent'])->name('destroy');
+        Route::get('delete/event/{eventId}', [DebtorsController::class,'destroyDebtorEvent'])->name('destroy');
         Route::post('/sendsmstodebtor', [DebtorsController::class,'sendSmsToDebtor'])->name('ajax.debtors.sendsmstodebtor');
         Route::get('/sendsmstodebtor', [DebtorsController::class,'sendSmsToDebtor'])->name('ajax.debtors.sendsmstodebtor');
         Route::post('/loadphoto/{claim_id}', [DebtorsController::class,'loadPhoto']);

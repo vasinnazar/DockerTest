@@ -736,7 +736,8 @@
                                                     type="button"
                                                     name="debtor_event_delete"
                                                     class="btn btn-default btn-xs"
-                                                    onclick="$.debtorsCtrl.deleteDebtorEvent({{$event->id}});">
+                                                    data-toggle="modal"
+                                                    onclick="$.debtorsCtrl.openModalDeleteDebtorEvent({{$event->id}});">
                                                 <span class="glyphicon glyphicon-remove"></span>
                                             </button>
                                         @endif
@@ -1435,4 +1436,5 @@
         });
     </script>
     <script src="{{asset('js/debtocard/search-contacts.js?1')}}"></script>
+    <script src="{{asset('js/debtocard/event-change.js?1')}}"></script>
 @stop

@@ -1373,16 +1373,13 @@ class DebtorsController extends BasicController
         return $this->backWithSuc();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroyDebtorEvent(int $id)
+    public function destroyDebtorEvent(int $eventId)
     {
-        $this->debtorEventsRepository->destroy($id);
-        return response()->json('OK');
+        if ($this->debtorEventsRepository->destroy($eventId)) {
+            redirect()->back()->with('msg_suc', StrLib::SUC);
+        } else {
+            redirect()->back()->with('msg_err', StrLib::ERR_CANT_DELETE);
+        }
     }
 
     /**

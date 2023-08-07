@@ -6,7 +6,8 @@
                 <h4 class="modal-title" id="deleteDebtorEventModalLabel">Вы действительно хотите удалить мероприятие?</h4>
             </div>
             <div class="modal-body">
-                <button type="submit" class="btn btn-primary" id="">Удалить</button>
+                <input id="deleteEvent" type="hidden" value="">
+                <button type="submit" class="btn btn-primary" onclick="$.debtorsCtrl.deleteDebtorEvent();">Удалить</button>
                 <button type="submit" class="btn btn-default" data-dismiss="modal" aria-hidden="true">Отмена</button>
             </div>
         </div>

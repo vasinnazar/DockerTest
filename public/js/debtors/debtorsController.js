@@ -101,53 +101,7 @@
             $.app.blockScreen(false);
         });
     };
-    $.debtorsCtrl.openDebtorEvent = function (id) {
-        $.app.blockScreen(true);
-        $.get($.app.url + '/ajax/debtors/event/data', {id: id}).done(function (data) {
-            for (var k in data) {
-                if (k == 'user_id_1c') {
-                    $('#editDebtorEventModal [name="search_field_users@id_1c"]').val(data[k]);
-                }
-                if (k == 'user_fio') {
-                    $('#editDebtorEventModal [name="users@name"]').val(data[k]);
-                }
-                $('#editDebtorEventModal [name="' + k + '"]').val(data[k]);
-            }
-            $('#editDebtorEventModal').modal('show');
-        }).always(function () {
-            $.app.blockScreen(false);
-        });
-    };
-    $.debtorsCtrl.deleteDebtorEvent = function (id) {
-        $('#deleteDebtorEventModal').modal('show');
-        /*$.get($.app.url + '/ajax/debtors/event/data', {id: id}).done(function (data) {
-            for (var k in data) {
-                if (k == 'user_id_1c') {
-                    $('#editDebtorEventModal [name="search_field_users@id_1c"]').val(data[k]);
-                }
-                if (k == 'user_fio') {
-                    $('#editDebtorEventModal [name="users@name"]').val(data[k]);
-                }
-                $('#editDebtorEventModal [name="' + k + '"]').val(data[k]);
-            }
-            $('#editDebtorEventModal').modal('show');
-        }).always(function () {
-            $.app.blockScreen(false);
-        });*/
-       /* $.ajax({
-            url: $.app.url + '/ajax/debtors/event/' + id,
-            type: 'DELETE',
-            success: function (result) {
-                /!*$.debtorsCtrl.initDebtorsTable();*!/
-                console.log(result);
-            }
-        });*/
-       /* $.get($.app.url + '/ajax/debtors/event', {id: id}).done(function (data) {
-           console.log(data)
-        }).always(function () {
-            $.app.blockScreen(false);
-        });*/
-    };
+
     $.debtorsCtrl.initDebtorsCard = function () {
         var $debtCalcDate = $('.debtor-debt-table [name="debt_calc_date"]');
         $debtCalcDate.change(function () {
