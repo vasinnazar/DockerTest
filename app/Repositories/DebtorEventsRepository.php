@@ -18,7 +18,7 @@ class DebtorEventsRepository
 
     public function firstById(int $id)
     {
-        return $this->model->findOrFail($id);
+        return $this->model->find($id);
     }
 
     public function createEvent(

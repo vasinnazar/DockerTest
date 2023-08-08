@@ -732,6 +732,8 @@
                                                 <span class="glyphicon glyphicon-pencil"></span>
                                             </button>
                                             <br>
+                                        @endif
+                                        @if($user->hasRole('can_delete_event'))
                                             <button
                                                     type="button"
                                                     name="debtor_event_delete"

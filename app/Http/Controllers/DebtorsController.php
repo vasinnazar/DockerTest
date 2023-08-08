@@ -20,7 +20,6 @@ use App\DebtorEventPromisePay;
 use App\Repayment;
 use App\Repositories\AboutClientRepository;
 use App\Repositories\DebtorEventEmailRepository;
-use App\Repositories\DebtorEventsRepository;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
 use App\Services\DebtorSmsService;
@@ -55,8 +54,6 @@ class DebtorsController extends BasicController
     public $emailService;
     public $debtorEventEmailRepository;
     public $aboutClientRepository;
-    public $debtorEventsRepository;
-
 
     public function __construct(
         DebtorCardService          $debtService,
@@ -64,8 +61,7 @@ class DebtorsController extends BasicController
         MassRecurrentService       $massRecurrentService,
         EmailService               $emailService,
         DebtorEventEmailRepository $debtorEventEmailRepository,
-        AboutClientRepository      $aboutClientRepository,
-        DebtorEventsRepository     $debtorEventsRepository
+        AboutClientRepository      $aboutClientRepository
     )
     {
         $this->debtCardService = $debtService;
@@ -74,7 +70,6 @@ class DebtorsController extends BasicController
         $this->emailService = $emailService;
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
         $this->aboutClientRepository = $aboutClientRepository;
-        $this->debtorEventsRepository = $debtorEventsRepository;
     }
 
     /**
@@ -1371,15 +1366,6 @@ class DebtorsController extends BasicController
         }
 
         return $this->backWithSuc();
-    }
-
-    public function destroyDebtorEvent(int $eventId)
-    {
-        if ($this->debtorEventsRepository->destroy($eventId)) {
-            redirect()->back()->with('msg_suc', StrLib::SUC);
-        } else {
-            redirect()->back()->with('msg_err', StrLib::ERR_CANT_DELETE);
-        }
     }
 
     /**
