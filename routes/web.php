@@ -705,7 +705,7 @@ Route::middleware('auth_only')->group(function () {
     });
 
 
-    Route::group(['as' => 'debtors.', 'prefix' => 'debtors'], function () {
+    Route::prefix('/debtors')->group(function () {
         Route::get('/index', [DebtorsController::class,'index']);
         Route::get('/forgotten', [DebtorsController::class,'forgotten']);
         Route::post('/forgotten', [DebtorsController::class,'forgotten']);
