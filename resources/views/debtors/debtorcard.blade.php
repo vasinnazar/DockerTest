@@ -127,6 +127,8 @@
                                 <span style="color: #fff;">
                                         <p
                                                 class="timezone"
+                                                data-toggle="modal"
+                                                data-target="#debtorSearchContacts1"
                                                 style="margin: 5px;
                                                 background-color: {{ $pBgColor }};">Время по адресу проживания
                                             <br>
@@ -155,6 +157,8 @@
                                     <span style="color: #fff;">
                                             <p
                                                     class="timezone"
+                                                    data-toggle="modal"
+                                                    data-target="#debtorSearchContacts1"
                                                     style="margin: 5px;
                                                     background-color: {{ $pBgColor }};">Время по адресу проживания
                                                 <br>
@@ -1059,6 +1063,7 @@
     @include('elements.debtors.addDebtorPeace')
     @include('elements.debtors.addDebtorClaim')
     @include('elements.debtors.searchContactsModal')
+    @include('debtocard.timezone-address.modal-address-changes')
 
     @if ($third_people_agreement)
         @include('elements.debtors.third_people_agreement')
