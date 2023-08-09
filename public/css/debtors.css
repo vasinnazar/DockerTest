@@ -78,3 +78,8 @@
     color: #468847;
     background: #f6fbfd !important;
 }
+.timezone:hover {
+    color: #468847;
+    background: #f6fbfd !important;
+    cursor: pointer;
+}
