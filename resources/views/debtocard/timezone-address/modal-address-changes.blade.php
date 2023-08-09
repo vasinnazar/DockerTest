@@ -1,4 +1,4 @@
-<div class="modal fade" id="debtorSearchContacts1" tabindex="-1" role="dialog" aria-labelledby="debtorSearchContactsLabel">
+<div class="modal fade" id="changeAddress" tabindex="-1" role="dialog" aria-labelledby="debtorSearchContactsLabel">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">

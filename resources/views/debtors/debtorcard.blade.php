@@ -128,7 +128,7 @@
                                         <p
                                                 class="timezone"
                                                 data-toggle="modal"
-                                                data-target="#debtorSearchContacts1"
+                                                data-target="#changeAddress"
                                                 style="margin: 5px;
                                                 background-color: {{ $pBgColor }};">Время по адресу проживания
                                             <br>
@@ -158,7 +158,7 @@
                                             <p
                                                     class="timezone"
                                                     data-toggle="modal"
-                                                    data-target="#debtorSearchContacts1"
+                                                    data-target="#changeAddress"
                                                     style="margin: 5px;
                                                     background-color: {{ $pBgColor }};">Время по адресу проживания
                                                 <br>
