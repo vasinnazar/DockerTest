@@ -1440,4 +1440,5 @@
         });
     </script>
     <script src="{{asset('js/debtocard/search-contacts.js?1')}}"></script>
+    <script src="{{asset('js/debtocard/suggest-address.js?1')}}"></script>
 @stop
