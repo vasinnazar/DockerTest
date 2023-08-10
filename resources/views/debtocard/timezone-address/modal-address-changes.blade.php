@@ -11,26 +11,29 @@
                         <tbody>
                         <tr>
                             <td colspan="2" class="pt-1">
-                                <form action="{{route('debtors.suggests')}}" method="POST">
-                                    @csrf
-                                    <div class="form-group row">
-                                        <label for="zip" class="col-sm-4 col-form-label">Адрес регистрации</label>
-                                        <div class="col-sm-8">
-                                            <input name="zip" type="text" class="form-control" id="zip" value="" autocomplete="off">
-                                        </div>
+                                <div class="form-group row">
+                                    <label for="zip" class="col-sm-4 col-form-label">Адрес регистрации</label>
+                                    <div class="col-sm-8">
+                                        <input list="address_reg" name="zip" type="text" class="form-control" id="zip" value="" autocomplete="off">
+                                        <datalist id="address_reg">
+                                            <option value="">
+                                        </datalist>
                                     </div>
-                                    <div class="text-right mt-1">
-                                        <button class="btn btn-outline-secondary">
-                                            Проверить
-                                        </button>
-                                    </div>
-                                </form>
+                                </div>
+                                <div class="text-right mt-1">
+                                    <button class="btn btn-outline-secondary" onclick="window.checkAddress()">
+                                        Проверить
+                                    </button>
+                                </div>
                                 <br>
                                 <form action="" method="POST">
                                     <div class="form-group row">
                                         <label for="region" class="col-sm-4 col-form-label">Адрес проживания</label>
                                         <div class="col-sm-8">
-                                            <input name="address_region" type="text" class="form-control" id="region" value="" autocomplete="off">
+                                            <input list="address_fact" name="address_region" type="text" class="form-control" id="region" value="" autocomplete="off">
+                                            <datalist id="address_fact">
+                                                <option value="">
+                                            </datalist>
                                         </div>
                                     </div>
                                     <div class="text-right mt-1">
