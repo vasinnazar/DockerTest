@@ -12,42 +12,110 @@
                         <tr>
                             <td colspan="2" class="pt-1">
                                 <div class="form-group row">
-                                    <label for="zip" class="col-sm-4 col-form-label">Адрес регистрации</label>
+                                    <label for="address_reg" class="col-sm-4 col-form-label">Адрес регистрации</label>
                                     <div class="col-sm-8">
-                                        <input list="address_reg" name="zip" type="text" class="form-control" id="zip" value="" autocomplete="off">
-                                        <datalist id="address_reg">
-                                            <option value="">
-                                        </datalist>
+                                        <textarea id="input_address_reg" name="address_reg" type="text" class="form-control" value="" autocomplete="off"></textarea>
+                                        <ul class="list-group" id="address_reg">
+                                        </ul>
                                     </div>
                                 </div>
                                 <div class="text-right mt-1">
-                                    <button class="btn btn-outline-secondary" onclick="window.checkAddress()">
+                                    <button class="btn btn-outline-secondary" id="checkAddressReg">
                                         Проверить
                                     </button>
                                 </div>
                                 <br>
-                                <form action="" method="POST">
-                                    <div class="form-group row">
-                                        <label for="region" class="col-sm-4 col-form-label">Адрес проживания</label>
-                                        <div class="col-sm-8">
-                                            <input list="address_fact" name="address_region" type="text" class="form-control" id="region" value="" autocomplete="off">
-                                            <datalist id="address_fact">
-                                                <option value="">
-                                            </datalist>
-                                        </div>
-                                    </div>
-                                    <div class="text-right mt-1">
-                                        <button class="btn btn-outline-secondary">
-                                            Проверить
-                                        </button>
-                                    </div>
-                                </form>
                             </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Индекс</th>
+                            <td></td>
+
+                        </tr>
+                        <tr>
+                            <th scope="row">Регион</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Район</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Город</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Нас. пункт</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Улица</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Дом</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Корпус</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="pt-1">
+                                <br>
+                                <div class="form-group row">
+                                    <label for="address_fact" class="col-sm-4 col-form-label">Адрес проживания</label>
+                                    <div class="col-sm-8">
+                                        <textarea id="input_address_fact" name="address_fact" type="text" class="form-control" value="" autocomplete="off"></textarea>
+                                        <ul class="list-group" id="address_fact">
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="text-right mt-1">
+                                    <button class="btn btn-outline-secondary" id="checkAddressFact">
+                                        Проверить
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Индекс</th>
+                            <td></td>
+
+                        </tr>
+                        <tr>
+                            <th scope="row">Регион</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Район</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Город</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Нас. пункт</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Улица</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Дом</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Корпус</th>
+                            <td></td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary">Сохранить</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>

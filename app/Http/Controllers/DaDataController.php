@@ -15,7 +15,8 @@ class DaDataController extends Controller
         foreach ($dadataResults as $result) {
             $results[] = [
                 'value' => $result['value'] ?? '',
-                'unrestricted_value' => $result['unrestricted_value'] ?? ''
+                'unrestricted_value' => $result['unrestricted_value'] ?? '',
+                'data' => $result['data'] ?? ''
             ];
         }
         return response()->json($results ?? []);
