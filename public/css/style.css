@@ -387,3 +387,14 @@ body{
 .text-left-important{
     text-align: left !important;
 }
+.pos-relative{
+    position: relative;
+}
+.ul-address{
+    position: absolute;
+    padding-right: 15px;
+}
+.ul-address li:hover{
+    cursor: pointer;
+    background: rgb(151, 189, 215);
+}

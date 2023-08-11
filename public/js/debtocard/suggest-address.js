@@ -1,4 +1,5 @@
 $(document).ready(function () {
+
     function createOptionsComponent (suggestions = []) {
         let html = ``;
         for (let suggest of suggestions) {

@@ -13,9 +13,9 @@
                             <td colspan="2" class="pt-1">
                                 <div class="form-group row">
                                     <label for="address_reg" class="col-sm-4 col-form-label">Адрес регистрации</label>
-                                    <div class="col-sm-8">
-                                        <textarea id="input_address_reg" name="address_reg" type="text" class="form-control" value="" autocomplete="off"></textarea>
-                                        <ul class="list-group" id="address_reg">
+                                    <div class="col-sm-8 pos-relative">
+                                        <textarea id="input_address_reg" name="address_reg" type="text" class="form-control" value="" autocomplete="off">{{$debtor->passport->full_address}}</textarea>
+                                        <ul class="list-group ul-address" id="address_reg">
                                         </ul>
                                     </div>
                                 </div>
@@ -29,12 +29,12 @@
                         </tr>
                         <tr>
                             <th scope="row">Индекс</th>
-                            <td></td>
+                            <td>{{$debtor->passport->zip}}</td>
 
                         </tr>
                         <tr>
                             <th scope="row">Регион</th>
-                            <td></td>
+                            <td>{{$debtor->passport->address_region}}</td>
                         </tr>
                         <tr>
                             <th scope="row">Район</th>
@@ -65,9 +65,9 @@
                                 <br>
                                 <div class="form-group row">
                                     <label for="address_fact" class="col-sm-4 col-form-label">Адрес проживания</label>
-                                    <div class="col-sm-8">
-                                        <textarea id="input_address_fact" name="address_fact" type="text" class="form-control" value="" autocomplete="off"></textarea>
-                                        <ul class="list-group" id="address_fact">
+                                    <div class="col-sm-8 pos-relative">
+                                        <textarea id="input_address_fact" name="address_fact" type="text" class="form-control" value="" autocomplete="off">{{$debtor->passport->fact_full_address}}</textarea>
+                                        <ul class="list-group ul-address" id="address_fact">
                                         </ul>
                                     </div>
                                 </div>
@@ -80,7 +80,7 @@
                         </tr>
                         <tr>
                             <th scope="row">Индекс</th>
-                            <td></td>
+                            <td>{{$debtor->passport->fact_zip}}</td>
 
                         </tr>
                         <tr>
