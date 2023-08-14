@@ -2553,7 +2553,7 @@ class DebtorsController extends BasicController
                 return (User::where('id_1c', $debtor->responsible_user_id_1c)->first())->name;
             })
             ->addColumn('passports_fio', function ($debtor) {
-                return $debtor->passport->fio;
+                return $debtor->passport->fio ?? '';
             })
             ->rawColumns(['links'])
             ->toJson();
