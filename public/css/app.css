@@ -6524,3 +6524,18 @@ table.tablesorter thead tr .headerSortDown {
 table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
 background-color: #8dbdd8;
 }
+
+.without-border > thead > tr > th,
+.without-border > tbody > tr > th,
+.without-border > tfoot > tr > th,
+.without-border > thead > tr > td,
+.without-border > tbody > tr > td,
+.without-border > tfoot > tr > td {
+    border-top: 1px solid #ffffff;
+}
+.table-address-info tr th{
+    text-align: right;
+}
+.table-address-info tr td{
+    text-align: left;
+}
