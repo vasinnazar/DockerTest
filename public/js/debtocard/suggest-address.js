@@ -65,9 +65,9 @@ $(document).ready(function () {
         $('#address_fact').hide(150);
     });
 
-    const categoryViewForm = () => {
+    const updatePassport = () => {
         console.log(46);
     }
 
-    window.categoryViewForm = categoryViewForm;
+    window.updatePassport = updatePassport;
 });

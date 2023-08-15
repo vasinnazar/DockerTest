@@ -143,7 +143,7 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="categoryViewForm()">Сохранить</button>
+                <button type="button" class="btn btn-primary" onclick="updatePassport()">Сохранить</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
             </div>
         </div>

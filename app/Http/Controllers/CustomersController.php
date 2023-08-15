@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Clients\ArmClient;
+use App\Http\Requests\Ajax\UpdatePassportRequest;
 use Illuminate\Http\Request,
     Auth,
     Input,
@@ -28,10 +30,24 @@ use Illuminate\Http\Request,
     App\Utils\StrLib,
     Illuminate\Support\Facades\Hash;
 
-class CustomersController extends Controller {
+class CustomersController extends Controller
+{
+    private $armClient;
 
-    public function __construct() {
+    public function __construct(ArmClient $armClient)
+    {
         $this->middleware('auth');
+        $this->armClient = $armClient;
+    }
+
+    public function updatePassport($customerId, $passportId, UpdatePassportRequest $request)
+    {
+        try {
+            $res = $this->armClient->updateCustomerPassport($customerId, $passportId, $request->validated());
+        } catch (\Exception $exception) {
+            $res = ['error' => $exception->getMessage()];
+        }
+        return response()->json($res);
     }
 
     public function getListView($id = null) {

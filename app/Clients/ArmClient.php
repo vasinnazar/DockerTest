@@ -73,6 +73,7 @@ class ArmClient
         $response = $this->client->get($this->url . '/api/v1/customers?id_1c=' . $customerId1c);
         return collect(json_decode($response->getBody()->getContents()));
     }
+
     public function getAbouts(int $customerId): array
     {
         $response = $this->client->get($this->url . '/api/v1/customers/' . $customerId . '/about');
@@ -131,6 +132,19 @@ class ArmClient
             [RequestOptions::JSON => $options]
         );
         return json_decode($response->getBody()->getContents());
+    }
+
+    public function updateCustomerPassport(int $customerId, int $passportId, array $data)
+    {
+        $response = $this->client->request(
+            'POST',
+            $this->url . "/api/v1/customers/" . $customerId . '/passports/' . $passportId,
+            [
+                'verify' => false,
+                'form_params' => $data
+            ]
+        );
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     public function getTinkoffLink(Debtor $debtor, float $amount, string $phone)
