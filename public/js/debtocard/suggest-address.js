@@ -20,20 +20,20 @@ $(document).ready(function () {
         return html;
     }
     function fillAddressFields(suggestion) {
-        document.getElementById('zip').innerText = suggestion.postal_code;
-        document.getElementById('address_region').innerText = suggestion.region_with_type;
-        document.getElementById('address_district').innerText = suggestion.area_with_type;
-        document.getElementById('address_city').innerText = suggestion.city_with_type;
-        document.getElementById('address_city1').innerText = suggestion.settlement_with_type;
-        document.getElementById('address_street').innerText = suggestion.street_with_type;
-        document.getElementById('address_house').innerText = suggestion.house;
-        document.getElementById('address_building').innerText = suggestion.block;
-        document.getElementById('address_apartment').innerText = suggestion.flat;
-        document.getElementById('okato').innerText = suggestion.okato;
-        document.getElementById('oktmo').innerText = suggestion.oktmo;
-        document.getElementById('fias_code').innerText = suggestion.fias_code;
-        document.getElementById('fias_id').innerText = suggestion.fias_id;
-        document.getElementById('kladr_id').innerText = suggestion.kladr_id;
+        document.getElementsByName('zip')[0].value = suggestion.postal_code;
+        document.getElementsByName('address_region')[0].value = suggestion.region_with_type;
+        document.getElementsByName('address_district')[0].value = suggestion.area_with_type;
+        document.getElementsByName('address_city')[0].value = suggestion.city_with_type;
+        document.getElementsByName('address_city1')[0].value = suggestion.settlement_with_type;
+        document.getElementsByName('address_street')[0].value = suggestion.street_with_type;
+        document.getElementsByName('address_house')[0].value = suggestion.house;
+        document.getElementsByName('address_building')[0].value = suggestion.block;
+        document.getElementsByName('address_apartment')[0].value = suggestion.flat;
+        document.getElementsByName('okato')[0].value = suggestion.okato;
+        document.getElementsByName('oktmo')[0].value = suggestion.oktmo;
+        document.getElementsByName('fias_code')[0].value = suggestion.fias_code;
+        document.getElementsByName('fias_id')[0].value = suggestion.fias_id;
+        document.getElementsByName('kladr_id')[0].value = suggestion.kladr_id;
     }
     $(document).on('click', '#checkAddressReg', function() {
         $.post($.app.url + '/debtors/suggests', {
@@ -64,9 +64,29 @@ $(document).ready(function () {
         $('#input_address_fact').val($(this).attr('value'));
         $('#address_fact').hide(150);
     });
+    function fullAddress()
+    {
+        const formElement = document.getElementById('addressCustomer');
+        const inputForm = formElement.getElementsByTagName("input");
+        let address = {};
+        for (let input of inputForm) {
+            address[input.getAttribute('name')] = input.getAttribute('value');
+        }
+        return address;
+    }
 
-    const updatePassport = () => {
-        console.log(46);
+    const updatePassport = (customerId, passportId) => {
+        if (customerId !== undefined && passportId !== undefined) {
+            $.post($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, {
+                data: fullAddress()
+            })
+                .done(function(response) {
+                    console.log(response)
+                });
+        }
+        else {
+            alert('Не удалось определить customer или passport');
+        }
     }
 
     window.updatePassport = updatePassport;

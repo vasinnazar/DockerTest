@@ -27,7 +27,7 @@ class SynchronizeService
         $this->armClient = $armClient;
     }
 
-    public function synchronizeDebtor(Debtor $debtor)
+    public function synchronizeDebtor(Debtor $debtor): array
     {
         $loanArm = $this->armClient->getLoanById1c($debtor->loan_id_1c)->first();
         if (empty($loanArm)) {
@@ -58,10 +58,14 @@ class SynchronizeService
                 'line' => $exception->getLine()
             ]);
             DB::rollBack();
-            return false;
+            return [
+                'customerId' => $loanArm->claim->customer_id,
+            ];
         }
         DB::commit();
-        return true;
+        return [
+            'customerId' => $loanArm->claim->customer_id,
+        ];
     }
 
     private function updateOrCreateAboutClient(Debtor $debtor, $infoCustomerArmSales)
