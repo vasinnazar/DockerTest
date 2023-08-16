@@ -47,7 +47,7 @@ class CustomersController extends Controller
         } catch (\Exception $exception) {
             $res = ['error' => $exception->getMessage()];
         }
-        return response()->json($res);
+        return response()->json($request);
     }
 
     public function getListView($id = null) {

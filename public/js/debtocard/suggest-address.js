@@ -19,6 +19,17 @@ $(document).ready(function () {
         }
         return html;
     }
+    function getValueForm () {
+        const ids = ['zip', 'address_region', 'address_district'];
+        const fields = {};
+
+        for (let id of ids) {
+            let field = document.getElementById(id);
+            fields[id] = field.value;
+        }
+
+        return fields;
+    }
     function fillAddressFields(suggestion) {
         document.getElementsByName('zip')[0].value = suggestion.postal_code;
         document.getElementsByName('address_region')[0].value = suggestion.region_with_type;
@@ -34,6 +45,7 @@ $(document).ready(function () {
         document.getElementsByName('fias_code')[0].value = suggestion.fias_code;
         document.getElementsByName('fias_id')[0].value = suggestion.fias_id;
         document.getElementsByName('kladr_id')[0].value = suggestion.kladr_id;
+        fullAddress();
     }
     $(document).on('click', '#checkAddressReg', function() {
         $.post($.app.url + '/debtors/suggests', {
@@ -57,7 +69,6 @@ $(document).ready(function () {
         $('#input_address_reg').val($(this).attr('value'));
         $('#address_reg').hide(150);
         let addressFias = addressesFias[$(this).attr('code')];
-        console.log(addressFias);
         fillAddressFields(addressFias);
     });
     $(document).on('click','#address_fact li', function(){
@@ -68,18 +79,21 @@ $(document).ready(function () {
     {
         const formElement = document.getElementById('addressCustomer');
         const inputForm = formElement.getElementsByTagName("input");
+
         let address = {};
         for (let input of inputForm) {
             address[input.getAttribute('name')] = input.getAttribute('value');
         }
+
+        console.log(getValueForm());
         return address;
     }
 
     const updatePassport = (customerId, passportId) => {
+        const data = fullAddress();
+        console.log(data)
         if (customerId !== undefined && passportId !== undefined) {
-            $.post($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, {
-                data: fullAddress()
-            })
+            $.post($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, data)
                 .done(function(response) {
                     console.log(response)
                 });

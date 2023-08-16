@@ -10,7 +10,7 @@
                     <div class="form-group row">
                         <label for="address_reg" class="col-sm-4 col-form-label">Адрес регистрации</label>
                         <div class="col-sm-8 pos-relative">
-                                        <textarea id="input_address_reg" name="address_reg" type="text"
+                                        <textarea id="input_address_reg" id="address_reg" name="address_reg" type="text"
                                                   class="form-control" value=""
                                                   autocomplete="off">{{$debtor->passport->full_address}}</textarea>
                             <ul class="list-group ul-address" id="address_reg">
@@ -42,92 +42,92 @@
                         <div class="col-sm-6">
                             <p>Полный адрес регистрации</p>
                             <label>Индекс</label>
-                            <input type="text" class="form-control" name="zip"
-                                   value="{{$debtor->passport->zip}}" disabled>
+                            <input type="text" class="disabled form-control" id="zip" name="zip"
+                                   value="{{$debtor->passport->zip}}">
                             <label>Регион</label>
-                            <input type="text" class="form-control" name="address_region"
-                                   value="{{$debtor->passport->address_region}}" disabled>
+                            <input type="text" class="disabled form-control" id="address_region" name="address_region"
+                                   value="{{$debtor->passport->address_region}}">
                             <label>Район</label>
-                            <input type="text" class="form-control" name="address_district"
-                                   value="{{$debtor->passport->address_district}}" disabled>
+                            <input type="text" class="disabled form-control" id="address_district" name="address_district"
+                                   value="{{$debtor->passport->address_district}}">
                             <label>Город</label>
-                            <input type="text" class="form-control" name="address_city"
-                                   value="{{$debtor->passport->address_city}}" disabled>
+                            <input type="text" class="disabled form-control" id="address_city" name="address_city"
+                                   value="{{$debtor->passport->address_city}}">
                             <label>Нас. пункт</label>
-                            <input type="text" class="form-control" name="address_city1"
-                                   value="{{$debtor->passport->address_city1}}" disabled>
+                            <input type="text" class="disabled form-control" id="address_city1" name="address_city1"
+                                   value="{{$debtor->passport->address_city1}}">
                             <label>Улица</label>
-                            <input type="text" class="form-control" name="address_street"
-                                   value="{{$debtor->passport->address_street}}" disabled>
+                            <input type="text" class="disabled form-control" id="address_street" name="address_street"
+                                   value="{{$debtor->passport->address_street}}">
                             <label>Дом</label>
-                            <input type="text" class="form-control" name="address_house"
-                                   value="{{$debtor->passport->address_house}}" disabled>
+                            <input type="text" class="disabled form-control" id="address_house" name="address_house"
+                                   value="{{$debtor->passport->address_house}}">
                             <label>Корпус</label>
-                            <input type="text" class="form-control" name="address_building"
-                                   value="{{$debtor->passport->address_building}}" disabled>
+                            <input type="text" class="disabled form-control" id="address_building" name="address_building"
+                                   value="{{$debtor->passport->address_building}}">
                             <label>Квартира</label>
-                            <input type="text" class="form-control" name="address_apartment"
-                                   value="{{$debtor->passport->address_apartment}}" disabled>
+                            <input type="text" class="disabled form-control" id="address_apartment" name="address_apartment"
+                                   value="{{$debtor->passport->address_apartment}}">
                             <label>Код ОКАТО</label>
-                            <input type="text" class="form-control" name="okato"
-                                   value="{{$debtor->passport->zip}}" disabled>
+                            <input type="text" class="disabled form-control" id="okato" name="okato"
+                                   value="{{$debtor->passport->zip}}">
                             <label>Код ОКТМО</label>
-                            <input type="text" class="form-control" name="oktmo"
-                                   value="{{$debtor->passport->oktmo}}" disabled>
+                            <input type="text" class="disabled form-control" id="oktmo" name="oktmo"
+                                   value="{{$debtor->passport->oktmo}}">
                             <label>Код ФИАС</label>
-                            <input type="text" class="form-control" name="fias_code"
-                                   value="{{$debtor->passport->fias_code}}" disabled>
+                            <input type="text" class="disabled form-control" id="fias_code" name="fias_code"
+                                   value="{{$debtor->passport->fias_code}}">
                             <label>ФИАС ИД</label>
-                            <input type="text" class="form-control" name="fias_id"
-                                   value="{{$debtor->passport->fias_id}}" disabled>
+                            <input type="text" class="disabled form-control" id="fias_id" name="fias_id"
+                                   value="{{$debtor->passport->fias_id}}">
                             <label>КЛАДР</label>
-                            <input type="text" class="form-control" name="kladr_id"
-                                   value="{{$debtor->passport->kladr_id}}" disabled>
+                            <input type="text" class="disabled form-control" id="kladr_id" name="kladr_id"
+                                   value="{{$debtor->passport->kladr_id}}">
                         </div>
                         <div class="col-sm-6">
                             <p>Полный адрес проживания</p>
                             <label>Индекс</label>
-                            <input type="text" class="form-control" name="fact_zip"
-                                   value="{{$debtor->passport->fact_zip}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_zip" name="fact_zip"
+                                   value="{{$debtor->passport->fact_zip}}">
                             <label>Регион</label>
-                            <input type="text" class="form-control" name="fact_address_region"
-                                   value="{{$debtor->passport->fact_address_region}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_address_region" name="fact_address_region"
+                                   value="{{$debtor->passport->fact_address_region}}">
                             <label>Район</label>
-                            <input type="text" class="form-control" name="fact_address_district"
-                                   value="{{$debtor->passport->fact_address_district}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_address_district" name="fact_address_district"
+                                   value="{{$debtor->passport->fact_address_district}}">
                             <label>Город</label>
-                            <input type="text" class="form-control" name="fact_address_city"
-                                   value="{{$debtor->passport->fact_address_city}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_address_city" name="fact_address_city"
+                                   value="{{$debtor->passport->fact_address_city}}">
                             <label>Нас. пункт</label>
-                            <input type="text" class="form-control" name="fact_address_city1"
-                                   value="{{$debtor->passport->fact_address_city1}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_address_city1" name="fact_address_city1"
+                                   value="{{$debtor->passport->fact_address_city1}}">
                             <label>Улица</label>
-                            <input type="text" class="form-control" name="fact_address_street"
-                                   value="{{$debtor->passport->fact_address_street}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_address_street" name="fact_address_street"
+                                   value="{{$debtor->passport->fact_address_street}}">
                             <label>Дом</label>
-                            <input type="text" class="form-control" name="fact_address_house"
-                                   value="{{$debtor->passport->fact_address_house}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_address_house" name="fact_address_house"
+                                   value="{{$debtor->passport->fact_address_house}}">
                             <label>Корпус</label>
-                            <input type="text" class="form-control" name="fact_address_building"
-                                   value="{{$debtor->passport->fact_address_building}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_address_building" name="fact_address_building"
+                                   value="{{$debtor->passport->fact_address_building}}">
                             <label>Квартира</label>
-                            <input type="text" class="form-control" name="fact_address_apartment"
-                                   value="{{$debtor->passport->fact_address_apartment}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_address_apartment" name="fact_address_apartment"
+                                   value="{{$debtor->passport->fact_address_apartment}}">
                             <label>Код ОКАТО</label>
-                            <input type="text" class="form-control" name="fact_okato"
-                                   value="{{$debtor->passport->fact_okato}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_okato" name="fact_okato"
+                                   value="{{$debtor->passport->fact_okato}}">
                             <label>Код ОКТМО</label>
-                            <input type="text" class="form-control" name="fact_oktmo"
-                                   value="{{$debtor->passport->fact_oktmo}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_oktmo" name="fact_oktmo"
+                                   value="{{$debtor->passport->fact_oktmo}}">
                             <label>Код ФИАС</label>
-                            <input type="text" class="form-control" name="fact_fias_code"
-                                   value="{{$debtor->passport->fact_fias_code}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_fias_code" name="fact_fias_code"
+                                   value="{{$debtor->passport->fact_fias_code}}">
                             <label>ФИАС ИД</label>
-                            <input type="text" class="form-control" name="fact_fias_id"
-                                   value="{{$debtor->passport->fact_fias_id}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_fias_id" name="fact_fias_id"
+                                   value="{{$debtor->passport->fact_fias_id}}">
                             <label>КЛАДР</label>
-                            <input type="text" class="form-control" name="fact_kladr_id"
-                                   value="{{$debtor->passport->fact_kladr_id}}" disabled>
+                            <input type="text" class="disabled form-control" id="fact_kladr_id" name="fact_kladr_id"
+                                   value="{{$debtor->passport->fact_kladr_id}}">
                         </div>
                     </form>
                 </div>
