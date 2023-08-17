@@ -24,16 +24,7 @@ class UpdatePassportRequest extends FormRequest
     public function rules()
     {
         return [
-            'fio' => 'string',
-            'series' => 'digits:4',
-            'number' => 'digits:6',
-            'birth_date' => 'date',
-            'issued_date' => 'date',
-            'issued' => 'string',
             'zip' => 'nullable|string',
-            'subdivision_code' => 'string',
-            'birth_city' => 'string',
-            'address_reg_date' => 'date',
             'address_region' => 'string',
             'address_district' => 'nullable|string',
             'address_city' => 'nullable|string',
@@ -47,6 +38,21 @@ class UpdatePassportRequest extends FormRequest
             'kladr_id' => 'nullable|string',
             'fias_id' => 'nullable|string',
             'fias_code' => 'nullable|string',
+            'fact_zip' => 'nullable|string',
+            'fact_address_region' => 'string',
+            'fact_address_district' => 'nullable|string',
+            'fact_address_city' => 'nullable|string',
+            'fact_address_city1' => 'nullable|string',
+            'fact_address_street' => 'nullable|string',
+            'fact_address_house' => 'nullable|string',
+            'fact_address_building' => 'nullable|string',
+            'fact_address_apartment' => 'nullable|string',
+            'fact_okato' => 'nullable|string',
+            'fact_oktmo' => 'nullable|string',
+            'fact_kladr_id' => 'nullable|string',
+            'fact_fias_id' => 'nullable|string',
+            'fact_fias_code' => 'nullable|string',
+
         ];
     }
 }

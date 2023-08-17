@@ -1,104 +1,142 @@
 $(document).ready(function () {
     let addressesFias;
-    $("body").click(function(e) {
-        if($(e.target).attr('id') === 'checkAddressReg') {
+    let dataUpdate = {};
+    $("body").click(function (e) {
+        if ($(e.target).attr('id') === 'checkAddressReg') {
             $('#address_reg').show();
-        }
-        else {
+        } else {
             $('#address_reg').hide();
         }
     });
-    function createOptionsComponent (suggestions = []) {
+
+    function createOptionsComponent(suggestions = []) {
         let html = ``;
         let i = 0;
         addressesFias = [];
         for (let suggest of suggestions) {
-            html += `<li class="list-group-item" code="${i}" value="${suggest.value}">${suggest.value}</li>`;
+            html += `<li class="list-group-item" code="${i}" value="${suggest.unrestricted_value}">
+                        ${suggest.unrestricted_value}
+                     </li>`;
             addressesFias.push(suggest.data);
             i++;
         }
         return html;
     }
-    function getValueForm () {
-        const ids = ['zip', 'address_region', 'address_district'];
-        const fields = {};
 
-        for (let id of ids) {
-            let field = document.getElementById(id);
-            fields[id] = field.value;
+    function fillAddress(suggestion, reg) {
+
+        const fullAddress = [{
+            keyRegAddress: 'zip',
+            keyFactAddress: 'fact_zip',
+            valueDadata: suggestion.postal_code
+        }, {
+            keyRegAddress: 'address_region',
+            keyFactAddress: 'fact_address_region',
+            valueDadata: suggestion.region_with_type
+        }, {
+            keyRegAddress: 'address_district',
+            keyFactAddress: 'fact_address_district',
+            valueDadata: suggestion.area_with_type
+        }, {
+            keyRegAddress: 'address_city',
+            keyFactAddress: 'fact_address_city',
+            valueDadata: suggestion.city_with_type
+        }, {
+            keyRegAddress: 'address_city1',
+            keyFactAddress: 'fact_address_city1',
+            valueDadata: suggestion.settlement_with_type
+        }, {
+            keyRegAddress: 'address_street',
+            keyFactAddress: 'fact_address_street',
+            valueDadata: suggestion.street_with_type
+        }, {
+            keyRegAddress: 'address_house',
+            keyFactAddress: 'fact_address_house',
+            valueDadata: suggestion.house
+        }, {
+            keyRegAddress: 'address_building',
+            keyFactAddress: 'fact_address_building',
+            valueDadata: suggestion.block
+        }, {
+            keyRegAddress: 'address_apartment',
+            keyFactAddress: 'fact_address_apartment',
+            valueDadata: suggestion.flat
+        }, {
+            keyRegAddress: 'okato',
+            keyFactAddress: 'fact_okato',
+            valueDadata: suggestion.okato
+        }, {
+            keyRegAddress: 'oktmo',
+            keyFactAddress: 'fact_oktmo',
+            valueDadata: suggestion.oktmo
+        }, {
+            keyRegAddress: 'fias_code',
+            keyFactAddress: 'fact_fias_code',
+            valueDadata: suggestion.fias_code
+        }, {
+            keyRegAddress: 'fias_id',
+            keyFactAddress: 'fact_fias_id',
+            valueDadata: suggestion.fias_id
+        }, {
+            keyRegAddress: 'kladr_id',
+            keyFactAddress: 'fact_kladr_id',
+            valueDadata: suggestion.kladr_id
         }
+        ];
 
-        return fields;
+        for (let address of fullAddress) {
+            if (reg) {
+                document.getElementById(address.keyRegAddress).value = address.valueDadata;
+                dataUpdate[address.keyRegAddress] = address.valueDadata;
+            } else {
+                document.getElementById(address.keyFactAddress).value = address.valueDadata;
+                dataUpdate[address.keyFactAddress] = address.valueDadata;
+            }
+        }
     }
-    function fillAddressFields(suggestion) {
-        document.getElementsByName('zip')[0].value = suggestion.postal_code;
-        document.getElementsByName('address_region')[0].value = suggestion.region_with_type;
-        document.getElementsByName('address_district')[0].value = suggestion.area_with_type;
-        document.getElementsByName('address_city')[0].value = suggestion.city_with_type;
-        document.getElementsByName('address_city1')[0].value = suggestion.settlement_with_type;
-        document.getElementsByName('address_street')[0].value = suggestion.street_with_type;
-        document.getElementsByName('address_house')[0].value = suggestion.house;
-        document.getElementsByName('address_building')[0].value = suggestion.block;
-        document.getElementsByName('address_apartment')[0].value = suggestion.flat;
-        document.getElementsByName('okato')[0].value = suggestion.okato;
-        document.getElementsByName('oktmo')[0].value = suggestion.oktmo;
-        document.getElementsByName('fias_code')[0].value = suggestion.fias_code;
-        document.getElementsByName('fias_id')[0].value = suggestion.fias_id;
-        document.getElementsByName('kladr_id')[0].value = suggestion.kladr_id;
-        fullAddress();
-    }
-    $(document).on('click', '#checkAddressReg', function() {
+
+    document.getElementById("checkAddressReg").onclick = function () {
         $.post($.app.url + '/debtors/suggests', {
             address: $('textarea[name="address_reg"]').val()
         })
-            .done(function(response) {
+            .done(function (response) {
                 $("#address_reg").html(createOptionsComponent(response));
                 $('#address_reg').show();
-        });
-    });
-    $(document).on('click', '#checkAddressFact', function() {
+            });
+    }
+
+    document.getElementById("checkAddressFact").onclick = function () {
         $.post($.app.url + '/debtors/suggests', {
             address: $('textarea[name="address_fact"]').val()
         })
-            .done(function(response) {
+            .done(function (response) {
                 $("#address_fact").html(createOptionsComponent(response));
                 $('#address_fact').show();
             });
-    });
-    $(document).on('click','#address_reg li', function(){
+    }
+
+    $(document).on('click', '#address_reg li', function () {
         $('#input_address_reg').val($(this).attr('value'));
         $('#address_reg').hide(150);
         let addressFias = addressesFias[$(this).attr('code')];
-        fillAddressFields(addressFias);
+        fillAddress(addressFias, true);
     });
-    $(document).on('click','#address_fact li', function(){
+    $(document).on('click', '#address_fact li', function () {
         $('#input_address_fact').val($(this).attr('value'));
         $('#address_fact').hide(150);
+        let addressFias = addressesFias[$(this).attr('code')];
+        fillAddress(addressFias, false);
     });
-    function fullAddress()
-    {
-        const formElement = document.getElementById('addressCustomer');
-        const inputForm = formElement.getElementsByTagName("input");
 
-        let address = {};
-        for (let input of inputForm) {
-            address[input.getAttribute('name')] = input.getAttribute('value');
-        }
-
-        console.log(getValueForm());
-        return address;
-    }
 
     const updatePassport = (customerId, passportId) => {
-        const data = fullAddress();
-        console.log(data)
+        console.log(dataUpdate);
         if (customerId !== undefined && passportId !== undefined) {
-            $.post($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, data)
-                .done(function(response) {
+            $.post($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, dataUpdate)
+                .done(function (response) {
                     console.log(response)
                 });
-        }
-        else {
+        } else {
             alert('Не удалось определить customer или passport');
         }
     }
