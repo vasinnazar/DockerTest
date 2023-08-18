@@ -83,10 +83,14 @@ window.onload = function () {
         for (let address of fullAddress) {
             if (reg) {
                 document.getElementById(address.keyRegAddress).value = address.valueDadata;
-                dataUpdate[address.keyRegAddress] = address.valueDadata;
+                if (address.valueDadata !== null) {
+                    dataUpdate[address.keyRegAddress] = address.valueDadata;
+                }
             } else {
                 document.getElementById(address.keyFactAddress).value = address.valueDadata;
-                dataUpdate[address.keyFactAddress] = address.valueDadata;
+                if (address.valueDadata !== null) {
+                    dataUpdate[address.keyFactAddress] = address.valueDadata;
+                }
             }
         }
     }
@@ -124,17 +128,27 @@ window.onload = function () {
         fillAddress(addressFias, false);
     });
 
-
+    function showInfoBlock(idElement, textInfo, styleInfo) {
+        const divInfo = document.getElementById(idElement);
+        divInfo.classList.add(styleInfo);
+        divInfo.style.display = 'block';
+        document.getElementById('textInfo').innerHTML = textInfo;
+    }
     const updatePassport = (customerId, passportId) => {
+        console.log(dataUpdate);
         if (customerId !== undefined && passportId !== undefined) {
             $.post($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, dataUpdate)
                 .done(function (response) {
-                    $('#changeAddress').modal('hide');
-                    $('#sendInfo').attr('class', 'alert alert-success');
-                    $('#sendInfo').text('Паспорт обновлен');
+                    if (response.error) {
+                        $('#changeAddress').modal('hide');
+                        showInfoBlock('infoBlock', 'Не удалось обновить паспорт armId: ' + passportId, 'alert-danger');
+                    } else {
+                        $('#changeAddress').modal('hide');
+                        showInfoBlock('infoBlock', 'Паспорт сохранен, обновите страницу', 'alert-success');
+                    }
                 });
         } else {
-            alert('Не удалось определить customer или passport');
+            showInfoBlock('infoForUser', 'Не удалось определить контрагента или паспорт', 'alert-danger');
         }
     }
 

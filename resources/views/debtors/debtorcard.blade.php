@@ -6,10 +6,11 @@
     <link rel="stylesheet" href="{{asset('css/debtors.css')}}"/>
 @stop
 @section('content')
-    <div class="row" id="infoBlock" style="margin-top: 15px; display: none;">
-        <div class="col-xs-12">
-            <div id="infoForUser" class="alert alert-info" role="alert"></div>
-        </div>
+    <div id="infoBlock" class="alert alertalert-dismissible" role="alert" style="display: none;">
+        <p style="display: contents;" id="textInfo"></p>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
     @if(isset($debtor) && !is_null($debtor))
         <div class='hidden debtor-data'>
