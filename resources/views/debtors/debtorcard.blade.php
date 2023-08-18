@@ -6,6 +6,11 @@
     <link rel="stylesheet" href="{{asset('css/debtors.css')}}"/>
 @stop
 @section('content')
+    <div class="row" id="infoBlock" style="margin-top: 15px; display: none;">
+        <div class="col-xs-12">
+            <div id="infoForUser" class="alert alert-info" role="alert"></div>
+        </div>
+    </div>
     @if(isset($debtor) && !is_null($debtor))
         <div class='hidden debtor-data'>
             {!! Form::hidden('customer_id_1c',$debtor->customer_id_1c) !!}

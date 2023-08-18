@@ -7,7 +7,7 @@ window.onload = function () {
         let i = 0;
         addressesFias = [];
         if (suggestions.length == 0) {
-            html += `<li class="list-group-item">Не найдено</li>`;
+            html = `<li class="list-group-item" style="pointer-events: none">Не найдено</li>`;
         }
         for (let suggest of suggestions) {
             html += `<li class="list-group-item" code="${i}" value="${suggest.unrestricted_value}">
@@ -129,7 +129,9 @@ window.onload = function () {
         if (customerId !== undefined && passportId !== undefined) {
             $.post($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, dataUpdate)
                 .done(function (response) {
-                    console.log(response)
+                    $('#changeAddress').modal('hide');
+                    $('#sendInfo').attr('class', 'alert alert-success');
+                    $('#sendInfo').text('Паспорт обновлен');
                 });
         } else {
             alert('Не удалось определить customer или passport');
