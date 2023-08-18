@@ -10,10 +10,6 @@ use Illuminate\Http\Request,
     Validator,
     Session,
     Redirect,
-    App\Loan,
-    App\Card,
-    App\User,
-    App\Subdivision,
     App\Customer,
     App\Order,
     App\Passport,
@@ -23,12 +19,9 @@ use Illuminate\Http\Request,
     Yajra\DataTables\Facades\DataTables,
     Carbon\Carbon,
     App\Spylog\Spylog,
-    App\Spylog\SpylogModel,
     App\CustomerForm,
-    App\MySoap,
     App\Utils\HtmlHelper,
-    App\Utils\StrLib,
-    Illuminate\Support\Facades\Hash;
+    App\Utils\StrLib;
 
 class CustomersController extends Controller
 {
