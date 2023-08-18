@@ -394,8 +394,12 @@ body{
     position: absolute;
     padding-right: 15px;
     z-index: 1;
+    width: 97%;
 }
 .ul-address li:hover{
     cursor: pointer;
     background: rgb(151, 189, 215);
+}
+.input-address{
+    margin: 10px 20px;
 }

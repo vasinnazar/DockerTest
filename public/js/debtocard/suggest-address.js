@@ -1,18 +1,14 @@
-$(document).ready(function () {
+window.onload = function () {
     let addressesFias;
     let dataUpdate = {};
-    $("body").click(function (e) {
-        if ($(e.target).attr('id') === 'checkAddressReg') {
-            $('#address_reg').show();
-        } else {
-            $('#address_reg').hide();
-        }
-    });
 
     function createOptionsComponent(suggestions = []) {
         let html = ``;
         let i = 0;
         addressesFias = [];
+        if (suggestions.length == 0) {
+            html += `<li class="list-group-item">Не найдено</li>`;
+        }
         for (let suggest of suggestions) {
             html += `<li class="list-group-item" code="${i}" value="${suggest.unrestricted_value}">
                         ${suggest.unrestricted_value}
@@ -97,40 +93,39 @@ $(document).ready(function () {
 
     document.getElementById("checkAddressReg").onclick = function () {
         $.post($.app.url + '/debtors/suggests', {
-            address: $('textarea[name="address_reg"]').val()
+            address: document.getElementById("address_reg").value
         })
             .done(function (response) {
-                $("#address_reg").html(createOptionsComponent(response));
-                $('#address_reg').show();
+                document.getElementById("list_address_reg").innerHTML = createOptionsComponent(response);
+                $('#list_address_reg').show();
             });
     }
 
     document.getElementById("checkAddressFact").onclick = function () {
         $.post($.app.url + '/debtors/suggests', {
-            address: $('textarea[name="address_fact"]').val()
+            address: document.getElementById("address_fact").value
         })
             .done(function (response) {
-                $("#address_fact").html(createOptionsComponent(response));
-                $('#address_fact').show();
+                document.getElementById("list_address_fact").innerHTML = createOptionsComponent(response);
+                $('#list_address_fact').show();
             });
     }
 
-    $(document).on('click', '#address_reg li', function () {
-        $('#input_address_reg').val($(this).attr('value'));
-        $('#address_reg').hide(150);
+    $(document).on('click', '#list_address_reg li', function () {
+        $('#address_reg').val($(this).attr('value'));
+        $('#list_address_reg').hide();
         let addressFias = addressesFias[$(this).attr('code')];
         fillAddress(addressFias, true);
     });
-    $(document).on('click', '#address_fact li', function () {
-        $('#input_address_fact').val($(this).attr('value'));
-        $('#address_fact').hide(150);
+    $(document).on('click', '#list_address_fact li', function () {
+        $('#address_fact').val($(this).attr('value'));
+        $('#list_address_fact').hide();
         let addressFias = addressesFias[$(this).attr('code')];
         fillAddress(addressFias, false);
     });
 
 
     const updatePassport = (customerId, passportId) => {
-        console.log(dataUpdate);
         if (customerId !== undefined && passportId !== undefined) {
             $.post($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, dataUpdate)
                 .done(function (response) {
@@ -142,4 +137,19 @@ $(document).ready(function () {
     }
 
     window.updatePassport = updatePassport;
-});
+
+    $("body").click(function (e) {
+        if ($(e.target).attr('id') === 'checkAddressReg') {
+            $('#list_address_reg').show();
+        } else {
+            $('#list_address_reg').hide();
+        }
+    });
+    $("body").click(function (e) {
+        if ($(e.target).attr('id') === 'checkAddressFact') {
+            $('#list_address_fact').show();
+        } else {
+            $('#list_address_fact').hide();
+        }
+    });
+};

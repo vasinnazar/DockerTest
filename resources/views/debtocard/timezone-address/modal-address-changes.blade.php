@@ -7,36 +7,37 @@
             </div>
             <div class="modal-body" style="overflow-y: auto;">
                 <div class="row">
-                    <div class="form-group row">
-                        <label for="address_reg" class="col-sm-4 col-form-label">Адрес регистрации</label>
-                        <div class="col-sm-8 pos-relative">
-                                        <textarea id="input_address_reg" id="address_reg" name="address_reg" type="text"
+                    <div class="input-address">
+                        <div class="form-group row">
+                            <label for="address_reg" class="col-sm-4 col-form-label">Адрес регистрации</label>
+                            <div class="col-sm-8 pos-relative">
+                                        <textarea id="address_reg" name="address_reg" type="text"
                                                   class="form-control" value=""
                                                   autocomplete="off">{{$debtor->passport->full_address}}</textarea>
-                            <ul class="list-group ul-address" id="address_reg">
-                            </ul>
+                                <ul class="list-group ul-address" id="list_address_reg">
+                                </ul>
+                            </div>
                         </div>
-                    </div>
-                    <div class="text-right mt-1">
-                        <button class="btn btn-outline-secondary" id="checkAddressReg">
-                            Проверить
-                        </button>
-                    </div>
-
-                    <div class="form-group row">
-                        <label for="address_fact" class="col-sm-4 col-form-label">Адрес проживания</label>
-                        <div class="col-sm-8 pos-relative">
-                                        <textarea id="input_address_fact" name="address_fact" type="text"
+                        <div class="text-right mtb-10">
+                            <button class="btn btn-outline-secondary" id="checkAddressReg">
+                                Проверить
+                            </button>
+                        </div>
+                        <div class="form-group row">
+                            <label for="address_fact" class="col-sm-4 col-form-label">Адрес проживания</label>
+                            <div class="col-sm-8 pos-relative">
+                                        <textarea id="address_fact" name="address_fact" type="text"
                                                   class="form-control" value=""
                                                   autocomplete="off">{{$debtor->passport->fact_full_address}}</textarea>
-                            <ul class="list-group ul-address" id="address_fact">
-                            </ul>
+                                <ul class="list-group ul-address" id="list_address_fact">
+                                </ul>
+                            </div>
                         </div>
-                    </div>
-                    <div class="text-right mt-1">
-                        <button class="btn btn-outline-secondary" id="checkAddressFact">
-                            Проверить
-                        </button>
+                        <div class="text-right mtb-10">
+                            <button class="btn btn-outline-secondary" id="checkAddressFact">
+                                Проверить
+                            </button>
+                        </div>
                     </div>
                     <form id="addressCustomer">
                         <div class="col-sm-6">
