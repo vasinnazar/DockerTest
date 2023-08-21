@@ -81,16 +81,15 @@ window.onload = function () {
         ];
 
         for (let address of fullAddress) {
+            if (address.valueDadata == null) {
+                address.valueDadata = '';
+            }
             if (reg) {
                 document.getElementById(address.keyRegAddress).value = address.valueDadata;
-                if (address.valueDadata !== null) {
-                    dataUpdate[address.keyRegAddress] = address.valueDadata;
-                }
+                dataUpdate[address.keyRegAddress] = address.valueDadata;
             } else {
                 document.getElementById(address.keyFactAddress).value = address.valueDadata;
-                if (address.valueDadata !== null) {
-                    dataUpdate[address.keyFactAddress] = address.valueDadata;
-                }
+                dataUpdate[address.keyFactAddress] = address.valueDadata;
             }
         }
     }
