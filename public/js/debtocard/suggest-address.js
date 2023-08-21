@@ -134,7 +134,6 @@ window.onload = function () {
         document.getElementById('textInfo').innerHTML = textInfo;
     }
     const updatePassport = (customerId, passportId) => {
-        console.log(dataUpdate);
         if (customerId !== undefined && passportId !== undefined) {
             $.post($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, dataUpdate)
                 .done(function (response) {
