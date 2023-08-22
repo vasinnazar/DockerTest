@@ -134,9 +134,11 @@ window.onload = function () {
         document.getElementById('textInfo').innerHTML = textInfo;
     }
     const updatePassport = (customerId, passportId) => {
+        $.app.blockScreen(true);
         if (customerId !== undefined && passportId !== undefined) {
             $.post($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, dataUpdate)
                 .done(function (response) {
+                    $.app.blockScreen(false);
                     if (response.error) {
                         $('#changeAddress').modal('hide');
                         showInfoBlock('infoBlock', 'Не удалось обновить паспорт armId: ' + passportId, 'alert-danger');
@@ -146,6 +148,7 @@ window.onload = function () {
                     }
                 });
         } else {
+            $.app.blockScreen(false);
             showInfoBlock('infoForUser', 'Не удалось определить контрагента или паспорт', 'alert-danger');
         }
     }
