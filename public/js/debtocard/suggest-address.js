@@ -119,12 +119,14 @@ window.onload = function () {
         $('#list_address_reg').hide();
         let addressFias = addressesFias[$(this).attr('code')];
         fillAddress(addressFias, true);
+        document.getElementById("address_reg").style.borderColor = "#58c689";
     });
     $(document).on('click', '#list_address_fact li', function () {
         $('#address_fact').val($(this).attr('value'));
         $('#list_address_fact').hide();
         let addressFias = addressesFias[$(this).attr('code')];
         fillAddress(addressFias, false);
+        document.getElementById("address_fact").style.borderColor = "#58c689";
     });
 
     function showInfoBlock(idElement, textInfo, styleInfo) {
