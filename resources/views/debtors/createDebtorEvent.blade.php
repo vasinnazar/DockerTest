@@ -25,20 +25,9 @@
                             <div class='form-group'>
                                 <label class='col-xs-12 col-sm-4 text-right'>Тип мероприятия:</label>
                                 <div class='col-xs-12 col-sm-8'>
-                                    <select name="event_type_id" class="form-control">
+                                    <select id="eventTypeId" name="event_type_id" class="form-control">
                                         <option value=""></option>
                                         @foreach ($debtdata['event_types'] as $k => $type)
-                                            <option value="{{$k}}">{{$type}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class='form-group'>
-                                <label class='col-xs-12 col-sm-4 text-right'>Причина просрочки:</label>
-                                <div class='col-xs-12 col-sm-8'>
-                                    <select name="overdue_reason_id" class="form-control">
-                                        <option value=""></option>
-                                        @foreach ($debtdata['overdue_reasons'] as $k => $type)
                                             <option value="{{$k}}">{{$type}}</option>
                                         @endforeach
                                     </select>
@@ -83,6 +72,17 @@
                                         @foreach ($debtdata['event_results'] as $k => $type)
                                             @continue ($user->hasRole('debtors_remote') &&
                                                 !in_array($k, $availableData['eventResultRemote']))
+                                            <option value="{{$k}}">{{$type}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class='form-group'>
+                                <label class='col-xs-12 col-sm-4 text-right'>Статус соединения:</label>
+                                <div class='col-xs-12 col-sm-8'>
+                                    <select id="overdueReasonId" name="overdue_reason_id" class="form-control">
+                                        <option value=""></option>
+                                        @foreach ($debtdata['overdue_reasons'] as $k => $type)
                                             <option value="{{$k}}">{{$type}}</option>
                                         @endforeach
                                     </select>

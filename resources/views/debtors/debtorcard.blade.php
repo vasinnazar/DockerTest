@@ -488,7 +488,7 @@
                                 <td id="debtor-phone-clip">{{$debtor->customer->telephone}}</td>
                                 <td style="display: flex;">
                                     @if(!empty(auth()->user()->infinity_extension))
-                                        <button type="button" class="btn btn-success btn-xs phone-call-btn"
+                                        <button id="mainPhoneCall" type="button" class="btn btn-success btn-xs phone-call-btn"
                                                 data-phone="{{$debtor->customer->telephone}}" style="margin-right: 20%">
                                             <span class="glyphicon glyphicon-earphone"></span>
                                         </button>
@@ -1086,6 +1086,7 @@
     <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>
     @if ($debtor->base != 'Архив ЗД')
         <script>
+            var autofilledEvent;
             $(document).ready(function () {
                 $(document).on('click', '.phone-call-btn', function () {
                     if ($('#canCall').val() == '1') {
@@ -1106,6 +1107,34 @@
                         });
                     }
                 });
+                $(document).on('click', '#mainPhoneCall', function (){
+                    autofilledEvent = true;
+                    @php
+                        $statusKey = array_keys(array_filter($debtdata['overdue_reasons'], fn($arr) => $arr == 'АО'))[0];
+                        $mobilePhoneEventTypeKey = array_keys(array_filter($debtdata['event_types'], fn($arr) => $arr == 'Звонок на мобильный телефон'))[0];
+                        $contactlessGroupKey = array_keys(array_filter($debtdata['debt_groups'], fn($arr) => $arr == 'Бесконтактный'))[0];
+                        $resultKey = array_keys(array_filter($debtdata['event_results'], fn($arr) => $arr == 'Нет контакта'))[0];
+
+                        $collectedEventTypeKey = array_keys(array_filter($debtdata['event_types'], fn($arr) => $arr == 'ИНФОРМАЦИЯ СОБРАНА'))[0];
+                        $hopelessGroupKey = array_keys(array_filter($debtdata['debt_groups'], fn($arr) => $arr == 'Безнадежный'))[0];
+                    @endphp
+                    $('#overdueReasonId').val({{$statusKey}}).trigger('change')
+                    $('#eventTypeId').val({{$mobilePhoneEventTypeKey}}).trigger('change')
+                    $('select[name="debt_group_id"]').val({{$contactlessGroupKey}}).trigger('change')
+                    $('select[name="event_result_id"]').val({{$resultKey}}).trigger('change')
+                }).on('change', '#overdueReasonId', function () {
+                    if(autofilledEvent == true) {
+                        let eventTextArea = $('textarea[name="report"]')
+                        eventTextArea.val("Зв: " + {{$debtor->customer->telephone}} + " " + $('select[name="overdue_reason_id"]').find(':selected').text())
+                    }
+                }).on('change', '#eventTypeId', function () {
+                    if($('#eventTypeId').find(':selected').text() == "ИНФОРМАЦИЯ СОБРАНА") {
+                        autofilledEvent = true;
+                        $('#overdueReasonId').val({{$statusKey}}).trigger('change')
+                        $('select[name="debt_group_id"]').val({{$hopelessGroupKey}}).trigger('change')
+                        $('select[name="event_result_id"]').val({{$resultKey}}).trigger('change')
+                    }
+                })
             });
         </script>
     @endif
