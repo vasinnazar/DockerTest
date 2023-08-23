@@ -80,9 +80,9 @@
                             <div class='form-group'>
                                 <label class='col-xs-12 col-sm-4 text-right'>Статус соединения:</label>
                                 <div class='col-xs-12 col-sm-8'>
-                                    <select id="overdueReasonId" name="overdue_reason_id" class="form-control">
+                                    <select id="connectionStatusId" name="connection_status_id" class="form-control">
                                         <option value=""></option>
-                                        @foreach ($debtdata['overdue_reasons'] as $k => $type)
+                                        @foreach ($debtdata['connection_status'] as $k => $type)
                                             <option value="{{$k}}">{{$type}}</option>
                                         @endforeach
                                     </select>

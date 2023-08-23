@@ -46,17 +46,6 @@ use App\OrderType,
                         </div>
                     </div>
                     <div class='form-group'>
-                        <label class='col-xs-12 col-sm-4 text-right'>Причина просрочки:</label>
-                        <div class='col-xs-12 col-sm-8'>
-                            <select name="overdue_reason_id" class="form-control">
-                                <option value=""></option>
-                                @foreach ($debtdata['overdue_reasons'] as $k => $type)
-                                <option value="{{$k}}">{{$type}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class='form-group'>
                         <label class='col-xs-12 col-sm-4 text-right'>Группа долга:</label>
                         <div class='col-xs-12 col-sm-8'>
                             <select name="debt_group_id" class="form-control">
@@ -74,6 +63,17 @@ use App\OrderType,
                                 <option value=""></option>
                                 @foreach ($debtdata['event_results'] as $k => $type)
                                 <option value="{{$k}}">{{$type}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class='form-group'>
+                        <label class='col-xs-12 col-sm-4 text-right'>Статус соединения:</label>
+                        <div class='col-xs-12 col-sm-8'>
+                            <select name="connection_status_id" class="form-control">
+                                <option value=""></option>
+                                @foreach ($debtdata['connection_status'] as $k => $type)
+                                    <option value="{{$k}}">{{$type}}</option>
                                 @endforeach
                             </select>
                         </div>

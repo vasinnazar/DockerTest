@@ -66,6 +66,7 @@ class DebtorEvent extends Model
         'debtor_id_1c',
         'user_id_1c',
         'refresh_date',
+        'connection_status_id'
     ];
 
     protected static function boot()
