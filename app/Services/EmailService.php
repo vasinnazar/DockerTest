@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Debtor;
 use App\DebtorEvent;
 use App\EmailMessage;
+use App\Exceptions\DebtorException;
 use App\Loan;
 use App\Repositories\AboutClientRepository;
 use App\Repositories\DebtorEventEmailRepository;
@@ -21,8 +22,8 @@ class EmailService
 
     public function __construct(
         DebtorEventEmailRepository $debtorEventEmailRepository,
-        AboutClientRepository $aboutClientRepository,
-        MailerService $mailerService
+        AboutClientRepository      $aboutClientRepository,
+        MailerService              $mailerService
     )
     {
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
@@ -49,6 +50,7 @@ class EmailService
         }
         return $collectMessages;
     }
+
     public function sendEmailDebtor(array $arrayParam): bool
     {
         $user = $arrayParam['user'];
@@ -61,8 +63,27 @@ class EmailService
             return false;
         }
         $loan = Loan::where('id_1c', $debtor->loan_id_1c)->first();
-        $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
-        $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
+        if (empty($loan)) {
+            Log::channel('email')->error("Loan not found:", [
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'debtor_id' => $debtor->id
+            ]);
+            return false;
+        }
+        try {
+            $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
+            $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
+        } catch (DebtorException $e) {
+            Log::channel('exception')->error("$e->errorName:", [
+                'customer' => $debtor['customer_id_1c'],
+                'file' => __FILE__,
+                'method' => __METHOD__,
+                'line' => __LINE__,
+                'id' => $e->errorId,
+                'message' => $e->errorMessage,
+            ]);
+            return false;
+        }
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
         $aboutClient = $this->aboutClientRepository->firstByCustomerId($debtor->customer->id);
         $validateEmail = $aboutClient ? filter_var($aboutClient->email, FILTER_VALIDATE_EMAIL) : false;
