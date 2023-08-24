@@ -50,7 +50,7 @@
             <form
                 id="addressCustomer"
                 method="POST"
-                onsubmit="updatePassport(event, '{!! csrf_token() !!}', {!! $dataArm['customerId'] ?? null !!}, {!! $dataArm['passportId'] ?? null !!})"
+                onsubmit="updatePassport(event, '{!! csrf_token() !!}', {!! $dataArm['customerId'] ?? 'null' !!}, {!! $dataArm['passportId'] ?? 'null' !!})"
             >
                 <div class="modal-body" style="overflow-y: auto;">
                     <div class="row">

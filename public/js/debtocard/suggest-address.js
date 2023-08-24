@@ -6,7 +6,7 @@ function createOptionsComponent(idContainerList, suggestions = [], isFact = fals
         newNode.classList.add('list-group-item');
         newNode.innerText = text;
         if (data) {
-            newNode.onclick = () => {fillAddress(data, isFact)};
+            newNode.onclick = () => {fillAddress(text, data, isFact)};
         } else {
             newNode.style.pointerEvents = 'none';
         }
@@ -19,7 +19,7 @@ function createOptionsComponent(idContainerList, suggestions = [], isFact = fals
     suggestions.forEach(suggest => createNode(suggest.unrestricted_value, suggest.data));
 }
 
-function fillAddress(suggestion, isFact = false) {
+function fillAddress(selectAddress, suggestion, isFact = false) {
     const fullAddress = [{
         keyRegAddress: 'zip',
         keyFactAddress: 'fact_zip',
@@ -86,6 +86,7 @@ function fillAddress(suggestion, isFact = false) {
         element.disabled = false;
     });
     document.getElementById(isFact ? 'address_fact' : 'address_reg').style.borderColor = "#58c689";
+    document.getElementById(isFact ? 'address_fact' : 'address_reg').value = selectAddress;
 }
 
 function showInfoBlock(idElement, textInfo, styleInfo) {
@@ -98,37 +99,37 @@ function showInfoBlock(idElement, textInfo, styleInfo) {
 function updatePassport (event, csrfToken, customerId, passportId) {
     event.preventDefault();
     const values = new FormData(event.target);
+    if (!customerId || !passportId) {
+        showInfoBlock('infoBlock', 'Не удалось определить контрагента или паспорт', 'alert-danger');
+        $('#changeAddress').modal('hide');
+        return;
+    }
     $.app.blockScreen(true);
-    if (customerId !== undefined && passportId !== undefined) {
-        fetch($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, {
-            body: values,
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-            }
-        })
-            .then(async (response) => {
-                const body = await response.json();
-                if (!response.ok || body.error) {
-                    $('#changeAddress').modal('hide');
-                    showInfoBlock('infoBlock', 'Не удалось обновить паспорт armId: ' + passportId, 'alert-danger');
-                } else {
-                    $('#changeAddress').modal('hide');
-                    showInfoBlock('infoBlock', 'Паспорт сохранен, обновите страницу', 'alert-success');
-                }
-            })
-            .catch(() => {
+    fetch($.app.url + '/ajax/customers/' + customerId + '/passports/' + passportId, {
+        body: values,
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+        }
+    })
+        .then(async (response) => {
+            const body = await response.json();
+            if (!response.ok || body.error) {
                 $('#changeAddress').modal('hide');
                 showInfoBlock('infoBlock', 'Не удалось обновить паспорт armId: ' + passportId, 'alert-danger');
-            })
-            .finally(() => {
-                $.app.blockScreen(false);
-            })
-    } else {
-        $.app.blockScreen(false);
-        showInfoBlock('infoForUser', 'Не удалось определить контрагента или паспорт', 'alert-danger');
-    }
+            } else {
+                $('#changeAddress').modal('hide');
+                showInfoBlock('infoBlock', 'Паспорт сохранен, обновите страницу', 'alert-success');
+            }
+        })
+        .catch(() => {
+            $('#changeAddress').modal('hide');
+            showInfoBlock('infoBlock', 'Не удалось обновить паспорт armId: ' + passportId, 'alert-danger');
+        })
+        .finally(() => {
+            $.app.blockScreen(false);
+        });
 }
 function showSuggestions(idInputAddress, idListAddress, isFact = false) {
     $.post($.app.url + '/debtors/suggests', {

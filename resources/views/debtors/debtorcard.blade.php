@@ -130,17 +130,16 @@
                                         }
                                         ?>
                                     <div class="text-center" style="margin-top: 15px;">
-                                <span style="color: #fff;">
+
                                         <p
-                                                class="timezone"
+                                                class="timezone btn btn-success"
                                                 data-toggle="modal"
                                                 data-target="#changeAddress"
-                                                style="margin: 5px;
-                                                background-color: {{ $pBgColor }};">Время по адресу проживания
+                                                style="background-color: {{ $pBgColor }};">Время по адресу <br/>проживания
                                             <br>
                                             {{ $region_time }}
                                         </p>
-                                </span>
+
                                         @if ($pBgColor == '#DE5454')
                                             <br>
                                             <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
@@ -160,17 +159,16 @@
                                         }
                                         ?>
                                     <div class="text-center" style="margin-top: 15px;">
-                                    <span style="color: #fff;">
+
                                             <p
-                                                    class="timezone"
+                                                    class="timezone btn btn-success"
                                                     data-toggle="modal"
                                                     data-target="#changeAddress"
-                                                    style="margin: 5px;
-                                                    background-color: {{ $pBgColor }};">Время по адресу проживания
+                                                    style="background-color: {{ $pBgColor }};">Время по адресу <br/>проживания
                                                 <br>
                                                 {{ date('H:i', time()) }}
                                             </p>
-                                    </span>
+
 
 
                                         @if ($pBgColor == '#DE5454')
