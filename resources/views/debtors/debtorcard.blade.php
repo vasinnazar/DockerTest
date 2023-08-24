@@ -142,6 +142,7 @@
 
                                         @if ($pBgColor == '#DE5454')
                                             <br>
+                                            <br>
                                             <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
                                         @endif
                                     </div>
@@ -169,6 +170,7 @@
                                         </p>
 
                                         @if ($pBgColor == '#DE5454')
+                                            <br>
                                             <br>
                                             <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
                                         @endif
