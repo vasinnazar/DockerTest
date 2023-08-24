@@ -135,9 +135,9 @@
                                                 class="timezone btn btn-success"
                                                 data-toggle="modal"
                                                 data-target="#changeAddress"
-                                                style="background-color: {{ $pBgColor }};">Время по адресу <br/>проживания
-                                            <br>
-                                            {{ $region_time }}
+                                                style="background-color: {{ $pBgColor }}; border-color: {{ $pBgColor }}"
+                                        >
+                                            Время по адресу <br/>проживания <br> {{ $region_time }}
                                         </p>
 
                                         @if ($pBgColor == '#DE5454')
@@ -159,17 +159,14 @@
                                         }
                                         ?>
                                     <div class="text-center" style="margin-top: 15px;">
-
-                                            <p
-                                                    class="timezone btn btn-success"
-                                                    data-toggle="modal"
-                                                    data-target="#changeAddress"
-                                                    style="background-color: {{ $pBgColor }};">Время по адресу <br/>проживания
-                                                <br>
-                                                {{ date('H:i', time()) }}
-                                            </p>
-
-
+                                        <p
+                                                class="timezone btn btn-success"
+                                                data-toggle="modal"
+                                                data-target="#changeAddress"
+                                                style="background-color: {{ $pBgColor }}; border-color: {{ $pBgColor }}"
+                                        >
+                                            Время по адресу <br/>проживания <br> {{ date('H:i', time()) }}
+                                        </p>
 
                                         @if ($pBgColor == '#DE5454')
                                             <br>
