@@ -715,7 +715,7 @@ Route::middleware('auth_only')->group(function () {
         Route::post('/calendar', [DebtorsController::class,'calendar']);
         Route::get('/editSmsCount', [DebtorsController::class,'editSmsCount']);
         Route::post('/editSmsCount', [DebtorsController::class,'editSmsCount']);
-        Route::get('/debtorcard/{debtor_id}', [DebtorsController::class,'debtorcard']);
+        Route::get('/debtorcard/{debtor_id}', [DebtorsController::class,'debtorcard'])->name('debtors.card');
         Route::get('/addevent', [DebtorsController::class,'addevent']);
         Route::post('/addevent', [DebtorsController::class,'addevent']);
         Route::post('/event/update', [DebtorsController::class,'updateDebtorEvent']);

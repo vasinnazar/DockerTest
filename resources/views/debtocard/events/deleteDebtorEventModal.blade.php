@@ -6,7 +6,9 @@
                 <h4 class="modal-title" id="deleteDebtorEventModalLabel">Вы действительно хотите удалить мероприятие?</h4>
             </div>
             <div class="modal-body">
-                <input id="deleteEvent" type="hidden" value="">
+                <input id="eventId" type="hidden" value="">
+                <input id="debtorId" type="hidden" value="">
+                <input id="csrfToken" type="hidden" value="{{csrf_token()}}">
                 <button type="submit" class="btn btn-primary" onclick="$.debtorsCtrl.deleteDebtorEvent();">Удалить</button>
                 <button type="submit" class="btn btn-default" data-dismiss="modal" aria-hidden="true">Отмена</button>
             </div>

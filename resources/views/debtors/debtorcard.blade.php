@@ -739,7 +739,7 @@
                                                     name="debtor_event_delete"
                                                     class="btn btn-default btn-xs"
                                                     data-toggle="modal"
-                                                    onclick="$.debtorsCtrl.openModalDeleteDebtorEvent({{$event->id}});">
+                                                    onclick="$.debtorsCtrl.openModalDeleteDebtorEvent({{$event->id}}, {{$debtor->id}});">
                                                 <span class="glyphicon glyphicon-remove"></span>
                                             </button>
                                         @endif

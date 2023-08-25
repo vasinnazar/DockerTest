@@ -16,20 +16,29 @@ $(document).ready(function () {
             $.app.blockScreen(false);
         });
     };
-    $.debtorsCtrl.openModalDeleteDebtorEvent = function (eventId) {
+    $.debtorsCtrl.openModalDeleteDebtorEvent = function (eventId, debtorId) {
         $('#deleteDebtorEventModal').modal('show');
-        $('#deleteEvent').attr('value', eventId);
+        $('#eventId').attr('value', eventId);
+        $('#debtorId').attr('value', debtorId);
     };
     $.debtorsCtrl.deleteDebtorEvent = function () {
-        const eventId = $('#deleteEvent').val();
+        const eventId = $('#eventId').val();
+        const debtorId = $('#debtorId').val();
+        const csrfToken = $('#csrfToken').val();
         $.app.blockScreen(true);
-        $.ajax({
-            url: $.app.url + '/ajax/debtors/delete/event/' + eventId,
-            type: 'GET',
-            success: function () {
-                $('#deleteDebtorEventModal').modal('toggle');
-                location.reload();
+        fetch(
+            `${$.app.url}/ajax/debtors/${debtorId}/events/${eventId}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                redirect: 'manual',
             }
-        });
+        )
+            .finally(() => {
+                window.location.reload();
+            })
     };
 });

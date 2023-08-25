@@ -16,7 +16,7 @@ class DebtorEventController extends Controller
     {
         $this->debtorEventsRepository = $debtorEventsRepository;
     }
-    public function destroyDebtorEvent(int $eventId)
+    public function destroyDebtorEvent(int $debtorId, int $eventId)
     {
         $user = Auth::user();
         $event = $this->debtorEventsRepository->firstById($eventId);
