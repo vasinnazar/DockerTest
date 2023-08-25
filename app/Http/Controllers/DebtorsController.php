@@ -540,6 +540,15 @@ class DebtorsController extends BasicController
             ->debtCardService
             ->checkRecurrentButtonEnabled($debtor, $repl_loan->in_cash, $repl_loan->required_money);
 
+        $autofillData = [
+            'statusKey' => array_keys(array_filter($arDebtData['connection_status'], fn($arr) => $arr == 'АО'))[0],
+            'mobilePhoneEventTypeKey' => array_keys(array_filter($arDebtData['event_types'], fn($arr) => $arr == 'Звонок на мобильный телефон'))[0],
+            'contactlessGroupKey' => array_keys(array_filter($arDebtData['debt_groups'], fn($arr) => $arr == 'Бесконтактный'))[0],
+            'resultKey' => array_keys(array_filter($arDebtData['event_results'], fn($arr) => $arr == 'Нет контакта'))[0],
+            'collectedEventTypeKey' => array_keys(array_filter($arDebtData['event_types'], fn($arr) => $arr == 'ИНФОРМАЦИЯ СОБРАНА'))[0],
+            'hopelessGroupKey' => array_keys(array_filter($arDebtData['debt_groups'], fn($arr) => $arr == 'Безнадежный'))[0]
+        ];
+
         return view('debtors.debtorcard', [
             'user' => $user,
             'responsibleUser' => $responsibleUser,
@@ -573,6 +582,7 @@ class DebtorsController extends BasicController
             'noRecurrent' => $noRecurrent,
             'enableRecurrentButton' => $enableRecurrentButton,
             'dataArm' => $dataArm,
+            'autofillData' => $autofillData
         ]);
     }
 
