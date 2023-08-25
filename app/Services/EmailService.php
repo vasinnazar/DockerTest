@@ -13,6 +13,7 @@ use App\Role;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use PHPUnit\Exception;
 
 class EmailService
 {
@@ -73,14 +74,11 @@ class EmailService
         try {
             $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
             $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
-        } catch (DebtorException $e) {
-            Log::channel('exception')->error("$e->errorName:", [
-                'customer' => $debtor['customer_id_1c'],
-                'file' => __FILE__,
-                'method' => __METHOD__,
-                'line' => __LINE__,
-                'id' => $e->errorId,
-                'message' => $e->errorMessage,
+        } catch (\Throwable $e) {
+            Log::error("Error getting sum debtor: ", [
+                'customer_id_1c' => $debtor->customer_id_1c,
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'error' => $e
             ]);
             return false;
         }
