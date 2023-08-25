@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Debtor;
 use App\DebtorEvent;
 use App\EmailMessage;
-use App\Exceptions\DebtorException;
 use App\Loan;
 use App\Repositories\AboutClientRepository;
 use App\Repositories\DebtorEventEmailRepository;
@@ -13,7 +12,6 @@ use App\Role;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use PHPUnit\Exception;
 
 class EmailService
 {
