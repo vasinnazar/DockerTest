@@ -21,8 +21,8 @@ class EmailService
 
     public function __construct(
         DebtorEventEmailRepository $debtorEventEmailRepository,
-        AboutClientRepository $aboutClientRepository,
-        MailerService $mailerService
+        AboutClientRepository      $aboutClientRepository,
+        MailerService              $mailerService
     )
     {
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
@@ -49,6 +49,7 @@ class EmailService
         }
         return $collectMessages;
     }
+
     public function sendEmailDebtor(array $arrayParam): bool
     {
         $user = $arrayParam['user'];
@@ -61,8 +62,24 @@ class EmailService
             return false;
         }
         $loan = Loan::where('id_1c', $debtor->loan_id_1c)->first();
-        $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
-        $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
+        if (empty($loan)) {
+            Log::channel('email')->error("Loan not found:", [
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'debtor_id' => $debtor->id
+            ]);
+            return false;
+        }
+        try {
+            $arraySumDebtor = $loan->getDebtFrom1cWithoutRepayment();
+            $arrayParam['debtor_sum'] = $arraySumDebtor->money / 100;
+        } catch (\Throwable $e) {
+            Log::error("Error getting sum debtor: ", [
+                'customer_id_1c' => $debtor->customer_id_1c,
+                'loan_id_1c' => $debtor->loan_id_1c,
+                'error' => $e
+            ]);
+            return false;
+        }
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
         $aboutClient = $this->aboutClientRepository->firstByCustomerId($debtor->customer->id);
         $validateEmail = $aboutClient ? filter_var($aboutClient->email, FILTER_VALIDATE_EMAIL) : false;
