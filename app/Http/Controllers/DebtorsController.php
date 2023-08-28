@@ -1332,7 +1332,7 @@ class DebtorsController extends BasicController
         //ларавель вместо пустых кавычек в числовые поля подставляет 0, 
         //поэтому ставим null где пустые значения
         foreach ($input as $k => $v) {
-            if (strpos($k, '_id') !== false && empty($v)) {
+            if (strpos($k, '_id') && $v === "") {
                 $input[$k] = null;
             } else {
                 if ($v == '0000-00-00 00:00:00') {
