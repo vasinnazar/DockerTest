@@ -32,7 +32,7 @@ after('deploy:failed', 'deploy:unlock');
 task('prod:opcache', ['cachetool:clear:opcache'])->onStage('prod');
 task('laravel5.6:opcache', ['cachetool:clear:opcache'])->onStage('laravel5.6');
 
-host('prod')->set('cachetool', '/var/run/arm_debt_php.sock');
+host('prod')->set('cachetool', '/var/run/debtors-php.sock');
 host('laravel5.6')->set('cachetool', '/var/run/debtors-php.sock');
 
 
