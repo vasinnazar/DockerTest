@@ -1457,7 +1457,7 @@
 
         });
     </script>
-    <script src="{{asset('js/debtocard/search-contacts.js?1')}}"></script>
-    <script src="{{asset('js/debtocard/event-change.js?1')}}"></script>
-    <script src="{{asset('js/debtocard/suggest-address.js?1')}}"></script>
+    <script src="{{asset('js/debtocard/search-contacts.js?2')}}"></script>
+    <script src="{{asset('js/debtocard/event-change.js?2')}}"></script>
+    <script src="{{asset('js/debtocard/suggest-address.js?2')}}"></script>
 @stop
