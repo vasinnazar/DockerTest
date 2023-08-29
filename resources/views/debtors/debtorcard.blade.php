@@ -6,6 +6,12 @@
     <link rel="stylesheet" href="{{asset('css/debtors.css')}}"/>
 @stop
 @section('content')
+    <div id="infoBlock" class="alert alertalert-dismissible" role="alert" style="display: none;">
+        <p style="display: contents;" id="textInfo"></p>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
     @if(isset($debtor) && !is_null($debtor))
         <div class='hidden debtor-data'>
             {!! Form::hidden('customer_id_1c',$debtor->customer_id_1c) !!}
@@ -124,11 +130,18 @@
                                         }
                                         ?>
                                     <div class="text-center" style="margin-top: 15px;">
-                                <span style="color: #fff;"><p style="margin: 5px; background-color: {{ $pBgColor }};">Время по адресу проживания<br>
-                                
-                                {{ $region_time }}</p>
-                                </span>
+
+                                        <p
+                                                class="timezone btn btn-success"
+                                                data-toggle="modal"
+                                                data-target="#changeAddress"
+                                                style="background-color: {{ $pBgColor }}; border-color: {{ $pBgColor }}"
+                                        >
+                                            Время по адресу <br/>проживания <br> {{ $region_time }}
+                                        </p>
+
                                         @if ($pBgColor == '#DE5454')
+                                            <br>
                                             <br>
                                             <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
                                         @endif
@@ -147,11 +160,17 @@
                                         }
                                         ?>
                                     <div class="text-center" style="margin-top: 15px;">
-                                <span style="color: #fff;"><p style="margin: 5px; background-color: {{ $pBgColor }};">Время по адресу проживания<br>
+                                        <p
+                                                class="timezone btn btn-success"
+                                                data-toggle="modal"
+                                                data-target="#changeAddress"
+                                                style="background-color: {{ $pBgColor }}; border-color: {{ $pBgColor }}"
+                                        >
+                                            Время по адресу <br/>проживания <br> {{ date('H:i', time()) }}
+                                        </p>
 
-                                {{ date('H:i', time()) }}</p>
-                                </span>
                                         @if ($pBgColor == '#DE5454')
+                                            <br>
                                             <br>
                                             <button class="btn btn-primary" id="callAllow">Разрешить звонок</button>
                                         @endif
@@ -1062,6 +1081,7 @@
     @include('elements.debtors.addDebtorPeace')
     @include('elements.debtors.addDebtorClaim')
     @include('elements.debtors.searchContactsModal')
+    @include('debtocard.timezone-address.modal-address-changes')
 
     @if ($third_people_agreement)
         @include('elements.debtors.third_people_agreement')
@@ -1439,4 +1459,5 @@
     </script>
     <script src="{{asset('js/debtocard/search-contacts.js?1')}}"></script>
     <script src="{{asset('js/debtocard/event-change.js?1')}}"></script>
+    <script src="{{asset('js/debtocard/suggest-address.js?1')}}"></script>
 @stop

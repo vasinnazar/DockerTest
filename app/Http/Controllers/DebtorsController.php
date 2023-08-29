@@ -157,9 +157,9 @@ class DebtorsController extends BasicController
 
         $user = Auth::user();
         $debtor = Debtor::find($debtor_id);
-
+        $dataArm = [];
         try {
-            $synchronize->synchronizeDebtor($debtor);
+            $dataArm = $synchronize->synchronizeDebtor($debtor);
         } catch (\Throwable $exception) {
             Log::error('Critical error update debtors', [
                 'customerId1c' => $debtor->customer_id_1c,
@@ -222,6 +222,7 @@ class DebtorsController extends BasicController
 
         $passport_armf = DB::Table('armf.passports')->select(DB::raw('*'))->where('series',
             $debtor->passport_series)->where('number', $debtor->passport_number)->first();
+        $dataArm['passportId'] = $passport_armf->id ?? null;
 
         if (!is_null($passport_armf)) {
             $loan_replica = $armClient->getLoanById1c($debtor->loan_id_1c)->first();
@@ -570,6 +571,7 @@ class DebtorsController extends BasicController
             'whatsApp' => $whatsAppEvent,
             'noRecurrent' => $noRecurrent,
             'enableRecurrentButton' => $enableRecurrentButton,
+            'dataArm' => $dataArm,
         ]);
     }
 

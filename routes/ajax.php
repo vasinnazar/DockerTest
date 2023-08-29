@@ -96,6 +96,8 @@ Route::prefix('/ajax')->group(function () {
     });
 
     Route::prefix('/customers')->group(function () {
+        Route::post('/{customerId}/passports/{passportId}', [CustomersController::class, 'updatePassport'])
+            ->name('customers.updatePassport');
         Route::post('/telephone', [CustomersController::class, 'getTelephone'])->name('ajax.customers.telephone');
         Route::get('/find', [CustomersController::class, 'findCustomers'])->name('ajax.customers.find');
         Route::get('/list', [CustomersController::class, 'getList'])->name('ajax.customers.list');
