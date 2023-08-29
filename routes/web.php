@@ -11,6 +11,7 @@ use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\ContractVersionsController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\CustomersController;
+use App\Http\Controllers\DaDataController;
 use App\Http\Controllers\DailyCashReportController;
 use App\Http\Controllers\DataLoaderController;
 use App\Http\Controllers\DebtorExportController;
@@ -744,7 +745,7 @@ Route::middleware('auth_only')->group(function () {
         Route::get('/setSelfResponsible/{debtor_id}', [DebtorsController::class,'setSelfResponsible']);
         Route::get('/temporary/cron/handle', [DebtorsController::class,'temporaryCronTasksHandling']);
 
-
+        Route::post('/suggests', [DaDataController::class, 'suggestAddress'])->name('debtors.suggests');
 
         Route::get('/emails/list/{user_id}',[EmailController::class,'index']);
         Route::post('/email/send',[EmailController::class,'sendEmail'])->name('email.send');

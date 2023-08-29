@@ -137,7 +137,8 @@ return [
         \App\Providers\DebtorServiceProvider::class,
         Collective\Html\HtmlServiceProvider::class,
         App\Providers\BroadcastServiceProvider::class,
-        Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class
+        Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class,
+        App\Providers\DIServiceProvider::class,
     ],
     /*
       |--------------------------------------------------------------------------

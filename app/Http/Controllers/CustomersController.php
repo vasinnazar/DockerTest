@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Clients\ArmClient;
+use App\Http\Requests\Ajax\UpdatePassportRequest;
 use Illuminate\Http\Request,
     Auth,
     Input,
     Validator,
     Session,
     Redirect,
-    App\Loan,
-    App\Card,
-    App\User,
-    App\Subdivision,
     App\Customer,
     App\Order,
     App\Passport,
@@ -21,17 +19,28 @@ use Illuminate\Http\Request,
     Yajra\DataTables\Facades\DataTables,
     Carbon\Carbon,
     App\Spylog\Spylog,
-    App\Spylog\SpylogModel,
     App\CustomerForm,
-    App\MySoap,
     App\Utils\HtmlHelper,
-    App\Utils\StrLib,
-    Illuminate\Support\Facades\Hash;
+    App\Utils\StrLib;
 
-class CustomersController extends Controller {
+class CustomersController extends Controller
+{
+    private $armClient;
 
-    public function __construct() {
+    public function __construct(ArmClient $armClient)
+    {
         $this->middleware('auth');
+        $this->armClient = $armClient;
+    }
+
+    public function updatePassport($customerId, $passportId, UpdatePassportRequest $request)
+    {
+        try {
+            $res = $this->armClient->updateCustomerPassport($customerId, $passportId, $request->validated());
+        } catch (\Exception $exception) {
+            $res = ['error' => $exception->getMessage()];
+        }
+        return response()->json($res);
     }
 
     public function getListView($id = null) {
