@@ -147,7 +147,7 @@ class EmailService
 
     public function setConfig($email, $password)
     {
-        if ($email == env('MAIL_REGRU_USERNAME')) {
+        if ($email === env('MAIL_REGRU_USERNAME')) {
             config()->set('mail.host', env('MAIL_REGRU_HOST'));
             config()->set('mail.port', env('MAIL_REGRU_PORT'));
             config()->set('mail.encryption', env('MAIL_REGRU_ENCRYPTION'));
