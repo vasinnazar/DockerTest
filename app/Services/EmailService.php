@@ -80,6 +80,7 @@ class EmailService
             ]);
             return false;
         }
+        $this->setConfig($arrayParam['userEmail'], $arrayParam['userPassword']);
         $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
         $aboutClient = $this->aboutClientRepository->firstByCustomerId($debtor->customer->id);
         $validateEmail = $aboutClient ? filter_var($aboutClient->email, FILTER_VALIDATE_EMAIL) : false;
@@ -143,4 +144,16 @@ class EmailService
         }
         return $templateMessage;
     }
+
+    public function setConfig($email, $password)
+    {
+        if ($email == env('MAIL_REGRU_USERNAME')) {
+            config()->set('mail.host', env('MAIL_REGRU_HOST'));
+            config()->set('mail.port', env('MAIL_REGRU_PORT'));
+            config()->set('mail.encryption', env('MAIL_REGRU_ENCRYPTION'));
+        }
+        config()->set('mail.username', $email);
+        config()->set('mail.password', $password);
+    }
+
 }
