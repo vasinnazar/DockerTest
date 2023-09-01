@@ -55,6 +55,7 @@ class EmailController extends Controller
             'discountPayment' => $request->discountPayment ?? null,
             'user' => $user,
             'userEmail' => $userEmail,
+            'userPassword' => $userPassword,
         ];
 
         $customer = (Debtor::find($request->debtor_id))->customer;
