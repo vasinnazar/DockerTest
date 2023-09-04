@@ -16,6 +16,7 @@ use App\Utils\SMSer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Debtor;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Yajra\DataTables\Facades\DataTables;
@@ -59,6 +60,7 @@ class DebtorMassSendController extends BasicController
                 'msg' => 'Не авторизированный пользователь'
             ]);
         }
+
         if (Auth::user()->isDebtorsPersonal()) {
             $type = 'personal';
             $nameGroup = 'Личное взыскание';
@@ -71,7 +73,8 @@ class DebtorMassSendController extends BasicController
             'emailCollect' => $this->emailService->getListEmailsMessages(Auth::user()->id),
             'smsCollect' => $smsRepository->getSms($type),
             'nameGroup' => $nameGroup,
-            'debtorTransferFilterFields' => self::getSearchFields()
+            'debtorTransferFilterFields' => self::getSearchFields(),
+            'emailFilterFields' => self::getEmaiLFields()
         ]);
     }
 
@@ -91,7 +94,9 @@ class DebtorMassSendController extends BasicController
             'debtors.responsible_user_id_1c' => 'debtors_responsible_user_id_1c',
             'debtors.debt_group_id' => 'debtors_debt_group_id',
             'debtors.id' => 'debtors_id',
-            'debtors.str_podr' => 'debtors_str_podr'
+            'debtors.str_podr' => 'debtors_str_podr',
+            'about_clients.email' => 'about_clients_email',
+            'about_clients.id' => 'about_clients_id'
         ];
     }
 
@@ -129,6 +134,11 @@ class DebtorMassSendController extends BasicController
             })
             ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
             ->leftJoin('struct_subdivisions', 'struct_subdivisions.id_1c', '=', 'debtors.str_podr')
+            ->leftJoin('customers', 'customers.id_1c', '=', 'debtors.customer_id_1c')
+            ->leftJoin('about_clients', function($join) {
+                $join->on('about_clients.customer_id', '=', 'customers.id')
+                    ->whereRaw('about_clients.id IN (select MAX(about_clients.id) from about_clients where customer_id = customers.id)');
+            })
             ->groupBy('debtors.id');
         
         if (!$this->hasFilterFilled($input)) {
@@ -150,6 +160,19 @@ class DebtorMassSendController extends BasicController
         if (isset($input['passports@fact_address_region']) && mb_strlen($input['passports@fact_address_region'])) {
             $debtors->where('passports.fact_address_region', 'like',
                 '%' . $input['passports@fact_address_region'] . '%');
+        }
+
+        if (isset($input['has_email']) && mb_strlen($input['has_email'])) {
+            $debtors = $debtors->whereNotNull('about_clients.id');
+            $debtors = $input['has_email'] ?
+                $debtors
+                    ->where('about_clients.email', 'regexp', '^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$') :
+                $debtors
+                    ->where(function ($query) {
+                        $query
+                            ->whereNull('about_clients.email')
+                            ->orWhere('about_clients.email', 'not regexp', '^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    });
         }
 
         foreach ($input as $k => $v) {
@@ -361,6 +384,14 @@ class DebtorMassSendController extends BasicController
             return $this->sendMassSms($input);
         }
         return $this->sendMassEmail($input);
+    }
+
+    static function getEmaiLFields()
+    {
+        return [
+            true => 'Присутствует',
+            false => 'Отсутствует'
+        ];
     }
     static function getSearchFields()
     {
