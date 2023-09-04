@@ -168,8 +168,11 @@ class DebtorMassSendController extends BasicController
                 $debtors
                     ->where('about_clients.email', 'regexp', '^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$') :
                 $debtors
-                    ->whereNull('about_clients.email')
-                    ->orWhere('about_clients.email', 'not regexp', '^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    ->where(function ($query) {
+                        $query
+                            ->whereNull('about_clients.email')
+                            ->orWhere('about_clients.email', 'not regexp', '^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    });
         }
 
         foreach ($input as $k => $v) {
