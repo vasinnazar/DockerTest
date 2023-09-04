@@ -166,7 +166,6 @@ class DebtorMassSendController extends BasicController
             $debtors = $debtors->whereNotNull('about_clients.id');
             $debtors = $input['has_email'] ?
                 $debtors
-                    ->whereNotNull('about_clients.email')
                     ->where('about_clients.email', 'regexp', '^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$') :
                 $debtors
                     ->whereNull('about_clients.email')
