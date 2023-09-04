@@ -19,16 +19,17 @@ class MailerService
                             'allow_self_signed' => true,
                             'verify_peer' => false,
                             'verify_peer_name' => false
-                        ]
+                        ],
                 ]);
             $mailer->send(
                 'emails.sendMessage',
-                ['messageText' => $messageText],
+                compact('messageText'),
                 function ($message) use ($email) {
                     /** @var Message $message */
                     $message->subject(config('vars.company_new_name'));
                     $message->from(config('mail.username'));
                     $message->to($email);
+                    $message->bcc(config('mail.username'));
                 }
             );
         } catch (\Exception $exception) {
