@@ -164,7 +164,13 @@ class DebtorMassSendController extends BasicController
 
         if (isset($input['has_email']) && mb_strlen($input['has_email'])) {
             $debtors = $debtors->whereNotNull('about_clients.id');
-            $debtors = $input['has_email'] ? $debtors->whereNotNull('about_clients.email') : $debtors->whereNull('about_clients.email');
+            $debtors = $input['has_email'] ?
+                $debtors
+                    ->whereNotNull('about_clients.email')
+                    ->where('about_clients.email', 'regexp', '^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$') :
+                $debtors
+                    ->whereNull('about_clients.email')
+                    ->orWhere('about_clients.email', 'not regexp', '^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
         }
 
         foreach ($input as $k => $v) {
