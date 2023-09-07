@@ -707,10 +707,23 @@ class DebtorsNoticesController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+        $bases = array_filter(config('debtors.debt_bases'), function (string $base) {
+            switch ($base) {
+                case "Б-3":
+                case "Б-риски":
+                case "Б-график":
+                case "Б-МС":
+                    return true;
+                default:
+                    return false;
+            }
+        });
+
         return view('debtors.notices.courtNotices', [
             'user' => $user,
             'taskInProgress' => $taskInProgress,
-            'tasks' => $tasks
+            'tasks' => $tasks,
+            'bases' => $bases
         ]);
     }
 
@@ -752,8 +765,16 @@ class DebtorsNoticesController extends Controller
             ->whereIn('responsible_user_id_1c', $respUsers)
             ->whereIn('debt_group_id', $input['debt_group_ids'])
             ->byQty($qtyDelaysFrom,$qtyDelaysTo)
-            ->byFixation($fixationDateFrom,$fixationDateTo)
-            ->get();
+            ->byFixation($fixationDateFrom,$fixationDateTo);
+
+        if(!empty($input['debt_base_ids'])) {
+            foreach ($input['debt_base_ids'] as $debt_base_id) {
+                $bases[] = config('debtors.debt_bases')[$debt_base_id];
+            }
+            $debtors = $debtors->whereIn('base', $bases);
+        }
+
+        $debtors = $debtors->get();
 
         $courtTask = new CourtOrderTasks();
         $courtTask->struct_subdivision = $str_podr;

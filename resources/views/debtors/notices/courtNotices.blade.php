@@ -113,6 +113,17 @@
                                 </td>
                             </tr>
                             <tr>
+                                <td>Группа долга: </td>
+                                <td></td>
+                                <td>
+                                    <select name="debt_base_ids[]" multiple="multiple">
+                                        @foreach($bases as $baseKey => $base)
+                                            <option value="{{$baseKey}}">{{$base}}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>Ответственный: </td>
                                 <td></td>
                                 <td>
