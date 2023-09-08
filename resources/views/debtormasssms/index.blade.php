@@ -67,7 +67,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4 class="modal-title" id="debtorTransferFilterModalLabel">Фильтр должников</h4>
                 </div>
-                <form id="massSendFormFilter">
+                <form id="debtorMassSmsFilter">
                     <input type="hidden" name="is_sms" value="">
                     <input type="hidden" name="template_id">
                     <input type="hidden" name="date_template_sms" value="{{ date('d.m.Y', time()) }}">
@@ -147,6 +147,9 @@
                         </div>
                     </div>
                     <div class="modal-footer">
+                        <div class="pull-left" style="text-align: left;">
+                            <span><input type='checkbox' name='search_field_debtors@kratnost' value='1'>&nbsp;Кратность</span>
+                        </div>
                         {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorMassSmsClearFilterBtn'])!!}
                         {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'debtorMassSmsFilterButton'])!!}
                     </div>
