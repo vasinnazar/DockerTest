@@ -104,7 +104,6 @@ class DebtorCardService
             $date = Carbon::createFromFormat('Y-m-d', $date)->format('YmdHis');
         }
 
-        dd($arLoanIds);
         foreach ($arLoanIds as $loan_id_1c) {
             $tmpLoan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c', $loan_id_1c)->first();
 
