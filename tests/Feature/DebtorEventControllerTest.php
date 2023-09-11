@@ -38,27 +38,7 @@ class DebtorEventControllerTest extends TestCase
     {
         parent::setUp();
         $this->user = factory(User::class)->create();
-        factory(LoanType::class)->create();
-        factory(Subdivision::class)->create();
         $this->debtors = factory(Debtor::class, 'debtor', 5)->create();
-        foreach ($this->debtors as $debtor) {
-            $customer = factory(Customer::class)->create([
-                'id_1c' => $debtor->customer_id_1c
-            ]);
-            $passport = factory(Passport::class)->create([
-                'series' => $debtor->passport_series,
-                'number' => $debtor->passport_number,
-                'customer_id' => $customer->id
-            ]);
-            $claim = factory(Claim::class)->create([
-                'customer_id' => $customer->id,
-                'passport_id' => $passport->id
-            ]);
-            factory(Loan::class)->create([
-                'id_1c' => $debtor->loan_id_1c,
-                'claim_id' => $claim->id
-            ]);
-        }
         $this->events = factory(DebtorEvent::class, 100)->create();
     }
 
