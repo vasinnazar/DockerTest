@@ -203,8 +203,8 @@ class DebtorService
             );
         }
 
-        if (isset($input['search_field_debtors@kratnost'])) {
-            $debtors = $debtors->where('kratnost', $input['search_field_debtors@kratnost']);
+        if (isset($input['search_field_debtors@kratnost']) && $input['search_field_debtors@kratnost'] === "1") {
+            $debtors = $debtors->where('kratnost', "1");
         }
 
 
