@@ -65,11 +65,12 @@ class DebtorEventControllerTest extends TestCase
     public function testDeleteEvents()
     {
         $debtorId = $this->debtors->pluck('id')->random();
-        $eventId = $this->events->pluck('id')->random();
+        $event = $this->events->random();
         $response = $this->actingAs($this->user, 'web')
-            ->delete('/ajax/debtors/' . $debtorId . '/events/' . $eventId);
+            ->delete('/ajax/debtors/' . $debtorId . '/events/' . $event->id);
         $response->assertStatus(
             Response::HTTP_OK
         );
+        $this->assertDatabaseMissing('debtor_events', $event->toArray());
     }
 }
