@@ -1132,8 +1132,8 @@ class DebtorsController extends BasicController
             ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
             ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
             ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+                $join->on('debtors.passports.series', '=', 'debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.passport_number');
             })
             ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
             ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
@@ -1227,14 +1227,14 @@ class DebtorsController extends BasicController
         }
 
         if (!is_null($responsibleId1c) && mb_strlen($responsibleId1c)) {
-            $debtorEvents->where('debtors.debtor_events.user_id_1c', $responsibleId1c);
+            $debtorEvents->where('debtor_events.user_id_1c', $responsibleId1c);
         }
         if ($currentUser->hasRole('debtors_personal')) {
-            $debtorEvents->where('debtors.debtor_events.user_id', $currentUser->id);
+            $debtorEvents->where('debtor_events.user_id', $currentUser->id);
         } else {
             // если придет пустой массив - будут показаны все планы на день
             if (!empty($arIn) && (is_null($responsibleId1c) || !mb_strlen($responsibleId1c))) {
-                $debtorEvents->whereIn('debtors.debtor_events.user_id', $arIn);
+                $debtorEvents->whereIn('debtor_events.user_id', $arIn);
             }
         }
 
