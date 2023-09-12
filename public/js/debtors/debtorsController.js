@@ -11,7 +11,7 @@
         $.debtorsCtrl.debtorsCounter();
     };
     $.debtorsCtrl.initDebtorsTableSearchForm = function () {
-        $('#debtorsFilter .autocomplete, #debtorEventsFilter .autocomplete, #debtorTransferFilter .autocomplete, #debtorMassSmsFilter .autocomplete, #debtorTransferAction .autocomplete, #editDebtorEventModal .autocomplete, #chief_event_field .autocomplete, #forgottenDebtorFilter .autocomplete, #recommendsDebtorFilter .autocomplete').each(function () {
+        $('#debtorsFilter .autocomplete, #debtorEventsFilter .autocomplete, #debtorTransferFilter .autocomplete, #debtorMassSendFilter .autocomplete, #debtorTransferAction .autocomplete, #editDebtorEventModal .autocomplete, #chief_event_field .autocomplete, #forgottenDebtorFilter .autocomplete, #recommendsDebtorFilter .autocomplete').each(function () {
             var fieldName = $(this).attr('name');
             var valFieldName = $(this).attr('data-hidden-value-field');
             $(this).autocomplete({
@@ -422,10 +422,10 @@
             $('#debtorsCounter').html($('input[name="debtor_transfer_id[]"]:checked').length);
         });
     };
-    $.debtorsCtrl.changeDebtorMassSmsFilter = function () {
-        $(document).on('click', '#debtorMassSmsFilterButton', function () {
+    $.debtorsCtrl.changeDebtorMassSendFilter = function () {
+        $(document).on('click', '#debtorMassSendFilterButton', function () {
             //$(document).on('change', '#debtorTransferFilter [name="old_user_id"], #debtorTransferFilter [name="new_user_id"], #debtorTransferFilter [name="debt_group_id"], #debtorTransferFilter [name="act_number"], #debtorTransferFilter [name="overdue_from"], #debtorTransferFilter [name="overdue_till"], #debtorTransferFilter [name="search_field_cities@id"], #debtorTransferFilter [name="base"]', function(){
-            var data = $('#debtorMassSmsFilter').serialize();
+            var data = $('#debtorMassSendFilter').serialize();
             $.get($.app.url + '/ajax/debtormasssms/list', data).done(function () {
 
             });
@@ -454,8 +454,8 @@
                 },
                 rowId : 'DT_RowID',
                 clearFilterBtn: $('#debtorMassSmsClearFilterBtn'),
-                filterBtn: $('#debtorMassSmsFilterButton'),
-                filterHolder: $('#debtorMassSmsFilter')
+                filterBtn: $('#debtorMassSendFilterButton'),
+                filterHolder: $('#debtorMassSendFilter')
             }
         );
     };
@@ -690,7 +690,7 @@
         window.open($.app.url + '/debtors/export?' + $('#debtorsFilter form').serialize());
     };
     $.debtorsCtrl.debtorsEventsToExcel = function () {
-        window.open($.app.url + '/debtors/export/events?' + $('#debtorsEventsFilter form').serialize());
+        window.open($.app.url + '/debtors/export/events?' + $('#debtorEventsFilter form').serialize());
     };
     $.debtorsCtrl.forgottenToExcel = function () {
         window.open($.app.url + '/debtors/export/forgotten?' + $('#forgottenDebtorFilter form').serialize());

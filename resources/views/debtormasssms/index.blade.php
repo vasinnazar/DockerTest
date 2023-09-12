@@ -67,14 +67,14 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4 class="modal-title" id="debtorTransferFilterModalLabel">Фильтр должников</h4>
                 </div>
-                <form id="debtorMassSmsFilter">
+                <form id="debtorMassSendFilter">
                     <input type="hidden" name="is_sms" value="">
                     <input type="hidden" name="template_id">
                     <input type="hidden" name="date_template_sms" value="{{ date('d.m.Y', time()) }}">
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-xs-12">
-                                <table class='table table-borderless' id='debtorMassSmsFilter'>
+                                <table class='table table-borderless'>
                                     @foreach($debtorTransferFilterFields as $dtff)
                                         <tr>
                                             <td>{{$dtff['label']}}</td>
@@ -151,7 +151,7 @@
                             <span><input type='checkbox' name='search_field_debtors@kratnost' value='1'>&nbsp;Кратность</span>
                         </div>
                         {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorMassSmsClearFilterBtn'])!!}
-                        {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'debtorMassSmsFilterButton'])!!}
+                        {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'debtorMassSendFilterButton'])!!}
                     </div>
                 </form>
             </div>
