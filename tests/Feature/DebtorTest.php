@@ -44,7 +44,8 @@ class DebtorTest extends TestCase
             'kratnost' => 1,
             'loan_id_1c' => $this->loan->id_1c,
             'passport_series' => $this->passport->series,
-            'passport_number' => $this->passport->number
+            'passport_number' => $this->passport->number,
+            'responsible_user_id_1c' => $this->user->id_1c
         ]);
         $this->debtorEvent = factory(DebtorEvent::class)->create([
             'created_at' => now(),
@@ -66,6 +67,15 @@ class DebtorTest extends TestCase
         $response->assertJsonFragment([
             'de_username' => $this->user->name
         ]);
+    }
+
+    public function testAjaxDebtorList()
+    {
+        $response = $this->actingAs($this->user)->json('GET', 'ajax/debtors/list', [
+            'search_field_about@email' => ''
+        ]);
+
+        $response->assertOk();
     }
 
     protected function connectionsToTransact()

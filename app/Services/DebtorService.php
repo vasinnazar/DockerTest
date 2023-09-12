@@ -59,7 +59,7 @@ class DebtorService
                 'debtors.fixation_date' => 'debtors_fixation_date',
                 'debtors.debtors_events_promise_pays.promise_date' => 'debtors_promise_date',
                 'debtors.passports.fio' => 'passports_fio',
-                'debtors.debtors.customer_id_1c' => 'debtor_customer_id_1c',
+                'debtors.customer_id_1c' => 'debtor_customer_id_1c',
                 'debtors.loan_id_1c' => 'debtors_loan_id_1c',
                 'debtors.qty_delays' => 'debtors_qty_delays',
                 'debtors.sum_indebt' => 'debtors_sum_indebt',
@@ -78,14 +78,14 @@ class DebtorService
                 'debtors.is_pledge' => 'debtor_is_pledge',
                 'debtors.is_pos' => 'debtor_is_pos',
                 'debtors.subdivisions.is_lead' => 'debtor_is_online',
-                'debtors.debtors.od_after_closing' => 'debtors_od_after_closing',
+                'debtors.od_after_closing' => 'debtors_od_after_closing',
                 'debtors.passports.fact_timezone' => 'passports_fact_timezone'
             ];
         }
         return [
             'debtors.fixation_date' => 'debtors_fixation_date',
             'debtors.passports.fio' => 'passports_fio',
-            'debtors.debtors.customer_id_1c' => 'debtor_customer_id_1c',
+            'debtors.customer_id_1c' => 'debtor_customer_id_1c',
             'debtors.loan_id_1c' => 'debtors_loan_id_1c',
             'debtors.qty_delays' => 'debtors_qty_delays',
             'debtors.sum_indebt' => 'debtors_sum_indebt',
@@ -104,7 +104,7 @@ class DebtorService
             'debtors.is_pledge' => 'debtor_is_pledge',
             'debtors.is_pos' => 'debtor_is_pos',
             'debtors.subdivisions.is_lead' => 'debtor_is_online',
-            'debtors.debtors.od_after_closing' => 'debtors_od_after_closing',
+            'debtors.od_after_closing' => 'debtors_od_after_closing',
             'debtors.passports.fact_timezone' => 'passports_fact_timezone'
         ];
     }
@@ -168,17 +168,17 @@ class DebtorService
             ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
             ->leftJoin('debtors.customers', 'debtors.customers.id', '=', 'debtors.claims.customer_id')
             ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+                $join->on('debtors.passports.series', '=', 'debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.passport_number');
             })
-            ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.debtors.responsible_user_id_1c')
+            ->leftJoin('debtors.users', 'debtors.users.id_1c', '=', 'debtors.responsible_user_id_1c')
             ->leftJoin('debtors.struct_subdivisions', 'debtors.struct_subdivisions.id_1c', '=',
-                'debtors.debtors.str_podr')
-            ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debtors.debt_group_id')
+                'debtors.str_podr')
+            ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
             ->leftJoin('debtors.about_clients',
                 'debtors.customers.id', '=', 'debtors.about_clients.customer_id')
-            ->leftJoin('debtors.debtors_events_promise_pays',
-                'debtors.id', '=', 'debtors.debtors_events_promise_pays.debtor_id')
+            ->leftJoin('debtors_events_promise_pays',
+                'debtors.id', '=', 'debtors_events_promise_pays.debtor_id')
             ->groupBy('debtors.id');
 
         $debtorsEmail = trim($input['search_field_about@email']);
@@ -211,21 +211,21 @@ class DebtorService
         if ($boolSearchAll) {
             foreach ($arrFields as $key => $arrField) {
                 if ($key == 'search_field_debtors@qty_delays_from') {
-                    $debtors->where('debtors.debtors.qty_delays', '>=', $arrField['value']);
+                    $debtors->where('debtors.qty_delays', '>=', $arrField['value']);
                     continue;
                 }
                 if ($key == 'search_field_debtors@qty_delays_to') {
-                    $debtors->where('debtors.debtors.qty_delays', '<=', $arrField['value']);
+                    $debtors->where('debtors.qty_delays', '<=', $arrField['value']);
                     continue;
                 }
                 if ($key == 'search_field_debt_groups@id') {
-                    $debtors->where('debtors.debtors.debt_group_id', $arrField['value']);
+                    $debtors->where('debtors.debt_group_id', $arrField['value']);
                     continue;
                 }
                 if ($key == 'search_field_debtors@fixation_date') {
                     if ($arrField['condition'] == '=') {
                         $sDate = new Carbon($arrField['value']);
-                        $debtors->whereBetween('debtors.debtors.fixation_date', array(
+                        $debtors->whereBetween('debtors.fixation_date', array(
                             $sDate->setTime(0, 0, 0)->format('Y-m-d H:i:s'),
                             $sDate->setTime(23, 59, 59)->format('Y-m-d H:i:s')
                         ));
@@ -250,7 +250,7 @@ class DebtorService
                 }
                 if ($key == 'search_field_other_phones@phone' && isset($arrFields['search_field_other_phones@phone'])) {
                     $debtors->leftJoin('debtors.debtors_other_phones', 'debtors.debtors_other_phones.debtor_id_1c', '=',
-                        'debtors.debtors.debtor_id_1c');
+                        'debtors.debtor_id_1c');
 
                     if ($arrField['condition'] == 'like') {
                         $arrField['value'] = '%' . $arrField['value'] . '%';
@@ -293,22 +293,22 @@ class DebtorService
         if ($is_bigmoney || $is_pledge || $is_pos) {
             $debtors->where(function ($query) use ($is_bigmoney, $is_pledge, $is_pos) {
                 if ($is_bigmoney) {
-                    $query->where('debtors.debtors.is_bigmoney', 1);
+                    $query->where('debtors.is_bigmoney', 1);
                     if ($is_pledge) {
-                        $query->orWhere('debtors.debtors.is_pledge', 1);
+                        $query->orWhere('debtors.is_pledge', 1);
                     }
                     if ($is_pos) {
-                        $query->orWhere('debtors.debtors.is_pos', 1);
+                        $query->orWhere('debtors.is_pos', 1);
                     }
                 } else {
                     if ($is_pledge) {
-                        $query->where('debtors.debtors.is_pledge', 1);
+                        $query->where('debtors.is_pledge', 1);
                         if ($is_pos) {
-                            $query->orWhere('debtors.debtors.is_pos', 1);
+                            $query->orWhere('debtors.is_pos', 1);
                         }
                     } else {
                         if ($is_pos) {
-                            $query->where('debtors.debtors.is_pos', 1);
+                            $query->where('debtors.is_pos', 1);
                         }
                     }
                 }
