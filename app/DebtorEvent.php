@@ -46,6 +46,11 @@ class DebtorEvent extends Model
     const AUTOINFORMER_OMICRON_EVENT = 15;
     const WHATSAPP_EVENT = 23;
     const EMAIL_EVENT = 24;
+    const REASON_OTHER = 0;
+    const RES_INFO = 17;
+    const RES_EMAIL= 29;
+    const COMPLETED = 1;
+    const NOT_COMPLETED = 0;
 
     protected $table = 'debtor_events';
     protected $fillable = [

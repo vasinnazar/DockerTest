@@ -109,9 +109,9 @@ class EmailService
             $user,
             $report,
             DebtorEvent::EMAIL_EVENT,
-            0,
-            17,
-            1
+            DebtorEvent::REASON_OTHER,
+            DebtorEvent::RES_EMAIL,
+            DebtorEvent::COMPLETED,
         );
         $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, true, $debtorEvent->id);
         return true;
