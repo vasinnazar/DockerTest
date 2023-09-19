@@ -72,7 +72,7 @@ use App\OrderType,
                         <div class='col-xs-12 col-sm-8'>
                             <select name="connection_status_id" class="form-control">
                                 <option value=""></option>
-                                @foreach ($debtdata['connection_status'] as $k => $type)
+                                @foreach ($connectionStatuses as $k => $type)
                                     <option value="{{$k}}">{{$type}}</option>
                                 @endforeach
                             </select>

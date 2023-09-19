@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddConnectionStatusIdInDebtorEventsTable extends Migration
+class CreateConnectionStatusTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,9 @@ class AddConnectionStatusIdInDebtorEventsTable extends Migration
      */
     public function up()
     {
-        Schema::table('debtor_events', function (Blueprint $table) {
-            $table->unsignedBigInteger('connection_status_id')->nullable();
+        Schema::create('connection_statuses', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name');
         });
     }
 
@@ -25,8 +26,6 @@ class AddConnectionStatusIdInDebtorEventsTable extends Migration
      */
     public function down()
     {
-        Schema::table('debtor_events', function (Blueprint $table) {
-            $table->dropColumn('connection_status_id');
-        });
+        Schema::dropIfExists('connection_statuses');
     }
 }
