@@ -113,7 +113,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>Группа долга: </td>
+                                <td>База: </td>
                                 <td></td>
                                 <td>
                                     <select name="debt_base_ids[]" multiple="multiple">
