@@ -62,6 +62,22 @@
                                 <td><input name="fixation_date_to" type='text' class='form-control'/></td>
                             </tr>
                             <tr>
+                                <td>Дней просрочки, от</td>
+                                <td>
+                                </td>
+                                <td>
+                                    <input name="qty_delays_from" type="number" class="form-control">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Дней просрочки, до</td>
+                                <td>
+                                </td>
+                                <td>
+                                    <input name="qty_delays_to" type="number" class="form-control">
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>Адрес: </td>
                                 <td></td>
                                 <td>

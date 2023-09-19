@@ -122,6 +122,16 @@ class DebtorsNoticesController extends Controller
         if (isset($input['loan_sbp'])) {
             $debtors->where('loan_id_1c', 'like', '%СБП');
         }
+
+        $qtyDelaysFrom = !empty($input['qty_delays_from']) ? $input['qty_delays_from'] : null;
+
+        $qtyDelaysTo = !empty($input['qty_delays_to']) ?
+            $input['qty_delays_to'] : null;
+
+        if ($qtyDelaysFrom || $qtyDelaysTo) {
+            $debtors->byQty($qtyDelaysFrom,$qtyDelaysTo);
+        }
+
         $debtors = $debtors->get();
 
         $massDir = storage_path() . '/app/public/postPdfTasks/' . $noticesTask->id . '/';
