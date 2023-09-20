@@ -488,7 +488,7 @@
                                 <td id="debtor-phone-clip">{{$debtor->customer->telephone}}</td>
                                 <td style="display: flex;">
                                     @if(!empty(auth()->user()->infinity_extension))
-                                        <button type="button" class="btn btn-success btn-xs phone-call-btn"
+                                        <button id="mainPhoneCall" type="button" class="btn btn-success btn-xs phone-call-btn"
                                                 data-phone="{{$debtor->customer->telephone}}" style="margin-right: 20%">
                                             <span class="glyphicon glyphicon-earphone"></span>
                                         </button>
@@ -1086,7 +1086,12 @@
     <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>
     @if ($debtor->base != 'Архив ЗД')
         <script>
+            var autofilledEvent;
             $(document).ready(function () {
+                @if($user->hasRole('debtors_chief') || $user->hasRole('can_edit_all_debtors'))
+                    $('#usersLogin').val('{{$user->login}}')
+                    $('#chief_from_user_id').val({{$user->id}})
+                @endif
                 $(document).on('click', '.phone-call-btn', function () {
                     if ($('#canCall').val() == '1') {
                         $('#selectionCallBtn').hide();
@@ -1106,6 +1111,29 @@
                         });
                     }
                 });
+                $(document).on('click', '#mainPhoneCall', function (){
+                    @if($user->hasRole('debtors_remote'))
+                        autofilledEvent = true;
+                        $('#connectionStatusId').val({{$autofillData['statusKey']}}).trigger('change')
+                        $('#eventTypeId').val({{$autofillData['mobilePhoneEventTypeKey']}})
+                        $('select[name="debt_group_id"]').val({{$autofillData['contactlessGroupKey']}})
+                        $('select[name="event_result_id"]').val({{$autofillData['resultKey']}})
+                    @endif
+                }).on('change', '#eventTypeId', function () {
+                    @if($user->hasRole('debtors_personal'))
+                    if($('#eventTypeId').find(':selected').text() == "ИНФОРМАЦИЯ СОБРАНА") {
+                        autofilledEvent = true;
+                        $('#connectionStatusId').val({{$autofillData['statusKey']}}).trigger('change')
+                        $('select[name="debt_group_id"]').val({{$autofillData['hopelessGroupKey']}})
+                        $('select[name="event_result_id"]').val({{$autofillData['resultKey']}})
+                    }
+                    @endif
+                }).on('change', '#connectionStatusId', function () {
+                    if(autofilledEvent == true) {
+                        let eventTextArea = $('textarea[name="report"]')
+                        eventTextArea.val("Зв: " + {{$debtor->customer->telephone}} + " " + $('#connectionStatusId').find(':selected').text())
+                    }
+                })
             });
         </script>
     @endif

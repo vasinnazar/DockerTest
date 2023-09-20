@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         $this->call(OrderTypesSeeder::class);
         $this->call(PermissionSeeder::class);
         $this->call(LiveConditionSeeder::class);
+        $this->call(ConnectionStatusSeeder::class);
 
         factory(\App\Customer::class, 15)->create();
         factory(\App\Card::class, 100)->create();

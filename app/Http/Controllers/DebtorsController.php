@@ -13,12 +13,14 @@ use App\Exceptions\DebtorException;
 use App\Http\Requests\DebtorCard\MultiSumRequest;
 use App\Loan;
 use App\MassRecurrentTask;
+use App\Model\ConnectionStatus;
 use App\NoticeNumbers;
 use App\Order;
 use App\Passport;
 use App\DebtorEventPromisePay;
 use App\Repayment;
 use App\Repositories\AboutClientRepository;
+use App\Repositories\ConnectionStatusRepository;
 use App\Repositories\DebtorEventEmailRepository;
 use App\Services\DebtorCardService;
 use App\Services\DebtorEventService;
@@ -54,6 +56,7 @@ class DebtorsController extends BasicController
     public $emailService;
     public $debtorEventEmailRepository;
     public $aboutClientRepository;
+    public $connectionStatusRepository;
 
 
     public function __construct(
@@ -62,7 +65,8 @@ class DebtorsController extends BasicController
         MassRecurrentService       $massRecurrentService,
         EmailService               $emailService,
         DebtorEventEmailRepository $debtorEventEmailRepository,
-        AboutClientRepository      $aboutClientRepository
+        AboutClientRepository      $aboutClientRepository,
+        ConnectionStatusRepository  $connectionStatusRepository
     )
     {
         $this->debtCardService = $debtService;
@@ -71,6 +75,7 @@ class DebtorsController extends BasicController
         $this->emailService = $emailService;
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
         $this->aboutClientRepository = $aboutClientRepository;
+        $this->connectionStatusRepository = $connectionStatusRepository;
     }
 
     /**
@@ -158,7 +163,9 @@ class DebtorsController extends BasicController
 
         $user = Auth::user();
         $debtor = Debtor::find($debtor_id);
+        $connectionStatuses = $this->connectionStatusRepository->getAll()->pluck('name', 'id');
         $dataArm = [];
+        
         try {
             $dataArm = $synchronize->synchronizeDebtor($debtor);
         } catch (\Throwable $exception) {
@@ -540,6 +547,17 @@ class DebtorsController extends BasicController
             ->debtCardService
             ->checkRecurrentButtonEnabled($debtor, $repl_loan->in_cash, $repl_loan->required_money);
 
+        $arDebtDataCollection = array_map(fn($statusGroup) => collect($statusGroup), $arDebtData);
+
+        $autofillData = [
+            'statusKey' => $connectionStatuses->search(ConnectionStatus::AO),
+            'mobilePhoneEventTypeKey' => $arDebtDataCollection['event_types']->search('Звонок на мобильный телефон'),
+            'contactlessGroupKey' => $arDebtDataCollection['debt_groups']->search('Бесконтактный'),
+            'resultKey' => $arDebtDataCollection['event_results']->search('Нет контакта'),
+            'collectedEventTypeKey' => $arDebtDataCollection['event_types']->search('ИНФОРМАЦИЯ СОБРАНА'),
+            'hopelessGroupKey' => $arDebtDataCollection['debt_groups']->search('Безнадежный')
+        ];
+
         return view('debtors.debtorcard', [
             'user' => $user,
             'responsibleUser' => $responsibleUser,
@@ -573,6 +591,8 @@ class DebtorsController extends BasicController
             'noRecurrent' => $noRecurrent,
             'enableRecurrentButton' => $enableRecurrentButton,
             'dataArm' => $dataArm,
+            'autofillData' => $autofillData,
+            'connectionStatuses' => $connectionStatuses
         ]);
     }
 
@@ -665,6 +685,11 @@ class DebtorsController extends BasicController
             }
 
             $debtorEvent->save();
+            $debtorEvent->refresh();
+
+            if (isset($data['connection_status_id']) && mb_strlen($data['connection_status_id'])) {
+                $debtorEvent->connectionStatus()->sync($data['connection_status_id']);
+            }
 
             if ($req->hasFile('messenger_photo')) {
 
@@ -1306,6 +1331,7 @@ class DebtorsController extends BasicController
         $debtorEvent = DebtorEvent::find($req->get('id'));
         $user = User::find($debtorEvent->user_id);
         $debtorEvent->user_fio = $user->name;
+        $debtorEvent->connection_status_id = $debtorEvent->connectionStatus()->first()->id ?? null;
         return $debtorEvent;
     }
 
@@ -1322,7 +1348,7 @@ class DebtorsController extends BasicController
         //ларавель вместо пустых кавычек в числовые поля подставляет 0, 
         //поэтому ставим null где пустые значения
         foreach ($input as $k => $v) {
-            if (strpos($k, '_id') !== false && empty($v)) {
+            if (strpos($k, '_id') && $v === "") {
                 $input[$k] = null;
             } else {
                 if ($v == '0000-00-00 00:00:00') {
@@ -1345,6 +1371,11 @@ class DebtorsController extends BasicController
             $debtEvent->user_id_1c = $user->id_1c;
             $debtEvent->user_id = $user->id;
         }
+
+        if (isset($input['connection_status_id']) && mb_strlen($input['connection_status_id'])) {
+            $debtEvent->connectionStatus()->sync($input['connection_status_id']);
+        }
+
         $debtEvent->fill($input);
         $debtEvent->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
         $debtEvent->save();
