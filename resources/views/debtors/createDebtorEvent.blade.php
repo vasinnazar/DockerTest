@@ -93,7 +93,6 @@
                                     <label class='col-xs-12 col-sm-4 text-right'>От имени:</label>
                                     <div class='col-xs-12 col-sm-8 form-inline'>
                                         <input
-                                                disabled
                                                 id="usersLogin"
                                                 name='users@login'
                                                type='text'
