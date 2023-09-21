@@ -21,7 +21,7 @@ class DebtorTest extends TestCase
 
     private $user;
     private $debtor;
-    private $debotEvent;
+    private $debtorEvent;
     private $loan;
     private $claim;
     private $passport;
@@ -76,6 +76,17 @@ class DebtorTest extends TestCase
         ]);
 
         $response->assertOk();
+    }
+
+    public function testAjaxDebtortransfer()
+    {
+        $responseWithKratnost = $this->actingAs($this->user)->json('GET', 'ajax/debtortransfer/list', [
+            'search_field_debtors@kratnost' => 1
+        ]);
+
+        $responseWithKratnost->assertJsonFragment([
+            'debtors_base' => $this->debtor->base
+        ]);
     }
 
     protected function connectionsToTransact()
