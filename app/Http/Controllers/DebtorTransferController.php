@@ -109,6 +109,10 @@ class DebtorTransferController extends BasicController
                 '%' . $input['passports@fact_address_district'] . '%');
         }
 
+        if (isset($input['search_field_debtors@kratnost']) && $input['search_field_debtors@kratnost'] == 1) {
+            $debtors = $debtors->where('kratnost', 1);
+        }
+
         $is_online = (isset($input['search_field_debtors@is_lead']) && $input['search_field_debtors@is_lead'] == 1) ? 1 : 0;
 
         $is_bigmoney = (isset($input['search_field_debtors@is_bigmoney']) && $input['search_field_debtors@is_bigmoney'] == 1) ? 1 : 0;
