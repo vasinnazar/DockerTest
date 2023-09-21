@@ -39,11 +39,12 @@ class EmailController extends Controller
         $userArm = $this->armClient->getUserById1c($user->id_1c);
         $dataEmailUser = $userArm ? array_shift($userArm)['email_user'] : null;
         $userEmail = $dataEmailUser['email'] ?? $dataEmailUser;
-        if (empty(trim($userEmail))) {
+        $userPassword = $dataEmailUser['password'] ?? $dataEmailUser;
+        if (empty(trim($userEmail)) || empty($userPassword)) {
             return redirect()
                 ->back()
                 ->with('msg_err', 'Email сообщение не отправленно.
-                Логин для входа в корпоративную почту не заполнен, обратитесь в техподдержку.');
+                Логин или пароль для входа в корпоративную почту не заполнен, обратитесь в техподдержку.');
         }
 
         $arrayParam = [
@@ -54,6 +55,7 @@ class EmailController extends Controller
             'discountPayment' => $request->discountPayment ?? null,
             'user' => $user,
             'userEmail' => $userEmail,
+            'userPassword' => $userPassword,
         ];
 
         $customer = (Debtor::find($request->debtor_id))->customer;

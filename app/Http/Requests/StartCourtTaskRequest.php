@@ -11,7 +11,8 @@ class StartCourtTaskRequest extends Request
             "fixation_date_to" => "date",
             "qty_delays_from" => "integer",
             "qty_delays_to" => "integer",
-            "responsible_users_ids" => 'array'
+            "responsible_users_ids" => 'array',
+            'debt_base_ids' => 'array'
         ];
     }
 

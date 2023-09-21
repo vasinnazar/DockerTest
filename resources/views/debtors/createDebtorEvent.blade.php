@@ -25,20 +25,9 @@
                             <div class='form-group'>
                                 <label class='col-xs-12 col-sm-4 text-right'>Тип мероприятия:</label>
                                 <div class='col-xs-12 col-sm-8'>
-                                    <select name="event_type_id" class="form-control">
+                                    <select id="eventTypeId" name="event_type_id" class="form-control">
                                         <option value=""></option>
                                         @foreach ($debtdata['event_types'] as $k => $type)
-                                            <option value="{{$k}}">{{$type}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class='form-group'>
-                                <label class='col-xs-12 col-sm-4 text-right'>Причина просрочки:</label>
-                                <div class='col-xs-12 col-sm-8'>
-                                    <select name="overdue_reason_id" class="form-control">
-                                        <option value=""></option>
-                                        @foreach ($debtdata['overdue_reasons'] as $k => $type)
                                             <option value="{{$k}}">{{$type}}</option>
                                         @endforeach
                                     </select>
@@ -88,11 +77,24 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class='form-group'>
+                                <label class='col-xs-12 col-sm-4 text-right'>Статус соединения:</label>
+                                <div class='col-xs-12 col-sm-8'>
+                                    <select id="connectionStatusId" name="connection_status_id" class="form-control">
+                                        <option value=""></option>
+                                        @foreach ($connectionStatuses as $k => $type)
+                                            <option value="{{$k}}">{{$type}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                             @if ($user->hasRole('debtors_chief') || $user->hasRole('can_edit_all_debtors'))
                                 <div class='form-group' id='chief_event_field'>
                                     <label class='col-xs-12 col-sm-4 text-right'>От имени:</label>
                                     <div class='col-xs-12 col-sm-8 form-inline'>
-                                        <input name='users@login'
+                                        <input
+                                                id="usersLogin"
+                                                name='users@login'
                                                type='text'
                                                class='form-control autocomplete'
                                                data-hidden-value-field='search_field_users@id'

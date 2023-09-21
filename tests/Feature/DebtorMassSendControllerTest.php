@@ -18,6 +18,7 @@ use App\Subdivision;
 use App\User;
 use Carbon\Carbon;
 use EmailsMessagesSeeder;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -27,7 +28,7 @@ use Tests\TestCase;
 
 class DebtorMassSendControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private $user;
     private $debtors;

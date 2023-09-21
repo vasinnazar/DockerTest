@@ -2,9 +2,11 @@
 
 namespace App;
 
+use App\Model\ConnectionStatus;
 use App\Model\DebtorEventEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -65,7 +67,7 @@ class DebtorEvent extends Model
         'last_user_id',
         'debtor_id_1c',
         'user_id_1c',
-        'refresh_date',
+        'refresh_date'
     ];
 
     protected static function boot()
@@ -85,6 +87,11 @@ class DebtorEvent extends Model
     public function eventEmail()
     {
         $this->hasMany(DebtorEventEmail::class, 'debtor_id');
+    }
+
+    public function connectionStatus(): BelongsToMany
+    {
+        return $this->belongsToMany(ConnectionStatus::class, 'debtor_events_connection_status', 'debtor_event_id', 'connection_status_id');
     }
 
     /**

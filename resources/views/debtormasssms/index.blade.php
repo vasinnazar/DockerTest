@@ -132,6 +132,16 @@
                                         <td></td>
                                         <td><input name="overdue_till" type='text' class='form-control'/></td>
                                     </tr>
+                                        <tr>
+                                            <td>Наличие email</td>
+                                            <td></td>
+                                            <td><select name="has_email" class="form-control">
+                                                    <option value="">Все</option>
+                                                    @foreach($emailFilterFields as $fieldKey => $fieldName)
+                                                        <option value="{{$fieldKey}}">{{$fieldName}}</option>
+                                                    @endforeach
+                                                </select></td>
+                                        </tr>
                                 </table>
                             </div>
                         </div>
