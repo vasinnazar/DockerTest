@@ -7,6 +7,7 @@ use App\Model\DebtorEventEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -43,7 +44,7 @@ use Log;
 
 class DebtorEvent extends Model
 {
-
+    use SoftDeletes;
     const SMS_EVENT = 12;
     const AUTOINFORMER_OMICRON_EVENT = 15;
     const WHATSAPP_EVENT = 23;
