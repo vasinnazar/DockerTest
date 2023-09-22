@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ApiDebtorsController;
 use App\Http\Controllers\Api\ApiEventsController;
+use App\Http\Controllers\FromDebtorsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/debtors')->group(function () {
