@@ -242,8 +242,7 @@
                                         <a class='btn change-personal-data {{$debtor->non_interaction == 1 ? 'btn-danger' : 'btn-default'}}'
                                            data-action="{{$debtor->non_interaction == 0 ? 'on' : 'off'}}_non_interaction"
                                            href='#'
-                                           data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отказ
-                                            от взаимодействия (по форме)</a>
+                                           data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отказ от взаимодействия</a>
                                     </div>
                                 </div>
                                 <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right'
@@ -252,8 +251,7 @@
                                         <a class='btn change-personal-data {{$debtor->non_interaction_nf == 1 ? 'btn-danger' : 'btn-default'}}'
                                            data-action="{{$debtor->non_interaction_nf == 0 ? 'on' : 'off'}}_non_interaction_nf"
                                            href='#'
-                                           data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отказ
-                                            от взаимодействия (не по форме)</a>
+                                           data-link="{{url('ajax/debtors/changePersonalData/' . $debtor->id . '/')}}">Отзыв согласия на уступку прав требования</a>
                                     </div>
                                 </div>
                                 <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right'
@@ -280,7 +278,7 @@
                                     <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right'
                                          style="padding-top: 2px;">
                                         <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
-                                            <button class='btn btn-danger'>Отказ от взаимодействия (по форме)</button>
+                                            <button class='btn btn-danger'>Отказ от взаимодействия</button>
                                         </div>
                                     </div>
                                 @endif
@@ -288,8 +286,7 @@
                                     <div class='col-xs-12 col-sm-6 col-lg-8 text-center pull-right'
                                          style="padding-top: 2px;">
                                         <div class="btn-group btn-group-sm btn-group-vertical" style="width: 100%;">
-                                            <button class='btn btn-danger'>Отказ от взаимодействия (не по форме)
-                                            </button>
+                                            <button class='btn btn-danger'>Отзыв согласия на уступку прав требования</button>
                                         </div>
                                     </div>
                                 @endif

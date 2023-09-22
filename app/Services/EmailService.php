@@ -8,6 +8,7 @@ use App\EmailMessage;
 use App\Loan;
 use App\Repositories\AboutClientRepository;
 use App\Repositories\DebtorEventEmailRepository;
+use App\Repositories\DebtorEventsRepository;
 use App\Role;
 use App\User;
 use Carbon\Carbon;
@@ -16,16 +17,19 @@ use Illuminate\Support\Facades\Log;
 class EmailService
 {
     private $debtorEventEmailRepository;
+    private $debtorEventsRepository;
     private $aboutClientRepository;
     private $mailerService;
 
     public function __construct(
         DebtorEventEmailRepository $debtorEventEmailRepository,
+        DebtorEventsRepository $debtorEventsRepository,
         AboutClientRepository      $aboutClientRepository,
         MailerService              $mailerService
     )
     {
         $this->debtorEventEmailRepository = $debtorEventEmailRepository;
+        $this->debtorEventsRepository = $debtorEventsRepository;
         $this->aboutClientRepository = $aboutClientRepository;
         $this->mailerService = $mailerService;
     }
@@ -99,23 +103,16 @@ class EmailService
             $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, false);
             return false;
         }
-
-        $debtorEvent = DebtorEvent::create([
-            'debtor_id' => $debtor->id,
-            'debtor_id_1c' => $debtor->debtor_id_1c,
-            'customer_id_1c' => $debtor->customer_id_1c,
-            'loan_id_1c' => $debtor->loan_id_1c,
-            'debt_group_id' => $debtor->debt_group_id,
-            'user_id' => $user->id,
-            'last_user_id' => $user->id,
-            'user_id_1c' => $user->id_1c,
-            'event_type_id' => 24,
-            'report' => 'Отправленно ' . $debtorEmail . ' сообщение :' . $messageText,
-            'refresh_date' => Carbon::now(),
-            'overdue_reason_id' => 0,
-            'event_result_id' => 17,
-            'completed' => 1,
-        ]);
+        $report = 'Отправленно ' . $debtorEmail . ' сообщение :' . $messageText;
+        $debtorEvent = $this->debtorEventsRepository->createEvent(
+            $debtor,
+            $user,
+            $report,
+            DebtorEvent::EMAIL_EVENT,
+            DebtorEvent::REASON_OTHER,
+            DebtorEvent::RES_EMAIL,
+            DebtorEvent::COMPLETED
+        );
         $this->debtorEventEmailRepository->create($debtor->customer_id_1c, $messageText, true, $debtorEvent->id);
         return true;
     }
