@@ -1088,7 +1088,7 @@
         <script>
             var autofilledEvent;
             $(document).ready(function () {
-                @if($user->hasRole('debtors_chief') || $user->hasRole('can_edit_all_debtors'))
+                @if($user->hasRole('debtors_chief') || $user->hasRole('can_edit_all_debtors') || $user->hasRole('debtors_personal'))
                     $('#usersLogin').val('{{$user->login}}')
                     $('#chief_from_user_id').val({{$user->id}})
                 @endif
