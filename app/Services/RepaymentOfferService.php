@@ -8,6 +8,7 @@ use App\DebtorBlockProlongation;
 use App\DebtorEvent;
 use App\DebtorsEventType;
 use App\Repositories\DebtorEventsRepository;
+use App\Repositories\DebtorRepository;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -17,13 +18,19 @@ class RepaymentOfferService
 
     private $armClient;
     private $debtorEventsRepository;
+    private $debtorRepository;
     const REPAYMENT_TYPE_PEACE = 14;
     const STATUS_CLOSE_OFFER = 4;
 
-    public function __construct(ArmClient $client, DebtorEventsRepository $debtorEventsRepository)
+    public function __construct(
+        ArmClient $client,
+        DebtorEventsRepository $debtorEventsRepository,
+        DebtorRepository $debtorRepository
+    )
     {
         $this->armClient = $client;
         $this->debtorEventsRepository = $debtorEventsRepository;
+        $this->debtorRepository = $debtorRepository;
     }
 
     /**
@@ -32,12 +39,8 @@ class RepaymentOfferService
      */
     public function autoPeaceForUPR()
     {
-        $debtors = Debtor::where('is_debtor', 1)
-            ->where('str_podr', '000000000006')
-            ->whereIn('debt_group_id', [2, 4, 5, 8])
-            ->where('qty_delays', 36)
-            ->where('base', 'Б-1')
-            ->get();
+        $debtors = $this->debtorRepository
+            ->getDebtorsByPodrAndGroupAndBase(1, '000000000006', [2, 4, 5, 8], 36, 'Б-1');
 
         foreach ($debtors as $debtor) {
             $repaymentOffers = $this->armClient->getOffers($debtor->loan_id_1c);
@@ -58,7 +61,7 @@ class RepaymentOfferService
                 $payment = (int)($amount * 0.5);
                 $this->sendPeaceForUPR($debtor, $payment, $periodOffer, 30);
             }
-            if ($amount > 1000000 ) {
+            if ($amount > 1000000) {
                 $payment = (int)($amount * 0.4);
                 $this->sendPeaceForUPR($debtor, $payment, $periodOffer, 60);
             }
@@ -67,8 +70,10 @@ class RepaymentOfferService
 
     public function sendPeaceForUPR(Debtor $debtor, int $amount, int $periodOffer, int $times)
     {
-        Log::info('Repayment Offer Auto Peace SEND:',
-            ['debtorID' => $debtor->id, 'loanId1c' => $debtor->loan_id_1c]);
+        Log::info(
+            'Repayment Offer Auto Peace SEND:',
+            ['debtorID' => $debtor->id, 'loanId1c' => $debtor->loan_id_1c]
+        );
         $this->armClient->sendRepaymentOffer(
             self::REPAYMENT_TYPE_PEACE,
             $times,
