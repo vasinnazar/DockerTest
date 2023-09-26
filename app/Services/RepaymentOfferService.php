@@ -49,26 +49,29 @@ class RepaymentOfferService
             if (!is_null($debtorProlangation)) {
                 continue;
             }
-            $amount = $debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine;
-            if ($amount < 500000) {
-                continue;
+            $amount = $debtor->sum_indebt;
+            $periodOffer = 10;
+            if ($amount >= 500000 && $amount <= 1000000) {
+                $payment = (int)($amount * 0.5);
+                $this->sendPeaceForUPR($debtor, $payment, $periodOffer, 30);
             }
-            $amount = (int)($amount * 0.3);
-
-            $this->sendPeaceForUPR($debtor, $amount);
+            if ($amount > 1000000 ) {
+                $payment = (int)($amount * 0.4);
+                $this->sendPeaceForUPR($debtor, $payment, $periodOffer, 60);
+            }
         }
     }
 
-    public function sendPeaceForUPR(Debtor $debtor, int $amount)
+    public function sendPeaceForUPR(Debtor $debtor, int $amount, int $periodOffer, int $times)
     {
         Log::info('Repayment Offer Auto Peace SEND:',
             ['debtorID' => $debtor->id, 'loanId1c' => $debtor->loan_id_1c]);
-        $result = $this->armClient->sendRepaymentOffer(
+        $this->armClient->sendRepaymentOffer(
             self::REPAYMENT_TYPE_PEACE,
-            60,
+            $times,
             $amount,
             $debtor->loan_id_1c,
-            Carbon::now()->addDay(14),
+            Carbon::now()->addDay($periodOffer),
             Carbon::now(),
             0,
             1
@@ -82,9 +85,9 @@ class RepaymentOfferService
             $event->event_result_id = DebtorsEventType::RESULT_TYPE_CONSENT_TO_PEACE;
             $event->report = '(Автоматическое) Предварительное согласие по договору ' .
                 $debtor->loan_id_1c . ' на мировое соглашение сроком на ' .
-                60 . ' дней, сумма: ' .
+                $times . ' дней, сумма: ' .
                 $amount / 100 . ' руб. Действует до ' .
-                Carbon::now()->addDay(14)->format('d.m.Y');
+                Carbon::now()->addDay($periodOffer)->format('d.m.Y');
             $event->debtor_id = $debtor->id;
             $event->user_id = $user->id;
             $event->completed = 1;
