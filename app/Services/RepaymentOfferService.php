@@ -7,6 +7,7 @@ use App\Debtor;
 use App\DebtorBlockProlongation;
 use App\DebtorEvent;
 use App\DebtorsEventType;
+use App\Repositories\DebtorEventsRepository;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -15,12 +16,14 @@ class RepaymentOfferService
 {
 
     private $armClient;
+    private $debtorEventsRepository;
     const REPAYMENT_TYPE_PEACE = 14;
     const STATUS_CLOSE_OFFER = 4;
 
-    public function __construct(ArmClient $client)
+    public function __construct(ArmClient $client, DebtorEventsRepository $debtorEventsRepository)
     {
         $this->armClient = $client;
+        $this->debtorEventsRepository = $debtorEventsRepository;
     }
 
     /**
@@ -78,24 +81,20 @@ class RepaymentOfferService
         );
         try {
             $user = User::where('banned', 0)->where('id_1c', $debtor->responsible_user_id_1c)->first();
-            $event = new DebtorEvent();
-            $event->customer_id_1c = $debtor->customer_id_1c;
-            $event->event_type_id = DebtorsEventType::TYPE_INFORMATION;
-            $event->debt_group_id = $debtor->debt_group_id;
-            $event->event_result_id = DebtorsEventType::RESULT_TYPE_CONSENT_TO_PEACE;
-            $event->report = '(Автоматическое) Предварительное согласие по договору ' .
+            $report = '(Автоматическое) Предварительное согласие по договору ' .
                 $debtor->loan_id_1c . ' на мировое соглашение сроком на ' .
                 $times . ' дней, сумма: ' .
                 $amount / 100 . ' руб. Действует до ' .
                 Carbon::now()->addDay($periodOffer)->format('d.m.Y');
-            $event->debtor_id = $debtor->id;
-            $event->user_id = $user->id;
-            $event->completed = 1;
-            $event->last_user_id = $user->id;
-            $event->debtor_id_1c = $debtor->debtor_id_1c;
-            $event->user_id_1c = $user->id_1c;
-            $event->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
-            $event->save();
+            $this->debtorEventsRepository->createEvent(
+                $debtor,
+                $user,
+                $report,
+                DebtorsEventType::TYPE_INFORMATION,
+                null,
+                DebtorsEventType::RESULT_TYPE_CONSENT_TO_PEACE,
+                DebtorEvent::COMPLETED
+            );
         } catch (\Exception $e) {
             Log::error('Create event auto-peace', ['debtorId' => $debtor->id, 'messages' => $e->getMessage()]);
         }

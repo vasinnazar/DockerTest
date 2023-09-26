@@ -26,7 +26,7 @@ class DebtorEventsRepository
         User $user,
         string $report,
         int $eventTypeId,
-        int $overdueReasonId,
+        int $overdueReasonId = null,
         int $eventResultId = null,
         int $completed = 0
     ): DebtorEvent {
