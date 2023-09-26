@@ -81,11 +81,11 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title" id="debtorTransferFilterModalLabel">Фильтр должников</h4>
             </div>
-            {!!Form::open()!!}
+            {!!Form::open(['id' => 'debtorTransferFilter'])!!}
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xs-12">
-                        <table class='table table-borderless' id='debtorTransferFilter'>
+                        <table class='table table-borderless'>
                             @foreach($debtorTransferFilterFields as $dtff)
                             <tr>
                                 <td>{{$dtff['label']}}</td>
@@ -126,13 +126,15 @@
             </div>
             <div class="modal-footer">
                 <div class="pull-left" style="text-align: left;">
-                <span><input type="checkbox" name="search_field_debtors@is_lead" value="1">&nbsp;Онлайн</span>
+                <span><input type="checkbox" name="debtors@is_lead" value="1">&nbsp;Онлайн</span>
                 <br>
                 <span><input type="checkbox" name="search_field_debtors@is_bigmoney" value="1">&nbsp;Большие деньги</span>
                 <br>
                 <span><input type="checkbox" name="search_field_debtors@is_pledge" value="1">&nbsp;Залоговые займы</span>
                 <br>
                 <span><input type="checkbox" name="search_field_debtors@is_pos" value="1">&nbsp;Товарные займы</span>
+                    <br>
+                    <span><input type="checkbox" name="search_field_debtors@kratnost" value="1">&nbsp;Кратность</span>
                 </div>
                 {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorTransferClearFilterBtn'])!!}
                 {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'debtorTransferFilterButton'])!!}

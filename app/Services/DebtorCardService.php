@@ -62,6 +62,7 @@ class DebtorCardService
         }
 
         $arLoanIds = [];
+        $kratnost = false;
 
         foreach ($claims as $claim) {
 
@@ -107,6 +108,10 @@ class DebtorCardService
             $tmpLoan = DB::Table('armf.loans')->select(DB::raw('*'))->where('id_1c', $loan_id_1c)->first();
 
             $debtor = Debtor::where('loan_id_1c', $loan_id_1c)->first();
+
+            if(!$kratnost && isset($debtor->kratnost) && $debtor->kratnost == 1) {
+                $kratnost = true;
+            }
 
             if (is_null($tmpLoan)) {
                 $arResult[$loan_id_1c] = [
@@ -154,7 +159,7 @@ class DebtorCardService
         $arResult['summary'] = $summary;
         $arResult['total_pc'] = $total_pc;
         $arResult['current_loan_id_1c'] = $loanId1c;
-
+        $arResult['kratnost'] = $kratnost;
         return $arResult;
     }
 

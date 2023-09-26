@@ -255,12 +255,12 @@ $(document).ready(function () {
                         </li>
                         @endif
                         @if(!is_null(Auth::user()) && Auth::user()->hasPermission(\App\Permission::makeName(\App\Utils\PermLib::ACTION_OPEN,\App\Utils\PermLib::SUBJ_DEBTORS)))
-                        <li class="{{ (str_contains(Request::path(), 'debtors')) ? 'active' : '' }}">
+                        <li class="{{ preg_match('/(?=.*debtor)(?!.*transfer).*/', Request::path(), $match) ? 'active' : '' }}">
                             <a href="{{ url('/debtors/index') }}">Должники</a>
                         </li>
                         @endif
                         @if(!is_null(Auth::user()) && Auth::user()->hasPermission(\App\Permission::makeName(\App\Utils\PermLib::ACTION_OPEN,\App\Utils\PermLib::SUBJ_DEBTOR_TRANSFER)))
-                        <li class="{{ (str_contains(Request::path(), 'debtortransfer')) ? 'active' : '' }}">
+                        <li class="{{ (str_contains(Request::path(), 'transfer')) ? 'active' : '' }}">
                             <a href="{{ url('/debtors/transfer/index') }}">Передача должников</a>
                         </li>
                         @endif

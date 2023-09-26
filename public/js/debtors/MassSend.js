@@ -1,7 +1,7 @@
 $(document).ready(function () {
     $.debtorsCtrl.init();
     $.debtorsCtrl.initDebtorMassSmsTable();
-    $.debtorsCtrl.changeDebtorMassSmsFilter();
+    $.debtorsCtrl.changeDebtorMassSendFilter();
 
     $(document).on('change', '#formSendSMS input[type="radio"]', function () {
         $('input[name="template_id"]').val($(this).val());

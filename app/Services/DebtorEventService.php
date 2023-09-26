@@ -205,6 +205,8 @@ class DebtorEventService
 
         $responsible_id_1c = $req->get('search_field_users@id_1c');
 
+        $kratnost = $req->get('search_field_debtors@kratnost');
+
         // получаем список запланированных мероприятий на сегодня
         $debtorEvents = DB::table('debtor_events')->select($cols)
             ->leftJoin('debtors', 'debtors.id', '=', 'debtor_events.debtor_id')
@@ -241,6 +243,10 @@ class DebtorEventService
 
         if (!is_null($responsible_id_1c) && mb_strlen($responsible_id_1c)) {
             $debtorEvents->where('debtors.debtor_events.user_id_1c', $responsible_id_1c);
+        }
+
+        if ($kratnost === "1") {
+            $debtorEvents->where('debtors.kratnost', 1);
         }
 
         if ($currentUser->hasRole('debtors_personal')) {

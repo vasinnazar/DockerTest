@@ -8,12 +8,16 @@
                 id="totalSumDebt">{{ number_format($loans['summary'] / 100, '2', '.', '') }}</span> руб.</p>
     <p style="text-align: center; color: blue; font-weight: bold; padding: 0;">
         Проценты: {{ number_format($loans['total_pc'] / 100, '2', '.', '') }} руб.</p>
-    <p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Изменение общей суммы долга: <span
-                id="diffTotalSumChange">0</span> руб.</p>
+    @if($loans['kratnost'])
+    <p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Кратность</p>
+    @else
+        <p style="text-align: center; color: blue; font-weight: bold; padding: 0;">Изменение общей суммы долга: <span
+                    id="diffTotalSumChange">0</span> руб.</p>
+    @endif
     @php
         foreach ($loans as $id_1c => $mLoan) {
 
-        if ($id_1c == 'current_loan_id_1c' || $id_1c == 'summary' || $id_1c == 'base_type' || $id_1c == 'total_pc') {
+        if ($id_1c == 'current_loan_id_1c' || $id_1c == 'summary' || $id_1c == 'base_type' || $id_1c == 'total_pc' || $id_1c == 'kratnost') {
             continue;
         }
     @endphp
