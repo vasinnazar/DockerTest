@@ -126,7 +126,7 @@
             </div>
             <div class="modal-footer">
                 <div class="pull-left" style="text-align: left;">
-                <span><input type="checkbox" name="search_field_debtors@is_lead" value="1">&nbsp;Онлайн</span>
+                <span><input type="checkbox" name="debtors@is_lead" value="1">&nbsp;Онлайн</span>
                 <br>
                 <span><input type="checkbox" name="search_field_debtors@is_bigmoney" value="1">&nbsp;Большие деньги</span>
                 <br>

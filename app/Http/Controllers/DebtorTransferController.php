@@ -92,7 +92,7 @@ class DebtorTransferController extends BasicController
             ->groupBy('debtors.id');
 
         if (!$this->hasFilterFilled($input)) {
-            $debtors->where('debtors.debtors.id', 0);
+            $debtors->where('debtors.id', 0);
         }
 
         if (isset($input['overdue_from']) && mb_strlen($input['overdue_from'])) {
@@ -114,7 +114,7 @@ class DebtorTransferController extends BasicController
             $debtors = $debtors->where('kratnost', 1);
         }
 
-        $is_online = (isset($input['search_field_debtors@is_lead']) && $input['search_field_debtors@is_lead'] == 1) ? 1 : 0;
+        $is_online = (isset($input['debtors@is_lead']) && $input['debtors@is_lead'] == 1) ? 1 : 0;
 
         $is_bigmoney = (isset($input['search_field_debtors@is_bigmoney']) && $input['search_field_debtors@is_bigmoney'] == 1) ? 1 : 0;
         $is_pledge = (isset($input['search_field_debtors@is_pledge']) && $input['search_field_debtors@is_pledge'] == 1) ? 1 : 0;
@@ -122,8 +122,8 @@ class DebtorTransferController extends BasicController
 
 
         if ($is_online) {
-            $debtors->leftJoin('debtors.subdivisions', 'debtors.subdivisions.id', '=', 'debtors.loans.subdivision_id');
-            $debtors->where('debtors.subdivisions.is_lead', 1);
+            $debtors->leftJoin('subdivisions', 'subdivisions.id', '=', 'debtors.loans.subdivision_id');
+            $debtors->where('subdivisions.is_lead', 1);
         }
 
         if ($is_bigmoney || $is_pledge || $is_pos) {
