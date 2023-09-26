@@ -228,6 +228,8 @@
                         <br>
                         <span><input type="checkbox" name="search_field_debtors@is_pos"
                                      value="1">&nbsp;Товарные займы</span>
+                        <br>
+                        <span><input type="checkbox" name="search_field_debtors@kratnost" value="1">&nbsp;Кратность</span>
                     </div>
                     {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorsClearFilterBtn'])!!}
                     {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'debtorsFilterBtn'])!!}
@@ -239,7 +241,7 @@
     <div class="modal fade" id="debtorEventsSearchModal" tabindex="-1" role="dialog"
          aria-labelledby="debtorEventsSearchModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content" id="debtorsEventsFilter">
+            <div class="modal-content" id="debtorEventsFilter">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4 class="modal-title" id="debtorEventsSearchModalLabel">Введите данные клиента</h4>
@@ -285,6 +287,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <div class="pull-left" style="text-align: left;">
+                        <span><input type='checkbox' name='search_field_debtors@kratnost' value='1'>&nbsp;Кратность</span>
+                    </div>
                     {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorEventsClearFilterBtn'])!!}
                     {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'debtorEventsFilterBtn'])!!}
                 </div>

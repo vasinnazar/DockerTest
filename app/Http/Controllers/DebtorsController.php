@@ -1140,6 +1140,8 @@ class DebtorsController extends BasicController
 
         $groupId = $req->get('search_field_debt_groups@id');
 
+        $kratnost = $req->get('debtor_event@kratnost');
+
         if (!is_null($dateFrom) && !empty($dateFrom)) {
             $dateFrom = Carbon::parse($dateFrom)->startOfDay()->format('Y-m-d H:i:s');
         }
@@ -1155,8 +1157,8 @@ class DebtorsController extends BasicController
             ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
             ->leftJoin('debtors.claims', 'debtors.claims.id', '=', 'debtors.loans.claim_id')
             ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+                $join->on('debtors.passports.series', '=', 'debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.passport_number');
             })
             ->leftJoin('users', 'users.id', '=', 'debtor_events.user_id')
             ->leftJoin('debtor_users_ref', 'debtor_users_ref.master_user_id', '=', 'users.id')
@@ -1250,15 +1252,19 @@ class DebtorsController extends BasicController
         }
 
         if (!is_null($responsibleId1c) && mb_strlen($responsibleId1c)) {
-            $debtorEvents->where('debtors.debtor_events.user_id_1c', $responsibleId1c);
+            $debtorEvents->where('debtor_events.user_id_1c', $responsibleId1c);
         }
         if ($currentUser->hasRole('debtors_personal')) {
-            $debtorEvents->where('debtors.debtor_events.user_id', $currentUser->id);
+            $debtorEvents->where('debtor_events.user_id', $currentUser->id);
         } else {
             // если придет пустой массив - будут показаны все планы на день
             if (!empty($arIn) && (is_null($responsibleId1c) || !mb_strlen($responsibleId1c))) {
-                $debtorEvents->whereIn('debtors.debtor_events.user_id', $arIn);
+                $debtorEvents->whereIn('debtor_events.user_id', $arIn);
             }
+        }
+
+        if ($kratnost === 1) {
+            $debtorEvents->where('debtors.kratnost', $kratnost);
         }
 
         $events = collect($debtorEvents->get());
@@ -2771,7 +2777,6 @@ class DebtorsController extends BasicController
         $customerId1c = $request['customer_id_1c'];
         $loanId1c = $request['loan_id_1c'];
         $date = $request['date'] ?? null;
-
         $result = $this->debtCardService->getMultiSum1c($customerId1c, $loanId1c, $date);
         return view('elements.debtors.multiloans_buttons', [
             'loans' => $result ?? null

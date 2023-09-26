@@ -188,6 +188,11 @@ class DebtorMassSendController extends BasicController
                 $debtors->where($tableName . '.' . $colName, $condition, $v);
             }
         }
+
+        if (isset($input['search_field_debtors@kratnost']) && $input['search_field_debtors@kratnost'] === 1) {
+            $debtors = $debtors->where('kratnost', 1);
+        }
+
         $debtors = $debtors->get();
 
         return Datatables::of($debtors)

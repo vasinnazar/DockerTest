@@ -83,15 +83,16 @@ class DebtorTransferController extends BasicController
         $debtors = Debtor::select($cols)
             ->leftJoin('debtors.debt_groups', 'debtors.debt_groups.id', '=', 'debtors.debt_group_id')
             ->leftJoin('debtors.passports', function ($join) {
-                $join->on('debtors.passports.series', '=', 'debtors.debtors.passport_series');
-                $join->on('debtors.passports.number', '=', 'debtors.debtors.passport_number');
+                $join->on('debtors.passports.series', '=', 'debtors.passport_series');
+                $join->on('debtors.passports.number', '=', 'debtors.passport_number');
             })
+            ->leftJoin('debtors.loans', 'debtors.loans.id_1c', '=', 'debtors.loan_id_1c')
             ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')
             ->leftJoin('struct_subdivisions', 'struct_subdivisions.id_1c', '=', 'debtors.str_podr')
             ->groupBy('debtors.id');
 
         if (!$this->hasFilterFilled($input)) {
-            $debtors->where('debtors.debtors.id', 0);
+            $debtors->where('debtors.id', 0);
         }
 
         if (isset($input['overdue_from']) && mb_strlen($input['overdue_from'])) {
@@ -109,36 +110,41 @@ class DebtorTransferController extends BasicController
                 '%' . $input['passports@fact_address_district'] . '%');
         }
 
-        $is_online = (isset($input['search_field_debtors@is_lead']) && $input['search_field_debtors@is_lead'] == 1) ? 1 : 0;
+        if (isset($input['search_field_debtors@kratnost']) && $input['search_field_debtors@kratnost'] == 1) {
+            $debtors = $debtors->where('kratnost', 1);
+        }
+
+        $is_online = (isset($input['debtors@is_lead']) && $input['debtors@is_lead'] == 1) ? 1 : 0;
 
         $is_bigmoney = (isset($input['search_field_debtors@is_bigmoney']) && $input['search_field_debtors@is_bigmoney'] == 1) ? 1 : 0;
         $is_pledge = (isset($input['search_field_debtors@is_pledge']) && $input['search_field_debtors@is_pledge'] == 1) ? 1 : 0;
         $is_pos = (isset($input['search_field_debtors@is_pos']) && $input['search_field_debtors@is_pos'] == 1) ? 1 : 0;
 
+
         if ($is_online) {
-            $debtors->leftJoin('debtors.subdivisions', 'debtors.subdivisions.id', '=', 'debtors.loans.subdivision_id');
-            $debtors->where('debtors.subdivisions.is_lead', 1);
+            $debtors->leftJoin('subdivisions', 'subdivisions.id', '=', 'debtors.loans.subdivision_id');
+            $debtors->where('subdivisions.is_lead', 1);
         }
 
         if ($is_bigmoney || $is_pledge || $is_pos) {
             $debtors->where(function ($query) use ($is_bigmoney, $is_pledge, $is_pos) {
                 if ($is_bigmoney) {
-                    $query->where('debtors.debtors.is_bigmoney', 1);
+                    $query->where('debtors.is_bigmoney', 1);
                     if ($is_pledge) {
-                        $query->orWhere('debtors.debtors.is_pledge', 1);
+                        $query->orWhere('debtors.is_pledge', 1);
                     }
                     if ($is_pos) {
-                        $query->orWhere('debtors.debtors.is_pos', 1);
+                        $query->orWhere('debtors.is_pos', 1);
                     }
                 } else {
                     if ($is_pledge) {
-                        $query->where('debtors.debtors.is_pledge', 1);
+                        $query->where('debtors.is_pledge', 1);
                         if ($is_pos) {
-                            $query->orWhere('debtors.debtors.is_pos', 1);
+                            $query->orWhere('debtors.is_pos', 1);
                         }
                     } else {
                         if ($is_pos) {
-                            $query->where('debtors.debtors.is_pos', 1);
+                            $query->where('debtors.is_pos', 1);
                         }
                     }
                 }
