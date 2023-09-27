@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Log;
 
 class RepaymentOfferService
 {
-
     private $armClient;
     private $debtorEventsRepository;
     private $debtorRepository;
