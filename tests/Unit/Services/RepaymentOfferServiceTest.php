@@ -39,7 +39,11 @@ class RepaymentOfferServiceTest extends TestCase
             ArmClient::class,
             function () {
                 $mock = Mockery::mock(ArmClient::class);
-                $mock->shouldReceive('getOffers')->andReturn(['1']);
+                $mock->shouldReceive('getOffers')->andReturn(collect([(object) array(
+                    'id' => 1,
+                    'end_at' => Carbon::now()->addDay(2),
+                    'status' => 1,
+                )]));
                 return $mock;
             }
         );
