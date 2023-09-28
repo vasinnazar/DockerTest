@@ -5,6 +5,7 @@ namespace Tests\Unit\Services;
 use App\Clients\ArmClient;
 use App\Debtor;
 use App\Services\RepaymentOfferService;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Mockery;
@@ -13,7 +14,6 @@ use Tests\TestCase;
 class RepaymentOfferServiceTest extends TestCase
 {
     use DatabaseTransactions;
-    private $repaymentOfferService;
 
     public function __construct(?string $name = null, array $data = [], $dataName = '')
     {
@@ -23,9 +23,10 @@ class RepaymentOfferServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->repaymentOfferService = app(RepaymentOfferService::class);
 
+        $this->user = factory(User::class)->create();
         $this->debtors = factory(Debtor::class, 'debtor', 5)->create([
+            'responsible_user_id_1c' => $this->user->id_1c,
             'str_podr' => '000000000006',
             'base' => 'Б-1',
             'debt_group_id' => 2,
@@ -44,10 +45,12 @@ class RepaymentOfferServiceTest extends TestCase
                     'end_at' => Carbon::now()->addDay(2),
                     'status' => 1,
                 )]));
+                $mock->shouldReceive('sendRepaymentOffer');
                 return $mock;
             }
         );
-        $this->repaymentOfferService->autoPeaceForUPR();
+        $repaymentOfferService = app(RepaymentOfferService::class);
+        $repaymentOfferService->autoPeaceForUPR();
     }
 
 }
