@@ -730,7 +730,6 @@ Route::middleware('auth_only')->group(function () {
         Route::get('/omicron/gettask', [CronController::class,'getOmicronTask']);
         Route::get('/mass/send', [DebtorMassSendController::class,'index']);
         Route::get('/loans/summary/{loan_id}', [DebtorsController::class,'getLoanSummary']);
-        Route::post('/getResponsibleUser', [FromDebtorsController::class,'respUserForSellingARM']);
         Route::post('/loans/summary/updateloan', [DebtorsController::class,'updateLoan']);
 
         Route::post('/photos/main', [FromDebtorsController::class,'setMainPhoto']);

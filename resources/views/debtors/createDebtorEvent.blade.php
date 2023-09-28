@@ -88,7 +88,7 @@
                                     </select>
                                 </div>
                             </div>
-                            @if ($user->hasRole('debtors_chief') || $user->hasRole('can_edit_all_debtors'))
+                            @if ($user->hasRole('debtors_chief') || $user->hasRole('can_edit_all_debtors') || $user->hasRole('debtors_personal'))
                                 <div class='form-group' id='chief_event_field'>
                                     <label class='col-xs-12 col-sm-4 text-right'>От имени:</label>
                                     <div class='col-xs-12 col-sm-8 form-inline'>
