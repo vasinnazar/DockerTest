@@ -52,6 +52,10 @@ return [
 //            'username' => 'arm',
 //            'password' => 'armarm'
         ],
+        'storage' => [
+            'driver' => 'local',
+            'root' => storage_path(),
+        ],
         's3' => [
             'driver' => 's3',
             'key' => 'your-key',

@@ -84,7 +84,7 @@ class RepaymentOfferService
             1
         );
         try {
-            $user = User::where('banned', 0)->where('id_1c', $debtor->responsible_user_id_1c)->first();
+            $user = User::where('banned', 0)->where('id_1c', $debtor->responsible_user_id_1c)->firstOrFail();
             $report = '(Автоматическое) Предварительное согласие по договору ' .
                 $debtor->loan_id_1c . ' на мировое соглашение сроком на ' .
                 $times . ' дней, сумма: ' .
