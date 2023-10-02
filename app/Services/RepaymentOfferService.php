@@ -7,20 +7,29 @@ use App\Debtor;
 use App\DebtorBlockProlongation;
 use App\DebtorEvent;
 use App\DebtorsEventType;
+use App\Repositories\DebtorEventsRepository;
+use App\Repositories\DebtorRepository;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class RepaymentOfferService
 {
-
     private $armClient;
+    private $debtorEventsRepository;
+    private $debtorRepository;
     const REPAYMENT_TYPE_PEACE = 14;
     const STATUS_CLOSE_OFFER = 4;
 
-    public function __construct(ArmClient $client)
+    public function __construct(
+        ArmClient $client,
+        DebtorEventsRepository $debtorEventsRepository,
+        DebtorRepository $debtorRepository
+    )
     {
         $this->armClient = $client;
+        $this->debtorEventsRepository = $debtorEventsRepository;
+        $this->debtorRepository = $debtorRepository;
     }
 
     /**
@@ -29,12 +38,8 @@ class RepaymentOfferService
      */
     public function autoPeaceForUPR()
     {
-        $debtors = Debtor::where('is_debtor', 1)
-            ->where('str_podr', '000000000006')
-            ->whereIn('debt_group_id', [2, 4, 5, 8])
-            ->where('qty_delays', 36)
-            ->where('base', 'Б-1')
-            ->get();
+        $debtors = $this->debtorRepository
+            ->getDebtorsByPodrAndGroupAndBase(1, '000000000006', [2, 4, 5, 8], 36, 'Б-1');
 
         foreach ($debtors as $debtor) {
             $repaymentOffers = $this->armClient->getOffers($debtor->loan_id_1c);
@@ -49,54 +54,53 @@ class RepaymentOfferService
             if (!is_null($debtorProlangation)) {
                 continue;
             }
-            $amount = $debtor->od + $debtor->pc + $debtor->exp_pc + $debtor->fine;
-            if ($amount < 500000) {
-                continue;
+            $amount = $debtor->sum_indebt;
+            $periodOffer = 10;
+            if ($amount >= 500000 && $amount <= 1000000) {
+                $payment = (int)($amount * 0.5);
+                $this->sendPeaceForUPR($debtor, $payment, $periodOffer, 30);
             }
+            if ($amount > 1000000) {
+                $payment = (int)($amount * 0.4);
+                $this->sendPeaceForUPR($debtor, $payment, $periodOffer, 60);
+            }
+        }
+    }
 
-            $amount = (int)($amount * 0.3);
-
-            Log::info('Repayment Offer Auto Peace SEND:',
-                ['debtorID' => $debtor->id, 'loanId1c' => $debtor->loan_id_1c]);
-            $result = $this->armClient->sendRepaymentOffer(
-                self::REPAYMENT_TYPE_PEACE,
-                60,
-                $amount,
-                $debtor->loan_id_1c,
-                Carbon::now()->addDay(14),
-                Carbon::now(),
-                0,
-                1
+    public function sendPeaceForUPR(Debtor $debtor, int $amount, int $periodOffer, int $times)
+    {
+        Log::info(
+            'Repayment Offer Auto Peace SEND:',
+            ['debtorID' => $debtor->id, 'loanId1c' => $debtor->loan_id_1c]
+        );
+        $this->armClient->sendRepaymentOffer(
+            self::REPAYMENT_TYPE_PEACE,
+            $times,
+            $amount,
+            $debtor->loan_id_1c,
+            Carbon::now()->addDay($periodOffer),
+            Carbon::now(),
+            0,
+            1
+        );
+        try {
+            $user = User::where('banned', 0)->where('id_1c', $debtor->responsible_user_id_1c)->firstOrFail();
+            $report = '(Автоматическое) Предварительное согласие по договору ' .
+                $debtor->loan_id_1c . ' на мировое соглашение сроком на ' .
+                $times . ' дней, сумма: ' .
+                $amount / 100 . ' руб. Действует до ' .
+                Carbon::now()->addDay($periodOffer)->format('d.m.Y');
+            $this->debtorEventsRepository->createEvent(
+                $debtor,
+                $user,
+                $report,
+                DebtorsEventType::TYPE_INFORMATION,
+                null,
+                DebtorsEventType::RESULT_TYPE_CONSENT_TO_PEACE,
+                DebtorEvent::COMPLETED
             );
-
-            if (!$result) {
-                continue;
-            }
-
-            try {
-                $user = User::where('banned', 0)->where('id_1c', $debtor->responsible_user_id_1c)->first();
-                $event = new DebtorEvent();
-                $event->customer_id_1c = $debtor->customer_id_1c;
-                $event->event_type_id = DebtorsEventType::TYPE_INFORMATION;
-                $event->debt_group_id = $debtor->debt_group_id;
-                $event->event_result_id = DebtorsEventType::RESULT_TYPE_CONSENT_TO_PEACE;
-                $event->report = '(Автоматическое) Предварительное согласие по договору ' .
-                    $debtor->loan_id_1c . ' на мировое соглашение сроком на ' .
-                    60 . ' дней, сумма: ' .
-                    $amount / 100 . ' руб. Действует до ' .
-                    Carbon::now()->addDay(14)->format('d.m.Y');
-                $event->debtor_id = $debtor->id;
-                $event->user_id = $user->id;
-                $event->completed = 1;
-                $event->last_user_id = $user->id;
-                $event->debtor_id_1c = $debtor->debtor_id_1c;
-                $event->user_id_1c = $user->id_1c;
-                $event->refresh_date = Carbon::now()->format('Y-m-d H:i:s');
-                $event->save();
-            } catch (\Exception $e) {
-                Log::error('Create event auto-peace', ['debtorId' => $debtor->id, 'messages' => $e->getMessage()]);
-            }
-
+        } catch (\Exception $e) {
+            Log::error('Create event auto-peace', ['debtorId' => $debtor->id, 'messages' => $e->getMessage()]);
         }
     }
 

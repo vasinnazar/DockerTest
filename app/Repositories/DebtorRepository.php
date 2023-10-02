@@ -29,6 +29,22 @@ class DebtorRepository
 
         return tap($modelItem)->update($params);
     }
+    public function getDebtorsByPodrAndGroupAndBase(
+        int $isDebtor,
+        string $strPodr,
+        array $groupsId,
+        int $qtyDelays,
+        string $base
+    ): Collection
+    {
+        return $this->model
+            ->where('is_debtor', $isDebtor)
+            ->where('str_podr', $strPodr)
+            ->whereIn('debt_group_id', $groupsId)
+            ->where('qty_delays', $qtyDelays)
+            ->where('base', $base)
+            ->get();
+    }
     public function getDebtorsWithEqualTelephone(string $phone): Collection
     {
         return $this->model
