@@ -276,8 +276,10 @@ class SynchronizeService
         if (!isset($loanArm->card) || empty($loanArm->card)) {
             return null;
         }
-
-        return Card::create([
+        return Card::updateOrCreate([
+            'card_number' => $loanArm->card->card_number,
+            'customer_id' => $debtor->customer->id,
+        ],[
             'card_number' => $loanArm->card->card_number,
             'secret_word' => $loanArm->card->secret_word,
             'status' => $loanArm->card->status,
