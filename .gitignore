@@ -19,4 +19,4 @@ deploy-config.yml
 /.build/
 laravel-echo-server.lock
 /.env.testing
-/config/debugbar.php.save
+/config/debugbar.php
