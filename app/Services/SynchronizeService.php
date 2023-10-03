@@ -50,7 +50,7 @@ class SynchronizeService
             $aboutClient = $this->updateOrCreateAboutClient($debtor, $infoArm);
             $passport = $this->updateOrCreatePassport($debtor, $infoArm);
             $claim = $this->updateOrCreateClaim($debtor, $loanArm, $passport->id, $aboutClient->id);
-            $this->updateOrCreateLoan($debtor, $loanArm, $claim);
+            $loan = $this->updateOrCreateLoan($debtor, $loanArm, $claim);
         } catch (\Throwable $exception) {
             Log::error('Critical error update debtors', [
                 'customerId1c' => $debtor->customer_id_1c,
@@ -289,7 +289,7 @@ class SynchronizeService
 
     private function getOrCreateLoantype($loanArm)
     {
-        return LoanType::firstOrCreate([
+        return LoanType::updateOrCreate([
             'id_1c' => $loanArm->loantype->id_1c,
         ], [
             'name' => $loanArm->loantype->name,
@@ -321,7 +321,7 @@ class SynchronizeService
             'has_special_pc_for_dop' => $loanArm->loantype->has_special_pc_for_dop,
             'min_time' => $loanArm->loantype->min_time,
             'min_money' => $loanArm->loantype->min_money,
-            'data' => $loanArm->loantype->data,
+            'data' => json_encode($loanArm->loantype->data),
         ]);
     }
 }
