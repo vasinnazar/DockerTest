@@ -16,7 +16,7 @@ class CreateDebtorEventSmsTable extends Migration
             $table->string('debtor_base');
             $table->foreign('event_id')->references('id')->on('debtor_events');
             $table->foreign('sms_id')->references('id')->on('debtor_sms_tpls');
-            $table->foreign('customer_id_1c')->references('id_1c')->on('customers');
+            $table->index('customer_id_1c');
             $table->softDeletes();
             $table->timestamps();
         });
