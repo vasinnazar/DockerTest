@@ -14,7 +14,7 @@ class CreateDebtorEventEmail extends Migration
             $table->unsignedInteger('event_id')->nullable();
             $table->string('message');
             $table->boolean('status')->comment('Статус отправки email');
-            $table->index('customer_id_1c')->on('customers')->references('id_1c');
+            $table->index('customer_id_1c');
             $table->foreign('event_id')->on('debtor_events')->references('id');
             $table->softDeletes();
             $table->timestamps();
