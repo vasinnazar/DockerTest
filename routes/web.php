@@ -716,7 +716,7 @@ Route::middleware('auth_only')->group(function () {
         Route::post('/calendar', [DebtorsController::class,'calendar']);
         Route::get('/editSmsCount', [DebtorsController::class,'editSmsCount']);
         Route::post('/editSmsCount', [DebtorsController::class,'editSmsCount']);
-        Route::get('/debtorcard/{debtor_id}', [DebtorsController::class,'debtorcard']);
+        Route::get('/debtorcard/{debtor_id}', [DebtorsController::class,'debtorcard'])->name('debtors.card');
         Route::get('/addevent', [DebtorsController::class,'addevent']);
         Route::post('/addevent', [DebtorsController::class,'addevent']);
         Route::post('/event/update', [DebtorsController::class,'updateDebtorEvent']);
@@ -728,6 +728,7 @@ Route::middleware('auth_only')->group(function () {
         Route::get('/report/countcustomers', [DebtorsReportsController::class,'countDebtCustomersForRespUser']);
         Route::post('/peaceclaim/new', [DebtorsController::class,'addNewRepaymentOffer']);
         Route::get('/omicron/gettask', [CronController::class,'getOmicronTask']);
+
         Route::get('/mass/send', [DebtorMassSendController::class,'index']);
         Route::get('/loans/summary/{loan_id}', [DebtorsController::class,'getLoanSummary']);
         Route::post('/loans/summary/updateloan', [DebtorsController::class,'updateLoan']);

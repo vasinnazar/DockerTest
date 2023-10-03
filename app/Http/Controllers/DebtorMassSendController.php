@@ -34,13 +34,13 @@ class DebtorMassSendController extends BasicController
     public $debtorSmsService;
     public $armClient;
     public function __construct(
-        EmailService $emailService,
-        DebtorEventService $debtorEventService,
-        DebtorSmsRepository $debtorSmsRepository,
+        EmailService             $emailService,
+        DebtorEventService       $debtorEventService,
+        DebtorSmsRepository      $debtorSmsRepository,
         DebtorEventSmsRepository $debtorEventSmsRepository,
-        DebtorEventsRepository $debtorEventsRepository,
-        DebtorSmsService $debtorSmsService,
-        ArmClient $armClient
+        DebtorEventsRepository   $debtorEventsRepository,
+        DebtorSmsService         $debtorSmsService,
+        ArmClient                $armClient
     )
     {
         $this->emailService = $emailService;

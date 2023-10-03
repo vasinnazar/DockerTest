@@ -58,7 +58,6 @@ class DebtorsController extends BasicController
     public $aboutClientRepository;
     public $connectionStatusRepository;
 
-
     public function __construct(
         DebtorCardService          $debtService,
         DebtorEventService         $eventService,
@@ -1406,23 +1405,6 @@ class DebtorsController extends BasicController
         }
 
         return $this->backWithSuc();
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroyDebtorEvent($id)
-    {
-        $debtEvent = DebtorEvent::find($id);
-        if (!is_null($debtEvent)) {
-            $debtEvent->delete();
-            $this->backWithSuc();
-        } else {
-            $this->backWithErr(StrLib::ERR_NULL);
-        }
     }
 
     /**

@@ -33,6 +33,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPhotoController;
 use App\Http\Controllers\UsersRequestsController;
 use App\Http\Controllers\WorkTimeController;
+use App\Http\Controllers\Ajax\DebtorEventController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/ajax')->group(function () {
@@ -180,6 +181,7 @@ Route::prefix('/ajax')->group(function () {
 
     Route::prefix('/debtors')->group(function () {
         Route::post('/eventcomplete', [DebtorsController::class,'eventComplete'])->name('ajax.debtors.eventcomplete');
+        Route::delete('/{debtorId}/events/{eventId}', [DebtorEventController::class,'destroyDebtorEvent']);
         Route::post('/sendsmstodebtor', [DebtorsController::class,'sendSmsToDebtor'])->name('ajax.debtors.sendsmstodebtor');
         Route::get('/sendsmstodebtor', [DebtorsController::class,'sendSmsToDebtor'])->name('ajax.debtors.sendsmstodebtor');
         Route::post('/loadphoto/{claim_id}', [DebtorsController::class,'loadPhoto']);

@@ -18,7 +18,7 @@ class DebtorEventsRepository
 
     public function firstById(int $id)
     {
-        return $this->model->findOrFail($id);
+        return $this->model->find($id);
     }
 
     public function createEvent(
@@ -46,5 +46,10 @@ class DebtorEventsRepository
             'event_result_id' => $eventResultId,
             'completed' => $completed,
         ]);
+    }
+
+    public function destroy(int $id): int
+    {
+        return $this->model->destroy($id);
     }
 }

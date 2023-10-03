@@ -740,10 +740,24 @@
                                         <input type="checkbox" name="eventDone[]"
                                                value="{{$event->id}}" {{($event->completed == 1) ? 'checked' : ''}}/>
                                         @if($user->hasRole('debtors_chief'))
-                                            <button type="button" name="debtor_event_edit"
+                                            <button
+                                                    type="button"
+                                                    name="debtor_event_edit"
                                                     class="btn btn-default btn-xs"
-                                                    onclick="$.debtorsCtrl.openDebtorEvent({{$event->id}});"><span
-                                                        class="glyphicon glyphicon-pencil"></span></button>
+                                                    onclick="$.debtorsCtrl.openDebtorEvent({{$event->id}});">
+                                                <span class="glyphicon glyphicon-pencil"></span>
+                                            </button>
+                                            <br>
+                                        @endif
+                                        @if($user->hasRole('can_delete_event'))
+                                            <button
+                                                    type="button"
+                                                    name="debtor_event_delete"
+                                                    class="btn btn-default btn-xs"
+                                                    data-toggle="modal"
+                                                    onclick="$.debtorsCtrl.openModalDeleteDebtorEvent({{$event->id}}, {{$debtor->id}});">
+                                                <span class="glyphicon glyphicon-remove"></span>
+                                            </button>
                                         @endif
                                     </td>
                                 </tr>
@@ -1053,7 +1067,8 @@
     </button>
     @include('elements.debtorsSmsModal')
     @include('elements.debtorsNoticePersonal')
-    @include('debtors.editDebtorEventModal')
+    @include('debtocard.events.editDebtorEventModal')
+    @include('debtocard.events.deleteDebtorEventModal')
     @include('elements.debtors.addRecommend')
     @include('elements.debtors.editRecommend')
     @include('elements.debtors.pdAgreementInfo')
@@ -1077,7 +1092,7 @@
     @endif
 @stop
 @section('scripts')
-    <script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
+    <script src="{{asset('js/debtors/debtorsController.js?2')}}"></script>
     <script src="{{asset('js/libs/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js')}}"></script>
     <script src="{{asset('js/libs/clipboard/clipboard.min.js')}}"></script>
     <script src="{{ URL::asset('js/dashboard/photosController.js') }}"></script>
@@ -1467,6 +1482,7 @@
 
         });
     </script>
-    <script src="{{asset('js/debtocard/search-contacts.js?1')}}"></script>
-    <script src="{{asset('js/debtocard/suggest-address.js?1')}}"></script>
+    <script src="{{asset('js/debtocard/search-contacts.js?2')}}"></script>
+    <script src="{{asset('js/debtocard/event-change.js?2')}}"></script>
+    <script src="{{asset('js/debtocard/suggest-address.js?2')}}"></script>
 @stop
