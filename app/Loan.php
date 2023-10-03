@@ -47,7 +47,8 @@ class Loan extends Model
         'cc_call',
         'tranche_number',
         'first_loan_id_1c',
-        'first_loan_date'
+        'first_loan_date',
+        'created_at',
     ];
 
     const STATUS_OPENED = 0;
