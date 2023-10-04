@@ -276,8 +276,10 @@ class SynchronizeService
         if (!isset($loanArm->card) || empty($loanArm->card)) {
             return null;
         }
-
-        return Card::create([
+        return Card::updateOrCreate([
+            'card_number' => $loanArm->card->card_number,
+            'customer_id' => $debtor->customer->id,
+        ],[
             'card_number' => $loanArm->card->card_number,
             'secret_word' => $loanArm->card->secret_word,
             'status' => $loanArm->card->status,
@@ -319,7 +321,7 @@ class SynchronizeService
             'has_special_pc_for_dop' => $loanArm->loantype->has_special_pc_for_dop,
             'min_time' => $loanArm->loantype->min_time,
             'min_money' => $loanArm->loantype->min_money,
-            'data' => $loanArm->loantype->data,
+            'data' => json_encode($loanArm->loantype->data),
         ]);
     }
 }
