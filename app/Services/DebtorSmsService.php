@@ -202,13 +202,14 @@ class DebtorSmsService
         $debtorEvent->user_id_1c = $user->id_1c;
         $debtorEvent->save();
 
-        if ($smsId == 21 || $smsId == 45) {
-            DebtorEventSms::create([
-                'event_id' => $debtorEvent->id,
-                'sms_id' => $smsId,
-                'customer_id_1c' => $debtor->customer_id_1c,
-                'debtor_base' => $debtor->base
-            ]);
+        if (in_array($smsId, [21, 45])) {
+            $this->debtorEventSmsRepository->create(
+                $debtorEvent->id,
+                $smsId,
+                $debtor->customer_id_1c,
+                $debtor->id,
+                $debtor->base
+            );
         }
         return [
             'title' => 'Готово',

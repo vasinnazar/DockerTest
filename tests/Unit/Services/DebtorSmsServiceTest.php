@@ -93,12 +93,13 @@ class DebtorSmsServiceTest extends TestCase
         $customer = factory(Customer::class)->create([
             'id_1c'=>$debtor->customer_id_1c,
         ]);
-        DebtorEventSms::create([
-            'customer_id_1c' => $customer->id_1c,
-            'sms_id' => $sms->id,
-            'debtor_base' => $debtor->base,
-            'event_id' => $event->id
-        ]);
+        $this->debtorEventSmsRepository->create(
+            $event->id,
+            $sms->id,
+            $customer->id_1c,
+            $debtor->id,
+            $debtor->base
+        );
         $res = app(DebtorSmsService::class)->hasSmsMustBeSentOnce($debtor,$sms->id);
         self::assertEquals(false,$res);
 
