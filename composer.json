@@ -38,7 +38,8 @@
     "ext-soap": "*",
     "rap2hpoutre/laravel-log-viewer": "^2.3",
     "spatie/data-transfer-object": "~2.0",
-    "hflabs/dadata": "^22.3"
+    "hflabs/dadata": "^22.3",
+    "dyrynda/laravel-cascade-soft-deletes": "^1.5"
   },
   "require-dev": {
     "symfony/dom-crawler": "~3.1",
