@@ -22,7 +22,6 @@ class LiveConditionSeeder extends Seeder
 
         foreach ($liveConditions as $id => $name) {
             LiveCondition::create([
-                'id' => $id,
                 'name' => $name,
             ]);
         }

@@ -5,12 +5,10 @@ namespace Tests\Unit\Services;
 use App\Clients\ArmClient;
 use App\Debtor;
 use App\DebtorBlockProlongation;
-use App\Repositories\DebtorEventsRepository;
 use App\Services\RepaymentOfferService;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Tests\TestCase;
 
