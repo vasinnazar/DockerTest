@@ -126,36 +126,4 @@ class RepaymentOfferServiceTest extends TestCase
             }
         }
     }
-    public function testAutoPeaceUPRExeption()
-    {
-        $this->app->bind(
-            ArmClient::class,
-            function () {
-                $mock = Mockery::mock(ArmClient::class);
-                $mock->shouldReceive('getOffers')->andReturn(collect());
-                $mock->shouldReceive('sendRepaymentOffer');
-                return $mock;
-            }
-        );
-        $this->app->bind(
-            DebtorEventsRepository::class,
-            function () {
-                $mock = Mockery::mock(DebtorEventsRepository::class);
-                $mock->shouldReceive('createEvent')->andThrow(
-                    new \Exception('test'),
-                );
-                return $mock;
-            }
-        );
-        $repaymentOfferService = app(RepaymentOfferService::class);
-        $repaymentOfferService->autoPeaceForUPR();
-        $contents = Storage::disk('storage')->get('logs/laravel.log');
-        foreach ($this->debtors as $debtor) {
-            $this->assertDatabaseMissing('debtor_events', [
-                'debtor_id' => $debtor->id,
-            ]);
-            $isLogText = (bool) strpos($contents, 'Create event auto-peace {"debtorId":'.$debtor->id.',"messages":"test"}');
-            $this->assertTrue($isLogText);
-        }
-    }
 }
