@@ -103,7 +103,6 @@ class DebtorSmsService
         if ($eventSms && $debtor->base === $eventSms->debtor_base) {
             $isSendOnce = false;
         } else {
-
             if ($eventSms) {
                 $oldBase = in_array($eventSms->debtor_base, [
                     'Б-3',
