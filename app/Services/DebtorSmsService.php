@@ -96,7 +96,10 @@ class DebtorSmsService
                 'second' => 25
             ]
         ];
-        $eventSms = $this->debtorEventSmsRepository->findByCustomerAndSmsId($debtor->customer_id_1c, $smsTemplateId);
+        $eventSms = $this->debtorEventSmsRepository->findByDebtorAndSmsId($debtor->id, $smsTemplateId);
+        if (is_null($eventSms)) {
+            $eventSms = $this->debtorEventSmsRepository->findByCustomerAndSmsId($debtor->customer_id_1c, $smsTemplateId);
+        }
         if ($eventSms && $debtor->base === $eventSms->debtor_base) {
             $isSendOnce = false;
         } else {

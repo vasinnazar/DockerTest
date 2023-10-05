@@ -25,7 +25,13 @@ class DebtorEventSmsRepository
             ->latest()
             ->first();
     }
-
+    public function findByDebtorAndSmsId(int $debtorId, int $smsId)
+    {
+        return $this->model->where('debtor_id', $debtorId)
+            ->where('sms_id', $smsId)
+            ->latest()
+            ->first();
+    }
     public function create(int $eventId, int $smsId, string $customerId1c, int $debtorId, string $debtorBase): DebtorEventSms
     {
         return DebtorEventSms::create([
