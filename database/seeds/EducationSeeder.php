@@ -17,6 +17,7 @@ class EducationSeeder extends Seeder
 
         foreach ($arrEducation as $educationId => $nameEducation) {
             \App\EducationLevel::create([
+                'id' => $educationId,
                 'name' => $nameEducation,
             ]);
         }

@@ -59,6 +59,7 @@ class AdsourcesSeeder extends Seeder
         ];
         foreach ($adsources as $adsourcesId => $nameAdsources) {
             \App\AdSource::create([
+                'id' => $adsourcesId,
                 'name'=> $nameAdsources,
             ]);
         }
