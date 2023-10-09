@@ -38,6 +38,9 @@ class SendWithoutAccept extends Command
      */
     public function handle()
     {
-        WithoutAcceptJob::dispatch(1234);
+        $debtors = $this->loanService->getAutoPaymentLoans();
+        foreach ($debtors as $debtor) {
+            WithoutAcceptJob::dispatch($debtor->id);
+        }
     }
 }
