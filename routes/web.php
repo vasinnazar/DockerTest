@@ -771,7 +771,6 @@ Route::middleware('auth_only')->group(function () {
         });
         Route::prefix('/recurrent')->group(function () {
             Route::get('/query', [DebtorsController::class,'sentRecurrentQuery']);
-            Route::get('/massquery', [DebtorsController::class,'massRecurrentQuery']);
             Route::post('/massquery', [DebtorsController::class,'massRecurrentQuery']);
             Route::get('/massquerytask', [DebtorsController::class,'massRecurrentTask']);
             Route::post('/massquerytask', [DebtorsController::class,'massRecurrentTask']);
