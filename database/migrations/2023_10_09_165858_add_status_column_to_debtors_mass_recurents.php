@@ -13,7 +13,7 @@ class AddStatusColumnToDebtorsMassRecurents extends Migration
      */
     public function up()
     {
-        Schema::create('statuses', function (Blueprint $table) {
+        Schema::table('debtors_mass_recurrents', function (Blueprint $table) {
             $table->unsignedInteger('status_id');
             $table->foreign('status_id')->on('statuses')->references('id')->onDelete('cascade')->onUpdate('cascade');
         });
@@ -26,7 +26,8 @@ class AddStatusColumnToDebtorsMassRecurents extends Migration
      */
     public function down()
     {
-        Schema::create('statuses', function (Blueprint $table) {
+        Schema::table('debtors_mass_recurrents', function (Blueprint $table) {
+            $table->dropForeign('debtors_mass_recurrents_status_id_foreign');
             $table->dropColumn('status_id');
         });
     }
