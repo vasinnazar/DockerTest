@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\WithoutAcceptJob;
 use Illuminate\Console\Command;
 
 class SendWithoutAccept extends Command
@@ -37,6 +38,6 @@ class SendWithoutAccept extends Command
      */
     public function handle()
     {
-        //
+        WithoutAcceptJob::dispatch(1234);
     }
 }

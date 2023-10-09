@@ -12,23 +12,14 @@ class WithoutAcceptJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    private int $test;
+    public function __construct(int $test)
     {
-        //
+        $this->test = $test;
     }
 
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
     public function handle()
     {
-        //
+        dump($this->test);
     }
 }
