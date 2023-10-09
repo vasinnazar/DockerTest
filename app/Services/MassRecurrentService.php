@@ -73,57 +73,16 @@ class MassRecurrentService
     public function executeTask($task_id)
     {
         $task = MassRecurrentTask::find($task_id);
-
         $debtorsQuery = $this->getDebtorsQuery($task->str_podr, $task->timezone);
-
         $debtors = $debtorsQuery->get();
-
         foreach ($debtors as $debtor) {
-            $postdata = [
-                'customer_external_id' => $debtor->customer_id_1c,
-                'loan_external_id' => $debtor->loan_id_1c,
-                'amount' => $debtor->sum_indebt,
-                'purpose_id' => 3,
-                'is_recurrent' => 1,
-                'details' => '{"is_debtor":true,"is_mass_debtor":true}'
-            ];
-
-            $url = 'http://192.168.35.69:8080/api/v1/payments';
-
-            $ch = curl_init($url);
-
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/x-www-form-urlencoded',
-                'X-Requested-With: XMLHttpRequest'
-            ));
-            curl_setopt($ch, CURLOPT_HEADER, true);
-            curl_setopt($ch, CURLOPT_NOBODY, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postdata));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-
-            curl_exec($ch);
-
-            $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-            if (curl_errno($ch)) {
-                Log::error('DebtorsController.massRecurrentQuery cURL error: ',
-                    [curl_error($ch), $httpcode, $debtor]);
-            }
-
             MassRecurrent::create([
                 'task_id' => $task_id,
                 'debtor_id' => $debtor->id
             ]);
-
             $task->increment('debtors_processed');
-
-            curl_close($ch);
-
             sleep(1);
         }
-
         $task->completed = 1;
         $task->save();
     }
