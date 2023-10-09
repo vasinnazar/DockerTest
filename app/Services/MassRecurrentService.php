@@ -11,12 +11,6 @@ use Illuminate\Support\Facades\Log;
 
 class MassRecurrentService
 {
-    /*private $user;
-    public function __construct(User $user)
-    {
-        $this->user = $user;
-    }*/
-
     /**
      * Проверяем пользователя на соответствие структурному подразделению
      * @param $str_podr
