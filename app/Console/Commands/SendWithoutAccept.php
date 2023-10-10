@@ -2,12 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Clients\PaysClient;
 use App\Jobs\WithoutAcceptJob;
 use App\Model\Status;
-use App\Repositories\DebtorRepository;
 use App\Repositories\MassRecurrentRepository;
-use App\Services\MassRecurrentService;
 use Illuminate\Console\Command;
 
 class SendWithoutAccept extends Command

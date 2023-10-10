@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Clients\PaysClient;
-use App\Debtor;
 use App\Model\Status;
 use App\Repositories\DebtorRepository;
 use App\Repositories\MassRecurrentRepository;
