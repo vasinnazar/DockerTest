@@ -32,7 +32,7 @@ class WithoutAcceptJob implements ShouldQueue
     {
         $debtor = $debtorRepository->firstById($this->debtorId);
         try {
-            $res = $paysClient->createPayment(
+            $paysClient->createPayment(
                 $debtor->customer_id_1c,
                 $debtor->sum_indebt,
                 $debtor->loan_id_1c,
@@ -45,7 +45,7 @@ class WithoutAcceptJob implements ShouldQueue
                 'status_id' => Status::SUCCESS
             ]);
         } catch (\Exception $exception) {
-            Log::error("Auto Payment Error", [
+            Log::error("Without Accept Job Error", [
                 'message' => $exception->getMessage(),
                 'debtorId' => $this->debtorId,
                 'massRecurrentId' => $this->massRecurrentId
@@ -55,13 +55,14 @@ class WithoutAcceptJob implements ShouldQueue
             ]);
         }
     }
-    public function failed(\Throwable $exception, MassRecurrentRepository $massRecurrentRepository): void
+    public function failed(\Throwable $exception): void
     {
-        Log::error("Auto Payment Error", [
+        Log::error("Without Accept Job Error", [
             'message' => $exception->getMessage(),
             'debtorId' => $this->debtorId,
             'massRecurrentId' => $this->massRecurrentId
         ]);
+        $massRecurrentRepository = app(MassRecurrentRepository::class);
         $massRecurrentRepository->update($this->massRecurrentId, [
             'status_id' => Status::FAILED
         ]);

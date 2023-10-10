@@ -1,5 +1,6 @@
 <?php
 
+use App\Model\Status;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -14,7 +15,7 @@ class AddStatusColumnToDebtorsMassRecurents extends Migration
     public function up()
     {
         Schema::table('debtors_mass_recurrents', function (Blueprint $table) {
-            $table->unsignedInteger('status_id')->after('debtor_id');
+            $table->unsignedInteger('status_id')->after('debtor_id')->default(Status::SUCCESS);
             $table->foreign('status_id')->on('statuses')->references('id')->onDelete('cascade')->onUpdate('cascade');
         });
     }
