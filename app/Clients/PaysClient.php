@@ -36,7 +36,7 @@ class PaysClient
         int $money,
         string $loan1cId,
         int $purposeId,
-               $isRecurrent = 0,
+        int $isRecurrent = 0,
         string $cardExternalId = null,
         string $details = null
     )
