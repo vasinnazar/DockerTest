@@ -63,4 +63,3 @@ class PaysClient
         return json_decode($response->getBody()->getContents(), true);
     }
 }
-
