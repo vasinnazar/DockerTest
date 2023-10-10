@@ -11,6 +11,7 @@ class MassRecurrent extends Model {
 
     protected $fillable = [
         'task_id',
-        'debtor_id'
+        'debtor_id',
+        'status_id'
     ];
 }

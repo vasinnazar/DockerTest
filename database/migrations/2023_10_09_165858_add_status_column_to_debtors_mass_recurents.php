@@ -14,7 +14,7 @@ class AddStatusColumnToDebtorsMassRecurents extends Migration
     public function up()
     {
         Schema::table('debtors_mass_recurrents', function (Blueprint $table) {
-            $table->unsignedInteger('status_id');
+            $table->unsignedInteger('status_id')->after('debtor_id');
             $table->foreign('status_id')->on('statuses')->references('id')->onDelete('cascade')->onUpdate('cascade');
         });
     }
