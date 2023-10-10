@@ -6,9 +6,7 @@ use App\Debtor;
 use App\MassRecurrent;
 use App\MassRecurrentTask;
 use App\Model\Status;
-use App\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class MassRecurrentService
 {

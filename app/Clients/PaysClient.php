@@ -38,7 +38,7 @@ class PaysClient
         int $purposeId,
                $isRecurrent = 0,
         string $cardExternalId = null,
-        array $details = null
+        string $details = null
     )
     {
         $response = $this->client->request(

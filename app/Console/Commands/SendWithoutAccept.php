@@ -2,7 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Clients\PaysClient;
 use App\Jobs\WithoutAcceptJob;
+use App\Model\Status;
+use App\Repositories\DebtorRepository;
+use App\Repositories\MassRecurrentRepository;
+use App\Services\MassRecurrentService;
 use Illuminate\Console\Command;
 
 class SendWithoutAccept extends Command
@@ -26,9 +31,10 @@ class SendWithoutAccept extends Command
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(MassRecurrentRepository $massRecurrentRepository)
     {
         parent::__construct();
+        $this->massRecurrentRepository = $massRecurrentRepository;
     }
 
     /**
@@ -38,9 +44,12 @@ class SendWithoutAccept extends Command
      */
     public function handle()
     {
-        $debtors = $this->loanService->getAutoPaymentLoans();
-        foreach ($debtors as $debtor) {
-            WithoutAcceptJob::dispatch($debtor->id);
+        $debtorsMassRecurrents = $this->massRecurrentRepository->getWithoutAcceptDebtors(Status::NEW_SEND);
+        foreach ($debtorsMassRecurrents as $debtorMassRec) {
+            $debtorMassRec->fill([
+                'status_id' => Status::IN_PROCESS,
+            ])->save();
+            WithoutAcceptJob::dispatch($debtorMassRec->id, $debtorMassRec->debtor_id);
         }
     }
 }

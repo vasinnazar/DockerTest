@@ -4,6 +4,10 @@ namespace App\Jobs;
 
 use App\Clients\PaysClient;
 use App\Debtor;
+use App\Model\Status;
+use App\Repositories\DebtorRepository;
+use App\Repositories\MassRecurrentRepository;
+use App\Repositories\TransactionRepository;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -15,20 +19,20 @@ class WithoutAcceptJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public $tries = 3;
     private int $debtorId;
-    public function __construct(int $debtorId)
+    private int $massRecurrentId;
+    public function __construct(int $massRecurrentId, int $debtorId)
     {
+        $this->massRecurrentId = $massRecurrentId;
         $this->debtorId = $debtorId;
     }
 
-    public function handle(PaysClient $paysClient)
+    public function handle(PaysClient $paysClient, DebtorRepository $debtorRepository, MassRecurrentRepository $massRecurrentRepository)
     {
-        $debtor = Debtor::find($this->debtorId);
-        if (!$debtor) {
-            return;
-        }
+        $debtor = $debtorRepository->firstById($this->debtorId);
         try {
-            $paysClient->createPayment(
+            $res = $paysClient->createPayment(
                 $debtor->customer_id_1c,
                 $debtor->sum_indebt,
                 $debtor->loan_id_1c,
@@ -37,8 +41,29 @@ class WithoutAcceptJob implements ShouldQueue
                 null,
                 '{"is_debtor":true,"is_mass_debtor":true}'
             );
+            $massRecurrentRepository->update($this->massRecurrentId, [
+                'status_id' => Status::SUCCESS
+            ]);
         } catch (\Exception $exception) {
-            Log::error("Auto Payment Error", ['message' => $exception->getMessage(), 'debtorId' => $this->debtorId]);
+            Log::error("Auto Payment Error", [
+                'message' => $exception->getMessage(),
+                'debtorId' => $this->debtorId,
+                'massRecurrentId' => $this->massRecurrentId
+            ]);
+            $massRecurrentRepository->update($this->massRecurrentId, [
+                'status_id' => Status::FAILED
+            ]);
         }
+    }
+    public function failed(\Throwable $exception, MassRecurrentRepository $massRecurrentRepository): void
+    {
+        Log::error("Auto Payment Error", [
+            'message' => $exception->getMessage(),
+            'debtorId' => $this->debtorId,
+            'massRecurrentId' => $this->massRecurrentId
+        ]);
+        $massRecurrentRepository->update($this->massRecurrentId, [
+            'status_id' => Status::FAILED
+        ]);
     }
 }
