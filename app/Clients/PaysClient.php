@@ -54,7 +54,7 @@ class PaysClient
                     'customer_external_id' => $customer1cId,
                     'loan_external_id' => $loan1cId,
                     'details' => $details ? json_encode($details) : null,
-                    'purpose_id' => 'sad',
+                    'purpose_id' => $purposeId,
                     'is_recurrent' => $isRecurrent,
                     'card_external_id' => $cardExternalId
                 ]
