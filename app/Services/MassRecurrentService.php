@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Debtor;
 use App\MassRecurrent;
 use App\MassRecurrentTask;
+use App\Model\Status;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -72,7 +73,8 @@ class MassRecurrentService
         foreach ($debtors as $debtor) {
             MassRecurrent::create([
                 'task_id' => $task_id,
-                'debtor_id' => $debtor->id
+                'debtor_id' => $debtor->id,
+                'status_id' => Status::NEW_SEND
             ]);
             $task->increment('debtors_processed');
             sleep(1);
