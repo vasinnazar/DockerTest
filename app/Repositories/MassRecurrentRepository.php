@@ -27,11 +27,7 @@ class MassRecurrentRepository
 
         return tap($modelItem)->update($params);
     }
-    /**
-     * Получаем всех должников для безакцептного списания со статусом
-     * для отправки в очередь в платежный контур
-     */
-    public function getWithoutAcceptDebtors(int $status)
+    public function getByStatus(int $status)
     {
         return $this->model->where('status_id', $status)->get();
     }

@@ -44,7 +44,7 @@ class SendWithoutAccept extends Command
      */
     public function handle()
     {
-        $debtorsMassRecurrents = $this->massRecurrentRepository->getWithoutAcceptDebtors(Status::NEW_SEND);
+        $debtorsMassRecurrents = $this->massRecurrentRepository->getByStatus(Status::NEW_SEND);
         foreach ($debtorsMassRecurrents as $debtorMassRec) {
             $debtorMassRec->fill([
                 'status_id' => Status::IN_PROCESS,
