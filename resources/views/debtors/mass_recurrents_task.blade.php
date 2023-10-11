@@ -39,7 +39,7 @@
                 </button>
             </div>
         </div>
-        <div id="error-block" class="row hide" style="margin-top: 50px;">
+        <div id="error-block" class="row" style="margin-top: 50px; display: none">
             <div class="col-xs-12">
                 <div class="alert alert-danger">Произошла ошибка! Вероятно, задача уже создана. Обновите страницу.</div>
             </div>
@@ -134,6 +134,7 @@
                             let json_data = JSON.parse(data);
 
                             if (json_data.status === 'success') {
+                                location.reload();
                                 $.ajax({
                                     url: '/debtors/recurrent/massquery',
                                     method: 'post',
@@ -144,8 +145,6 @@
 
                                     }
                                 });
-
-                                location.reload();
                             } else {
                                 $('#error-block').show();
                             }
@@ -174,11 +173,10 @@
                             }
                             setTimeout(() => {
                                 loop();
-                            }, 2000);
+                            }, 1000);
                         }
                     });
                 }
-
                 loop();
             });
         </script>

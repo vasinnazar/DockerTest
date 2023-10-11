@@ -28,6 +28,12 @@ class MassRecurrentRepository
 
         return tap($modelItem)->update($params);
     }
+    public function updateByTask(int $taskId, array $params = []): Model
+    {
+        $modelItem = $this->model->where('task_id', $taskId);
+
+        return tap($modelItem)->update($params);
+    }
     public function getByStatus(int $status): Collection
     {
         return $this->model->where('status_id', $status)->get();

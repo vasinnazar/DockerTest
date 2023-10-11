@@ -7,6 +7,7 @@ use App\MassRecurrentTask;
 use App\Model\Status;
 use App\Repositories\MassRecurrentRepository;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class MassRecurrentService
 {
@@ -70,23 +71,33 @@ class MassRecurrentService
         return false;
     }
 
-    public function executeTask($task_id)
+    public function executeTask(int $taskId)
     {
-        $task = MassRecurrentTask::find($task_id);
-        $debtorsQuery = $this->getDebtorsQuery($task->str_podr, $task->timezone);
-        $debtors = $debtorsQuery->get();
-        foreach ($debtors as $debtor) {
-            $this->massRecurrentRepository->store([
-                'task_id' => $task_id,
-                'sum_indebt' => $debtor->sum_indebt,
-                'debtor_id' => $debtor->id,
+        try {
+            $task = MassRecurrentTask::find($taskId);
+            $debtorsQuery = $this->getDebtorsQuery($task->str_podr, $task->timezone);
+            $debtors = $debtorsQuery->get();
+            foreach ($debtors as $debtor) {
+                $this->massRecurrentRepository->store([
+                    'task_id' => $taskId,
+                    'sum_indebt' => $debtor->sum_indebt,
+                    'debtor_id' => $debtor->id,
+                    'status_id' => Status::UNDEFINED
+                ]);
+                $task->increment('debtors_processed');
+            }
+            $task->completed = 1;
+            $this->massRecurrentRepository->updateByTask($taskId, [
                 'status_id' => Status::NEW_SEND
             ]);
-            $task->increment('debtors_processed');
-            sleep(1);
+            $task->save();
+        } catch (\Exception $exception) {
+            Log::error('Error executing without accept task', [
+                'message' => $exception->getMessage(),
+                'taskId' => $taskId
+            ]);
         }
-        $task->completed = 1;
-        $task->save();
+
     }
 
     /**
