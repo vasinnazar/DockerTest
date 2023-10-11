@@ -87,10 +87,10 @@ class MassRecurrentService
                 $task->increment('debtors_processed');
             }
             $task->completed = 1;
+            $task->save();
             $this->massRecurrentRepository->updateByTask($taskId, [
                 'status_id' => Status::NEW_SEND
             ]);
-            $task->save();
         } catch (\Exception $exception) {
             Log::error('Error executing without accept task', [
                 'message' => $exception->getMessage(),
