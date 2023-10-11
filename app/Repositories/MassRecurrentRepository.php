@@ -17,6 +17,10 @@ class MassRecurrentRepository
     {
         return $this->model->findOrFail($id);
     }
+    public function store(array $params): Model
+    {
+        return $this->model->create($params);
+    }
     public function update(int $id, array $params = []): Model
     {
         $modelItem = $this->model->where('id', $id)->firstOrFail();
@@ -29,6 +33,6 @@ class MassRecurrentRepository
      */
     public function getWithoutAcceptDebtors(int $status)
     {
-        return MassRecurrent::where('status_id', $status)->get();
+        return $this->model->where('status_id', $status)->get();
     }
 }

@@ -3,13 +3,20 @@
 namespace App\Services;
 
 use App\Debtor;
-use App\MassRecurrent;
 use App\MassRecurrentTask;
 use App\Model\Status;
+use App\Repositories\MassRecurrentRepository;
 use Carbon\Carbon;
 
 class MassRecurrentService
 {
+    private $massRecurrentRepository;
+
+    public function __construct(MassRecurrentRepository $massRecurrentRepository)
+    {
+        $this->massRecurrentRepository = $massRecurrentRepository;
+    }
+
     /**
      * Проверяем пользователя на соответствие структурному подразделению
      * @param $str_podr
@@ -69,8 +76,9 @@ class MassRecurrentService
         $debtorsQuery = $this->getDebtorsQuery($task->str_podr, $task->timezone);
         $debtors = $debtorsQuery->get();
         foreach ($debtors as $debtor) {
-            MassRecurrent::create([
+            $this->massRecurrentRepository->store([
                 'task_id' => $task_id,
+                'sum_indebt' => $debtor->sum_indebt,
                 'debtor_id' => $debtor->id,
                 'status_id' => Status::NEW_SEND
             ]);
