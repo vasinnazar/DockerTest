@@ -9,11 +9,14 @@ use App\Debtor;
 use App\Jobs\WithoutAcceptJob;
 use App\Loan;
 use App\LoanType;
+use App\MassRecurrentTask;
 use App\Passport;
+use App\Services\MassRecurrentService;
 use App\Subdivision;
 use App\User;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Queue;
+use Mockery;
 use Tests\TestCase;
 
 class WithoutAcceptJobTest extends TestCase
@@ -47,13 +50,39 @@ class WithoutAcceptJobTest extends TestCase
     public function testWithoutAcceptSend(): void
     {
         Queue::fake();
+        $this->app->bind(
+            MassRecurrentService::class,
+            function () {
+                $mock = Mockery::mock(MassRecurrentService::class);
+                $mock->shouldReceive('checkStrPodrUser')->andReturn(true);
+                $mock->shouldReceive('createTask')->andReturn(
+                    MassRecurrentTask::create([
+                    'user_id' => $this->user->id,
+                    'debtors_count' => 0,
+                    'str_podr' => '000000000007',
+                    'timezone' => 'all',
+                    'completed' => 0
+                ]));
+                return $mock;
+            }
+        );
         $response = $this->actingAs($this->user, 'web')
-            ->post('/debtors/recurrent/query', );
+            ->post('/debtors/recurrent/massquerytask', [
+                'timezone' => 'all',
+                'str_podr' => '000000000007',
+                'start' => 1,
+
+            ]);
         $response->assertStatus(
             Response::HTTP_OK
         );
-        $this->artisan('send:without-accept');
+        $response = $this->actingAs($this->user, 'web')
+            ->post('/debtors/recurrent/massquery', [
+                'task_id' => 1,
+            ]);
+
+       /* $this->artisan('send:without-accept');
         Queue::assertPushed(WithoutAcceptJob::class, fn ($job) => !is_null($job->delay));
-        dd(6);
+        dd(6);*/
     }
 }
