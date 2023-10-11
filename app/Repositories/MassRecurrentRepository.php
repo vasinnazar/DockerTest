@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\MassRecurrent;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class MassRecurrentRepository
@@ -27,7 +28,7 @@ class MassRecurrentRepository
 
         return tap($modelItem)->update($params);
     }
-    public function getByStatus(int $status)
+    public function getByStatus(int $status): Collection
     {
         return $this->model->where('status_id', $status)->get();
     }
