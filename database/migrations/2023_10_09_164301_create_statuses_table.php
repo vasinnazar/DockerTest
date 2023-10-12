@@ -23,6 +23,7 @@ class CreateStatusesTable extends Migration
             'В процессе',
             'Отправлено',
             'Ошибка',
+            'Не определен'
         ];
         foreach ($statuses as $status) {
             Status::create(['name' => $status]);

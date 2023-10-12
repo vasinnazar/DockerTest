@@ -30,10 +30,11 @@ class WithoutAcceptJob implements ShouldQueue
     public function handle(PaysClient $paysClient, DebtorRepository $debtorRepository, MassRecurrentRepository $massRecurrentRepository)
     {
         $debtor = $debtorRepository->firstById($this->debtorId);
+        $payment = $massRecurrentRepository->firstById($this->massRecurrentId);
         try {
             $paysClient->createPayment(
                 $debtor->customer_id_1c,
-                $debtor->sum_indebt,
+                $payment->sum_indebt,
                 $debtor->loan_id_1c,
                 3,
                 1,

@@ -10,6 +10,7 @@ class Status extends Model
     const IN_PROCESS = 2;
     const SUCCESS = 3;
     const FAILED = 4;
+    const UNDEFINED = 5;
 
     public $timestamps = false;
     protected $table = 'statuses';

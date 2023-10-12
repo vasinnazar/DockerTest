@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\MassRecurrent;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class MassRecurrentRepository
@@ -17,18 +18,24 @@ class MassRecurrentRepository
     {
         return $this->model->findOrFail($id);
     }
+    public function store(array $params): Model
+    {
+        return $this->model->create($params);
+    }
     public function update(int $id, array $params = []): Model
     {
         $modelItem = $this->model->where('id', $id)->firstOrFail();
 
         return tap($modelItem)->update($params);
     }
-    /**
-     * Получаем всех должников для безакцептного списания со статусом
-     * для отправки в очередь в платежный контур
-     */
-    public function getWithoutAcceptDebtors(int $status)
+    public function updateByTask(int $taskId, array $params = []): Model
     {
-        return MassRecurrent::where('status_id', $status)->get();
+        $modelItem = $this->model->where('task_id', $taskId);
+
+        return tap($modelItem)->update($params);
+    }
+    public function getByStatus(int $status): Collection
+    {
+        return $this->model->where('status_id', $status)->get();
     }
 }
