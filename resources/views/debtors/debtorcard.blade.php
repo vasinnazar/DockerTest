@@ -959,7 +959,7 @@
                                         заявку</a>
                                     <br>
                                 @endif
-                                @if(($enableRecurrentButton && !$noRecurrent) || Auth::user()->isChiefSpecialist())
+                                @if(Auth::user()->isChiefSpecialist())
                                     <a href="/debtors/recurrent/query?debtor_id={{$debtor->id}}&amount={{$loanSellingArm->required_money}}"
                                        class="btn btn-primary" id="recurrentButton">Списать (безакцепт)</a>
                                 @endif
