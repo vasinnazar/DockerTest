@@ -2,47 +2,38 @@
 
 namespace Feature;
 
-use App\about_client;
-use App\Claim;
 use App\Clients\PaysClient;
 use App\Customer;
 use App\Debtor;
-use App\Jobs\Job;
 use App\Jobs\WithoutAcceptJob;
-use App\Loan;
 use App\LoanType;
-use App\MassRecurrentTask;
+use App\Model\Status;
 use App\Passport;
 use App\Repositories\DebtorRepository;
 use App\Repositories\MassRecurrentRepository;
-use App\Role;
 use App\RoleUser;
-use App\Services\MassRecurrentService;
 use App\Subdivision;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Queue;
 use Mockery;
-use Mockery\MockInterface;
 use RolesSeeder;
 use Tests\TestCase;
 
 class WithoutAcceptJobTest extends TestCase
 {
-    //use DatabaseTransactions;
+    use DatabaseTransactions;
     private $user;
     private $debtors;
     private $strPodr = '000000000007';
-    public function __construct(?string $name = null, array $data = [], $dataName = '')
-    {
-        parent::__construct($name, $data, $dataName);
-
-    }
+    private $timezone = 'all';
+    private $countDebtor = 10;
 
     public function setUp(): void
     {
         parent::setUp();
+        factory(Subdivision::class)->create();
         $this->user = factory(User::class)->create();
         $this->seed(RolesSeeder::class);
         factory(RoleUser::class)->create([
@@ -50,8 +41,7 @@ class WithoutAcceptJobTest extends TestCase
             'role_id' => 10,
         ]);
         factory(LoanType::class)->create();
-        factory(Subdivision::class)->create();
-        $this->debtors = factory(Debtor::class, 'debtor', 5)->create([
+        $this->debtors = factory(Debtor::class, 'debtor', $this->countDebtor)->create([
             'str_podr' => $this->strPodr,
             'qty_delays' => 100,
             'debt_group_id' => 5,
@@ -60,7 +50,7 @@ class WithoutAcceptJobTest extends TestCase
             $customer = factory(Customer::class)->create([
                 'id_1c' => $debtor->customer_id_1c
             ]);
-            $passport = factory(Passport::class)->create([
+            factory(Passport::class)->create([
                 'customer_id' => $customer->id
             ]);
         }
@@ -70,10 +60,9 @@ class WithoutAcceptJobTest extends TestCase
     public function testWithoutAcceptSend(): void
     {
         Queue::fake();
-        $timezone = 'all';
         $responseCreateTask = $this->actingAs($this->user, 'web')
             ->post('/debtors/recurrent/massquerytask', [
-                'timezone' => $timezone,
+                'timezone' => $this->timezone,
                 'str_podr' => $this->strPodr,
                 'start' => 1,
 
@@ -81,6 +70,13 @@ class WithoutAcceptJobTest extends TestCase
         $responseCreateTask->assertStatus(
             Response::HTTP_OK
         );
+        $this->assertDatabaseHas('debtors_mass_recurrents_tasks', [
+            'user_id' => $this->user->id,
+            'str_podr' => $this->strPodr,
+            'timezone' => $this->timezone,
+            'completed' => 0,
+            'debtors_count' => $this->countDebtor,
+        ]);
         $jsonResp = json_decode($responseCreateTask->getContent());
         $responseExecuteTask = $this->actingAs($this->user, 'web')
             ->post('/debtors/recurrent/massquery', [
@@ -90,8 +86,13 @@ class WithoutAcceptJobTest extends TestCase
         $responseExecuteTask->assertStatus(
             Response::HTTP_OK
         );
+        $massRecRepo = app()->make(MassRecurrentRepository::class);
+        $recurrent = $massRecRepo->getByStatus(Status::NEW_SEND);
+        $this->assertEquals($recurrent->count(), $this->countDebtor);
 
         $this->artisan('send:without-accept');
+        $recurrent = $massRecRepo->getByStatus(Status::IN_PROCESS);
+        $this->assertEquals($recurrent->count(), $this->countDebtor);
         $this->app->bind(
             PaysClient::class,
             function () use ($jsonResp){
@@ -102,10 +103,11 @@ class WithoutAcceptJobTest extends TestCase
         );
         $paysClient = app()->make(PaysClient::class);
         $debtorRepo = app()->make(DebtorRepository::class);
-        $massRecRepo = app()->make(MassRecurrentRepository::class);
         Queue::assertPushed(WithoutAcceptJob::class, function ($job) use ($paysClient, $debtorRepo, $massRecRepo){
             $job->handle($paysClient, $debtorRepo, $massRecRepo);
             return $job;
         });
+        $recurrent = $massRecRepo->getByStatus(Status::SUCCESS);
+        $this->assertEquals($recurrent->count(), $this->countDebtor);
     }
 }

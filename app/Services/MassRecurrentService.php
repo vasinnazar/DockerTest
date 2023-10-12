@@ -89,7 +89,7 @@ class MassRecurrentService
             }
             $task->completed = 1;
             $task->save();
-           $this->massRecurrentRepository->updateByTask($taskId, [
+            $this->massRecurrentRepository->updateByTask($taskId, [
                 'status_id' => Status::NEW_SEND
             ]);
         } catch (\Exception $exception) {
@@ -193,6 +193,6 @@ class MassRecurrentService
             ->where('timezone', $timezone)
             ->first();
 
-        return (bool) !$task;
+        return (bool)!$task;
     }
 }
