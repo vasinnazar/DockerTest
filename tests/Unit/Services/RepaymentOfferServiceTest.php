@@ -16,7 +16,7 @@ use Tests\TestCase;
 
 class RepaymentOfferServiceTest extends TestCase
 {
-    use DatabaseTransactions;
+    //use DatabaseTransactions;
 
     public function __construct(?string $name = null, array $data = [], $dataName = '')
     {

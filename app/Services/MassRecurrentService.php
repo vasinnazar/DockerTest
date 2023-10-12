@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Debtor;
+use App\MassRecurrent;
 use App\MassRecurrentTask;
 use App\Model\Status;
 use App\Repositories\MassRecurrentRepository;
@@ -71,7 +72,7 @@ class MassRecurrentService
         return false;
     }
 
-    public function executeTask(int $taskId)
+    public function executeTask(int $taskId): void
     {
         try {
             $task = MassRecurrentTask::find($taskId);
@@ -88,7 +89,7 @@ class MassRecurrentService
             }
             $task->completed = 1;
             $task->save();
-            $this->massRecurrentRepository->updateByTask($taskId, [
+           $this->massRecurrentRepository->updateByTask($taskId, [
                 'status_id' => Status::NEW_SEND
             ]);
         } catch (\Exception $exception) {
@@ -97,7 +98,6 @@ class MassRecurrentService
                 'taskId' => $taskId
             ]);
         }
-
     }
 
     /**

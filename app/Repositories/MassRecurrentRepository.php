@@ -28,7 +28,7 @@ class MassRecurrentRepository
 
         return tap($modelItem)->update($params);
     }
-    public function updateByTask(int $taskId, array $params = []): Model
+    public function updateByTask(int $taskId, array $params = []): Object
     {
         $modelItem = $this->model->where('task_id', $taskId);
 

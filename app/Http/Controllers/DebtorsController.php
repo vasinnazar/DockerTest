@@ -37,6 +37,7 @@ use App\Utils;
 use App\Utils\HtmlHelper;
 use App\Utils\StrLib;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -3120,7 +3121,7 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function massRecurrentQuery(Request $req)
+    public function massRecurrentQuery(Request $req): JsonResponse
     {
         ini_set('max_execution_time', 0);
         set_time_limit(0);
@@ -3128,10 +3129,10 @@ class DebtorsController extends BasicController
         $task_id = $req->get('task_id', false);
 
         if (!$task_id) {
-            return 0;
+            return response()->json(false);
         }
-
         $this->massRecurrentService->executeTask($task_id);
+        return response()->json(true);
     }
 
     public function getMassRecurrentStatus(Request $req)
