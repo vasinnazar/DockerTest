@@ -170,10 +170,10 @@
                                 $.each(json_data.tasks, function(task_id, count) {
                                     $('#progress-count-' + task_id).html(count);
                                 });
+                                setTimeout(() => {
+                                    loop();
+                                }, 100);
                             }
-                            setTimeout(() => {
-                                loop();
-                            }, 1000);
                         }
                     });
                 }
