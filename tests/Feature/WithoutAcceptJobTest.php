@@ -23,7 +23,7 @@ use Tests\TestCase;
 
 class WithoutAcceptJobTest extends TestCase
 {
- //   use DatabaseTransactions;
+    use DatabaseTransactions;
     private $user;
     private $debtors;
     private $strPodr = '000000000007';
@@ -59,7 +59,7 @@ class WithoutAcceptJobTest extends TestCase
 
     public function testWithoutAcceptSend(): void
     {
-        /*Queue::fake();
+        Queue::fake();
         $responseCreateTask = $this->actingAs($this->user, 'web')
             ->post('/debtors/recurrent/massquerytask', [
                 'timezone' => $this->timezone,
@@ -108,6 +108,6 @@ class WithoutAcceptJobTest extends TestCase
             return $job;
         });
         $recurrent = $massRecRepo->getByStatus(Status::SUCCESS);
-        $this->assertEquals($recurrent->count(), $this->countDebtor);*/
+        $this->assertEquals($recurrent->count(), $this->countDebtor);
     }
 }
