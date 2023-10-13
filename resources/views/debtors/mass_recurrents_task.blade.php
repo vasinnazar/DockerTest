@@ -30,11 +30,11 @@
                     </div>
                     <div class="form-group row pull-left">
                         <label for="qty_delays_from_east" class="col-sm-1 col-form-label">от</label>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                             <input name="qty_delays_from" type="number" class="form-control" id="qty_delays_from_east">
                         </div>
                         <label for="qty_delays_to_east" class="col-sm-1 col-form-label">до</label>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                             <input name="qty_delays_to" type="number" class="form-control" id="qty_delays_to_east">
                         </div>
                     </div>
@@ -53,11 +53,11 @@
                     </div>
                     <div class="form-group row pull-left">
                         <label for="qty_delays_from_west" class="col-sm-1 col-form-label">от</label>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                             <input name="qty_delays_from" type="number" class="form-control" id="qty_delays_from_west">
                         </div>
                         <label for="qty_delays_to_west" class="col-sm-1 col-form-label">до</label>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                             <input name="qty_delays_to" type="number" class="form-control" id="qty_delays_to_west">
                         </div>
                     </div>
@@ -76,11 +76,11 @@
                     </div>
                     <div class="form-group row pull-left">
                         <label for="qty_delays_from_all" class="col-sm-1 col-form-label">от</label>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                             <input name="qty_delays_from" type="number" class="form-control" id="qty_delays_from_all">
                         </div>
                         <label for="qty_delays_to_all" class="col-sm-1 col-form-label">до</label>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                             <input name="qty_delays_to" type="number" class="form-control" id="qty_delays_to_all">
                         </div>
                     </div>

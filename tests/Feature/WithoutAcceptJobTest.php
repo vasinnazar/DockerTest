@@ -35,7 +35,7 @@ class WithoutAcceptJobTest extends TestCase
         parent::setUp();
         factory(Subdivision::class)->create();
         $this->user = factory(User::class)->create();
-        /*$this->seed(RolesSeeder::class);
+        $this->seed(RolesSeeder::class);
         factory(RoleUser::class)->create([
             'user_id' => $this->user->id,
             'role_id' => 10,
@@ -53,7 +53,7 @@ class WithoutAcceptJobTest extends TestCase
             factory(Passport::class)->create([
                 'customer_id' => $customer->id
             ]);
-        }*/
+        }
 
     }
 
@@ -65,7 +65,8 @@ class WithoutAcceptJobTest extends TestCase
                 'timezone' => $this->timezone,
                 'str_podr' => $this->strPodr,
                 'start' => 1,
-
+                'qty_delays_from' => 90,
+                'qty_delays_to' => 110,
             ]);
         $responseCreateTask->assertStatus(
             Response::HTTP_OK
@@ -81,6 +82,8 @@ class WithoutAcceptJobTest extends TestCase
         $responseExecuteTask = $this->actingAs($this->user, 'web')
             ->post('/debtors/recurrent/massquery', [
                 'task_id' => $jsonResp->task_id,
+                'qty_delays_from' => 90,
+                'qty_delays_to' => 110,
             ]);
 
         $responseExecuteTask->assertStatus(
