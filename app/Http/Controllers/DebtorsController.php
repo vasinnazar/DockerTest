@@ -3084,6 +3084,8 @@ class DebtorsController extends BasicController
         $timezone = $req->get('timezone', false);
         $str_podr = $req->get('str_podr', false);
         $start_flag = $req->get('start', false);
+        $qtyDelaysFrom = (int) $req->get('qty_delays_from', false);
+        $qtyDelaysTo = (int) $req->get('qty_delays_to', false);
 
         if (!$str_podr) {
             return redirect()->back();
@@ -3098,7 +3100,7 @@ class DebtorsController extends BasicController
         $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
 
         if ($start_flag) {
-            $recurrentTask = $this->massRecurrentService->createTask($str_podr, $timezone);
+            $recurrentTask = $this->massRecurrentService->createTask($str_podr, $timezone, $qtyDelaysFrom, $qtyDelaysTo);
 
             if ($recurrentTask) {
                 return json_encode([
@@ -3127,11 +3129,13 @@ class DebtorsController extends BasicController
         set_time_limit(0);
 
         $task_id = $req->get('task_id', false);
+        $qtyDelaysFrom = (int) $req->get('qty_delays_from', false);
+        $qtyDelaysTo = (int) $req->get('qty_delays_to', false);
 
         if (!$task_id) {
             return response()->json(false);
         }
-        $this->massRecurrentService->executeTask($task_id);
+        $this->massRecurrentService->executeTask($task_id, $qtyDelaysFrom, $qtyDelaysTo);
         return response()->json(true);
     }
 

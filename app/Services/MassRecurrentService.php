@@ -41,7 +41,7 @@ class MassRecurrentService
         return false;
     }
 
-    public function createTask($str_podr, $timezone)
+    public function createTask(string $str_podr, string $timezone, int $qtyDelaysFrom, int $qtyDelaysTo)
     {
         $user = auth()->user();
 
@@ -54,7 +54,7 @@ class MassRecurrentService
                 'completed' => 0
             ]);
 
-            $debtorsQuery = $this->getDebtorsQuery($str_podr, $timezone);
+            $debtorsQuery = $this->getDebtorsQuery($str_podr, $timezone, $qtyDelaysFrom, $qtyDelaysTo);
 
             if ($debtorsQuery->count()) {
                 $task->update([
@@ -72,11 +72,11 @@ class MassRecurrentService
         return false;
     }
 
-    public function executeTask(int $taskId): void
+    public function executeTask(int $taskId, int $qtyDelaysFrom, int $qtyDelaysTo): void
     {
         try {
             $task = MassRecurrentTask::find($taskId);
-            $debtorsQuery = $this->getDebtorsQuery($task->str_podr, $task->timezone);
+            $debtorsQuery = $this->getDebtorsQuery($task->str_podr, $task->timezone, $qtyDelaysFrom, $qtyDelaysTo);
             $debtors = $debtorsQuery->get();
             foreach ($debtors as $debtor) {
                 $this->massRecurrentRepository->store([
@@ -124,7 +124,7 @@ class MassRecurrentService
         return $arTasksCount;
     }
 
-    private function getDebtorsQuery($str_podr, $timezone)
+    private function getDebtorsQuery(string $str_podr, string $timezone, int $qtyDelaysFrom, int $qtyDelaysTo)
     {
         $debtorsQuery = Debtor::select('debtors.*')
             ->where('is_debtor', 1);
@@ -144,23 +144,29 @@ class MassRecurrentService
         }
 
         if ($str_podr == '000000000006') {
+            $qtyDelaysFrom = $qtyDelaysFrom !== 0 ? $qtyDelaysFrom: 22;
+            $qtyDelaysTo = $qtyDelaysTo !== 0 ? $qtyDelaysTo: 69;
             $debtorsQuery->where('str_podr', '000000000006')
-                ->where('qty_delays', '>=', 22)
-                ->where('qty_delays', '<=', 69)
+                ->where('qty_delays', '>=', $qtyDelaysFrom)
+                ->where('qty_delays', '<=', $qtyDelaysTo)
                 ->where('base', '<>', 'ХПД')
                 ->whereIn('debt_group_id', [2, 4, 5, 6, 8]);
         }
 
         if ($str_podr == '000000000007') {
+            $qtyDelaysFrom = $qtyDelaysFrom !== 0 ? $qtyDelaysFrom: 60;
+            $qtyDelaysTo = $qtyDelaysTo !== 0 ? $qtyDelaysTo: 150;
             $debtorsQuery->where('str_podr', '000000000007')
-                ->where('qty_delays', '>=', 60)
-                ->where('qty_delays', '<=', 150)
+                ->where('qty_delays', '>=', $qtyDelaysFrom)
+                ->where('qty_delays', '<=', $qtyDelaysTo)
                 ->where('base', '<>', 'ХПД')
                 ->whereIn('debt_group_id', [5, 6]);
         }
 
         if ($str_podr == '000000000006-1') {
             $debtorsQuery->where('str_podr', '000000000006')
+                ->where('qty_delays', '>=', $qtyDelaysFrom)
+                ->where('qty_delays', '<=', $qtyDelaysTo)
                 ->whereIn('responsible_user_id_1c', [
                     'Осипова Е. А.                                ',
                     'Ленева Алина Андреевна                      '
@@ -169,10 +175,12 @@ class MassRecurrentService
         }
 
         if ($str_podr == '000000000007-1') {
+            $qtyDelaysFrom = $qtyDelaysFrom !== 0 ? $qtyDelaysFrom: 60;
+            $qtyDelaysTo = $qtyDelaysTo !== 0 ? $qtyDelaysTo: 150;
             $debtorsQuery->where('str_podr', '000000000007')
                 ->where('responsible_user_id_1c', 'Ведущий специалист личного взыскания')
-                ->where('qty_delays', '>=', 60)
-                ->where('qty_delays', '<=', 150)
+                ->where('qty_delays', '>=', $qtyDelaysFrom)
+                ->where('qty_delays', '<=', $qtyDelaysTo)
                 ->whereIn('debt_group_id', [5, 6])
                 ->whereIn('base', ['Б-3', 'Б-МС', 'Б-риски', 'Б-График']);
         }
