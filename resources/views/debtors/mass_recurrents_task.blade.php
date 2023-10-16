@@ -150,7 +150,7 @@
                                 </td>
                                 <td>
                                     @if ($task->completed)
-                                        Выполнено {{$task->debtors_count}}
+                                        Отправлено {{$task->debtors_count}}
                                         <br>
                                         <span style="font-size: 80%; color: grey; font-style: italic;">{{ $task->updated_at->format('d.m.Y H:i:s') }}</span>
                                     @else
