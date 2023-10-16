@@ -76,16 +76,17 @@ class MassRecurrentService
         try {
             $task = MassRecurrentTask::find($taskId);
             $debtorsQuery = $this->getDebtorsQuery($task->str_podr, $task->timezone, $qtyDelaysFrom, $qtyDelaysTo);
-            $debtors = $debtorsQuery->get();
-            foreach ($debtors as $debtor) {
-                $this->massRecurrentRepository->store([
-                    'task_id' => $taskId,
-                    'sum_indebt' => $debtor->sum_indebt,
-                    'debtor_id' => $debtor->id,
-                    'status_id' => Status::UNDEFINED
-                ]);
-                $task->increment('debtors_processed');
-            }
+            $debtorsQuery->chunk(100, function($debtors) use ($taskId, $task) {
+                foreach ($debtors as $debtor) {
+                    $this->massRecurrentRepository->store([
+                        'task_id' => $taskId,
+                        'sum_indebt' => $debtor->sum_indebt,
+                        'debtor_id' => $debtor->id,
+                        'status_id' => Status::UNDEFINED
+                    ]);
+                    $task->increment('debtors_processed');
+                }
+            });
             $task->completed = 1;
             $task->save();
             $this->massRecurrentRepository->updateByTask($taskId, [

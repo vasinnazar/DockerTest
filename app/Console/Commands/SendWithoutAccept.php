@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Jobs\WithoutAcceptJob;
+use App\MassRecurrent;
 use App\Model\Status;
 use App\Repositories\MassRecurrentRepository;
 use Illuminate\Console\Command;
@@ -41,12 +42,13 @@ class SendWithoutAccept extends Command
      */
     public function handle()
     {
-        $debtorsMassRecurrents = $this->massRecurrentRepository->getByStatus(Status::NEW_SEND);
-        foreach ($debtorsMassRecurrents as $debtorMassRec) {
-            $debtorMassRec->fill([
-                'status_id' => Status::IN_PROCESS,
-            ])->save();
-            WithoutAcceptJob::dispatch($debtorMassRec->id, $debtorMassRec->debtor_id);
-        }
+        MassRecurrent::where('status_id', Status::NEW_SEND)->chunkById(100, function ($debtorsMassRecurrent) {
+            foreach ($debtorsMassRecurrent as $debtorMassRec) {
+                $debtorMassRec->fill([
+                    'status_id' => Status::IN_PROCESS,
+                ])->save();
+                WithoutAcceptJob::dispatch($debtorMassRec->id, $debtorMassRec->debtor_id);
+            }
+        });
     }
 }
