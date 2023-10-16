@@ -12,6 +12,7 @@ use App\Passport;
 use App\Repositories\DebtorRepository;
 use App\Repositories\MassRecurrentRepository;
 use App\RoleUser;
+use App\Services\MassRecurrentService;
 use App\Subdivision;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -54,10 +55,9 @@ class WithoutAcceptJobTest extends TestCase
                 'customer_id' => $customer->id
             ]);
         }
-
     }
 
-    public function testWithoutAcceptSend(): void
+    public function testWithoutAcceptSendSuccess(): void
     {
         Queue::fake();
         $responseCreateTask = $this->actingAs($this->user, 'web')
@@ -112,5 +112,29 @@ class WithoutAcceptJobTest extends TestCase
         });
         $recurrent = $massRecRepo->getByStatus(Status::SUCCESS);
         $this->assertEquals($recurrent->count(), $this->countDebtor);
+    }
+    public function testWithoutAcceptSendErrorCreateTask(): void
+    {
+        $this->app->bind(
+            MassRecurrentService::class,
+            function () {
+                $mockSendEmail = Mockery::mock(MassRecurrentService::class);
+                $mockSendEmail->shouldReceive('checkStrPodrUser')->andReturn(true);
+                $mockSendEmail->shouldReceive('createTask')->andReturn(false);
+                return $mockSendEmail;
+            }
+        );
+        $responseCreateTask = $this->actingAs($this->user, 'web')
+            ->post('/debtors/recurrent/massquerytask', [
+                'timezone' => $this->timezone,
+                'str_podr' => $this->strPodr,
+                'start' => 1,
+                'qty_delays_from' => 90,
+                'qty_delays_to' => 110,
+            ]);
+        $responseCreateTask->assertStatus(
+            Response::HTTP_OK
+        );
+        $this->assertEquals(json_decode($responseCreateTask->getContent(), true)['status'],'fail');
     }
 }

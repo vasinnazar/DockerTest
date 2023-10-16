@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Debtor;
-use App\MassRecurrent;
 use App\MassRecurrentTask;
 use App\Model\Status;
 use App\Repositories\MassRecurrentRepository;
