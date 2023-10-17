@@ -76,16 +76,18 @@ class MassRecurrentService
         try {
             $task = MassRecurrentTask::find($taskId);
             $debtorsQuery = $this->getDebtorsQuery($task->str_podr, $task->timezone, $qtyDelaysFrom, $qtyDelaysTo);
-            $debtorsQuery->chunk(100, function($debtors) use ($taskId, $task) {
+            $debtorsQuery->chunkById(100, function($debtors) use ($taskId, $task) {
+                $dataInsert = [];
                 foreach ($debtors as $debtor) {
-                    $this->massRecurrentRepository->store([
+                    $dataInsert[] = [
                         'task_id' => $taskId,
                         'sum_indebt' => $debtor->sum_indebt,
                         'debtor_id' => $debtor->id,
                         'status_id' => Status::UNDEFINED
-                    ]);
+                    ];
                     $task->increment('debtors_processed');
                 }
+                $this->massRecurrentRepository->insert($dataInsert);
             });
             $task->completed = 1;
             $task->save();
@@ -126,8 +128,7 @@ class MassRecurrentService
 
     private function getDebtorsQuery(string $str_podr, string $timezone, int $qtyDelaysFrom, int $qtyDelaysTo)
     {
-        $debtorsQuery = Debtor::select('debtors.*')
-            ->where('is_debtor', 1);
+        $debtorsQuery = Debtor::where('is_debtor', 1);
 
         if ($timezone == 'east') {
             $debtorsQuery->leftJoin('passports', function ($join) {
