@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\MassRecurrent;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,6 +22,19 @@ class MassRecurrentRepository
     public function store(array $params): Model
     {
         return $this->model->create($params);
+    }
+    public function insert(array $params): bool
+    {
+        $dateNow = Carbon::now();
+        foreach ($params as &$param) {
+            if (!isset($param['created_at'])) {
+                $param['created_at'] = $dateNow;
+            }
+            if (!isset($param['updated_at'])) {
+                $param['updated_at'] = $dateNow;
+            }
+        }
+        return $this->model->insert($params);
     }
     public function update(int $id, array $params = []): Model
     {
