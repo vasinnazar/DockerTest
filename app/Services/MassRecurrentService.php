@@ -128,7 +128,8 @@ class MassRecurrentService
 
     private function getDebtorsQuery(string $str_podr, string $timezone, int $qtyDelaysFrom, int $qtyDelaysTo)
     {
-        $debtorsQuery = Debtor::where('is_debtor', 1);
+        $debtorsQuery = Debtor::select('debtors.*')
+            ->where('is_debtor', 1);
 
         if ($timezone == 'east') {
             $debtorsQuery->leftJoin('passports', function ($join) {
