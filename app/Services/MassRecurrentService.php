@@ -76,7 +76,7 @@ class MassRecurrentService
         try {
             $task = MassRecurrentTask::find($taskId);
             $debtorsQuery = $this->getDebtorsQuery($task->str_podr, $task->timezone, $qtyDelaysFrom, $qtyDelaysTo);
-            $debtorsQuery->chunkById(100, function($debtors) use ($taskId, $task) {
+            $debtorsQuery->chunk(100, function($debtors) use ($taskId, $task) {
                 $dataInsert = [];
                 foreach ($debtors as $debtor) {
                     $dataInsert[] = [
@@ -146,8 +146,8 @@ class MassRecurrentService
         }
 
         if ($str_podr == '000000000006') {
-            $qtyDelaysFrom = $qtyDelaysFrom !== 0 ? $qtyDelaysFrom: 22;
-            $qtyDelaysTo = $qtyDelaysTo !== 0 ? $qtyDelaysTo: 69;
+            $qtyDelaysFrom = $qtyDelaysFrom !== 0 ? $qtyDelaysFrom : 22;
+            $qtyDelaysTo = $qtyDelaysTo !== 0 ? $qtyDelaysTo : 69;
             $debtorsQuery->where('str_podr', '000000000006')
                 ->where('qty_delays', '>=', $qtyDelaysFrom)
                 ->where('qty_delays', '<=', $qtyDelaysTo)
@@ -156,8 +156,8 @@ class MassRecurrentService
         }
 
         if ($str_podr == '000000000007') {
-            $qtyDelaysFrom = $qtyDelaysFrom !== 0 ? $qtyDelaysFrom: 60;
-            $qtyDelaysTo = $qtyDelaysTo !== 0 ? $qtyDelaysTo: 150;
+            $qtyDelaysFrom = $qtyDelaysFrom !== 0 ? $qtyDelaysFrom : 60;
+            $qtyDelaysTo = $qtyDelaysTo !== 0 ? $qtyDelaysTo : 150;
             $debtorsQuery->where('str_podr', '000000000007')
                 ->where('qty_delays', '>=', $qtyDelaysFrom)
                 ->where('qty_delays', '<=', $qtyDelaysTo)
