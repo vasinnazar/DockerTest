@@ -197,7 +197,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('debtor-sync:import')->withoutOverlapping();
         $schedule->command('debtor-sync:execute-sql')->withoutOverlapping();
         $schedule->command('debtor-sync:execute-about')->withoutOverlapping();
-        $schedule->command('send:without-accept');
+        $schedule->command('send:without-accept')->everyMinute();
     }
 
 }
