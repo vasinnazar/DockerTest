@@ -23,6 +23,7 @@ class Role extends Model
     const DEBTORS_REMOTE = 12;
     const DEBTORS_PERSONAL = 13;
     const DEBTORS_CHIEF = 14;
+    const AUTOINFORMATOR = 24;
 
     protected $table = 'roles';
     protected $fillable = ['name', 'description'];

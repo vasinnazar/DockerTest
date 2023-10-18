@@ -37,6 +37,7 @@ use App\Utils;
 use App\Utils\HtmlHelper;
 use App\Utils\StrLib;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -3083,6 +3084,8 @@ class DebtorsController extends BasicController
         $timezone = $req->get('timezone', false);
         $str_podr = $req->get('str_podr', false);
         $start_flag = $req->get('start', false);
+        $qtyDelaysFrom = (int) $req->get('qty_delays_from', false);
+        $qtyDelaysTo = (int) $req->get('qty_delays_to', false);
 
         if (!$str_podr) {
             return redirect()->back();
@@ -3097,7 +3100,7 @@ class DebtorsController extends BasicController
         $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
 
         if ($start_flag) {
-            $recurrentTask = $this->massRecurrentService->createTask($str_podr, $timezone);
+            $recurrentTask = $this->massRecurrentService->createTask($str_podr, $timezone, $qtyDelaysFrom, $qtyDelaysTo);
 
             if ($recurrentTask) {
                 return json_encode([
@@ -3120,18 +3123,20 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function massRecurrentQuery(Request $req)
+    public function massRecurrentQuery(Request $req): JsonResponse
     {
         ini_set('max_execution_time', 0);
         set_time_limit(0);
 
         $task_id = $req->get('task_id', false);
+        $qtyDelaysFrom = (int) $req->get('qty_delays_from', false);
+        $qtyDelaysTo = (int) $req->get('qty_delays_to', false);
 
         if (!$task_id) {
-            return 0;
+            return response()->json(false);
         }
-
-        $this->massRecurrentService->executeTask($task_id);
+        $this->massRecurrentService->executeTask($task_id, $qtyDelaysFrom, $qtyDelaysTo);
+        return response()->json(true);
     }
 
     public function getMassRecurrentStatus(Request $req)

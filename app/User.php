@@ -85,7 +85,10 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         return !is_null($this->roles()->where('role_id', Role::DEBTORS_PERSONAL)->first());
     }
-
+    public function isAutoInformator(): bool
+    {
+        return !is_null($this->roles()->where('role_id', Role::AUTOINFORMATOR)->first());
+    }
     public function isCC()
     {
         return ($this->subdivision_id == config('options.office_subdivision_id') && !$this->isAdmin()) ? true : false;

@@ -10,6 +10,7 @@ use App\Console\Commands\MysqlBackup;
 use App\Console\Commands\RepaymentOfferAutoPeace;
 use App\Console\Commands\DebtorSyncFilesImport;
 use App\Console\Commands\PassportsUpdateTimeZone;
+use App\Console\Commands\SendWithoutAccept;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
@@ -35,6 +36,7 @@ class Kernel extends ConsoleKernel
         DebtorSyncSqlProcess::class,
         PassportsUpdateTimeZone::class,
         DebtorsSearchForgotten::class,
+        SendWithoutAccept::class,
     ];
 
     /**
@@ -195,7 +197,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('debtor-sync:import')->withoutOverlapping();
         $schedule->command('debtor-sync:execute-sql')->withoutOverlapping();
         $schedule->command('debtor-sync:execute-about')->withoutOverlapping();
-
+        $schedule->command('send:without-accept');
     }
 
 }
