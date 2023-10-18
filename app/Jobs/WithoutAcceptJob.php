@@ -6,7 +6,6 @@ use App\Clients\PaysClient;
 use App\Model\Status;
 use App\Repositories\DebtorRepository;
 use App\Repositories\MassRecurrentRepository;
-use App\Repositories\TransactionRepository;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
