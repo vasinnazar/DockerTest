@@ -50,7 +50,7 @@ class MassRecurrentService
                 'debtors_count' => 0,
                 'str_podr' => $str_podr,
                 'timezone' => $timezone,
-                'completed' => 0
+                'completed' => MassRecurrentTask::NOT_COMPLETED
             ]);
 
             $debtorsQuery = $this->getDebtorsQuery($str_podr, $timezone, $qtyDelaysFrom, $qtyDelaysTo);
@@ -61,7 +61,7 @@ class MassRecurrentService
                 ]);
             } else {
                 $task->update([
-                    'completed' => 1
+                    'completed' => MassRecurrentTask::COMPLETED
                 ]);
             }
 
@@ -89,7 +89,7 @@ class MassRecurrentService
                 }
                 $this->massRecurrentRepository->insert($dataInsert);
             });
-            $task->completed = 1;
+            $task->completed = MassRecurrentTask::COMPLETED;
             $task->save();
             $this->massRecurrentRepository->updateByTask($taskId, [
                 'status_id' => Status::NEW_SEND

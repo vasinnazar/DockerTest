@@ -5,7 +5,10 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use DB;
 
-class MassRecurrentTask extends Model {
+class MassRecurrentTask extends Model
+{
+    const COMPLETED = 1;
+    const NOT_COMPLETED = 0;
 
     protected $table = 'debtors_mass_recurrents_tasks';
 
