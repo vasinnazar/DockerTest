@@ -47,7 +47,7 @@ class SendWithoutAccept extends Command
                 $debtorMassRec->fill([
                     'status_id' => Status::IN_PROCESS,
                 ])->save();
-                WithoutAcceptJob::dispatch($debtorMassRec->id, $debtorMassRec->debtor_id);
+                WithoutAcceptJob::dispatch($debtorMassRec->id, $debtorMassRec->debtor_id)->onQueue('without_accept');
             }
         });
     }
