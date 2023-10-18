@@ -125,7 +125,11 @@ class DebtorService
 
 
         $input = $req->input();
-        $by_address = (auth()->user()->isDebtorsPersonal()) ? 'address_city' : 'fact_address_city';
+        $user = auth()->user();
+        if ($user) {
+            $forPersonalDepartment = $user->isDebtorsPersonal();
+        }
+        $by_address = $forPersonalDepartment ? 'address_city' : 'fact_address_city';
 
         $filterFields = [
             'search_field_debtors@fixation_date',
