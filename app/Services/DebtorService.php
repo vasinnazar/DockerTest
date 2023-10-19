@@ -151,6 +151,7 @@ class DebtorService
             'search_field_struct_subdivisions@id_1c',
             'search_field_debt_groups@id',
             'search_field_passports@fact_timezone',
+            'search_field_about@email',
         ];
 
         $boolSearchAll = false;
@@ -185,11 +186,6 @@ class DebtorService
                 'debtors.id', '=', 'debtors_events_promise_pays.debtor_id')
             ->groupBy('debtors.id');
 
-        $debtorsEmail = trim($input['search_field_about@email']);
-        if (!empty($debtorsEmail)) {
-            $debtors->where('debtors.about_clients.email', '=', $input['search_field_about@email']);
-        }
-
         if (isset($input['search_field_passports@fact_address_region']) && mb_strlen($input['search_field_passports@fact_address_region'])) {
             $debtors->where('debtors.passports.fact_address_region', 'like',
                 '%' . $input['search_field_passports@fact_address_region'] . '%');
@@ -199,6 +195,7 @@ class DebtorService
             $debtors->where('debtors.passports.address_region', 'like',
                 '%' . $input['search_field_passports@address_region'] . '%');
         }
+
         $timezone = $req->get('search_field_passports@fact_timezone');
         if (isset($timezone) && mb_strlen($timezone)) {
             $debtors->where('debtors.passports.fact_timezone',
@@ -211,9 +208,12 @@ class DebtorService
             $debtors = $debtors->where('kratnost', "1");
         }
 
-
         if ($boolSearchAll) {
             foreach ($arrFields as $key => $arrField) {
+                if ($key == 'search_field_about@email') {
+                    $debtors->where('debtors.about_clients.email', '=', $arrField['value']);
+                    continue;
+                }
                 if ($key == 'search_field_debtors@qty_delays_from') {
                     $debtors->where('debtors.qty_delays', '>=', $arrField['value']);
                     continue;
