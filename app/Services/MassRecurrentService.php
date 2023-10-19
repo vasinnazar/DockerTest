@@ -6,7 +6,6 @@ use App\Debtor;
 use App\MassRecurrentTask;
 use App\Model\Status;
 use App\Repositories\MassRecurrentRepository;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class MassRecurrentService
@@ -43,8 +42,7 @@ class MassRecurrentService
     public function createTask(string $str_podr, string $timezone, int $qtyDelaysFrom, int $qtyDelaysTo)
     {
         $user = auth()->user();
-
-        if ($this->_checkTaskCanStart($str_podr, $timezone)) {
+        try {
             $task = MassRecurrentTask::create([
                 'user_id' => $user->id,
                 'debtors_count' => 0,
@@ -64,11 +62,13 @@ class MassRecurrentService
                     'completed' => MassRecurrentTask::COMPLETED
                 ]);
             }
-
             return $task;
+        } catch (\Exception $exception) {
+            Log::error("Mass recurrent task create error", [
+                'message' => $exception->getMessage(),
+            ]);
+           return false;
         }
-
-        return false;
     }
 
     public function executeTask(int $taskId, int $qtyDelaysFrom, int $qtyDelaysTo): void
@@ -188,21 +188,5 @@ class MassRecurrentService
         }
 
         return $debtorsQuery;
-    }
-
-    /**
-     * Проверка на уже существующую задачу, созданную сегодня, с определенными параметрами
-     * @param $str_podr
-     * @param $timezone
-     * @return bool
-     */
-    private function _checkTaskCanStart($str_podr, $timezone)
-    {
-        $task = MassRecurrentTask::whereDate('created_at', '=', Carbon::today())
-            ->where('str_podr', $str_podr)
-            ->where('timezone', $timezone)
-            ->first();
-
-        return (bool)!$task;
     }
 }
