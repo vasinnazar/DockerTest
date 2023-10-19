@@ -38,7 +38,7 @@ class WithoutAcceptJob implements ShouldQueue
                 3,
                 1,
                 null,
-                '{"is_debtor":true,"is_mass_debtor":true}'
+                ["is_debtor" => true,"is_mass_debtor" => true]
             );
             $massRecurrentRepository->update($this->massRecurrentId, [
                 'status_id' => Status::SUCCESS

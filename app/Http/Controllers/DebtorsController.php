@@ -1247,14 +1247,14 @@ class DebtorsController extends BasicController
             $debtorEvents->where('passports.fact_timezone', (int)$factTimezone);
         }
 
-        if ($currentUser->hasRole('missed_calls')) {
+        if ($currentUser && $currentUser->hasRole('missed_calls')) {
             $missedCallsEvent = $this->ajaxEventsMissedCalls($req);
         }
 
         if (!is_null($responsibleId1c) && mb_strlen($responsibleId1c)) {
             $debtorEvents->where('debtor_events.user_id_1c', $responsibleId1c);
         }
-        if ($currentUser->hasRole('debtors_personal')) {
+        if ($currentUser && $currentUser->hasRole('debtors_personal')) {
             $debtorEvents->where('debtor_events.user_id', $currentUser->id);
         } else {
             // если придет пустой массив - будут показаны все планы на день

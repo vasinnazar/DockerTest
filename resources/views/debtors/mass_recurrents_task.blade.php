@@ -38,8 +38,7 @@
                             <input name="qty_delays_to" type="number" class="form-control" id="qty_delays_to_east">
                         </div>
                     </div>
-                    <button id="startMassRecurrents1" class="btn btn-primary pull-left"
-                            value="east"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'east')) ? ' disabled' : '' }}>
+                    <button id="startMassRecurrents1" class="btn btn-primary pull-left" value="east">
                         Запустить Восток (-1 +5)
                     </button>
                 </form>
@@ -61,8 +60,7 @@
                             <input name="qty_delays_to" type="number" class="form-control" id="qty_delays_to_west">
                         </div>
                     </div>
-                    <button id="startMassRecurrents2" class="btn btn-primary pull-left"
-                            value="west"{{ ($collectionTasks->contains('timezone', 'all') || $collectionTasks->contains('timezone', 'west')) ? ' disabled' : '' }}>
+                    <button id="startMassRecurrents2" class="btn btn-primary pull-left" value="west">
                         Запустить Запад (-2 -5)
                     </button>
                 </form>
@@ -84,8 +82,8 @@
                             <input name="qty_delays_to" type="number" class="form-control" id="qty_delays_to_all">
                         </div>
                     </div>
-                    <button type="button" id="startMassRecurrents" class="btn btn-primary pull-left"
-                            value=""{{ $collectionTasks->count() ? ' disabled' : '' }}>Запустить весь пулл
+                    <button type="button" id="startMassRecurrents" class="btn btn-primary pull-left" value="">
+                        Запустить весь пулл
                     </button>
                 </form>
             </div>
@@ -181,7 +179,6 @@
                     $(formData).each(function(i, field){
                         formData[field.name] = field.value;
                     });
-                    console.log(formData['qty_delays_from']);
                     $.ajax({
                         url: '/debtors/recurrent/massquerytask',
                         method: 'post',
