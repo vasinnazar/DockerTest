@@ -882,9 +882,6 @@ class DebtorsController extends BasicController
 
         $user = auth()->user();
         return DataTables::of($debtors)
-//            ->editColumn('debtors_created_at', function ($item) {
-//                return (!is_null($item->d_created_at)) ? date('d.m.Y', strtotime($item->d_created_at)) : '-';
-//            })
             ->editColumn('debtors_fixation_date', function ($item) {
                 return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
                     strtotime($item->debtors_fixation_date)) : '-';
