@@ -13,6 +13,7 @@ use App\Exceptions\DebtorException;
 use App\Loan;
 use App\LoanType;
 use App\Passport;
+use App\Promocode;
 use App\Subdivision;
 use App\User;
 use Illuminate\Support\Facades\DB;
@@ -238,13 +239,15 @@ class SynchronizeService
         }
 
         $loanType = $this->getOrCreateLoantype($loanArm);
+        if ($loanArm->promocode) {
+            $this->getOrCreatePromocode($loanArm->promocode);
+        }
         $card = $this->createCard($debtor, $loanArm);
-
 
         return Loan::updateOrCreate([
             'id_1c' => $loanArm->id_1c,
         ], [
-            'money' => $loanArm->money,
+            'money' => $loanArm->money / 100,
             'time' => $loanArm->time,
             'claim_id' => $claim->id,
             'loantype_id' => $loanType->id,
@@ -322,6 +325,18 @@ class SynchronizeService
             'min_time' => $loanArm->loantype->min_time,
             'min_money' => $loanArm->loantype->min_money,
             'data' => json_encode($loanArm->loantype->data),
+        ]);
+    }
+    private function getOrCreatePromocode($promocode)
+    {
+        return Promocode::updateOrCreate([
+            'id' => $promocode->id,
+        ], [
+            'id' => $promocode->id,
+            'number' => $promocode->number,
+            'id_1c' => $promocode->id_1c,
+            'created_at' => $promocode->created_at,
+            'updated_at' => $promocode->updated_at,
         ]);
     }
 }
