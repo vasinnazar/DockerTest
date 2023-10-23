@@ -66,7 +66,7 @@ class DebtorsController extends BasicController
         EmailService               $emailService,
         DebtorEventEmailRepository $debtorEventEmailRepository,
         AboutClientRepository      $aboutClientRepository,
-        ConnectionStatusRepository  $connectionStatusRepository
+        ConnectionStatusRepository $connectionStatusRepository
     )
     {
         $this->debtCardService = $debtService;
@@ -165,7 +165,7 @@ class DebtorsController extends BasicController
         $debtor = Debtor::find($debtor_id);
         $connectionStatuses = $this->connectionStatusRepository->getAll()->pluck('name', 'id');
         $dataArm = [];
-        
+
         try {
             $dataArm = $synchronize->synchronizeDebtor($debtor);
         } catch (\Throwable $exception) {
@@ -899,25 +899,27 @@ class DebtorsController extends BasicController
                     return HtmlHelper::Buttton(
                         url('debtors/debtorcard/' . $item->debtors_id),
                         ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']
-                );
+                    );
                 }
-                $glyph = $item->uploaded == 1 ? 'ok' : 'remove';
+                $glyph = $item->uploaded === 1 ? 'ok' : 'remove';
                 $html = '';
-                if (mb_strlen($item->debtors_responsible_user_id_1c)) {
-                    $pos = strpos(Auth::user()->id_1c, $item->debtors_responsible_user_id_1c);
-                    if ($user->hasRole('debtors_remote') || ($user->hasRole('debtors_personal') && !$user->hasRole('cant_edit_all_debtors'))) {
+                if (!empty($item->debtors_responsible_user_id_1c)) {
+                    $pos = strpos($user->id_1c, $item->debtors_responsible_user_id_1c);
+                    if ($user->hasRole('debtors_remote') ||
+                        ($user->hasRole('debtors_personal') && !$user->hasRole('cant_edit_all_debtors'))
+                    ) {
                         $pos = true;
                     }
                 } else {
                     $pos = true;
                 }
-                if (Auth::user()->hasRole('debtors_chief') || $pos !== false) {
-                    if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
+                if ($pos !== false || $user->hasRole('debtors_chief') ) {
+                    if (isset($item->passports_fact_timezone)) {
                         $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
                         $arRegionTime = explode(':', $region_time);
                         $weekday = date('N', time());
                         $hour = $arRegionTime[0];
-                        if ($hour[0] == '0') {
+                        if ($hour[0] === '0') {
                             $hour = substr($hour, 1);
                         }
                         if ($weekday == 6 || $weekday == 7) {
@@ -933,7 +935,7 @@ class DebtorsController extends BasicController
 
                     $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
                 }
-                if (Auth::user()->isAdmin()) {
+                if ($user->isAdmin()) {
                     $html .= HtmlHelper::Buttton(url('ajax/debtors/changeloadstatus/' . $item->debtors_id),
                         ['glyph' => $glyph, 'size' => 'xs', 'class' => 'btn btn-default loadFlag']);
                 }
@@ -3086,8 +3088,8 @@ class DebtorsController extends BasicController
         $timezone = $req->get('timezone', false);
         $str_podr = $req->get('str_podr', false);
         $start_flag = $req->get('start', false);
-        $qtyDelaysFrom = (int) $req->get('qty_delays_from', false);
-        $qtyDelaysTo = (int) $req->get('qty_delays_to', false);
+        $qtyDelaysFrom = (int)$req->get('qty_delays_from', false);
+        $qtyDelaysTo = (int)$req->get('qty_delays_to', false);
 
         if (!$str_podr) {
             return redirect()->back();
@@ -3131,8 +3133,8 @@ class DebtorsController extends BasicController
         set_time_limit(0);
 
         $task_id = $req->get('task_id', false);
-        $qtyDelaysFrom = (int) $req->get('qty_delays_from', false);
-        $qtyDelaysTo = (int) $req->get('qty_delays_to', false);
+        $qtyDelaysFrom = (int)$req->get('qty_delays_from', false);
+        $qtyDelaysTo = (int)$req->get('qty_delays_to', false);
 
         if (!$task_id) {
             return response()->json(false);
