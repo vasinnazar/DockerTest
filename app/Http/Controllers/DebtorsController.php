@@ -879,61 +879,7 @@ class DebtorsController extends BasicController
     public function ajaxList(Request $req, DebtorService $service)
     {
         $debtors = $service->getDebtors($req);
-
         $user = auth()->user();
-        if (!$user) {
-            return DataTables::of($debtors)
-                ->editColumn('debtors_fixation_date', function ($item) {
-                    return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
-                        strtotime($item->debtors_fixation_date)) : '-';
-                })
-                ->editColumn('debtors_od', function ($item) {
-                    return number_format($item->debtors_od / 100, 2, '.', '');
-                })
-                ->editColumn('debtors_sum_indebt', function ($item) {
-                    return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
-                })
-                ->editColumn('customers_telephone', function ($item) {
-                    return $item->customers_telephone;
-                })
-                ->addColumn('actions', function ($item) {
-                    if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
-                        $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
-                        $arRegionTime = explode(':', $region_time);
-                        $weekday = date('N', time());
-                        $hour = $arRegionTime[0];
-                        if ($hour[0] == '0') {
-                            $hour = substr($hour, 1);
-                        }
-                        if ($weekday == 6 || $weekday == 7) {
-                            $dNoCall = ($hour < 9 || $hour >= 20) ? true : false;
-                        } else {
-                            $dNoCall = ($hour < 8 || $hour >= 22) ? true : false;
-                        }
-                    }
-                    $arBtn = ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank'];
-                    if (isset($dNoCall) && $dNoCall) {
-                        $arBtn['style'] = 'color: red;';
-                    }
-                    return HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
-
-                })
-                ->removeColumn('debtors_created_at')
-                ->removeColumn('debtors_id')
-                ->removeColumn('debtor_id_1c')
-                ->removeColumn('uploaded')
-                ->removeColumn('debtors_debt_group')
-                ->removeColumn('debtors_responsible_user_id_1c')
-                ->removeColumn('debtor_customer_id_1c')
-                ->removeColumn('debtor_is_bigmoney')
-                ->removeColumn('debtor_is_pledge')
-                ->removeColumn('debtor_is_pos')
-                ->removeColumn('debtor_is_online')
-                ->removeColumn('debtors_od_after_closing')
-                ->removeColumn('passports_fact_timezone')
-                ->rawColumns(['actions'])
-                ->toJson();
-        }
         return DataTables::of($debtors)
             ->editColumn('debtors_fixation_date', function ($item) {
                 return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
@@ -946,9 +892,15 @@ class DebtorsController extends BasicController
                 return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
             })
             ->editColumn('customers_telephone', function ($item) {
-                return \App\Services\PrivateDataService::formatPhone(auth()->user(), $item->customers_telephone);
+                return $item->customers_telephone;
             })
             ->addColumn('actions', function ($item) use ($user) {
+                if (!$user) {
+                    return HtmlHelper::Buttton(
+                        url('debtors/debtorcard/' . $item->debtors_id),
+                        ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']
+                );
+                }
                 $glyph = $item->uploaded == 1 ? 'ok' : 'remove';
                 $html = '';
                 if (mb_strlen($item->debtors_responsible_user_id_1c)) {
