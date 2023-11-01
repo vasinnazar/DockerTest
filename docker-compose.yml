@@ -1,0 +1,38 @@
+version: '3.7'
+services:
+  nginx:
+    image: nginx:1.22.1-alpine
+    volumes:
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+      - ./docker/nginx/logs:/var/log/nginx
+      - ./:/var/www/app
+    ports:
+      - "80:80"
+    depends_on:
+      - php
+  php:
+    build: ./docker/php
+    links:
+      - mariadb
+    volumes:
+      - ./:/var/www/app
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+    expose:
+      - "9000"
+      - "9003"
+  mariadb:
+    image: mariadb:10.1.48
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/mariadb/conf.d:/etc/mysql/conf.d
+      - ./docker/mariadb/logs:/var/log/mysql
+      - ./docker/mariadb/database/:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: debtors
+      MYSQL_ROOT_HOST: '%'
+  redis:
+    image: redis:7.0.5-alpine
+    ports:
+      - "6379:6379"
