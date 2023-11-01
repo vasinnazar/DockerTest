@@ -132,6 +132,16 @@
                                         <td></td>
                                         <td><input name="overdue_till" type='text' class='form-control'/></td>
                                     </tr>
+                                    <tr>
+                                        <td>Сумма задолженности, от</td>
+                                        <td></td>
+                                        <td><input name="sum_from" id="sum_from" type="text" class="form-control" placeholder="0000.00"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Сумма задолженности, до</td>
+                                        <td></td>
+                                        <td><input name="sum_to" id="sum_to" type="text" class="form-control" placeholder="0000.00"/></td>
+                                    </tr>
                                         <tr>
                                             <td>Наличие email</td>
                                             <td></td>
@@ -163,4 +173,11 @@
 @section('scripts')
     <script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
     <script src="{{asset('js/debtors/MassSend.js?1')}}"></script>
+    <script>
+        let sum_from = document.getElementById("sum_from");
+        let sum_to = document.getElementById("sum_to");
+        document.addEventListener('change', function () {
+            if (sum_from.value > sum_to.value) sum_to.value = sum_from.value;
+        });
+    </script>
 @stop
