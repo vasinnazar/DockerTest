@@ -82,4 +82,10 @@ $(document).ready(function () {
         });
     });
 
+    $(document).on('change', function () {
+        let sum_from = document.getElementById("sum_from");
+        let sum_to = document.getElementById("sum_to");
+        if (sum_from.value > sum_to.value) sum_to.value = sum_from.value;
+    });
+
 });

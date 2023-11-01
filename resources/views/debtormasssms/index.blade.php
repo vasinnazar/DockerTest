@@ -173,11 +173,4 @@
 @section('scripts')
     <script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
     <script src="{{asset('js/debtors/MassSend.js?1')}}"></script>
-    <script>
-        let sum_from = document.getElementById("sum_from");
-        let sum_to = document.getElementById("sum_to");
-        document.addEventListener('change', function () {
-            if (sum_from.value > sum_to.value) sum_to.value = sum_from.value;
-        });
-    </script>
 @stop
