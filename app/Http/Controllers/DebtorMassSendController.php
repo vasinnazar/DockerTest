@@ -232,6 +232,11 @@ class DebtorMassSendController extends BasicController
 
                 return $struct_podr;
             })
+            ->addColumn('actions', function ($item) {
+                $html = '';
+                $html .= '<input type="checkbox" name="debtor_checkbox_id[]" value="' . $item->debtors_id . '" />';
+                return $html;
+            }, 0)
             ->addColumn('links', function ($item) {
                 $html = '';
                 $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id),
@@ -241,7 +246,7 @@ class DebtorMassSendController extends BasicController
             ->addColumn('DT_RowId', function ($item) {
                 return $item->debtors_id;
             }, 1)
-            ->rawColumns(['links','passports_fact_address_city'])
+            ->rawColumns(['actions', 'links','passports_fact_address_city'])
             ->toJson();
     }
 

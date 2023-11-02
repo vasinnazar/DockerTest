@@ -13,6 +13,7 @@
 
     <div class='row'>
         <div class="col-xs-12">
+            <span class="pull-left">Выбрано: <span id="debtorsCounter">0</span></span>
             <table id="debtorTransferAction" class="pull-right">
                 <tr>
                     <td style="padding-left: 20px; padding-right: 17px;">
@@ -42,6 +43,9 @@
             <table class="table table-condensed table-striped table-bordered" id="debtormasssmsTable">
                 <thead>
                 <tr>
+                    <th>
+                        <input type="checkbox" id="allDebtorsCheckToggler"/>
+                    </th>
                     <th>
 
                     </th>

@@ -212,7 +212,7 @@ class DebtorTransferController extends BasicController
             })
             ->addColumn('actions', function ($item) {
                 $html = '';
-                $html .= '<input type="checkbox" name="debtor_transfer_id[]" value="' . $item->debtors_id . '" />';
+                $html .= '<input type="checkbox" name="debtor_checkbox_id[]" value="' . $item->debtors_id . '" />';
                 return $html;
             }, 0)
             ->addColumn('links', function ($item) {
@@ -513,7 +513,7 @@ class DebtorTransferController extends BasicController
         $old_user = User::find($input['old_user_id']);
 
         $cnt = 0;
-        foreach ($input['debtor_transfer_id'] as $debtor_id) {
+        foreach ($input['debtor_checkbox_id'] as $debtor_id) {
             $cnt++;
             $debtors = Debtor::select(DB::raw('*, debtors.loans.id_1c as loan_id_1c, debtors.loans.created_at as loan_created_at, debtors.passports.fio as passports_fio'))
                 ->leftJoin('users', 'users.id_1c', '=', 'debtors.responsible_user_id_1c')

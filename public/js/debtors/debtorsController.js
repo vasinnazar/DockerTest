@@ -370,7 +370,7 @@
             }
         );
         $('#allDebtorsCheckToggler').change(function () {
-            $('#debtortransferTable input[name="debtor_transfer_id[]"]').prop('checked', $(this).prop('checked')).change();
+            $('#debtortransferTable input[name="debtor_checkbox_id[]"]').prop('checked', $(this).prop('checked')).change();
         });
     };
     /**
@@ -378,10 +378,10 @@
      * @returns {undefined}
      */
     $.debtorsCtrl.changeDebtorTransferTable = function () {
-        $(document).on('change', 'input[name="debtor_transfer_id[]"]', function () {
+        $(document).on('change', 'input[name="debtor_checkbox_id[]"]', function () {
             var cnt = 0;
             var required = false;
-            $('input[name="debtor_transfer_id[]"]').each(function () {
+            $('input[name="debtor_checkbox_id[]"]').each(function () {
                 if ($(this).is(':checked')) {
                     cnt++;
                 }
@@ -401,8 +401,8 @@
         });
     };
     $.debtorsCtrl.debtorsCounter = function () {
-        $(document).on('change', 'input[name="debtor_transfer_id[]"], #allDebtorsCheckToggler', function () {
-            $('#debtorsCounter').html($('input[name="debtor_transfer_id[]"]:checked').length);
+        $(document).on('change', 'input[name="debtor_checkbox_id[]"], #allDebtorsCheckToggler', function () {
+            $('#debtorsCounter').html($('input[name="debtor_checkbox_id[]"]:checked').length);
         });
     };
     $.debtorsCtrl.changeDebtorMassSendFilter = function () {
@@ -418,6 +418,7 @@
 
     $.debtorsCtrl.initDebtorMassSmsTable = function () {
         $.debtorsCtrl.debtorTransferTableCtrl = new TableController('debtormasssms', [
+                {data: 'actions', name: 'actions', searchable: false, orderable: false},
                 {data: 'links', name: 'links', searchable: false, orderable: false},
                 {data: 'passports_fio', name: 'passports_fio'},
                 {data: 'debtors_od', name: 'debtors_od'},
@@ -441,6 +442,9 @@
                 filterHolder: $('#debtorMassSendFilter')
             }
         );
+        $('#allDebtorsCheckToggler').change(function () {
+            $('#debtormasssmsTable input[name="debtor_checkbox_id[]"]').prop('checked', $(this).prop('checked')).change();
+        });
     };
     /**
      * Инициализация таблицы забытых должников
@@ -508,7 +512,7 @@
     $.debtorsCtrl.changeResponsibleUser = function () {
         $(document).on('click', '#changeResponsibleUser', function () {
             var checked = [];
-            $('input[name="debtor_transfer_id[]"]:checked').each(function () {
+            $('input[name="debtor_checkbox_id[]"]:checked').each(function () {
                 checked.push($(this).val());
             });
             var postData = {
@@ -532,11 +536,11 @@
 
         $(document).on('click', '#printResponsibleUser', function () {
             var checked = [];
-            $('input[name="debtor_transfer_id[]"]:checked').each(function () {
+            $('input[name="debtor_checkbox_id[]"]:checked').each(function () {
                 checked.push($(this).val());
             });
 
-            var serialized = $('input[name="debtor_transfer_id[]"]:checked').serialize().replace(/%5B%5D/g, '[]');
+            var serialized = $('input[name="debtor_checkbox_id[]"]:checked').serialize().replace(/%5B%5D/g, '[]');
 
             $.get(window.open($.app.url + '/ajax/debtors/transfer/printResponsibleUser/?new_user_id=' + $('#new_user_id').val() + '&old_user_id=' + $('#old_user_id').val() + '&act_number=' + $('input[name="act_number"]').val() + '&' + serialized), {}).done(function (data) {
 
