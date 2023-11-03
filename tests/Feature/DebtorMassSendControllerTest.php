@@ -245,9 +245,9 @@ class DebtorMassSendControllerTest extends TestCase
             'is_pos' => 0,
             'od' => 450000
         ]);
-        $filters = 'sum_from=4500.00&sum_to=4500.00';
+        $filters = 'sum_from=4500&sum_to=4500';
         $response = $this->get('/ajax/debtormasssms/list?' . $filters);
-        $this->assertEquals(4500.00, array_get($response->decodeResponseJson(), 'data.0.debtors_od'));
+        $this->assertEquals(450000, array_get($response->decodeResponseJson(), 'data.0.debtors_od'));
     }
 
 }

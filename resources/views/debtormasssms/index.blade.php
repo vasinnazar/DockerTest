@@ -135,12 +135,12 @@
                                     <tr>
                                         <td>Сумма задолженности, от</td>
                                         <td></td>
-                                        <td><input name="sum_from" id="sum_from" type="text" class="form-control" placeholder="0000.00"/></td>
+                                        <td><input name="sum_from" id="sum_from" type="number" class="form-control" placeholder="000000"/></td>
                                     </tr>
                                     <tr>
                                         <td>Сумма задолженности, до</td>
                                         <td></td>
-                                        <td><input name="sum_to" id="sum_to" type="text" class="form-control" placeholder="0000.00"/></td>
+                                        <td><input name="sum_to" id="sum_to" type="number" class="form-control" placeholder="000000"/></td>
                                     </tr>
                                         <tr>
                                             <td>Наличие email</td>
