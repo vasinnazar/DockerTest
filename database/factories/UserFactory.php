@@ -21,7 +21,7 @@ $factory->define(User::class, function () {
         'begin_time' => '00:00:00',
         'end_time' => '00:00:01',
         'customer_id' => 0,
-        'last_login' => $faker->date('Y-m-d H:m:s'),
+        'last_login' => now(),
         'employment_agree' => $faker->date('Y-m-d H:m:s'),
         'employment_docs_track_number' => 'testfill',
         'id_1c'=> $faker->name

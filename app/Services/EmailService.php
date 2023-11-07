@@ -51,6 +51,9 @@ class EmailService
         } elseif (!$user->isDebtorsPersonal() && $user->isDebtorsRemote()) {
             $collectMessages = EmailMessage::where('role_id', Role::DEBTORS_REMOTE)->get();
         }
+        if ($user->isDebtorsRemote() && $user->isAutoInformator()) {
+            $collectMessages = EmailMessage::whereIn('role_id', [Role::DEBTORS_REMOTE, Role::AUTOINFORMATOR])->get();
+        }
         return $collectMessages;
     }
 

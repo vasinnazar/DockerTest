@@ -133,7 +133,7 @@ Route::prefix('/ajax')->group(function () {
             ->name('ajax.adminpanel.user.update');
         Route::post('/users/{id}/createcustomer', [AdminPanelController::class, 'createCustomer'])
             ->name('ajax.adminpanel.user.createcustomer');
-        Route::post('/users/bantime', [AdminPanelController::class, 'pdateUserBantime'])
+        Route::post('/users/bantime', [AdminPanelController::class, 'updateUserBantime'])
             ->name('ajax.adminpanel.user.bantime');
         Route::post('/users/changepass', [AdminPanelController::class, 'changePassword'])
             ->name('ajax.adminpanel.user.changepass');

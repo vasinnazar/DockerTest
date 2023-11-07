@@ -78,7 +78,7 @@ class RolesSeeder extends Seeder
             ],
         ];
         for ($i = 0; $i < count($arrRoles); $i++) {
-            Role::create([
+            $test = Role::updateOrCreate([
                 'id' => $i + 1,
                 'name' => $arrRoles[$i]['name'],
                 'description' => $arrRoles[$i]['description'],

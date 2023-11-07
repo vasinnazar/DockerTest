@@ -37,6 +37,7 @@ use App\Utils;
 use App\Utils\HtmlHelper;
 use App\Utils\StrLib;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -65,7 +66,7 @@ class DebtorsController extends BasicController
         EmailService               $emailService,
         DebtorEventEmailRepository $debtorEventEmailRepository,
         AboutClientRepository      $aboutClientRepository,
-        ConnectionStatusRepository  $connectionStatusRepository
+        ConnectionStatusRepository $connectionStatusRepository
     )
     {
         $this->debtCardService = $debtService;
@@ -164,7 +165,7 @@ class DebtorsController extends BasicController
         $debtor = Debtor::find($debtor_id);
         $connectionStatuses = $this->connectionStatusRepository->getAll()->pluck('name', 'id');
         $dataArm = [];
-        
+
         try {
             $dataArm = $synchronize->synchronizeDebtor($debtor);
         } catch (\Throwable $exception) {
@@ -878,12 +879,8 @@ class DebtorsController extends BasicController
     public function ajaxList(Request $req, DebtorService $service)
     {
         $debtors = $service->getDebtors($req);
-
         $user = auth()->user();
         return DataTables::of($debtors)
-//            ->editColumn('debtors_created_at', function ($item) {
-//                return (!is_null($item->d_created_at)) ? date('d.m.Y', strtotime($item->d_created_at)) : '-';
-//            })
             ->editColumn('debtors_fixation_date', function ($item) {
                 return (!is_null($item->debtors_fixation_date)) ? date('d.m.Y',
                     strtotime($item->debtors_fixation_date)) : '-';
@@ -895,26 +892,34 @@ class DebtorsController extends BasicController
                 return number_format($item->debtors_sum_indebt / 100, 2, '.', '');
             })
             ->editColumn('customers_telephone', function ($item) {
-                return \App\Services\PrivateDataService::formatPhone(auth()->user(), $item->customers_telephone);
+                return $item->customers_telephone;
             })
             ->addColumn('actions', function ($item) use ($user) {
-                $glyph = $item->uploaded == 1 ? 'ok' : 'remove';
+                if (!$user) {
+                    return HtmlHelper::Buttton(
+                        url('debtors/debtorcard/' . $item->debtors_id),
+                        ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']
+                    );
+                }
+                $glyph = $item->uploaded === 1 ? 'ok' : 'remove';
                 $html = '';
-                if (mb_strlen($item->debtors_responsible_user_id_1c)) {
-                    $pos = strpos(Auth::user()->id_1c, $item->debtors_responsible_user_id_1c);
-                    if ($user->hasRole('debtors_remote') || ($user->hasRole('debtors_personal') && !$user->hasRole('cant_edit_all_debtors'))) {
+                if (!empty($item->debtors_responsible_user_id_1c)) {
+                    $pos = strpos($user->id_1c, $item->debtors_responsible_user_id_1c);
+                    if ($user->hasRole('debtors_remote') ||
+                        ($user->hasRole('debtors_personal') && !$user->hasRole('cant_edit_all_debtors'))
+                    ) {
                         $pos = true;
                     }
                 } else {
                     $pos = true;
                 }
-                if (Auth::user()->hasRole('debtors_chief') || $pos !== false) {
-                    if (isset($item->passports_fact_timezone) && !is_null($item->passports_fact_timezone)) {
+                if ($pos !== false || $user->hasRole('debtors_chief') ) {
+                    if (isset($item->passports_fact_timezone)) {
                         $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
                         $arRegionTime = explode(':', $region_time);
                         $weekday = date('N', time());
                         $hour = $arRegionTime[0];
-                        if ($hour[0] == '0') {
+                        if ($hour[0] === '0') {
                             $hour = substr($hour, 1);
                         }
                         if ($weekday == 6 || $weekday == 7) {
@@ -930,7 +935,7 @@ class DebtorsController extends BasicController
 
                     $html .= HtmlHelper::Buttton(url('debtors/debtorcard/' . $item->debtors_id), $arBtn);
                 }
-                if (Auth::user()->isAdmin()) {
+                if ($user->isAdmin()) {
                     $html .= HtmlHelper::Buttton(url('ajax/debtors/changeloadstatus/' . $item->debtors_id),
                         ['glyph' => $glyph, 'size' => 'xs', 'class' => 'btn btn-default loadFlag']);
                 }
@@ -1246,14 +1251,14 @@ class DebtorsController extends BasicController
             $debtorEvents->where('passports.fact_timezone', (int)$factTimezone);
         }
 
-        if ($currentUser->hasRole('missed_calls')) {
+        if ($currentUser && $currentUser->hasRole('missed_calls')) {
             $missedCallsEvent = $this->ajaxEventsMissedCalls($req);
         }
 
         if (!is_null($responsibleId1c) && mb_strlen($responsibleId1c)) {
             $debtorEvents->where('debtor_events.user_id_1c', $responsibleId1c);
         }
-        if ($currentUser->hasRole('debtors_personal')) {
+        if ($currentUser && $currentUser->hasRole('debtors_personal')) {
             $debtorEvents->where('debtor_events.user_id', $currentUser->id);
         } else {
             // если придет пустой массив - будут показаны все планы на день
@@ -3083,6 +3088,8 @@ class DebtorsController extends BasicController
         $timezone = $req->get('timezone', false);
         $str_podr = $req->get('str_podr', false);
         $start_flag = $req->get('start', false);
+        $qtyDelaysFrom = (int)$req->get('qty_delays_from', false);
+        $qtyDelaysTo = (int)$req->get('qty_delays_to', false);
 
         if (!$str_podr) {
             return redirect()->back();
@@ -3097,7 +3104,7 @@ class DebtorsController extends BasicController
         $timezone = ($timezone && !empty($timezone)) ? $timezone : 'all';
 
         if ($start_flag) {
-            $recurrentTask = $this->massRecurrentService->createTask($str_podr, $timezone);
+            $recurrentTask = $this->massRecurrentService->createTask($str_podr, $timezone, $qtyDelaysFrom, $qtyDelaysTo);
 
             if ($recurrentTask) {
                 return json_encode([
@@ -3120,18 +3127,20 @@ class DebtorsController extends BasicController
         ]);
     }
 
-    public function massRecurrentQuery(Request $req)
+    public function massRecurrentQuery(Request $req): JsonResponse
     {
         ini_set('max_execution_time', 0);
         set_time_limit(0);
 
         $task_id = $req->get('task_id', false);
+        $qtyDelaysFrom = (int)$req->get('qty_delays_from', false);
+        $qtyDelaysTo = (int)$req->get('qty_delays_to', false);
 
         if (!$task_id) {
-            return 0;
+            return response()->json(false);
         }
-
-        $this->massRecurrentService->executeTask($task_id);
+        $this->massRecurrentService->executeTask($task_id, $qtyDelaysFrom, $qtyDelaysTo);
+        return response()->json(true);
     }
 
     public function getMassRecurrentStatus(Request $req)
