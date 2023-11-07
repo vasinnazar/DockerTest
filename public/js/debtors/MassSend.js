@@ -82,4 +82,8 @@ $(document).ready(function () {
         });
     });
 
+    $(document).on('change', function () {
+        if (parseInt($('#sum_from').val()) > parseInt($('#sum_to').val())) $('#sum_to').val('');
+    });
+
 });
