@@ -291,6 +291,10 @@ class DebtorMassSendController extends BasicController
                 $input['dateSmsTemplate'],
                 $respUser->phone,
             ], $sms->text_tpl);
+
+            if (is_null($debtor->customer)) {
+                continue;
+            }
             $phone = $debtor->customer->getPhone();
 
             if (!$phone) {
