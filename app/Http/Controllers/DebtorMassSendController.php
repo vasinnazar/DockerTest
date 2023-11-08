@@ -158,10 +158,10 @@ class DebtorMassSendController extends BasicController
             $debtors->where('qty_delays', '<=', $input['overdue_till']);
         }
         if (isset($input['sum_from']) && mb_strlen($input['sum_from'])) {
-            $debtors->where('od', '>=', $input['sum_from'] * 100);
+            $debtors->where('sum_indebt', '>=', $input['sum_from'] * 100);
         }
         if (isset($input['sum_to']) && mb_strlen($input['sum_to'])) {
-            $debtors->where('od', '<=', $input['sum_to'] * 100);
+            $debtors->where('sum_indebt', '<=', $input['sum_to'] * 100);
         }
         if (isset($input['passports@fact_address_region']) && mb_strlen($input['passports@fact_address_region'])) {
             $debtors->where('passports.fact_address_region', 'like',
