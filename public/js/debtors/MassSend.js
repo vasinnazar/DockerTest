@@ -46,25 +46,29 @@ $(document).ready(function () {
         $('input[name="date_template_sms"]').val(arVal[2] + '.' + arVal[1] + '.' + arVal[0]);
     });
 
-    $(document).on('click', '#sendMass', function () {
-        const debtorsIds = $('#debtormasssmsTable').dataTable().api().rows().ids().toArray();
+    $(document).on('click', '#sendMass', function ()
+    {
         $(this).prop('disabled', true);
         $('#massFilter').prop('disabled', true);
         $('#smsTpls').prop('disabled', true);
         $('#emailTpls').prop('disabled', true);
         $('#sendInfoBlock').show();
+        const debtorsIds = $('#debtormasssmsTable').dataTable().api().rows().ids().toArray();
+        let filterDebtorsIds =  $('#debtormasssmsTable input[name="debtor_checkbox_id[]"]').toArray().map((v, k) => {
+            return v.checked === true ? debtorsIds[k] : null;
+        }).filter(e => e !== null);
         $.ajax({
             type: "POST",
             url: "/ajax/debtors/massmessage/send",
             data: {
                 isSms: $('input[name="is_sms"]').val(),
-                templateId : $('input[name="template_id"]').val(),
-                responsibleUserId : $('#old_user_id').val(),
-                debtorsIds : $('#debtormasssmsTable input[name="debtor_checkbox_id[]"]').toArray().map((v, k) => {return  v.checked == true ? debtorsIds[k] : null;}).filter(e => e != null),
-                dateSmsTemplate : $('input[name="date_template_sms"]').val(),
-                dateAnswer : $('input[name="dateAnswer"]').val(),
-                datePayment : $('input[name="datePayment"]').val(),
-                discountPayment : $('input[name="discountPayment"]').val()
+                templateId: $('input[name="template_id"]').val(),
+                responsibleUserId: $('#old_user_id').val(),
+                debtorsIds: filterDebtorsIds,
+                dateSmsTemplate: $('input[name="date_template_sms"]').val(),
+                dateAnswer: $('input[name="dateAnswer"]').val(),
+                datePayment: $('input[name="datePayment"]').val(),
+                discountPayment: $('input[name="discountPayment"]').val()
             },
             dataType: "json",
             success: function (data) {
@@ -76,7 +80,12 @@ $(document).ready(function () {
                     $('#sendInfo').text('Ошибка: ' + data.error);
                 }
             },
-            error : function () {
+            error: function () {
+                if (filterDebtorsIds.length === 0) {
+                    $('#sendInfo').attr('class', 'alert alert-danger');
+                    $('#sendInfo').text('Ошибка: Не выбраны должники для отправки');
+                    return;
+                }
                 $('#sendInfo').attr('class', 'alert alert-danger');
                 $('#sendInfo').text('Ошибка: Не удалось отправить сообщения');
             }
