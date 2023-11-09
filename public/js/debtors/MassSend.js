@@ -47,6 +47,7 @@ $(document).ready(function () {
     });
 
     $(document).on('click', '#sendMass', function () {
+        const debtorsIds = $('#debtormasssmsTable').dataTable().api().rows().ids().toArray();
         $(this).prop('disabled', true);
         $('#massFilter').prop('disabled', true);
         $('#smsTpls').prop('disabled', true);
@@ -59,7 +60,7 @@ $(document).ready(function () {
                 isSms: $('input[name="is_sms"]').val(),
                 templateId : $('input[name="template_id"]').val(),
                 responsibleUserId : $('#old_user_id').val(),
-                debtorsIds : $('#debtormasssmsTable').dataTable().api().rows().ids().toArray(),
+                debtorsIds : $('#debtormasssmsTable input[name="debtor_checkbox_id[]"]').toArray().map((v, k) => {return  v.checked == true ? debtorsIds[k] : null;}).filter(e => e != null),
                 dateSmsTemplate : $('input[name="date_template_sms"]').val(),
                 dateAnswer : $('input[name="dateAnswer"]').val(),
                 datePayment : $('input[name="datePayment"]').val(),
