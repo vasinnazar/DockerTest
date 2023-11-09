@@ -168,6 +168,7 @@ class DebtorsController extends BasicController
 
         try {
             $dataArm = $synchronize->synchronizeDebtor($debtor);
+            $debtor->refresh();
         } catch (\Throwable $exception) {
             Log::error('Critical error update debtors', [
                 'customerId1c' => $debtor->customer_id_1c,
