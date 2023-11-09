@@ -712,8 +712,9 @@
             name == '1.15' ||
             name == '1.16' ||
             name == '1.17' ||
-            name == '2.5' ||
-            name == '2.18'
+            name == '2.5'  ||
+            name == '2.33' ||
+            name == '2.34'
         ) {
             $('#datePayment').show();
             $('#datePaymentLabel').text('Оплатите задолженность до :');
