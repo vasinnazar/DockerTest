@@ -88,7 +88,7 @@ class EmailService
             return false;
         }
         $this->setConfig($arrayParam['userEmail'], $arrayParam['userPassword']);
-        $templateMessage = EmailMessage::where('id', $arrayParam['email_id'])->first();
+        $templateMessage = EmailMessage::where('name', $arrayParam['email_id'])->first();
         $aboutClient = $this->aboutClientRepository->firstByCustomerId($debtor->customer->id);
         $validateEmail = $aboutClient ? filter_var($aboutClient->email, FILTER_VALIDATE_EMAIL) : false;
         $debtorEmail = $validateEmail ? $aboutClient->email : null;

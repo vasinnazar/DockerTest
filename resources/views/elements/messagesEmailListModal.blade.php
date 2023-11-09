@@ -5,9 +5,9 @@
         <div class="form-group col-xs-12">
             @if(!empty($collectEmailsMessages))
                 <label for="emails">Выберите тип сообщения</label>
-                <select name="email_id" id="emailsList" onclick="($.debtorsCtrl.intiInputModal(this))">
+                <select name="email_id" id="emailsList" onchange="($.debtorsCtrl.intiInputModal(this))">
                     @foreach($collectEmailsMessages as $emailMessage)
-                        <option value="{{$emailMessage->id}}">
+                        <option value="{{$emailMessage->name}}">
                             {{$emailMessage->name}} {{$emailMessage->template_message}}
                         </option>
                     @endforeach
