@@ -302,6 +302,10 @@ class DebtorMassSendController extends BasicController
                 $input['dateSmsTemplate'],
                 $respUser->phone,
             ], $sms->text_tpl);
+
+            if (is_null($debtor->customer)) {
+                continue;
+            }
             $phone = $debtor->customer->getPhone();
 
             if (!$phone) {
@@ -326,7 +330,13 @@ class DebtorMassSendController extends BasicController
             );
 
             if (in_array($sms->id, [21, 45])) {
-                $this->debtorEventSmsRepository->create($event->id, $sms->id, $debtor->customer_id_1c, $debtor->base);
+                $this->debtorEventSmsRepository->create(
+                    $event->id,
+                    $sms->id,
+                    $debtor->customer_id_1c,
+                    $debtor->id,
+                    $debtor->base
+                );
             }
             $sendCustomers[] =  $debtor->customer_id_1c;
             $cnt++;

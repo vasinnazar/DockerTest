@@ -6,7 +6,7 @@ use App\Customer;
 use App\Debtor;
 use App\DebtorEvent;
 use App\DebtorSmsTpls;
-use App\Model\DebtorEventSms;
+use App\Repositories\DebtorEventSmsRepository;
 use App\Services\DebtorSmsService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
@@ -14,6 +14,12 @@ use Tests\TestCase;
 class DebtorSmsServiceTest extends TestCase
 {
     use DatabaseTransactions;
+    private DebtorEventSmsRepository $debtorEventSmsRepository;
+    public function __construct(?string $name = null, array $data = [], $dataName = '')
+    {
+        parent::__construct($name, $data, $dataName);
+        $this->debtorEventSmsRepository = app()->make(DebtorEventSmsRepository::class);
+    }
     public function testHasSmsMustBeSentOnce()
     {
         $debtor = factory(Debtor::class,'debtor')->create([
@@ -93,12 +99,13 @@ class DebtorSmsServiceTest extends TestCase
         $customer = factory(Customer::class)->create([
             'id_1c'=>$debtor->customer_id_1c,
         ]);
-        DebtorEventSms::create([
-            'customer_id_1c' => $customer->id_1c,
-            'sms_id' => $sms->id,
-            'debtor_base' => $debtor->base,
-            'event_id' => $event->id
-        ]);
+        $this->debtorEventSmsRepository->create(
+            $event->id,
+            $sms->id,
+            $customer->id_1c,
+            $debtor->id,
+            $debtor->base
+        );
         $res = app(DebtorSmsService::class)->hasSmsMustBeSentOnce($debtor,$sms->id);
         self::assertEquals(false,$res);
 

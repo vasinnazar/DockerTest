@@ -5,6 +5,7 @@ namespace App\Model;
 use App\Customer;
 use App\DebtorEvent;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DebtorEventEmail extends Model
@@ -18,12 +19,12 @@ class DebtorEventEmail extends Model
         'created_at', 'updated_at', 'deleted_at',
     ];
 
-    public function customer()
+    public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class, 'id_1c');
     }
 
-    public function event()
+    public function event(): BelongsTo
     {
         return $this->belongsTo(DebtorEvent::class, 'id');
     }

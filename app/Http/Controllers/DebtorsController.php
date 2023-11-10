@@ -168,6 +168,7 @@ class DebtorsController extends BasicController
 
         try {
             $dataArm = $synchronize->synchronizeDebtor($debtor);
+            $debtor->refresh();
         } catch (\Throwable $exception) {
             Log::error('Critical error update debtors', [
                 'customerId1c' => $debtor->customer_id_1c,
@@ -175,9 +176,10 @@ class DebtorsController extends BasicController
             ]);
         }
 
-        if (empty($debtor->customer)) {
-            Log::error("Customer not found:", [
+        if (is_null($debtor->customer) || is_null($debtor->loan)) {
+            Log::error("Customer or loan not found:", [
                 'customer_id_1c' => $debtor->customer_id_1c,
+                'loan_id_1c' => $debtor->loan_id_1c,
                 'debtor_id' => $debtor->id
             ]);
             return redirect('debtors/index')->with(

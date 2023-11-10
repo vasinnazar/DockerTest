@@ -96,11 +96,13 @@ class DebtorSmsService
                 'second' => 25
             ]
         ];
-        $eventSms = $this->debtorEventSmsRepository->findByCustomerAndSmsId($debtor->customer_id_1c, $smsTemplateId);
+        $eventSms = $this->debtorEventSmsRepository->findByDebtorAndSmsId($debtor->id, $smsTemplateId);
+        if (is_null($eventSms)) {
+            $eventSms = $this->debtorEventSmsRepository->findByCustomerAndSmsId($debtor->customer_id_1c, $smsTemplateId);
+        }
         if ($eventSms && $debtor->base === $eventSms->debtor_base) {
             $isSendOnce = false;
         } else {
-
             if ($eventSms) {
                 $oldBase = in_array($eventSms->debtor_base, [
                     'Б-3',
@@ -202,13 +204,14 @@ class DebtorSmsService
         $debtorEvent->user_id_1c = $user->id_1c;
         $debtorEvent->save();
 
-        if ($smsId == 21 || $smsId == 45) {
-            DebtorEventSms::create([
-                'event_id' => $debtorEvent->id,
-                'sms_id' => $smsId,
-                'customer_id_1c' => $debtor->customer_id_1c,
-                'debtor_base' => $debtor->base
-            ]);
+        if (in_array($smsId, [21, 45])) {
+            $this->debtorEventSmsRepository->create(
+                $debtorEvent->id,
+                $smsId,
+                $debtor->customer_id_1c,
+                $debtor->id,
+                $debtor->base
+            );
         }
         return [
             'title' => 'Готово',

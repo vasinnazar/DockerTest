@@ -4,9 +4,12 @@ namespace App;
 
 use App\Model\ConnectionStatus;
 use App\Model\DebtorEventEmail;
+use App\Model\DebtorEventSms;
+use Iatstuti\Database\Support\CascadeSoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +47,7 @@ use Log;
 
 class DebtorEvent extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, CascadeSoftDeletes;
     const SMS_EVENT = 12;
     const AUTOINFORMER_OMICRON_EVENT = 15;
     const WHATSAPP_EVENT = 23;
@@ -55,6 +58,7 @@ class DebtorEvent extends Model
     const COMPLETED = 1;
     const NOT_COMPLETED = 0;
 
+    protected $cascadeDeletes = ['eventSms', 'eventEmail'];
     protected $table = 'debtor_events';
     protected $fillable = [
         'date',
@@ -90,9 +94,13 @@ class DebtorEvent extends Model
         });
     }
 
-    public function eventEmail()
+    public function eventEmail(): HasOne
     {
-        $this->hasMany(DebtorEventEmail::class, 'debtor_id');
+        return $this->hasOne(DebtorEventEmail::class, 'event_id');
+    }
+    public function eventSms(): HasOne
+    {
+        return $this->hasOne(DebtorEventSms::class, 'event_id');
     }
 
     public function connectionStatus(): BelongsToMany

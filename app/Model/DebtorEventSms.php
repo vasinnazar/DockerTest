@@ -18,6 +18,7 @@ class DebtorEventSms extends Model
         'event_id',
         'sms_id',
         'customer_id_1c',
+        'debtor_id',
         'debtor_base'
     ];
 
@@ -31,8 +32,13 @@ class DebtorEventSms extends Model
         return $this->belongsTo(DebtorEvent::class);
     }
 
+    public function debtor(): BelongsTo
+    {
+        return $this->belongsTo(Debtor::class);
+    }
+
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customer::class,'customer_id_1c','id_1c');
+        return $this->belongsTo(Customer::class, 'customer_id_1c', 'id_1c');
     }
 }
