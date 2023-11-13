@@ -2289,12 +2289,12 @@ legend {
     border-bottom: 1px solid #e5e5e5;
 }
 label {
-    margin: 50 px;
+    margin: 50px;
     display: inline-block;
     max-width: 100%;
     margin-bottom: 5px;
     font-weight: bold;
-    width: 150;
+    width: 150px;
 }
 input[type="search"] {
     box-sizing: border-box;
@@ -6466,11 +6466,10 @@ table1 tr:hover td {
 }
 
 
-///////////////////////////////////
 .error1 {
    
     padding: 5.5px 11px; 
-    width: 250;
+    width: 250px;
     
     font-size: 14px; font-family: Georgia, Serif;
     text-decoration: none; vertical-align: middle; }
@@ -6478,7 +6477,6 @@ table1 tr:hover td {
 .success {
     color: green;
 }
- //////////////////////////////
  
  
  
