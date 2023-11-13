@@ -17,6 +17,7 @@ use App\Services\DebtorCardService;
 use App\Subdivision;
 use App\User;
 use EducationSeeder;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use LiveConditionSeeder;
 use LoanGoalsSeeder;
@@ -44,15 +45,15 @@ class DebtorCardServiceTest extends TestCase
     {
         parent::setUp();
         $this->debtorCardService = app()->make(DebtorCardService::class);
+        factory(Subdivision::class)->create();
         $this->user = factory(User::class)->create();
         factory(LoanType::class)->create();
-        factory(Subdivision::class)->create();
         $this->seed(AdsourcesSeeder::class);
         $this->seed(EducationSeeder::class);
         $this->seed(LiveConditionSeeder::class);
         $this->seed(LoanGoalsSeeder::class);
         $this->seed(MaritalTypesSeeder::class);
-        $this->debtors = factory(Debtor::class, 'debtor', 5)->create();
+        $this->debtors = factory(Debtor::class, 'debtor', 2)->create();
         foreach ($this->debtors as $debtor) {
             $customer = factory(Customer::class)->create([
                 'id_1c' => $debtor->customer_id_1c

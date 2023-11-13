@@ -13,7 +13,7 @@ use Tests\TestCase;
 
 class SynchronizeServiceTest extends TestCase
 {
- use DatabaseTransactions;
+    use DatabaseTransactions;
     public function testSynchronizeDebtor()
     {
         $customer = factory(Customer::class)->create();

@@ -158,10 +158,10 @@ class DebtorMassSendController extends BasicController
             $debtors->where('qty_delays', '<=', $input['overdue_till']);
         }
         if (isset($input['sum_from']) && mb_strlen($input['sum_from'])) {
-            $debtors->where('od', '>=', $input['sum_from'] * 100);
+            $debtors->where('sum_indebt', '>=', $input['sum_from'] * 100);
         }
         if (isset($input['sum_to']) && mb_strlen($input['sum_to'])) {
-            $debtors->where('od', '<=', $input['sum_to'] * 100);
+            $debtors->where('sum_indebt', '<=', $input['sum_to'] * 100);
         }
         if (isset($input['passports@fact_address_region']) && mb_strlen($input['passports@fact_address_region'])) {
             $debtors->where('passports.fact_address_region', 'like',
@@ -302,6 +302,10 @@ class DebtorMassSendController extends BasicController
                 $input['dateSmsTemplate'],
                 $respUser->phone,
             ], $sms->text_tpl);
+
+            if (is_null($debtor->customer)) {
+                continue;
+            }
             $phone = $debtor->customer->getPhone();
 
             if (!$phone) {
@@ -326,7 +330,13 @@ class DebtorMassSendController extends BasicController
             );
 
             if (in_array($sms->id, [21, 45])) {
-                $this->debtorEventSmsRepository->create($event->id, $sms->id, $debtor->customer_id_1c, $debtor->base);
+                $this->debtorEventSmsRepository->create(
+                    $event->id,
+                    $sms->id,
+                    $debtor->customer_id_1c,
+                    $debtor->id,
+                    $debtor->base
+                );
             }
             $sendCustomers[] =  $debtor->customer_id_1c;
             $cnt++;
