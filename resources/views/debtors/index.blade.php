@@ -4,7 +4,7 @@
 @stop
 @section('css')
     <link rel="stylesheet" href="{{asset('js/libs/jqGrid/css/ui.jqgrid.min.css')}}"/>
-    <link rel="stylesheet" href="{{asset('css/debtors/index.css')}}"/>
+    <link rel="stylesheet" href="{{asset('css/debtors/common.css')}}"/>
 @stop
 @section('content')
     <div class="row">

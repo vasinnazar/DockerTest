@@ -10,7 +10,7 @@
 
 .dataTables_processing {
     font-weight: bold;
-    color: red;
+    color: rgba(255, 0, 0, 0.71);
     font-size: 20px;
 }
 
