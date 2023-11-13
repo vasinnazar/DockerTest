@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Clients\ArmClient;
 use App\Clients\PaysClient;
 use App\Debtor;
+use App\DebtGroup;
 use App\DebtorEvent;
 use App\DebtorsInfo;
 use App\DebtorSmsTpls;
@@ -79,15 +80,11 @@ class DebtorsController extends BasicController
     }
 
     /**
-     * Открывает список должников
-     *
-     * @return \Illuminate\Http\Response
+     * Открывает список должников/
+     * рабочий стол
      */
     public function index()
     {
-        if (!auth()->check()) {
-            return redirect('auth/login')->withErrors('Пользователь не авторизован, введите логин и пароль для входа в систему');
-        }
         $user = auth()->user();
 
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
@@ -115,7 +112,7 @@ class DebtorsController extends BasicController
             'event_types' => config('debtors.event_types'),
             'overdue_reasons' => config('debtors.overdue_reasons'),
             'event_results' => config('debtors.event_results'),
-            'debt_groups' => \App\DebtGroup::getDebtGroups(),
+            'debt_groups' => DebtGroup::getDebtGroups(),
             'debtorsSearchFields' => Debtor::getSearchFields(),
             'debtorEventsSearchFields' => DebtorEvent::getSearchFields(),
             'debtorEventsGroupPlanFields' => DebtorEvent::getGroupPlanFields(),
@@ -915,7 +912,7 @@ class DebtorsController extends BasicController
                 } else {
                     $pos = true;
                 }
-                if ($pos !== false || $user->hasRole('debtors_chief') ) {
+                if ($pos !== false || $user->hasRole('debtors_chief')) {
                     if (isset($item->passports_fact_timezone)) {
                         $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
                         $arRegionTime = explode(':', $region_time);
