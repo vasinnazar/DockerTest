@@ -1212,8 +1212,6 @@
 
             $.post($.app.url + '/ajax/debtors/loans/upload', {debtor_id: $('input[name="debtor_id"]').val()}).done(function (data) {
                 $('#debtor_history_button').removeAttr('disabled');
-                console.log("loansUpload: " + data);
-
                 $.post($.app.url + '/ajax/debtors/loans/getmultisum', {
                     loan_id_1c: $('input[name="loan_id_1c"]').val(),
                     customer_id_1c: $('input[name="customer_id_1c"]').val()
