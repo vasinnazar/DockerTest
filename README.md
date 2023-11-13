@@ -7,6 +7,7 @@
 cp docker-compose.yml.example docker-compose.yml
 cp deploy-config.yml.example deploy-config.yml
 cp .env.example .env
+cp .env.testing.example .env.testing
 ````
 
 Правим строки в файле `.env` на:
@@ -19,6 +20,17 @@ DB_USERNAME=root
 DB_PASSWORD=password
 REDIS_HOST=redis
 MAIL_DRIVER=smtp
+
+````
+
+Правим строки в файле `.env.testing` на:
+````console
+
+DB_HOST=mariadb_test
+DB_PORT=3306
+DB_DATABASE=debtors_test
+DB_USERNAME=root
+DB_PASSWORD=password
 
 ````
 

@@ -63,11 +63,12 @@ class DebtorsControllerTest extends TestCase
         $this->emailTemplateId = EmailMessage::all()->pluck('id')->toArray();
     }
 
-    public function testSearchEqualContactsDebtorsNotExists()
+    public function testSearchEqualContactsDebtorsExists()
     {
+        $debtorsId = $this->debtors->pluck('id')->random();
         $this->withoutMiddleware();
         $response = $this->actingAs($this->user, 'web')
-            ->post('/ajax/debtors/searchEqualContacts', ['debtor_id' => $this->fakeDebtorId]);
+            ->post('/ajax/debtors/searchEqualContacts', ['debtor_id' => $debtorsId]);
         $response->assertStatus(
             Response::HTTP_OK
         );

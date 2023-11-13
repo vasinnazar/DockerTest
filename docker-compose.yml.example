@@ -35,7 +35,7 @@ services:
   mariadb_test:
     image: mariadb:10.1.48
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - ./docker/mariadb_test/conf.d:/etc/mysql/conf.d
       - ./docker/mariadb_test/logs:/var/log/mysql

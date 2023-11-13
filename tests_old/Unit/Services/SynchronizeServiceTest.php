@@ -4,7 +4,6 @@ namespace Services;
 
 use App\Customer;
 use App\Debtor;
-use App\Exceptions\DebtorException;
 use App\Services\SynchronizeService;
 use App\Subdivision;
 use App\User;

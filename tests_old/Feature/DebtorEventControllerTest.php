@@ -1,6 +1,5 @@
 <?php
 
-namespace Tests\Feature;
 
 use App\Debtor;
 use App\DebtorEvent;

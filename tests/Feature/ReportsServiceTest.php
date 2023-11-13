@@ -6,6 +6,7 @@ use App\Customer;
 use App\Debtor;
 use App\Http\Controllers\DebtorsReportsController;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Http\Request;
 use App\MySoap;
 use App\User;
@@ -15,6 +16,8 @@ use Tests\TestCase;
 
 class ReportsServiceTest extends TestCase
 {
+    use WithoutMiddleware;
+
     private MySoap $mySoap;
     private DebtorsReportsController $debtorsReportsController;
     private $user;
