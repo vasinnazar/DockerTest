@@ -87,8 +87,6 @@ class DebtorsController extends BasicController
     {
         $user = auth()->user();
 
-        $canEditSmsCount = ($user->id == 817) ? true : false; // Яблонцев (редактирование количества SMS)
-
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
         $usersDebtors = User::select('users.id_1c')
             ->whereIn('id', $arResponsibleUserIds);
@@ -118,7 +116,6 @@ class DebtorsController extends BasicController
             'debtorsSearchFields' => Debtor::getSearchFields(),
             'debtorEventsSearchFields' => DebtorEvent::getSearchFields(),
             'debtorEventsGroupPlanFields' => DebtorEvent::getGroupPlanFields(),
-            'canEditSmsCount' => $canEditSmsCount
         ]);
     }
 
