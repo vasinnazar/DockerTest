@@ -85,6 +85,9 @@ class DebtorsController extends BasicController
      */
     public function index()
     {
+        if (!auth()->check()) {
+            return redirect('auth/login')->withErrors('Пользователь не авторизован, введите логин и пароль для входа в систему');
+        }
         $user = auth()->user();
 
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
