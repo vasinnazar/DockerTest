@@ -1,0 +1,19 @@
+.debtors-frame {
+    height: 250px;
+    overflow-y: scroll;
+}
+
+.debtors-table-frame {
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.dataTables_processing {
+    font-weight: bold;
+    color: red;
+    font-size: 20px;
+}
+
+#debtorsTable, #debtoreventsTable {
+    font-size: 12px;
+}

@@ -4,27 +4,7 @@
 @stop
 @section('css')
     <link rel="stylesheet" href="{{asset('js/libs/jqGrid/css/ui.jqgrid.min.css')}}"/>
-    <style>
-        .debtors-frame {
-            height: 250px;
-            overflow-y: scroll;
-        }
-
-        .debtors-table-frame {
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-
-        .dataTables_processing {
-            font-weight: bold;
-            color: red;
-            font-size: 20px;
-        }
-
-        #debtorsTable, #debtoreventsTable {
-            font-size: 12px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{asset('css/debtors/index.css')}}"/>
 @stop
 @section('content')
     <div class="row">
