@@ -26,7 +26,7 @@ class DebtorExportController extends Controller
     public function exportForgotten(Request $req, DebtorService $service)
     {
         $id1c = $req->get('search_field_users@id_1c') !== '' ? $req->get('search_field_users@id_1c') : null;
-        $debtors = $service->getForgottenById1c(Auth::user(), $id1c);
+        $debtors = $service->getForgottenById1c($req->get('user_id_auth'), $id1c);
 
         return Excel::download(
             new DebtorsForgottenExport($debtors),

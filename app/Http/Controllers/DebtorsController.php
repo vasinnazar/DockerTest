@@ -130,7 +130,7 @@ class DebtorsController extends BasicController
             'user_id' => $user->id,
             'event_types' => config('debtors.event_types'),
             'debtorsOverall' => $debtorsOverall,
-            'total_debtor_events' => $debtorEventService->getPlannedForUser(Auth::user(), Carbon::today()->subDays(15),
+            'total_debtor_events' => $debtorEventService->getPlannedForUser($user, Carbon::today()->subDays(15),
                 30),
         ]);
 
@@ -2542,28 +2542,31 @@ class DebtorsController extends BasicController
 
     public function forgotten()
     {
-        $user = User::find(Auth::id());
+        $userId = Auth::id();
+        $user = User::find($userId);
 
         $isChief = ($user->hasRole('debtors_chief')) ? true : false;
         return view('debtors.forgotten', [
-            'isChief' => $isChief
+            'isChief' => $isChief,
+            'userId' => $userId
         ]);
     }
 
     public function recommends()
     {
-        $user = User::find(Auth::id());
-
-        $isChief = ($user->hasRole('debtors_chief')) ? true : false;
+        $userId = Auth::id();
+        $user = User::find($userId);
+        $isChief = (bool) $user->hasRole('debtors_chief');
         return view('debtors.recommends', [
-            'isChief' => $isChief
+            'isChief' => $isChief,
+            'userId' => $userId
         ]);
     }
 
     public function ajaxForgottenList(Request $req, DebtorService $service)
     {
         $id1c = $req->get('search_field_users@id_1c') !== '' ? $req->get('search_field_users@id_1c') : null;
-        $debtors = $service->getForgottenById1c(Auth::user(), $id1c);
+        $debtors = $service->getForgottenById1c($req->get('user_id_auth'), $id1c);
         return Datatables::of($debtors)
             ->editColumn('fixation_date', function ($item) {
                 return ($item->fixation_date ? Carbon::parse($item->fixation_date)->format('d.m.Y') : '-');

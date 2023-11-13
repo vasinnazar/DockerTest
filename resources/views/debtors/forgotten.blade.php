@@ -22,6 +22,7 @@
                     {!!Form::open()!!}
                     Ответственный: <input name='users@name' type='text' class='form-control autocomplete' data-hidden-value-field='search_field_users@id_1c' style='width: 350px;'/>
                     <input id='search_field_users@id_1c' name='search_field_users@id_1c' type='hidden' />
+                    <input id='user_id_auth' name='user_id_auth' value="{{$userId}}" type='hidden' />
                     {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'forgottenDebtorFilterButton'])!!}
                     &nbsp;<button class="btn btn-primary" onclick="$.debtorsCtrl.forgottenToExcel(); return false;">Excel</button>
                     {!!Form::close()!!}

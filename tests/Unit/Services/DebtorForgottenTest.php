@@ -36,7 +36,7 @@ class DebtorForgottenTest extends TestCase
             'debtor_id'=> $debtor->id,
             'forgotten_date' => Carbon::now()
         ]);
-        $result = app(DebtorService::class)->getForgottenById1c($user, $user->id_1c);
+        $result = app(DebtorService::class)->getForgottenById1c($user->id, $user->id_1c);
         $this->assertCount(1, $result);
         $this->assertEquals($debtor->id, $result->first()->id);
     }
