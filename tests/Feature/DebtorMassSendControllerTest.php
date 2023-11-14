@@ -145,6 +145,7 @@ class DebtorMassSendControllerTest extends TestCase
             }
         );
 
+        $this->withoutMiddleware();
         $response = $this->actingAs($this->user, 'web')
             ->post('/ajax/debtors/massmessage/send', [
                 'isSms' => $isSms,
@@ -169,6 +170,7 @@ class DebtorMassSendControllerTest extends TestCase
                 return $mock;
             }
         );
+        $this->withoutMiddleware();
         $this->debtorEventsRepository->createEvent($this->debtors->first(),$this->user,'test', $this->eventTypeId, 0);
         $this->debtorEventsRepository->createEvent($this->debtors->first(),$this->user,'test', $this->eventTypeId, 0);
         $response = $this->actingAs($this->user, 'web')
