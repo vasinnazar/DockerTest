@@ -16,6 +16,7 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 deploy-config.yml
+docker-compose.yml
 /.build/
 laravel-echo-server.lock
 /.env.testing
