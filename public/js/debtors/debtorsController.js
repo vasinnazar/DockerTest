@@ -659,12 +659,6 @@
                         $('#totalDebtorEvents').html(data);
                     }
                 });
-
-//                $.post($.app.url + '/ajax/debtors/overallEvents', {user_id_1c: id1c}).done(function (data) {
-//                    if (data != '0') {
-//                        $('#overallEvents').html(data);
-//                    }
-//                });
             }
         });
     };

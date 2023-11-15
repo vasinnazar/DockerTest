@@ -4,27 +4,7 @@
 @stop
 @section('css')
     <link rel="stylesheet" href="{{asset('js/libs/jqGrid/css/ui.jqgrid.min.css')}}"/>
-    <style>
-        .debtors-frame {
-            height: 250px;
-            overflow-y: scroll;
-        }
-
-        .debtors-table-frame {
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-
-        .dataTables_processing {
-            font-weight: bold;
-            color: red;
-            font-size: 20px;
-        }
-
-        #debtorsTable, #debtoreventsTable {
-            font-size: 12px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{asset('css/debtors/common.css')}}"/>
 @stop
 @section('content')
     <div class="row">
@@ -87,9 +67,6 @@
                         <li><a href="{{url('/debtors/temporary/cron/handle')}}">Исправления</a></li>
                     @endif
                 </ul>
-                @if ($canEditSmsCount)
-                    <a href="{{url('debtors/editSmsCount')}}" class="btn btn-default">Количество SMS</a>
-                @endif
             </div>
             <br>
             <hr>
@@ -229,7 +206,8 @@
                         <span><input type="checkbox" name="search_field_debtors@is_pos"
                                      value="1">&nbsp;Товарные займы</span>
                         <br>
-                        <span><input type="checkbox" name="search_field_debtors@kratnost" value="1">&nbsp;Кратность</span>
+                        <span><input type="checkbox" name="search_field_debtors@kratnost"
+                                     value="1">&nbsp;Кратность</span>
                     </div>
                     {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorsClearFilterBtn'])!!}
                     {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'debtorsFilterBtn'])!!}
@@ -288,7 +266,8 @@
                 </div>
                 <div class="modal-footer">
                     <div class="pull-left" style="text-align: left;">
-                        <span><input type='checkbox' name='search_field_debtors@kratnost' value='1'>&nbsp;Кратность</span>
+                        <span><input type='checkbox' name='search_field_debtors@kratnost'
+                                     value='1'>&nbsp;Кратность</span>
                     </div>
                     {!!Form::button('Очистить фильтр',['class'=>'btn btn-default','type'=>'button', 'id'=>'debtorEventsClearFilterBtn'])!!}
                     {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'debtorEventsFilterBtn'])!!}
@@ -302,9 +281,9 @@
 @stop
 @section('scripts')
     <script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
-<script>
-                        $(document).ready(function () {
-                        $.debtorsCtrl.init();
-                        });
-</script>
+    <script>
+        $(document).ready(function () {
+            $.debtorsCtrl.init();
+        });
+    </script>
 @stop

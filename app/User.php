@@ -5,6 +5,9 @@ namespace App;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
@@ -110,6 +113,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     public function customer()
     {
         return $this->belongsTo('App\Customer');
+    }
+
+    public function event(): HasMany
+    {
+        return $this->hasMany(DebtorEvent::class, 'user_id', 'id');
     }
 
     public function subordinatedUsers()

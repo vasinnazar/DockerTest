@@ -8,6 +8,7 @@ use App\Model\DebtorEventSms;
 use Iatstuti\Database\Support\CascadeSoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -102,7 +103,14 @@ class DebtorEvent extends Model
     {
         return $this->hasOne(DebtorEventSms::class, 'event_id');
     }
-
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+    public function userBy1c(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id_1c', 'id_1c');
+    }
     public function connectionStatus(): BelongsToMany
     {
         return $this->belongsToMany(ConnectionStatus::class, 'debtor_events_connection_status', 'debtor_event_id', 'connection_status_id');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Clients\ArmClient;
 use App\Clients\PaysClient;
 use App\Debtor;
+use App\DebtGroup;
 use App\DebtorEvent;
 use App\DebtorsInfo;
 use App\DebtorSmsTpls;
@@ -79,15 +80,12 @@ class DebtorsController extends BasicController
     }
 
     /**
-     * Открывает список должников
-     *
-     * @return \Illuminate\Http\Response
+     * Открывает список должников/
+     * рабочий стол
      */
     public function index()
     {
         $user = auth()->user();
-
-        $canEditSmsCount = ($user->id == 817) ? true : false; // Яблонцев (редактирование количества SMS)
 
         $arResponsibleUserIds = DebtorUsersRef::getUserRefs();
         $usersDebtors = User::select('users.id_1c')
@@ -114,11 +112,10 @@ class DebtorsController extends BasicController
             'event_types' => config('debtors.event_types'),
             'overdue_reasons' => config('debtors.overdue_reasons'),
             'event_results' => config('debtors.event_results'),
-            'debt_groups' => \App\DebtGroup::getDebtGroups(),
+            'debt_groups' => DebtGroup::getDebtGroups(),
             'debtorsSearchFields' => Debtor::getSearchFields(),
             'debtorEventsSearchFields' => DebtorEvent::getSearchFields(),
             'debtorEventsGroupPlanFields' => DebtorEvent::getGroupPlanFields(),
-            'canEditSmsCount' => $canEditSmsCount
         ]);
     }
 
@@ -133,7 +130,7 @@ class DebtorsController extends BasicController
             'user_id' => $user->id,
             'event_types' => config('debtors.event_types'),
             'debtorsOverall' => $debtorsOverall,
-            'total_debtor_events' => $debtorEventService->getPlannedForUser(Auth::user(), Carbon::today()->subDays(15),
+            'total_debtor_events' => $debtorEventService->getPlannedForUser($user, Carbon::today()->subDays(15),
                 30),
         ]);
 
@@ -915,7 +912,7 @@ class DebtorsController extends BasicController
                 } else {
                     $pos = true;
                 }
-                if ($pos !== false || $user->hasRole('debtors_chief') ) {
+                if ($pos !== false || $user->hasRole('debtors_chief')) {
                     if (isset($item->passports_fact_timezone)) {
                         $region_time = date("H:i", strtotime($item->passports_fact_timezone . ' hour'));
                         $arRegionTime = explode(':', $region_time);
@@ -2545,28 +2542,31 @@ class DebtorsController extends BasicController
 
     public function forgotten()
     {
-        $user = User::find(Auth::id());
+        $userId = Auth::id();
+        $user = User::find($userId);
 
         $isChief = ($user->hasRole('debtors_chief')) ? true : false;
         return view('debtors.forgotten', [
-            'isChief' => $isChief
+            'isChief' => $isChief,
+            'userId' => $userId
         ]);
     }
 
     public function recommends()
     {
-        $user = User::find(Auth::id());
-
-        $isChief = ($user->hasRole('debtors_chief')) ? true : false;
+        $userId = Auth::id();
+        $user = User::find($userId);
+        $isChief = (bool) $user->hasRole('debtors_chief');
         return view('debtors.recommends', [
-            'isChief' => $isChief
+            'isChief' => $isChief,
+            'userId' => $userId
         ]);
     }
 
     public function ajaxForgottenList(Request $req, DebtorService $service)
     {
         $id1c = $req->get('search_field_users@id_1c') !== '' ? $req->get('search_field_users@id_1c') : null;
-        $debtors = $service->getForgottenById1c(Auth::user(), $id1c);
+        $debtors = $service->getForgottenById1c($req->get('user_id_auth'), $id1c);
         return Datatables::of($debtors)
             ->editColumn('fixation_date', function ($item) {
                 return ($item->fixation_date ? Carbon::parse($item->fixation_date)->format('d.m.Y') : '-');

@@ -10,12 +10,14 @@ use App\Model\DebtorsForgotten;
 use App\Passport;
 use App\User;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class DebtorService
 {
-    public function getForgottenById1c(User $user,string $id1c = null)
+    public function getForgottenById1c(int $userId, string $id1c = null): Collection
     {
+        $user = User::find($userId);
         $structSubdivision = false;
 
         if ($user->isDebtorsPersonal()) {

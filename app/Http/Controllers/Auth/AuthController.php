@@ -7,7 +7,6 @@ use App\Spylog\Spylog;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use App\MySoap;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
@@ -32,7 +31,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-//        $this->middleware('guest', ['except' => 'getLogout']);
+
     }
 
     public function login(Request $request)
@@ -95,16 +94,6 @@ class AuthController extends Controller
             }
         }
         return redirect()->back()->with('msg_err', 'Ошибка при вводе почты\\пароля')->with('class', 'alert-danger');
-    }
-
-    public function getLogout()
-    {
-
-        if (!is_null(Auth::user())) {
-            Spylog::log(Spylog::ACTION_LOGOUT, 'users', Auth::user()->id, $_SERVER['REMOTE_ADDR']);
-        }
-        Auth::logout();
-        return redirect('auth/login');
     }
 
 }
