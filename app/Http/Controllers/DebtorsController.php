@@ -2707,11 +2707,13 @@ class DebtorsController extends BasicController
                     ['glyph' => 'eye-open', 'size' => 'xs', 'target' => '_blank']);
                 return $html;
             }, 0)
+            ->editColumn('debtors_str_podr', function ($item) {
+                return $item->debtor_str_podr;
+            })
             ->removeColumn('debtors_id')
             ->removeColumn('debtor_id_1c')
             ->removeColumn('uploaded')
             ->removeColumn('debtors_debt_group')
-            ->removeColumn('debtors_responsible_user_id_1c')
             ->rawColumns(['links'])
             ->toJson();
     }
