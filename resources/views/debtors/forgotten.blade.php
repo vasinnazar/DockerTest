@@ -6,29 +6,38 @@
     <link rel="stylesheet" href="{{asset('css/debtors/common.css')}}"/>
 @stop
 @section('content')
-    @if ($isChief)
-        <div class="row">
-            <div class="col-xs-12">
-                <table class='table table-borderless' id='forgottenDebtorFilter'>
-                    <tr>
-                        <td class="form-inline" style='text-align: left;'>
-                            {!!Form::open()!!}
+
+    <div class="row">
+        <div class="col-xs-12">
+            <table class='table table-borderless' id='forgottenDebtorFilter'>
+                <tr>
+                    <td class="form-inline" style='text-align: left;'>
+                        {!!Form::open()!!}
+                        <input id='user_id_auth' name='user_id_auth' value="{{$userId}}" type='hidden'/>
+                        @if ($isChief)
                             Ответственный: <input name='users@name' type='text' class='form-control autocomplete'
                                                   data-hidden-value-field='search_field_users@id_1c'
                                                   style='width: 350px;'/>
                             <input id='search_field_users@id_1c' name='search_field_users@id_1c' type='hidden'/>
-                            <input id='user_id_auth' name='user_id_auth' value="{{$userId}}" type='hidden'/>
-                            {!!Form::button('Найти',['class'=>'btn btn-primary','type'=>'button', 'id'=>'forgottenDebtorFilterButton'])!!}
-                            &nbsp;<button class="btn btn-primary"
-                                          onclick="$.debtorsCtrl.forgottenToExcel(); return false;">Excel
+
+                            {!!Form::button('Найти', [
+                                                        'class'=>'btn btn-primary',
+                                                        'type'=>'button',
+                                                        'id'=>'forgottenDebtorFilterButton'
+                                                     ])
+                            !!}
+                            &nbsp;
+                            <button class="btn btn-primary"
+                                    onclick="$.debtorsCtrl.forgottenToExcel(); return false;">Excel
                             </button>
-                            {!!Form::close()!!}
-                        </td>
-                    </tr>
-                </table>
-            </div>
+                        @endif
+                        {!!Form::close()!!}
+                    </td>
+                </tr>
+            </table>
         </div>
-    @endif
+    </div>
+
     <div class="row">
         <div class="col-xs-12">
             <table class="table table-condensed table-striped table-bordered" id="debtorforgottenTable">
