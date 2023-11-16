@@ -52,6 +52,7 @@ class EmailController extends Controller
             'email_id' => $request->email_id,
             'dateAnswer' => Carbon::parse($request->dateAnswer)->format('d.m.Y') ?? null,
             'datePayment' => Carbon::parse($request->datePayment)->format('d.m.Y') ?? null,
+            'lastDate' => Carbon::parse($request->lastDate)->format('d.m.Y') ?? null,
             'discountPayment' => $request->discountPayment ?? null,
             'user' => $user,
             'userEmail' => $userEmail,

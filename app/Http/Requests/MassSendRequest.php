@@ -14,6 +14,7 @@ class MassSendRequest extends Request
             'dateSmsTemplate' => 'required|date',
             'dateAnswer'=>'date',
             'datePayment'=>'date',
+            'lastDate'=>'date',
             'discountPayment'=>'numeric'
         ];
     }

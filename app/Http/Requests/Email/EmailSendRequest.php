@@ -28,6 +28,7 @@ class EmailSendRequest extends Request
             'email_id'=>'int',
             'dateAnswer'=>'date',
             'datePayment'=>'date',
+            'lastDate'=>'date',
             'discountPayment'=>'numeric',
         ];
     }
