@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Response;
 use Tests\TestCase;
 
 class MassRecurentServiceTest extends TestCase
 {
+    use DatabaseTransactions;
+
     protected function setUp()
     {
         parent::setUp();

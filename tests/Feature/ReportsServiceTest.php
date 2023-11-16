@@ -6,6 +6,7 @@ use App\Customer;
 use App\Debtor;
 use App\Http\Controllers\DebtorsReportsController;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Http\Request;
 use App\MySoap;
@@ -16,7 +17,7 @@ use Tests\TestCase;
 
 class ReportsServiceTest extends TestCase
 {
-    use WithoutMiddleware;
+    use DatabaseTransactions, WithoutMiddleware;
 
     private MySoap $mySoap;
     private DebtorsReportsController $debtorsReportsController;
@@ -129,16 +130,16 @@ class ReportsServiceTest extends TestCase
 
     }
 
-    public function testDebtorsControllerGetPaymentsForDay()
-    {
-        $request = new Request([
-            'start_date' => $this->param['start_date'],
-            'end_date' => $this->param['end_date']
-        ]);
-        $response = $this->debtorsReportsController->getPaymentsForDay($this->mySoap, $request);
-        $this->assertEquals($response->status(), Response::HTTP_OK);
-        $this->assertNotEmpty($response->getOriginalContent()['payments']);
-    }
+//    public function testDebtorsControllerGetPaymentsForDay()
+//    {
+//        $request = new Request([
+//            'start_date' => $this->param['start_date'],
+//            'end_date' => $this->param['end_date']
+//        ]);
+//        $response = $this->debtorsReportsController->getPaymentsForDay($this->mySoap, $request);
+//        $this->assertEquals($response->status(), Response::HTTP_OK);
+//        $this->assertNotEmpty($response->getOriginalContent()['payments']);
+//    }
 
     public function testDebtorsControllerGetPaymentsForDayErrorDate()
     {

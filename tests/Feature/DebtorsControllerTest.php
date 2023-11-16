@@ -12,15 +12,13 @@ use App\Passport;
 use App\Repositories\DebtorEventsRepository;
 use App\Subdivision;
 use App\User;
-use EmailsMessagesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Response;
-use RolesSeeder;
 use Tests\TestCase;
 
 class DebtorsControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private $user;
     private $debtors;
@@ -58,8 +56,6 @@ class DebtorsControllerTest extends TestCase
             ]);
         }
 
-        $this->seed(RolesSeeder::class);
-        $this->seed(EmailsMessagesSeeder::class);
         $this->emailTemplateId = EmailMessage::all()->pluck('id')->toArray();
     }
 
