@@ -700,15 +700,15 @@
     };
 
     $.debtorsCtrl.intiInputModal = function (element) {
-        let name = $(element).val();
+        let idList = $(element).val();
         if (
-            name == '1.10' ||
-            name == '1.15' ||
-            name == '1.16' ||
-            name == '1.17' ||
-            name == '2.5'  ||
-            name == '2.33' ||
-            name == '2.34'
+            idList == 10 ||
+            idList == 15 ||
+            idList == 16 ||
+            idList == 17 ||
+            idList == 22 ||
+            idList == 33 ||
+            idList == 34
         ) {
             $('#datePayment').show();
             $('#datePaymentLabel').text('Оплатите задолженность до :');
@@ -716,7 +716,7 @@
             $('#discountPaymentLabel').text('');
             $('#dateAnswer').hide();
             $('#dateAnswerLabel').text('');
-        } else if (name == '2.3') {
+        } else if (idList == 20) {
             $('#datePayment').show();
             $('#datePaymentLabel').text('Предложение доступно до :');
             $('#discountPayment').show();

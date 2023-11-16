@@ -25,7 +25,7 @@ class EmailSendRequest extends Request
     {
         return [
             'debtors_id'=>'numeric',
-            'email_id'=>'string',
+            'email_id'=>'int',
             'dateAnswer'=>'date',
             'datePayment'=>'date',
             'discountPayment'=>'numeric',
