@@ -142,9 +142,6 @@ class EmailService
         if (array_key_exists('discountPayment', $arrayParam)) {
             $templateMessage = str_replace('{{discount_payment}}', $arrayParam['discountPayment'], $templateMessage);
         }
-        if (array_key_exists('lastDate', $arrayParam)) {
-            $templateMessage = str_replace('{{date_payment}}', $arrayParam['lastDate'], $templateMessage);
-        }
         return $templateMessage;
     }
 

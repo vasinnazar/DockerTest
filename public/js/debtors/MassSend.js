@@ -67,7 +67,6 @@ $(document).ready(function () {
                 dateSmsTemplate: $('input[name="date_template_sms"]').val(),
                 dateAnswer: $('input[name="dateAnswer"]').val(),
                 datePayment: $('input[name="datePayment"]').val(),
-                lastDate: $('input[name="lastDate"]').val(),
                 discountPayment: $('input[name="discountPayment"]').val()
             },
             dataType: "json",

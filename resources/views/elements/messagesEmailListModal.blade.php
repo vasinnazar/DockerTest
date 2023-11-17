@@ -14,10 +14,9 @@
                 </select>
             @endif
             <div>
-                <input id="lastDate" name="lastDate" type="date" style="margin: 10px; display: none" >
-                <label id="lastDateLabel" for="lastDate" style="margin-top: 10px;" ></label>
                 <label id="datePaymentLabel" for="datePayment" style="margin: 10px;"></label>
-                <input id="datePayment" name="datePayment" type="date" style="display: none"> <br>
+                <input id="datePayment" name="datePayment" type="date" style="display: none">
+                <label id="datePaymentLabelAfter" for="datePayment" style="margin: 10px;"></label><br>
                 <label id="discountPaymentLabel" for="discountPayment" style="margin: 10px"></label>
                 <input id="discountPayment" name="discountPayment" type="number" step="any" style="display: none" ><br>
                 <label id='dateAnswerLabel' for="dateAnswer" style="margin: 10px"></label>

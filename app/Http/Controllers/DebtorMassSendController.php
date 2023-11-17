@@ -373,7 +373,6 @@ class DebtorMassSendController extends BasicController
                 'email_id' => $input['templateId'],
                 'dateAnswer' => Carbon::parse($input['dateAnswer'] ?? null)->format('d.m.Y'),
                 'datePayment' => Carbon::parse($input['datePayment'] ?? null)->format('d.m.Y'),
-                'lastDate' => Carbon::parse($input['lastDate'] ?? null)->format('d.m.Y'),
                 'discountPayment' => $input['discountPayment'] ?? null,
                 'user' => $responsibleUser,
                 'userEmail' => $userEmail,

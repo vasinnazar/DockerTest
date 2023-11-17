@@ -700,10 +700,9 @@
     };
 
     $.debtorsCtrl.intiInputModal = function (element) {
-        $('#lastDate').hide();
-        $('#lastDateLabel').text('');
         $('#datePayment').hide();
         $('#datePaymentLabel').text('');
+        $('#datePaymentLabelAfter').text('');
         $('#discountPayment').hide();
         $('#discountPaymentLabel').text('');
         $('#dateAnswer').hide();
@@ -719,8 +718,8 @@
             $('#datePayment').show();
             $('#datePaymentLabel').text('Оплатите задолженность до :');
         } else if (idList == 33) {
-            $('#lastDate').show();
-            $('#lastDateLabel').text('Крайний срок');
+            $('#datePayment').show();
+            $('#datePaymentLabelAfter').text('Крайний срок');
         } else if (idList == 34) {
             $('#datePayment').show();
             $('#datePaymentLabel').text('Не поступила оплата по графику до :');
