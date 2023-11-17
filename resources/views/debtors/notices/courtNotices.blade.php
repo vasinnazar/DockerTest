@@ -150,5 +150,5 @@
 @endif
 @stop
 @section('scripts')
-        <script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
+        <script src="{{asset('js/debtors/debtorsController.js?2')}}"></script>
 @stop

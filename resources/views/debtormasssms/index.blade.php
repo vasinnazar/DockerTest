@@ -175,6 +175,6 @@
     @include('elements.debtorsMassSmsModal')
 @stop
 @section('scripts')
-    <script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
+    <script src="{{asset('js/debtors/debtorsController.js?2')}}"></script>
     <script src="{{asset('js/debtors/MassSend.js?1')}}"></script>
 @stop

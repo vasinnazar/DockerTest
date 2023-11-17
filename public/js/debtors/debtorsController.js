@@ -700,22 +700,29 @@
     };
 
     $.debtorsCtrl.intiInputModal = function (element) {
+        $('#datePayment').hide();
+        $('#datePaymentLabel').text('');
+        $('#datePaymentLabelAfter').text('');
+        $('#discountPayment').hide();
+        $('#discountPaymentLabel').text('');
+        $('#dateAnswer').hide();
+        $('#dateAnswerLabel').text('');
         let idList = $(element).val();
         if (
             idList == 10 ||
             idList == 15 ||
             idList == 16 ||
             idList == 17 ||
-            idList == 22 ||
-            idList == 33 ||
-            idList == 34
+            idList == 22
         ) {
             $('#datePayment').show();
             $('#datePaymentLabel').text('Оплатите задолженность до :');
-            $('#discountPayment').hide();
-            $('#discountPaymentLabel').text('');
-            $('#dateAnswer').hide();
-            $('#dateAnswerLabel').text('');
+        } else if (idList == 33) {
+            $('#datePayment').show();
+            $('#datePaymentLabelAfter').text('крайний срок');
+        } else if (idList == 34) {
+            $('#datePayment').show();
+            $('#datePaymentLabel').text('Не поступила оплата по графику до :');
         } else if (idList == 20) {
             $('#datePayment').show();
             $('#datePaymentLabel').text('Предложение доступно до :');
@@ -723,14 +730,6 @@
             $('#discountPaymentLabel').text('внесите руб :');
             $('#dateAnswer').show();
             $('#dateAnswerLabel').text('ДАЙТЕ ОТВЕТ до :');
-        } else {
-            $('#datePayment').hide();
-            $('#datePaymentLabel').text('');
-            $('#discountPayment').hide();
-            $('#discountPaymentLabel').text('');
-            $('#dateAnswer').hide();
-            $('#dateAnswerLabel').text('');
         }
-
     };
 })(jQuery);
