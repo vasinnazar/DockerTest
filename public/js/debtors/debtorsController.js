@@ -719,7 +719,7 @@
             $('#datePaymentLabel').text('Оплатите задолженность до :');
         } else if (idList == 33) {
             $('#datePayment').show();
-            $('#datePaymentLabelAfter').text('Крайний срок');
+            $('#datePaymentLabelAfter').text('крайний срок');
         } else if (idList == 34) {
             $('#datePayment').show();
             $('#datePaymentLabel').text('Не поступила оплата по графику до :');
