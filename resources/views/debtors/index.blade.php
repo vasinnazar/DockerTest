@@ -280,7 +280,7 @@
     @include('elements.debtors.debtorsSiteLoginReportModal')
 @stop
 @section('scripts')
-    <script src="{{asset('js/debtors/debtorsController.js?1')}}"></script>
+    <script src="{{asset('js/debtors/debtorsController.js?2')}}"></script>
     <script>
         $(document).ready(function () {
             $.debtorsCtrl.init();
