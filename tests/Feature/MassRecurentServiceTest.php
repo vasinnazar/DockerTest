@@ -2,28 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Clients\PaysClient;
-use App\Customer;
-use App\Debtor;
-use App\Jobs\WithoutAcceptJob;
-use App\LoanType;
-use App\Model\Status;
-use App\Passport;
-use App\Repositories\DebtorRepository;
-use App\Repositories\MassRecurrentRepository;
-use App\RoleUser;
-use App\Services\MassRecurrentService;
-use App\Subdivision;
-use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Queue;
-use Mockery;
-use RolesSeeder;
 use Tests\TestCase;
 
 class MassRecurentServiceTest extends TestCase
 {
+    use DatabaseTransactions;
+
     protected function setUp()
     {
         parent::setUp();

@@ -56,17 +56,27 @@ class DebtorTest extends TestCase
         $this->withoutMiddleware();
     }
 
-    public function testAjaxDebtorList()
+    public function testAjaxDebtortransfer()
     {
-        $response = $this->actingAs($this->user)->json('GET', 'ajax/debtors/list', [
-            'search_field_about@email' => ''
+        $responseWithKratnost = $this->actingAs($this->user)->json('GET', 'ajax/debtortransfer/list', [
+            'search_field_debtors@kratnost' => 1
+        ]);
+
+        $responseWithKratnost->assertJsonFragment([
+            'debtors_base' => $this->debtor->base
+        ]);
+    }
+
+    public function testAjaxDebtorEventsList()
+    {
+        $response = $this->actingAs($this->user)->json('GET', 'ajax/debtorevents/list', [
+            'search_field_debtors@kratnost' => 1,
+            'search_field_debtor_events@date_from' => '2020-12-12'
         ]);
 
         $response->assertOk();
-    }
-
-    protected function connectionsToTransact()
-    {
-        return ['debtors'];
+        $response->assertJsonFragment([
+            'de_username' => $this->user->name
+        ]);
     }
 }

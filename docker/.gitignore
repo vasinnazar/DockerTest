@@ -1,3 +1,5 @@
 mariadb/database
 mariadb/logs
 nginx/logs
+mariadb_test/database
+mariadb_test/logs

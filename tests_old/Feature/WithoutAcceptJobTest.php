@@ -16,6 +16,7 @@ use App\Services\MassRecurrentService;
 use App\Subdivision;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Queue;
 use Mockery;
@@ -24,7 +25,7 @@ use Tests\TestCase;
 
 class WithoutAcceptJobTest extends TestCase
 {
-    use DatabaseTransactions;
+    use DatabaseTransactions, WithoutMiddleware;
     private $user;
     private $debtors;
     private $strPodr = '000000000007';
