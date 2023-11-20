@@ -105,6 +105,7 @@
                         <th>Отдел</th>
                         <th>Инициатор</th>
                         <th>Часовые пояса</th>
+                        <th>Дни просрочки</th>
                         <th>Прогресс</th>
                     </tr>
                     </thead>
@@ -147,6 +148,13 @@
                                     @endif
                                 </td>
                                 <td>
+                                    @if ($task->qty_delays_to !== 0)
+                                        {{$task->qty_delays_from}} - {{$task->qty_delays_to}}
+                                    @else
+                                        Не выбраны
+                                    @endif
+                                </td>
+                                <td>
                                     @if ($task->completed)
                                         Отправлено {{$task->debtors_processed}}
                                         <br>
@@ -176,7 +184,7 @@
 
                     let timezone = $(this).val();
                     let formData = $(this).parent().serializeArray();
-                    $(formData).each(function(i, field){
+                    $(formData).each(function (i, field) {
                         formData[field.name] = field.value;
                     });
                     $.ajax({
@@ -228,7 +236,7 @@
                             if (json_data.status === 'completed') {
                                 location.reload();
                             } else {
-                                $.each(json_data.tasks, function(task_id, count) {
+                                $.each(json_data.tasks, function (task_id, count) {
                                     $('#progress-count-' + task_id).html(count);
                                 });
                                 setTimeout(() => {
@@ -238,6 +246,7 @@
                         }
                     });
                 }
+
                 loop();
             });
         </script>
