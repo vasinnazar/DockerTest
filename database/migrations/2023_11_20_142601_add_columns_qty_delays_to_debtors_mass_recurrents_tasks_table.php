@@ -14,8 +14,8 @@ class AddColumnsQtyDelaysToDebtorsMassRecurrentsTasksTable extends Migration
     public function up()
     {
         Schema::table('debtors_mass_recurrents_tasks', function (Blueprint $table) {
-            $table->Integer('qty_delays_from')->default(0)->after('str_podr');
-            $table->Integer('qty_delays_to')->default(0)->after('qty_delays_from');
+            $table->integer('qty_delays_from')->default(0)->after('str_podr');
+            $table->integer('qty_delays_to')->default(0)->after('qty_delays_from');
         });
     }
 

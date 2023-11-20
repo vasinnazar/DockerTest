@@ -12,6 +12,7 @@ use Tests\TestCase;
 class DebtorEventServiceTest extends TestCase
 {
     use DatabaseTransactions;
+
     public function testCheckLimitEventByCustomerId1c()
     {
         $debtors = factory(Debtor::class, 'debtor')->create();
@@ -22,9 +23,9 @@ class DebtorEventServiceTest extends TestCase
         ]);
 
         $result = app(DebtorEventService::class)->checkLimitEventByCustomerId1c($debtors->first()->customer_id_1c);
-        $this->assertEquals(null,$result);
+        $this->assertEquals(null, $result);
 
-        factory(DebtorEvent::class, 'event_limit',2)->create([
+        factory(DebtorEvent::class, 'event_limit', 2)->create([
             'customer_id_1c' => $debtors->first()->customer_id_1c,
             'debtor_id' => $debtors->first()->id,
             'created_at' => Carbon::now()
@@ -32,7 +33,7 @@ class DebtorEventServiceTest extends TestCase
 
         try {
             app(DebtorEventService::class)->checkLimitEventByCustomerId1c($debtors->first()->customer_id_1c);
-        }catch (\Throwable $exception) {
+        } catch (\Throwable $exception) {
             $this->assertEquals('Превышен лимит за день', $exception->errorMessage);
         }
     }
@@ -40,7 +41,7 @@ class DebtorEventServiceTest extends TestCase
     public function testGetCountEventsByDate()
     {
         $debtors = factory(Debtor::class, 'debtor')->create();
-        factory(DebtorEvent::class, 'event_limit',2)->create([
+        factory(DebtorEvent::class, 'event_limit', 2)->create([
             'customer_id_1c' => $debtors->first()->customer_id_1c,
             'debtor_id' => $debtors->first()->id,
             'created_at' => Carbon::now()
@@ -56,6 +57,6 @@ class DebtorEventServiceTest extends TestCase
                 DebtorEvent::EMAIL_EVENT
             ]
         );
-        $this->assertEquals(2,$res);
+        $this->assertEquals(2, $res);
     }
 }
