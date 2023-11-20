@@ -56,6 +56,6 @@ class DebtorEventServiceTest extends TestCase
                 DebtorEvent::EMAIL_EVENT
             ]
         );
-        self::assertEquals(2,$res);
+        $this->assertEquals(2,$res);
     }
 }

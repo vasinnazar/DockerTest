@@ -37,7 +37,6 @@ class WithoutAcceptJobTest extends TestCase
         parent::setUp();
         factory(Subdivision::class)->create();
         $this->user = factory(User::class)->create();
-        $this->seed(RolesSeeder::class);
         factory(RoleUser::class)->create([
             'user_id' => $this->user->id,
             'role_id' => 10,
