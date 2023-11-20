@@ -17,6 +17,8 @@ class MassRecurrentTask extends Model
         'debtors_count',
         'debtors_processed',
         'str_podr',
+        'qty_delays_from',
+        'qty_delays_to',
         'timezone',
         'completed'
     ];
