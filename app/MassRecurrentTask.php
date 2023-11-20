@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use DB;
 
 class MassRecurrentTask extends Model
 {
@@ -17,6 +16,8 @@ class MassRecurrentTask extends Model
         'debtors_count',
         'debtors_processed',
         'str_podr',
+        'qty_delays_from',
+        'qty_delays_to',
         'timezone',
         'completed'
     ];

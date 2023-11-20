@@ -47,6 +47,8 @@ class MassRecurrentService
                 'user_id' => $user->id,
                 'debtors_count' => 0,
                 'str_podr' => $str_podr,
+                'qty_delays_from' => $qtyDelaysFrom,
+                'qty_delays_to' => $qtyDelaysTo,
                 'timezone' => $timezone,
                 'completed' => MassRecurrentTask::NOT_COMPLETED
             ]);

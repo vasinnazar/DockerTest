@@ -26,6 +26,7 @@ use Tests\TestCase;
 class WithoutAcceptJobTest extends TestCase
 {
     use DatabaseTransactions, WithoutMiddleware;
+
     private $user;
     private $debtors;
     private $strPodr = '000000000007';
@@ -37,7 +38,6 @@ class WithoutAcceptJobTest extends TestCase
         parent::setUp();
         factory(Subdivision::class)->create();
         $this->user = factory(User::class)->create();
-        $this->seed(RolesSeeder::class);
         factory(RoleUser::class)->create([
             'user_id' => $this->user->id,
             'role_id' => 10,
@@ -99,7 +99,7 @@ class WithoutAcceptJobTest extends TestCase
         $this->assertEquals($recurrent->count(), $this->countDebtor);
         $this->app->bind(
             PaysClient::class,
-            function () use ($jsonResp){
+            function () use ($jsonResp) {
                 $mockSendEmail = Mockery::mock(PaysClient::class);
                 $mockSendEmail->shouldReceive('createPayment')->andReturn($jsonResp);
                 return $mockSendEmail;
@@ -107,13 +107,14 @@ class WithoutAcceptJobTest extends TestCase
         );
         $paysClient = app()->make(PaysClient::class);
         $debtorRepo = app()->make(DebtorRepository::class);
-        Queue::assertPushed(WithoutAcceptJob::class, function ($job) use ($paysClient, $debtorRepo, $massRecRepo){
+        Queue::assertPushed(WithoutAcceptJob::class, function ($job) use ($paysClient, $debtorRepo, $massRecRepo) {
             $job->handle($paysClient, $debtorRepo, $massRecRepo);
             return $job;
         });
         $recurrent = $massRecRepo->getByStatus(Status::SUCCESS);
         $this->assertEquals($recurrent->count(), $this->countDebtor);
     }
+
     public function testWithoutAcceptSendErrorCreateTask(): void
     {
         $this->app->bind(
@@ -136,6 +137,6 @@ class WithoutAcceptJobTest extends TestCase
         $responseCreateTask->assertStatus(
             Response::HTTP_OK
         );
-        $this->assertEquals(json_decode($responseCreateTask->getContent(), true)['status'],'fail');
+        $this->assertEquals(json_decode($responseCreateTask->getContent(), true)['status'], 'fail');
     }
 }

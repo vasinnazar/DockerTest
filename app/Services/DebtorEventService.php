@@ -25,7 +25,7 @@ class DebtorEventService
     /**
      * @throws DebtorException
      */
-    public function checkLimitEventByCustomerId1c(string $customerId1c):void
+    public function checkLimitEventByCustomerId1c(string $customerId1c): void
     {
         $arrayEventsLimit = [
             DebtorEvent::SMS_EVENT,
