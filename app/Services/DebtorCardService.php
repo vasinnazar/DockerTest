@@ -218,12 +218,17 @@ class DebtorCardService
             return collect();
         }
         $phonesSearch = [
-            'equal_telephone' => $debtor->customer->telephone,
-            'equal_telephonehome' => $debtor->customer->about_clients->last()->telephonehome,
-            'equal_telephoneorganiz' => $debtor->customer->about_clients->last()->telephoneorganiz,
-            'equal_telephonerodstv' => $debtor->customer->about_clients->last()->telephonerodstv,
-            'equal_anothertelephone' => $debtor->customer->about_clients->last()->anothertelephone,
+            'equal_telephone' => $debtor->customer->telephone
         ];
+        if ($debtor->customer->about_clients->last()) {
+            $phonesSearch = [
+                'equal_telephone' => $debtor->customer->telephone,
+                'equal_telephonehome' => $debtor->customer->about_clients->last()->telephonehome,
+                'equal_telephoneorganiz' => $debtor->customer->about_clients->last()->telephoneorganiz,
+                'equal_telephonerodstv' => $debtor->customer->about_clients->last()->telephonerodstv,
+                'equal_anothertelephone' => $debtor->customer->about_clients->last()->anothertelephone,
+            ];
+        }
         foreach ($phonesSearch as $key => $phone) {
             $debtorsEqualPhonesAndAddress->put(
                 $key,
