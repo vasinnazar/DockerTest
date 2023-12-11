@@ -1,23 +1,10 @@
-/html_docs/
-/tester.php
-/.idea
-/node_modules
-/public/hot
-/public/storage
-/vendor
-.idea
-.idea/*
-.env
-.env.backup
-.env.testing
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-deploy-config.yml
-docker-compose.yml
-/.build/
-laravel-echo-server.lock
-/.env.testing
-/config/debugbar.php
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###

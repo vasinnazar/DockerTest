@@ -1,0 +1,16 @@
+### create application
+PUT http://localhost/user/create
+Accept: application/json
+Content-Type: application/json
+
+{
+"name": "ivan",
+"email": "ivanov@nsk.com",
+"age": 23,
+"sex":  "male",
+"birthday": "2000-06-06",
+"phone": "+77777777777"
+}
+
+#### get applications
+#GET http://localhost:8000/api/applications

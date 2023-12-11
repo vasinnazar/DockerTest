@@ -13,25 +13,38 @@ services:
   php:
     build: ./docker/php
     links:
-      - mariadb
+      - mysql
     volumes:
       - ./:/var/www/app
       - ./docker/php/php.ini:/usr/local/etc/php/php.ini
     expose:
       - "9000"
       - "9003"
-  mariadb:
-    image: mariadb:10.1.48
+  mysql:
+    image: mysql:8.0
+#    platform: linux/amd64
     ports:
-      - "3306:3306"
-    volumes:
-      - ./docker/mariadb/conf.d:/etc/mysql/conf.d
-      - ./docker/mariadb/logs:/var/log/mysql
-      - ./docker/mariadb/database/:/var/lib/mysql
+      - "3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: debtors
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: crud
       MYSQL_ROOT_HOST: '%'
+    volumes:
+      - ./docker/mysql/database/:/var/lib/mysql
+#    networks:
+#      - app-network
+#  mariadb:
+#    image: mariadb:10.1.48
+#    ports:
+#      - "3306:3306"
+#    volumes:
+#      - ./docker/mariadb/conf.d:/etc/mysql/conf.d
+#      - ./docker/mariadb/logs:/var/log/mysql
+#      - ./docker/mariadb/database/:/var/lib/mysql
+#    environment:
+#      MYSQL_ROOT_PASSWORD: password
+#      MYSQL_DATABASE: debtors
+#      MYSQL_ROOT_HOST: '%'
 #  mariadb_test:
 #    image: mariadb:10.1.48
 #    ports:
@@ -44,7 +57,30 @@ services:
 #      MYSQL_ROOT_PASSWORD: password
 #      MYSQL_DATABASE: debtors_test
 #      MYSQL_ROOT_HOST: '%'
-  redis:
-    image: redis:7.0.5-alpine
-    ports:
-      - "6379:6379"
+#  redis:
+#    image: redis:7.0.5-alpine
+#    ports:
+#      - "6379:6379"
+
+###> doctrine/doctrine-bundle ###
+#  database:
+##    image: postgres:${POSTGRES_VERSION:-15}-alpine
+#    image: mysql:8.0
+#    environment:
+##      POSTGRES_DB: ${POSTGRES_DB:-app}
+##      # You should definitely change the password in production
+##      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+##      POSTGRES_USER: ${POSTGRES_USER:-app}
+#      MYSQL_ROOT_PASSWORD: secret
+#      MYSQL_DATABASE: crud
+#      MYSQL_ROOT_HOST: '%'
+#    volumes:
+#      - database_data:/var/lib/postgresql/data:rw
+#      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+#      # - ./docker/db/data:/var/lib/postgresql/data:rw
+####< doctrine/doctrine-bundle ###
+#
+#volumes:
+####> doctrine/doctrine-bundle ###
+#  database_data:
+####< doctrine/doctrine-bundle ###
